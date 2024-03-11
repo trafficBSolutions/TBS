@@ -1,0 +1,697 @@
+
+/**************************/
+/* APPLY NOW PAGE */
+/**************************/
+
+
+
+  /* Adjust styles for screens narrower than 600px (adjust the value as needed) */
+  .name {
+    margin-bottom: 50px;
+    padding: 0;
+    font-size: 50px;
+    font-style: inherit;
+  }
+  .apply-set {
+    width: 65%;
+    background-color: rgb(255, 255, 255);
+    margin: 0 auto;
+    content: normal;
+    display: flex;
+    flex-wrap: wrap;
+    border: 3px solid black;
+    position: relative;
+    box-sizing: border-box;
+    padding: 0;
+    margin: auto;
+  }
+
+  .apply-now {
+    font-size: 200px;
+  }
+
+  .job-container {
+    max-width: 100%; /* Ensure container takes full width */
+    padding: 0 20px; /* Add padding as needed */
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+  }
+  
+  .job-app-box {
+   text-align: center;
+    font-size: 50px;
+   
+  }
+  
+  .job-fill {
+    font-style:normal;
+    text-align: center;
+    text-emphasis: none;
+    margin: 0px;
+    font-size: 20px;
+    font-family: "Moveo Sans W00 Regular";
+    padding-bottom: 50px;
+  }
+  .first-name-input{
+    padding: 10px;
+    font-size: 20px;
+    margin-bottom: 20px; /* Add margin to create space between Name and Email sections */
+  }
+  
+  .last-name-input{
+    padding: 10px;
+      font-size: 20px;
+      margin-bottom: 20px;
+  }
+  .page-section {
+    padding-bottom: 3.5rem;
+  }
+  .form-container {
+    padding-top: 3.5rem;
+    max-width: 960px;
+    padding-bottom: 3.5rem;
+  }
+  .apply-main {
+    background-color: #bcc3bd;
+  }
+  .apply-container {
+    padding-bottom: 4px;
+    background-color: #f7d7bc;
+  }
+  .apply-now {
+
+    margin: 0 auto;
+    font-size: 100px;
+    text-align: center;
+    font-family: "Kairos W04 Extended Bold";
+  }
+  
+  .descript {
+    line-height: 1.6;
+    margin: 10px;
+    font-size: 20px;
+    font-family: "Moveo Sans W00 Regular";
+    
+  }
+
+  .first-label {
+    font-family: "Moveo Sans w00 Regular";
+    font-style: normal;
+    margin: 0;
+    padding-left: 10px;
+    font-size: 20px;
+  }
+  
+  .first-label-name {
+    font-family: "Moveo Sans w00 Regular";
+      font-style: normal;
+      margin: 0;
+  
+      font-size: 20px;
+  }
+  
+  .last-label-name {
+    font-family: "Moveo Sans w00 Regular";
+      font-style: normal;
+      margin: 0;
+      padding-left: 10px;
+      font-size: 20px;
+  }
+  
+  .last-name {
+    font-family: "Moveo Sans w00 Regular";
+      font-style: normal;
+      margin: 0;
+      padding-left: 10px;
+      font-size: 20px;
+  }
+  
+  .first-input {
+    margin: 10px;
+    display: flex;
+  }
+ 
+  
+  .emailphone-input {
+    margin: 10px;
+      display: flex;
+  }
+  
+  .resume-label {
+    margin-bottom: 50px;
+    padding: 0;
+    font-size: 50px;
+    font-style: inherit;
+  }
+  
+  .emailphone-label {
+    margin-bottom: 50px;
+    padding: 0;
+    font-size: 50px;
+    font-style: inherit;
+  }
+  
+  .email-phone-input {
+    font-family: "Moveo Sans w00 Regular";
+    margin: 50px;
+    margin-right: 0;
+    position: relative;
+    padding: 0px;
+    display: flex;
+  }
+  
+  .email-name {
+    font-family: "Moveo Sans w00 Regular";
+    font-style: normal;
+    margin: 0;
+    padding-left: 10px;
+    font-size: 20px;
+  }
+  
+  .email-input {
+    font-family: "Moveo Sans w00 Regular";
+    margin: 50px;
+    margin-right: 0;
+    position: relative;
+    padding-left: 15px;
+    display: flex;
+  }
+  
+  
+  .resume-input {
+    margin: 10px;
+    display: flex;
+  }
+  
+  .email-box {
+    padding: 10px;
+      font-size: 20px;
+      margin-bottom: 20px;
+  }
+  
+  .phone-box {
+    padding: 10px;
+      font-size: 20px;
+      margin-bottom: 20px;
+  }
+  
+  .phone {
+    font-family: "Moveo Sans w00 Regular";
+    font-style: normal;
+    margin: 0;
+    padding-left: 10px;
+    font-size: 20px;
+  }
+  
+  .phone-input {
+    font-family: "Moveo Sans w00 Regular";
+      margin: 50px;
+      margin-right: 0;
+      position: relative;
+      padding-left: 15px;
+      display: flex;
+  }
+  
+  .resume-note {
+    font-style: normal;
+    text-align: center;
+    text-emphasis: none;
+    margin: 0px;
+    font-size: 20px;
+    font-family: "Moveo Sans W00 Regular";
+    padding-top: 30px;
+  }
+  
+  .resume-name {
+    font-family: "Moveo Sans w00 Regular";
+      font-style: normal;
+      margin: 0;
+      padding-left: 10px;
+      font-size: 20px;
+  }
+  
+  .resume-box {
+    font-family: "Moveo Sans w00 Regular";
+      font-style: normal;
+      margin: 0;
+      padding-left: 10px;
+      font-size: 20px;
+  }
+  .cover-letter {
+    margin: 10px;
+    display: flex;
+  }
+  .file-apply-input-container {
+    display: flex;
+    align-items: center;
+  }
+  .file-input-container {
+    display: flex;
+    align-items: center;
+  }
+  .file-apply-label input[type="file"] {
+    display: none; /* Hide the default file input */
+  }
+  
+  .file-apply-label,
+  .remove-apply-file-button {
+    display: flex;
+    background-color: #e67e22; /* Background color of the button */
+    color: #fff; /* Text color of the button */
+    padding: 10px 20px; /* Padding around the button text */
+    font-size: 2rem;
+    border: none; /* Remove border */
+    border-radius: 5px; /* Add border radius for rounded corners */
+    cursor: pointer; /* Change cursor to pointer on hover */
+  }
+  
+  .remove-apply-file-button {
+    margin-left: 10px; /* Add some space between "Choose File" and "Remove" buttons */
+  }
+  .fileInput {
+  
+      font-size: 20px;
+      margin-bottom: 20px;/* Add any styling for the file input button */
+  }
+  
+  .cover-name {
+    font-family: "Moveo Sans w00 Regular";
+      font-style: normal;
+      margin: 0;
+      padding-left: 10px;
+      font-size: 20px;
+  }
+  
+  .message-label {
+    margin-bottom: 50px;
+    padding: 0;
+    font-size: 50px;
+    font-style: inherit;
+  }
+  
+  .message-note {
+    font-style: normal;
+    text-align: center;
+    text-emphasis: none;
+    margin: 0px;
+    font-size: 20px;
+    font-family: "Moveo Sans W00 Regular";
+    padding-top: 30px;
+  }
+  
+  .message-text {
+    font-style: normal;
+    text-align: left;
+    text-emphasis: none;
+    font-size: 20px;
+    font-family: "Moveo Sans W00 Regular";
+    width: 100%;
+    height: 300px;
+  }
+  
+  .submit-app {
+    background-color: #e67e22;
+    position: relative;
+    font-size: 80px;
+    margin-top: 30px;
+    margin-bottom: 30px;
+    width: 100%;
+    color: #fff;
+    align-self: auto;
+  }
+  
+.submission-thank {
+  color: #51cf66;
+}
+
+.footer {
+  background-color: #f7d7bc;
+}
+
+.col-md-2 {
+  width: 16.66666667%
+}
+
+.footer-navigate1 {
+position: relative;
+}
+
+.row {
+  margin-right: 0;
+  margin-left: 0;
+}
+
+.submission-message {
+  color:#51cf66;
+  font-family: "Moveo Sans W00 Regular";
+  font-size:large;
+  font-style: bold;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.submission-error-message {
+  color:#ff0000;
+  font-family: "Kairos W04 Extended Bold";
+  font-size:large;
+  font-style: bold;
+  text-align: center;
+  margin-bottom: 30px;
+  width: 100%;
+}
+
+.warning-message {
+  color:#ff0000;
+}
+
+
+@media screen and (min-width: 240px) and (max-width: 320px) and (orientation: portrait) and (-webkit-min-device-pixel-ratio: 1) {
+  .apply-now {
+    font-size: 40px;
+  }
+ 
+  .apply-set {
+    width: 90%;
+    margin: 0 auto;
+    content: normal;
+    display: flex;
+    flex-wrap: wrap;
+    border: 3px solid black;
+    position: relative;
+    box-sizing: border-box;
+    padding: 0;
+    margin: auto;
+  }
+  .job-container {
+    padding: 1rem;
+    margin: 0 auto;
+    max-width: 200px;
+    display: block;
+  }
+  .job-app-box {
+    font-size: 33px;
+  }
+  .name {
+    font-size: 40px;
+  }
+  .first-input {
+    display: block;
+    padding-left: 0px;
+}
+.first-name {
+  margin: 0px;
+    margin-left: -7px;
+    padding-left: 0px;
+    display: block;
+}
+.first-name-input {
+    font-size: 12px;
+}
+.last-name {
+  padding: 0;
+}
+.lastname-input {
+  padding-bottom: 30px;
+  margin: 0px;
+  margin-left: -7px;
+  padding-left: 0px;
+}
+.last-name-input {
+  font-size: 12px;
+}
+.emailphone-label {
+  font-size: 34px;
+}
+.emailphone-input {
+  display: block;
+}
+.emailname-input {
+  padding-bottom: 30px;
+  margin: 0px;
+  margin-left: -7px;
+  padding-left: 0px;
+}
+.email-box {
+  font-size: 12px;
+  margin-bottom: 0;
+}
+.phone {
+  padding-left: 0;
+}
+.phone-box {
+  font-size: 12px;
+}
+.phonename-input {
+  margin: 0px;
+  margin-left: -7px;
+  padding-left: 0px;
+}
+.resume-label {
+  font-size: 29px;
+}
+.resume-section {
+  margin-top: 10px;
+}
+.name-input {
+  font-family: "Moveo Sans w00 Regular";
+    margin: 0px;
+    margin-right: 0;
+    padding-left: 15px;
+    display: block;
+}
+.file-apply-input-container {
+  display: block;
+}
+.file-input-container {
+  display: block;
+}
+.file-apply-label {
+  margin-top: 10px;
+  margin-left: 0;
+  margin-bottom: 15px;
+}
+.remove-apply-file-button {
+  margin-top: 10px;
+  margin-left: 0;
+  margin-bottom: 15px;
+}
+.message-text {
+  width: 101%;
+  margin-left: 0;
+}
+.submit-app {
+  margin-left: 0;
+  font-size: 15px;
+}
+.message-label {
+  font-size: 40px;
+}
+}
+@media screen and (min-width: 240px) and (max-width: 320px) and (orientation: landscape) and (-webkit-min-device-pixel-ratio: 1) {
+  .apply-now {
+    font-size: 55px;
+  }
+ 
+  .apply-set {
+    width: 90%;
+    margin: 0 auto;
+    content: normal;
+    display: flex;
+    flex-wrap: wrap;
+    border: 3px solid black;
+    position: relative;
+    box-sizing: border-box;
+    padding: 0;
+    margin: auto;
+  }
+  .job-container {
+    padding: 1rem;
+    margin: 0 auto;
+    max-width: 250px;
+    display: block;
+  }
+  .job-app-box {
+    font-size: 33px;
+  }
+  .name {
+    font-size: 40px;
+  }
+  .first-input {
+    display: block;
+    padding-left: 0px;
+}
+.first-name {
+  margin: 0px;
+    margin-left: -7px;
+    padding-left: 0px;
+    display: block;
+}
+.first-name-input {
+    font-size: 12px;
+}
+.last-name {
+  padding: 0;
+}
+.lastname-input {
+  padding-bottom: 30px;
+  margin: 0px;
+  margin-left: -7px;
+  padding-left: 0px;
+}
+.last-name-input {
+  font-size: 12px;
+}
+.emailphone-label {
+  font-size: 34px;
+}
+.emailphone-input {
+  display: block;
+}
+.emailname-input {
+  padding-bottom: 30px;
+  margin: 0px;
+  margin-left: -7px;
+  padding-left: 0px;
+}
+.email-box {
+  font-size: 12px;
+  margin-bottom: 0;
+}
+.phone {
+  padding-left: 0;
+}
+.phonename-input {
+  margin: 0px;
+  margin-left: -7px;
+  padding-left: 0px;
+}
+.resume-label {
+  font-size: 29px;
+}
+.resume-section {
+  margin-top: 10px;
+}
+.name-input {
+  font-family: "Moveo Sans w00 Regular";
+    margin: 0px;
+    margin-right: 0;
+    padding-left: 15px;
+    display: block;
+}
+.file-apply-input-container {
+  display: block;
+}
+.file-input-container {
+  display: block;
+}
+.file-apply-label {
+  margin-top: 10px;
+  margin-left: 0;
+  margin-bottom: 15px;
+}
+.remove-apply-file-button {
+  margin-top: 10px;
+  margin-left: 0;
+  margin-bottom: 15px;
+}
+.message-text {
+  width: 101%;
+  margin-left: 0;
+}
+.submit-app {
+  margin-left: 0;
+  font-size: 15px;
+}
+.message-label {
+  font-size: 40px;
+}
+}
+@media screen and (min-width: 353px) and (max-width: 745px) and (orientation: portrait) and (-webkit-min-device-pixel-ratio: 1) {
+  .apply-now {
+    font-size: 60px;
+  }
+  .apply-set {
+    width: 90%;
+    margin: 0 auto;
+  }
+  .job-container {
+    padding: 1rem;
+    margin: 0 auto;
+  }
+  .first-input {
+    display: block;
+}
+  .last-name {
+    padding-left: 0;
+}
+.emailphone-input {
+  display: block;
+}
+.phone {
+  padding-left: 0;
+}
+.resume-label {
+  font-size: 44px;
+}
+.message-text {
+  width: 100%;
+  margin-left: 0;
+}
+.submit-app {
+  margin-left: 0;
+  font-size: 300%;
+}
+}
+@media screen and (min-width: 353px) and (max-width: 745px) and (orientation: landscape) and (-webkit-min-device-pixel-ratio: 1) {
+  .apply-set {
+    width: 95%;
+  }
+  .submit-app {
+    font-size: 35px;
+  }
+}
+@media screen and (min-width: 360px) and (max-width: 740px) and (orientation: landscape) and (-webkit-min-device-pixel-ratio: 2) {
+  .apply-now {
+    font-size: 110px;
+  }
+  .apply-set {
+    width: 95%;
+    margin: 0 auto;
+  }
+  .message-text {
+    margin-left: 0;
+    width: 100%;
+  }
+  .submit-app {
+    margin-left: 0;
+    width: 100%;
+    font-size: 45px;
+}
+}
+@media screen and (min-width: 600px) and (max-width: 1024px) and (orientation: portrait) and (-webkit-min-device-pixel-ratio: 1) {
+   .apply-now {
+    font-size: 100px;
+   }
+   .apply-set {
+    width: 95%;
+   }
+   .last-name {
+    padding-left: 0;
+   }
+   .message-text {
+    margin-left: 0;
+    width: 100%;
+   }
+   .submit-app {
+    margin-left: 0px;
+    width: 100%;
+    font-size: 45px;
+   }
+}
+@media screen and (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) and (-webkit-min-device-pixel-ratio: 1) {
+   .apply-now {
+    font-size: 140px;
+   }
+   .apply-set {
+    width: 95%;
+   }
+}
