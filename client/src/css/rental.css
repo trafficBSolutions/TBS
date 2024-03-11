@@ -1,0 +1,539 @@
+.equip-descript {
+  margin: 0 auto;
+  font-size: 100px;
+  text-align: center;
+  font-family: "Kairos W04 Extended Bold";
+}
+.descript-equip {
+  line-height: 1.6;
+  margin: 10px;
+  font-size: 20px;
+  font-family: "Moveo Sans W00 Regular";
+}
+.equipment-main {
+  background-color: #bcc3bd;
+}
+.equipment-form-container {
+  max-width: 100%;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+.rental-form {
+  padding-top: 10px;
+  background-color: #e7e7e7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 90%;
+}
+  .equipment-container {
+    padding-bottom: 4px;
+    background-color: #f7d7bc;
+  }
+
+ 
+  .submit-rental, .submit-quantity {
+    background-color: #e67e22;
+    position: relative;
+    font-size: 30px;
+    margin-top: 30px;
+    margin-bottom: 30px;
+    width: 100%;
+    color: #fff;
+
+  }
+  
+  .equipment-label {
+    margin-bottom: 50px;
+    padding: 0;
+    font-size: 50px;
+    font-style: inherit;
+  }
+
+  .equip-label {
+    font-family: "Moveo Sans w00 Regular";
+    font-style: normal;
+    margin: 0;
+    padding-left: 10px;
+    font-size: 20px;
+  }
+  .equipment-box {
+    text-align: center;
+    font-size: 50px;
+  }
+  .equipment-fill {
+    font-style: normal;
+    text-align: center;
+    text-emphasis: none;
+    margin: 0px;
+    font-size: 20px;
+    font-family: "Moveo Sans W00 Regular";
+    padding-bottom: 50px;
+  }
+  .name-equip {
+    margin-bottom: 50px;
+    padding: 0;
+    font-size: 50px;
+    font-style: inherit;
+  }
+  .first-equip-input {
+    margin: 40px;
+    display: flex;
+  }
+  .name-equip-input {
+    font-family: "Moveo Sans w00 Regular";
+    margin-right: 0;
+    position: relative;
+    padding-left: 15px;
+    display: flex;
+  }
+  .company-equip-input {
+      margin: 40px;
+  }
+
+  .added-equip-label {
+    font-family: "Moveo Sans w00 Regular";
+    font-style: normal;
+    margin: 0;
+    padding-left: 10px;
+    font-size: 50px;
+  }
+  .emailphone-equip-input {
+    margin: 0px;
+    display: flex;
+}
+
+.phone-equip {
+  font-family: "Moveo Sans w00 Regular";
+  font-style: normal;
+  margin: 0;
+  padding-left: 10px;
+  font-size: 20px;
+}
+.name-phone-equip-input {
+  font-family: "Moveo Sans w00 Regular";
+  margin: 0px;
+  margin-right: 0;
+  position: relative;
+  padding-left: 15px;
+  display: flex;
+}
+.name-email-equip-input {
+  font-family: "Moveo Sans w00 Regular";
+  margin: 0px;
+  margin-right: 0;
+  position: relative;
+  padding-left: 15px;
+  display: flex;
+}
+
+
+  .first-equip-name-input, 
+  .last-equip-name-input,
+  .company-equip-name-input,
+  .email-equip-box,
+  .phone-equip-box,
+  .address-equip-box,
+  .city-equip-box,
+  .state-equip-box,
+  .zip-equip-box,
+  .equipment-select,
+  .date-picker, 
+  .quantity-input {
+    padding: 10px;
+    font-size: 20px;
+    margin-bottom: 20px;
+  }
+
+  .equipment-img-section {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center; /* Optional: Adjust as needed */
+    align-items: center; /* Optional: Adjust as needed */
+    text-align: center; /* Optional: Adjust as needed */
+  }
+  
+  .equipment-img-section div {
+    margin: 10px; /* Adjust spacing as needed */
+    text-align: center;
+  }
+  
+  .equipment-img-section img {
+    width: 200px; /* Adjust size as needed */
+    height: auto; /* Maintain aspect ratio */
+  }
+  
+  .equipment-name {
+    font-size: 20px; /* Adjust font size as needed */
+    margin-top: 10px; /* Adjust spacing as needed */
+  }
+  
+  .equipment-list {
+    font-size: 30px;
+    margin-left: 50px;
+    font-family: "Moveo Sans W00 Regular";
+  }
+
+  .barrel-img {
+    width: 200px;
+    display: block;
+    margin: auto;
+    margin-bottom: 20px;
+  }
+
+  .cone-img {
+    width: 200px;
+    display: block;
+    margin: auto;
+    margin-bottom: 20px;
+  }
+
+  .arrow-board-img {
+    width: 500px;
+    display: block;
+    margin: auto;
+    margin-bottom: 20px;
+  }
+
+  .message-board-img {
+    width: 400px;
+    display: block;
+    margin: auto;
+    margin-bottom: 20px;
+  }
+
+  .roll-up-img {
+    width: 300px;
+    display: block;
+    margin: auto;
+    margin-bottom: 20px;
+  }
+
+  .barricade-img {
+    width: 200px;
+    display: block;
+    margin: auto;
+    margin-bottom: 20px;
+  }
+
+  .construction-sign-img {
+    width: 250px;
+    display: block;
+    margin: auto;
+    margin-bottom: 20px;
+  }
+  .name-equip, 
+  .emailphone-equip-label,
+  .company-equip-label,
+  .address-equip-label,
+  .equipment-label, 
+  .message-equip-label {
+    margin-bottom: 50px;
+    padding: 0;
+    font-size: 50px;
+    font-style: inherit;
+  }
+  .first-equip-label-name, 
+  .last-equip-label-name, 
+  .company-equip-name,
+  .email-equip-name,
+  .phone-equip-label,
+  .addr-equip-label,
+  .city-equip-label,
+  .state-equip-label,
+  .zip-equip-label,
+  .date-label,
+  .message-equip-text {
+    font-family: "Moveo Sans w00 Regular";
+    font-style: normal;
+    margin: 0;
+    padding-left: 10px;
+    font-size: 20px;
+  }
+  .message-equip-note {
+    font-style: normal;
+    text-align: center;
+    text-emphasis: none;
+    margin: 0px;
+    font-size: 20px;
+    font-family: "Moveo Sans W00 Regular";
+    padding-top: 30px;
+}
+  .message-equip-text {
+  font-style: normal;
+  text-emphasis: none;
+  font-size: 20px;
+  font-family: "Moveo Sans W00 Regular";
+  width: 100%;
+  height: 300px;
+}
+
+@media screen and (min-width: 240px) and (max-width: 320px) and (orientation: portrait) and (-webkit-min-device-pixel-ratio: 1) {
+.equip-descript {
+  font-size: 32px;
+}
+.rental-form {
+  width: 90%;
+}
+.equipment-box {
+  font-size: 32px;
+}
+.name-equip, 
+  .emailphone-equip-label,
+  .company-equip-label,
+  .address-equip-label,
+  .equipment-label, 
+  .message-equip-label {
+    font-size: 33px;
+  }
+  .first-equip-input, .company-equip-input, .emailphone-equip-input {
+    display: block;
+    margin: 0;
+}
+.name-equip-input {
+  padding-left: 0;
+}
+.first-equip-name-input, 
+.last-equip-name-input, 
+.company-equip-name-input, 
+.email-equip-box, 
+.phone-equip-box, 
+.address-equip-box, 
+.city-equip-box, 
+.state-equip-box, 
+.zip-equip-box, 
+.equipment-select, 
+.date-picker, 
+.quantity-input  {
+  font-size: 12px;
+}
+.phone-equip {
+  padding-left: 0;
+}
+.name-email-equip-input, .name-phone-equip-input {
+  margin: 0;
+  padding-left: 0;
+}
+.address-equip-container {
+  padding-left: 10px;
+}
+.submit-rental, .submit-quantity {
+  font-size: 15px;
+}
+.added-equip-label {
+  padding-left: 0;
+  font-size:37px;
+}
+}
+  @media screen and (min-width: 240px) and (max-width: 320px) and (orientation: landscape) and (-webkit-min-device-pixel-ratio: 1) {
+    .equip-descript {
+      font-size: 43px;
+    }
+    .rental-form {
+      width: 90%;
+    }
+    .equipment-box {
+      font-size: 32px;
+    }
+    .name-equip, 
+      .emailphone-equip-label,
+      .company-equip-label,
+      .address-equip-label,
+      .equipment-label, 
+      .message-equip-label {
+        font-size: 45px;
+      }
+      .first-equip-input, .company-equip-input, .emailphone-equip-input {
+        display: block;
+        margin: 0;
+    }
+    .name-equip-input {
+      padding-left: 0;
+    }
+    .first-equip-name-input, 
+    .last-equip-name-input, 
+    .company-equip-name-input, 
+    .email-equip-box, 
+    .phone-equip-box, 
+    .address-equip-box, 
+    .city-equip-box, 
+    .state-equip-box, 
+    .zip-equip-box, 
+    .date-picker, 
+    .quantity-input  {
+      font-size: 18px;
+    }
+    .equipment-select {
+      font-size: 17px;
+    }
+    .phone-equip {
+      padding-left: 0;
+    }
+    .name-email-equip-input, .name-phone-equip-input {
+      margin: 0;
+      padding-left: 0;
+    }
+    .address-equip-container {
+      padding-left: 10px;
+    }
+    .submit-rental, .submit-quantity {
+      font-size: 15px;
+    }
+    .added-equip-label {
+      padding-left: 0;
+      font-size:37px;
+    }
+}
+  @media screen and (min-width: 353px) and (max-width: 745px) and (orientation: portrait) and (-webkit-min-device-pixel-ratio: 1) {
+    .equip-descript {
+      font-size: 48px;
+    }
+    .rental-form {
+      width: 90%;
+    }
+    .equipment-box {
+      font-size: 32px;
+    }
+    .name-equip, 
+      .emailphone-equip-label,
+      .company-equip-label,
+      .address-equip-label,
+      .equipment-label, 
+      .message-equip-label {
+        font-size: 50px;
+      }
+      .first-equip-input, .company-equip-input, .emailphone-equip-input {
+        display: block;
+        margin: 0;
+    }
+    .name-equip-input {
+      padding-left: 0;
+    }
+    .first-equip-name-input, 
+    .last-equip-name-input, 
+    .company-equip-name-input, 
+    .email-equip-box, 
+    .phone-equip-box, 
+    .address-equip-box, 
+    .city-equip-box, 
+    .state-equip-box, 
+    .zip-equip-box, 
+    .date-picker, 
+    .quantity-input  {
+      font-size: 20px;
+    }
+    .equipment-select {
+      font-size: 17px;
+    }
+    .phone-equip {
+      padding-left: 0;
+    }
+    .name-email-equip-input, .name-phone-equip-input {
+      margin: 0;
+      padding-left: 0;
+    }
+    .address-equip-container {
+      padding-left: 10px;
+    }
+    .submit-rental, .submit-quantity {
+      font-size: 20px;
+    }
+    .added-equip-label {
+      padding-left: 0;
+      font-size:37px;
+    }
+    .equipment-select {
+      font-size: 20px;
+    }
+  }
+  @media screen and (min-width: 353px) and (max-width: 745px) and (orientation: landscape) and (-webkit-min-device-pixel-ratio: 1) {
+    .equip-descript {
+      font-size: 88px;
+    }
+    .rental-form {
+      width: 95%;
+    }
+    .equipment-box {
+      font-size: 32px;
+    }
+    .name-equip, 
+      .emailphone-equip-label,
+      .company-equip-label,
+      .address-equip-label,
+      .equipment-label, 
+      .message-equip-label {
+        font-size: 50px;
+      }
+      .first-equip-input, .company-equip-input, .emailphone-equip-input {
+        margin: 0;
+        display: block;
+    }
+    .address-equip-input {
+      display: flex;
+    }
+    .name-equip-input {
+      padding-left: 0;
+    }
+    .first-equip-name-input, 
+    .last-equip-name-input, 
+    .company-equip-name-input, 
+    .email-equip-box, 
+    .phone-equip-box, 
+    .address-equip-box, 
+    .city-equip-box, 
+    .state-equip-box, 
+    .zip-equip-box, 
+    .date-picker, 
+    .quantity-input  {
+      font-size: 20px;
+    }
+    .equipment-select {
+      font-size: 17px;
+    }
+    .phone-equip {
+      padding-left: 0;
+    }
+    .name-email-equip-input, .name-phone-equip-input {
+      margin: 0;
+      padding-left: 0;
+    }
+    .address-equip-container {
+      padding-left: 10px;
+    }
+    .submit-rental, .submit-quantity {
+      font-size: 20px;
+    }
+    .added-equip-label {
+      padding-left: 0;
+      font-size:37px;
+    }
+    .equipment-select {
+      font-size: 20px;
+    }
+  }
+  @media screen and (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) and (-webkit-min-device-pixel-ratio: 1) {
+ .equip-descript {
+  font-size: 110px;
+ }
+ .rental-form {
+  width: 90%;
+ }
+ .name-email-equip-input, .name-phone-equip-input {
+  padding-left: 0;
+  margin: 0;
+ }
+  }
+  @media screen and (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) and (-webkit-min-device-pixel-ratio: 1) {
+    .equip-descript {
+      font-size: 110px;
+     }
+     .rental-form {
+      width: 95%;
+     }
+     .name-email-equip-input, .name-phone-equip-input {
+      padding-left: 0;
+      margin: 0;
+     }
+  
+}

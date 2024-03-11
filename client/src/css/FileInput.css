@@ -1,0 +1,12 @@
+.file-input-container {
+    display: flex;
+    align-items: center;
+  }
+  
+  .file-label {
+    margin-right: 10px; /* Adjust the margin as needed */
+  }
+  
+  .file-input {
+    margin: 0;/* Add any styling for the file input button */
+  }
