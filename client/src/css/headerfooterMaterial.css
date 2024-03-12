@@ -3,8 +3,10 @@
     align-items: center;
     background-color: #60dfff;
     height: 9.6rem;
+    justify-content: space-between; /* Space all contents */
     padding: 0 1.6rem;
     position: relative;
+    padding-left: 50px;
 }
 
 .header-material-logo img {
