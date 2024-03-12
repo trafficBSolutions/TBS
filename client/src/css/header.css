@@ -5,11 +5,14 @@
   .header {
     display: flex;
     align-items: center; /* Center vertically */
+    justify-content: space-between; /* Space all contents */
     background-color: #efad76;
     height: 9.6rem;
     padding: 0 1.6rem; /* Adjust padding */
     position: relative;
-  }
+    padding-left: 50px;
+}
+
 
   .header-logo {
     text-decoration: none;
