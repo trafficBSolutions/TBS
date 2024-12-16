@@ -1,0 +1,174 @@
+.about-h2 {
+    font-size: 8rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+    color: #000000;
+    font-family: "Moveo Sans W00 Bold";
+}
+.about-description {
+    font-size: 16px;
+    margin-bottom: 20px;
+    margin: 3rem;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.section-items {
+    background-color: #000000;
+    display: flex;
+        width: 100%;
+        height: auto;
+}
+.map-about-h1, .photo-about-note {
+    font-size: 7rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+    color: #FAF0CA;
+    font-family: "Moveo Sans W00 Bold";
+}
+.map-about-container {
+    border-color: #ffffff;
+    max-width: 1100px;
+    flex: 1;
+    margin: 0 auto;
+    border-style: solid;
+    height: 600px;
+}
+.map-about-us-container {
+    width: 100%;
+    border: none;
+    background-color: rgb(39, 36, 36);
+    flex: 1;
+}
+.about-img-container {
+    width: auto;
+    height: auto;
+    flex: 1;
+}
+@media screen and (min-width: 1200px) and (max-width: 1800px) and (orientation: landscape) {
+    .about-h2 {
+        font-size: 8rem;
+    }
+    .about-description {
+        font-size: 1.5rem;
+        text-align: center;
+        margin: 2rem;
+    }
+    .map-about-container {
+        height: 600px;
+    }
+    .map-about-us-container {
+        width: 70%;
+    }
+    .map-about-h1, .photo-about-note {
+        font-size: 7rem;
+        padding: 10px;
+    }
+}
+@media screen and (max-width: 1200px) and (orientation: portrait) {
+    .about-h2 {
+        font-size: 6rem;
+    }
+    .about-description {
+        font-size: 2rem;
+        text-align: center;
+        margin: 2rem;
+    }
+    .map-about-h1, .photo-about-note {
+        font-size: 4.5rem;
+    }
+    .map-about-container {
+        height: 250px;
+    }
+    .map-about-us-container {
+        width: 70%;
+    }
+    .map-about-h1, .photo-about-note {
+        font-size: 4rem;
+        padding: 10px;
+    }
+}
+@media screen and (max-width: 1200px) and (orientation: landscape) {
+    .about-h2 {
+        font-size: 6rem;
+    }
+    .about-description {
+        font-size: 1.5rem;
+        text-align: center;
+        margin: 2rem;
+    }
+    .map-about-h1, .photo-about-note {
+        font-size: 4.5rem;
+    }
+    .map-about-container {
+        height: 250px;
+    }
+    .map-about-us-container {
+        width: 70%;
+    }
+    .map-about-h1, .photo-about-note {
+        font-size: 2.5rem;
+        padding: 10px;
+    }
+}
+@media screen and (min-width: 320px) and (max-width: 640px) and (orientation: portrait) {
+    .about-h2 {
+        font-size: 6rem;
+    }
+    .about-description {
+        font-size: 1.5rem;
+        text-align: center;
+        margin: 2rem;
+    }
+    .map-about-h1, .photo-about-note {
+        font-size: 4.5rem;
+    }
+    .map-about-container {
+        height: 250px;
+    }
+    .map-about-us-container {
+        width: 70%;
+    }
+    .map-about-h1, .photo-about-note {
+        font-size: 2.5rem;
+        padding: 10px;
+    }
+}
+@media screen and (max-width: 320px) and (orientation: landscape) {
+    .about-h2 {
+        font-size: 5rem;
+    }
+    .about-description {
+        font-size: 1.5rem;
+        text-align: center;
+        margin: 2rem;
+    }
+    .section-items {
+        display: block;
+    }
+    .map-about-h1, .photo-about-note {
+        font-size: 4rem;
+    }
+    .map-about-container {
+        height: 250px;
+    }
+}
+@media screen and (max-width: 320px) and (orientation: portrait) {
+    .about-h2 {
+        font-size: 4rem;
+    }
+    .about-description {
+        font-size: 1.5rem;
+        text-align: center;
+        margin: 2rem 0;
+    }
+    .section-items {
+        display: block;
+    }
+    .map-about-h1, .photo-about-note {
+        font-size: 4rem;
+    }
+    .map-about-container {
+        height: 250px;
+    }
+}
