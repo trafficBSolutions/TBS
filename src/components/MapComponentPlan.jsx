@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import '../css/trafficplan.css';
-import { REACT_APP_GOOGLE_MAPS_API_KEY } from '../constants/constantapi';
+import { GOOGLE_MAPS_API_KEY } from '../constants/constantapi';
 
 const MapPlanComponent = ({ onPlanMarkerAdd }) => {
   const [planmap, setPlanMap] = useState(null);
@@ -10,7 +10,7 @@ const MapPlanComponent = ({ onPlanMarkerAdd }) => {
   useEffect(() => {
     if (!window.google) {
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${REACT_APP_GOOGLE_MAPS_API_KEY}&libraries=geometry`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=geometry`;
       script.async = true;
 
       script.onload = initPlanMap;
