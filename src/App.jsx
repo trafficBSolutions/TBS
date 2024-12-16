@@ -24,7 +24,6 @@ function App() {
     <Route path="/ppe" element={<PPE/>}/>
     <Route path="/signs" element={<Signs/>}/>
     <Route path="/bollardswheels" element={<BollardsWheels/>}/>
-    <Route path="/web-development" element={<Web/>}/>
     <Route path="*" element={<Error/>}/>
     <Route path="/traffic-control-services" element={<TService/>}/>
     <Route path="/product-services" element={<Product/>}/>
