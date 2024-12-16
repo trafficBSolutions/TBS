@@ -56,8 +56,7 @@
 }
 .post-img-section {
   display: flex;
-  margin-left: 100px;
-  justify-content: flex-start;
+  justify-content: center;
   position: relative;
   margin-bottom: 30px;
   max-width: 500%;
@@ -68,7 +67,6 @@
   text-align: center;
     display: block;
     position: relative;
-    width: 100%;
 }
 
 .post2-img-container {
@@ -76,21 +74,18 @@
   text-align: center;
   display: block;
   position: relative;
-  width: 250%;
 }
 
 .post-img {
-  width: 150%; /* Ensure images fill their containers */
+  width: 100%; /* Ensure images fill their containers */
   margin: 10px;
 }
 
 .post-img-text {
   font-size: 18px; /* Adjust font size as needed */
-  padding-left: 140px;
 }
 .post2-img-text {
   font-size: 18px; /* Adjust font size as needed */
-  padding-left: 140px;
 }
 
 .sign-img-section {
@@ -202,4 +197,208 @@ border-radius: 5px;
   display: flex;
   font-size: 1.3rem;
   justify-content: center;
+}
+@media screen and (max-width: 1200px) and (orientation: landscape) {
+  .sign-img-section {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+  }
+  .sign-description {
+    font-size: 2.5rem;
+  }
+  .sign-descript {
+    font-size: 1.5rem;
+  }
+  .sign-app-box {
+    font-size: 2.5rem;
+  }
+  .sign-fill {
+    font-size: 1.5rem;
+  }
+  .reflective-img {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    margin: 0 auto;
+  }
+  .post-img {
+    width: 100%;
+    height: auto;
+    margin: 0 auto;
+  }
+  .post2-img-container {
+    width: 100%;
+  }
+}
+@media screen and (max-width: 1200px) and (orientation: portrait) {
+
+  .sign-description {
+    font-size: 6rem;
+  }
+  .sign-descript {
+    font-size: 2rem;
+  }
+  .sign-app-box {
+    font-size: 2.5rem;
+  }
+  .sign-fill {
+    font-size: 1.5rem;
+  }
+
+  .post-img {
+    width: 100%;
+    height: auto;
+    margin: 0 auto;
+  }
+  .post2-img-container {
+    width: 100%;
+  }
+  .sign-img-container img {
+    width: 100%;
+    max-width: 300px;
+  }
+  .sign-img-container p {
+    font-size: 1.2rem;
+  }
+  .reflective-img-container {
+    text-align: center;
+  }
+  .reflective-img {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    margin: 10px 0;
+    text-align: center;
+  }
+}
+@media screen and (min-width: 320px) and (max-width: 600px) and (orientation: portrait) {
+  .sign-img-section {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+  }
+  .sign-description {
+    font-size: 2.5rem;
+  }
+  .sign-descript {
+    font-size: 1.5rem;
+  }
+  .sign-app-box {
+    font-size: 2.5rem;
+  }
+  .sign-fill {
+    font-size: 1.5rem;
+  }
+  .reflective-img {
+    width: 100%;
+    height: auto;
+    margin-bottom: 10px;
+  }
+  .post-img-section {
+    flex-direction: column;
+    justify-content: center;
+    margin: 0 auto;
+  }
+  .post-img {
+    width: 100%;
+    height: auto;
+    margin: 0 auto;
+  }
+  .post2-img-container {
+    width: 100%;
+}
+.bracket-img-text {
+  padding: 10px 0;
+  font-size: 1rem;
+}
+.post-img-text, .post2-img-text { 
+  padding: 10px 0;
+}
+}
+@media screen and (max-width: 320px) and (orientation: landscape) {
+  .sign-img-section {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+  }
+  .sign-description {
+    font-size: 2.5rem;
+  }
+  .sign-descript {
+    font-size: 1.5rem;
+  }
+  .sign-app-box {
+    font-size: 2.5rem;
+  }
+  .sign-fill {
+    font-size: 1.5rem;
+  }
+  .reflective-img {
+    width: 100%;
+    height: auto;
+    margin-bottom: 10px;
+  }
+  .post-img-section {
+    flex-direction: column;
+    justify-content: center;
+    margin: 0 auto;
+  }
+  .post-img {
+    width: 100%;
+    height: auto;
+    margin: 0 auto;
+  }
+  .post2-img-container {
+    width: 100%;
+  }
+  .post2-img-text, .post-img-text {
+    padding: 10px 0;
+  }
+  .bracket-img-section {
+    flex-direction: column;
+    justify-content: center;
+    margin: 0 auto;
+  }
+}
+@media screen and (max-width: 320px) and (orientation: portrait) {
+  .sign-img-section {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+  }
+  .sign-description {
+    font-size: 2rem;
+  }
+  .sign-descript {
+    font-size: 1.5rem;
+  }
+  .sign-app-box {
+    font-size: 2.5rem;
+  }
+  .sign-fill {
+    font-size: 1.5rem;
+  }
+  .reflective-img {
+    width: 100%;
+    height: auto;
+    margin-bottom: 10px;
+  }
+  .post-img-section {
+    flex-direction: column;
+    justify-content: center;
+    margin: 0 auto;
+  }
+  .post-img {
+    width: 100%;
+    height: auto;
+    margin: 0 auto;
+  }
+  .post2-img-container {
+    width: 100%;
+  }
+  .post2-img-text, .post-img-text {
+    padding: 10px 0;
+  }
+  .bracket-img-section {
+    flex-direction: column;
+    justify-content: center;
+    margin: 0 auto;
+  }
 }
