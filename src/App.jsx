@@ -1,5 +1,5 @@
 import { Routes, Route, Link} from 'react-router-dom'
-import { About, Contact, Apply, Home, TrafficControl, TrafficPlan, Rentals, PPE, Signs, BollardsWheels, Email, Error, Web, TService, Product } from './pages';
+import { About, Contact, Apply, Home, TrafficControl, TrafficPlan, Rentals, PPE, Signs, BollardsWheels, Error, TService, Product } from './pages';
 import axios from 'axios';
 import Navbar from './components/Navbar';
 import { Toaster } from 'react-hot-toast'
@@ -24,7 +24,6 @@ function App() {
     <Route path="/ppe" element={<PPE/>}/>
     <Route path="/signs" element={<Signs/>}/>
     <Route path="/bollardswheels" element={<BollardsWheels/>}/>
-    <Route path="/emailform" element={<Email/>}/>
     <Route path="/web-development" element={<Web/>}/>
     <Route path="*" element={<Error/>}/>
     <Route path="/traffic-control-services" element={<TService/>}/>
