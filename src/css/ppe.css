@@ -87,9 +87,8 @@
   }
   
   .ppe-flex-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
   }
   
   .ppe-img-container {
@@ -98,12 +97,13 @@
   }
   
   .ppe-img {
-    width: 150px; /* Adjust size as needed */
+    width: 100%; /* Adjust size as needed */
     height: auto;
   }
   
   .ppe-img-text {
     margin-top: 5px;
+    font-size: 14px;
   }
   .message-ppe-text {
     font-size: 1.5rem;
@@ -128,182 +128,148 @@
     margin-bottom: 20px;
     box-shadow: 0 4px 10px #00000084;
   }
-
-  @media screen and (min-width: 240px) and (max-width: 320px) and (orientation: portrait) and (-webkit-min-device-pixel-ratio: 1) {
+  @media screen and (max-width: 1200px) and (orientation: landscape) {
     .ppe-descript {
-      font-size: 40px;
+      font-size: 5rem;
     }
-    .ppe-name,
-  .company-ppe-label,
-  .emailphone-ppe-label,
-  .address-ppe-label,
-  .ppe-label,
-  .structure-ppe-label,
-  .message-ppe-label {
-    font-size: 33px;
-  }
-  .first-ppe-name-input,
-  .last-ppe-name-input,
-  .company-name-ppe-input,
-  .email-ppe-box,
-  .phone-ppe-box,
-  .address-ppe-box,
-  .city-ppe-box,
-  .state-ppe-box,
-  .zip-ppe-box,
-  .ppe-quantity-box
-   {
-    font-size: 12px;
-  }
-  .ppe-select {
-    font-size: 5.2px;
-  }
-  .first-ppe-input,
-  .emailphone-ppe-input,
-  .address-ppe-input
-  {
-    margin: 0;
-    display: block;
-  }
-  .submit-ppe-quantity,
-  .remove-ppe-quantity,
-  .submit-ppe {
-    margin-left: 0;
-    font-size: 17px;
-  }
-  .file-ppe-input-container {
-    margin: 0px;
-    padding-left: 0px;
-    display: block;
-}
-.file-ppefile-input {
-  display: block;
-}
-.file-ppe-label, .remove-file-ppe-button {
-  display: block;
-}
-.remove-file-ppe-button {
-  margin-top: 10px;
-  margin-left: 33px;
-}
+    .ppe-form-h1 {
+      font-size: 2.5rem;
     }
-    @media screen and (min-width: 240px) and (max-width: 320px) and (orientation: landscape) and (-webkit-min-device-pixel-ratio: 1) {
-      .ppe-descript {
-        font-size: 80px;
-      }
-      .ppe-name,
-    .company-ppe-label,
-    .emailphone-ppe-label,
-    .address-ppe-label,
-    .ppe-label,
-    .structure-ppe-label,
-    .message-ppe-label {
-      font-size: 45px;
+    .ppe-description {
+      font-size: 1.3rem;
     }
-    .first-ppe-name-input,
-    .last-ppe-name-input,
-    .company-name-ppe-input,
-    .email-ppe-box,
-    .phone-ppe-box,
-    .address-ppe-box,
-    .city-ppe-box,
-    .state-ppe-box,
-    .zip-ppe-box,
-    .ppe-quantity-box
-     {
+    .ppe-fill {
+      font-size: 1.5rem;
+    }
+    .ppe-img-container {
+      margin: 10px 0;
+    }
+    .ppe-img {
+      width: 100%;
+    }
+    .ppe-img-text {
+      font-size: 2rem;
+    }
+    .ppe-flex-container {
+      flex-direction: column;
+      align-items: center;
+    }
+  }
+  @media screen and (max-width: 1200px) and (orientation: portrait) {
+    .ppe-descript {
+      font-size: 6rem;
+    }
+    .ppe-form-h1 {
+      font-size: 2.5rem;
+    }
+    .ppe-description {
+      font-size: 1.3rem;
+    }
+    .ppe-fill {
+      font-size: 1.5rem;
+    }
+    .ppe-img-container {
+      margin: 10px 0;
+    }
+
+    .ppe-img-text {
+      font-size: 2rem;
+    }
+    .ppe-img {
+      width: 100%;
+    }
+  }
+  @media screen and (min-width: 320px) and (max-width: 600px) and (orientation: portrait) {
+    .ppe-descript {
+      font-size: 5rem;
+    }
+    .ppe-form-h1 {
+      font-size: 2.5rem;
+    }
+    .ppe-description {
+      font-size: 1.3rem;
+    }
+    .ppe-fill {
+      font-size: 1.5rem;
+    }
+    .ppe-img-container {
+      margin: 10px 0;
+    }
+    .ppe-img {
+      width: 100%;
+    }
+    .ppe-img-text {
+      font-size: 2rem;
+    }
+    .ppe-flex-container {
+      flex-direction: column;
+      align-items: center;
+    }
+    .ppe-img {
+      width: 100%;
+    }
+    .ppe-img-text {
+      font-size: 2rem;
+    }
+    .ppe-flex-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+  }
+  @media screen and (max-width: 320px) and (orientation: landscape) {
+    .ppe-descript {
+      font-size: 6rem;
+    }
+    .ppe-form-h1 {
+      font-size: 2.5rem;
+    }
+    .ppe-description {
+      font-size: 1.3rem;
+    }
+    .ppe-fill {
+      font-size: 1.5rem;
+    }
+    .ppe-img-container {
+      margin: 5px;
+    }
+    .ppe-img {
+      width: 100%;
+    }
+    .ppe-img-text {
       font-size: 12px;
     }
-    .ppe-select {
-      font-size: 7.6px;
+    .ppe-flex-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
-    .first-ppe-input,
-    .emailphone-ppe-input,
-    .address-ppe-input
-    {
-      margin: 0;
-      display: block;
-    }
-    .submit-ppe-quantity,
-    .remove-ppe-quantity,
-    .submit-ppe {
-      margin-left: 0;
-    }
-    .file-ppe-input-container {
-      margin: 0px;
-      padding-left: 0px;
-      display: block;
   }
-  .file-ppefile-input {
-    display: block;
+  @media screen and (max-width: 320px) and (orientation: portrait) {
+    .ppe-descript {
+      font-size: 6rem;
+    }
+    .ppe-form-h1 {
+      font-size: 2.5rem;
+    }
+    .ppe-description {
+      font-size: 1rem;
+    }
+    .ppe-fill {
+      font-size: 1.5rem;
+    }
+    .ppe-img-container {
+      margin: 5px;
+    }
+    .ppe-img {
+      width: 100%;
+    }
+    .ppe-img-text {
+      font-size: 12px;
+    }
+    .ppe-flex-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
   }
-  .file-ppe-label, .remove-file-ppe-button {
-    display: block;
-  }
-  .remove-file-ppe-button {
-    margin-top: 10px;
-    margin-left: 33px;
-  }
-    }
-    @media screen and (min-width: 353px) and (max-width: 745px) and (orientation: portrait) and (-webkit-min-device-pixel-ratio: 1) {
-      .ppe-descript {
-        font-size: 90px;
-      }
-      .ppe-name,
-    .company-ppe-label,
-    .emailphone-ppe-label,
-    .address-ppe-label,
-    .ppe-label,
-    .structure-ppe-label,
-    .message-ppe-label {
-      font-size: 45px;
-    }
-  
-    .ppe-select {
-      font-size: 7.6px;
-    }
-    .first-ppe-input,
-    .emailphone-ppe-input,
-    .address-ppe-input
-    {
-      margin: 0;
-      display: block;
-    }
-    .submit-ppe-quantity,
-    .remove-ppe-quantity,
-    .submit-ppe {
-      margin-left: 0;
-    }
-    .file-ppe-input-container {
-      margin: 0px;
-      padding-left: 0px;
-      display: block;
-  }
-  .file-ppefile-input {
-    display: block;
-  }
-  .file-ppe-label, .remove-file-ppe-button {
-    display: block;
-  }
-  .remove-file-ppe-button {
-    margin-top: 10px;
-    margin-left: 33px;
-  }
-    }
-    @media screen and (min-width: 353px) and (max-width: 745px) and (orientation: landscape) and (-webkit-min-device-pixel-ratio: 1) {
-      .first-ppe-input, .emailphone-ppe-input, .address-ppe-input {
-        margin: 0px;
-    }
-
-    .file-ppe-label, .remove-file-ppe-button {
-      margin-left: 10px;
-    }
-    .ppe-select {
-      font-size: 17px;
-    }
-    .submit-ppe-quantity, .remove-ppe-quantity {
-      margin-left: 0;
-    }
-    }
-    
-   
-     
