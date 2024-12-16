@@ -1,0 +1,86 @@
+.equipment-main {
+  background-color: #bcc3bd;
+}
+.equipment-container{
+  padding: 20px;
+  background-color: #f7d7bc;
+}
+.equip-descript {
+  font-size: 8rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-align: center;
+  color: #000000;
+  font-family: "Moveo Sans W00 Bold";
+}
+.equipment-form-container {
+  background-color: #fff;
+  padding: 20px;
+  box-shadow: 0 4px 10px #0000001a;
+  margin: 20px auto;
+  max-width: 900px;
+}
+.equipment-box {
+  font-size: 32px;
+  text-align: center;
+  color: #64340d;
+  margin-bottom: 10px;
+}
+.equipment-fill {
+  font-size: 20px;
+    color: #8b4c18;
+    text-align: center;
+    margin-bottom: 30px;
+}
+.first-equip-input,
+.company-equip-input,
+.emailphone-equip-input,
+.input-address-equip-container,
+.equipment-section,
+.input-equip-message-container {
+  background-color: #f1f1f1;
+  padding: 20px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 10px #00000084;
+}
+.address-equip-label, .equipment-label {
+  text-align: center;
+  font-size: 2rem;
+}
+.equipment-img-section {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.equipment-img-section div {
+  text-align: center;
+  width: 150px;
+}
+
+.equipment-img-section img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 5px;
+}
+.add-equipment {
+  font-size: 2rem;
+  display: flex;
+      justify-content: center;
+}
+.message-equip-text {
+  font-size: 1.5rem;
+  height: 20rem;
+  font-family: Arial, Helvetica, sans-serif;
+}
+.submit-rental {
+  display: flex;
+  font-size: 1.3rem;
+  justify-content: center;
+}
+.equip-intro  {
+  font-size: 2rem;
+  text-align: center;
+  font-family: Arial, Helvetica, sans-serif;
+}

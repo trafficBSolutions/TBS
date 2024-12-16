@@ -1,0 +1,284 @@
+  /**************************/
+  /* FOOTER */
+  /**************************/
+  
+  .footer {
+    background-image: url(../assets/bollards/asphalt.jpg);
+    padding: 20px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+.site-footer__inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 40px;
+  width: 100%;
+  margin: 0 auto;
+}
+.tbs-logo, .trademark-img {
+  width: 120px;
+    height: auto;
+}
+.footer-title {
+  font-size: 3rem;
+  margin-bottom: 10px;
+  color: #FAF0CA;
+  text-align: center;
+}
+.footer-navigate {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.footer-navigate li {
+  margin: 0;
+}
+.footer-nav-link {
+  text-decoration: none;
+  color: #ffffff;
+  font-size: 2rem;
+  font-weight: 500;
+  transition: color .3s ease;
+}
+.footer-nav-link-view {
+  text-decoration: none;
+  color: #ffcb9e;
+  font-size: 2rem;
+  font-weight: 500;
+  transition: color .3s ease;
+}
+.footer-nav-link:hover,
+.contact-info a:hover {
+  color: #ffcb9e;
+  background-color: #333; /* Background color for the dropdown */
+}
+.footer-contact {
+  text-align: right;
+  font-size: 1.2rem;
+  color: #ffffff;
+}
+.contact-info {
+  margin-top: 10px;
+  font-size: 1.4rem;
+  text-align: center;
+}
+.contact-info a {
+  display: block;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 2rem;
+  margin-bottom: 5px;
+  transition: color .3s;
+}
+.social-icons{
+  display: flex;
+  gap: 15px;
+  justify-content: flex-start;
+  flex-direction: row;
+  align-items: center;
+}
+.social-icon {
+  margin-right: 1.2rem;
+}
+.social-icon img {
+  width: 40px;
+  height: auto;
+}
+.footer-copyright {
+  background-color: #000000;
+  color: #fff;
+  text-align: center;
+}
+.footer-copy-p {
+  font-size: 2rem;
+}
+.statement, .trademark-warning {
+  color: #ffffff;
+  font-size: 2rem;
+  height: auto;
+}
+.safety-b {
+  color: #FAF0CA;
+}
+.warning-trade {
+  color: #ff0000;
+  height: auto;
+}
+.statement-box {
+  padding: 2rem;
+}
+@media screen and (min-width: 1200px) and (max-width: 1800px) and (orientation: landscape) {
+  .site-footer__inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  .statement, .trademark-warning {
+    font-size: 1.3rem; 
+}
+.footer-title {
+  font-size: 2rem;
+}
+.social-icons {
+  gap: 10px;
+}
+.footer-nav-link {
+  font-size: 1.5rem;
+}
+.footer-nav-link-view {
+  font-size: 1.5rem;
+}
+  .statement-box {
+    font-size: 1.5rem;
+    padding: 0;
+  }
+  .tbs-logo, .trademark-img {
+    width: 90px;
+
+  }
+  .contact-info a {
+    font-size: 1.3rem;
+  }
+}
+@media screen and (max-width: 1200px) and (orientation: landscape) {
+  .site-footer__inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  .statement, .trademark-warning {
+    font-size: 1rem; 
+}
+.footer-title {
+  font-size: 1.5rem;
+}
+.social-icons {
+  gap: 10px;
+}
+.footer-nav-link {
+  font-size: 1rem;
+}
+  .statement-box {
+    font-size: 1.5rem;
+    padding: 0;
+  }
+  .tbs-logo, .trademark-img {
+    width: 90px;
+
+  }
+  .contact-info a {
+    font-size: 1rem;
+  }
+  .social-icons {
+    display: block;
+  }
+  .footer-nav-link-view {
+    font-size: 1rem;
+  }
+}
+@media screen and (max-width: 1200px) and (orientation: portrait) {
+  .footer {
+    display: block;
+    margin: 0 auto;
+  }
+    .site-footer__inner {
+    display: block;
+    margin: 0 auto;
+  }
+
+  .tbs-logo, .trademark-img {
+    width: 100%;
+    margin: 0 auto;
+    justify-content: center;
+    display: flex;
+    text-align: center;
+    max-width: 200px;
+  }
+  .social-icons {
+    display: block;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .footer-navigate {
+    display: block;
+    text-align: center;
+  }
+  .statement-box {
+    font-size: 1.5rem;
+    padding: 0;
+  }
+  
+}
+@media screen and (max-width:320px) and (orientation: landscape) {
+  .footer {
+    display: block;
+    margin: 0 auto;
+  }
+    .site-footer__inner {
+    display: block;
+    margin: 0 auto;
+  }
+  .tbs-logo, .trademark-img {
+    height: auto;
+    width: 100%;
+    margin: 0 auto;
+  }
+  .social-icons {
+    display: block;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .footer-navigate {
+    display: block;
+    text-align: center;
+  }
+  .statement-box {
+    font-size: 1.5rem;
+    padding: 0;
+  }
+  }
+@media screen and (max-width:320px) and (orientation: portrait) {
+.footer {
+  display: block;
+  margin: 0 auto;
+}
+  .site-footer__inner {
+  display: block;
+  margin: 0 auto;
+}
+.tbs-logo, .trademark-img {
+  height: auto;
+  width: 100%;
+  margin: 0 auto;
+}
+.social-icons {
+  display: block;
+}
+.footer-navigate {
+  display: block;
+  text-align: center;
+}
+.statement-box {
+  font-size: 1.5rem;
+  padding: 0;
+}
+.footer-nav-link {
+  font-size: 1.5rem;
+}
+.footer-nav-link-view {
+  font-size: 1.5rem;
+}
+}
+  

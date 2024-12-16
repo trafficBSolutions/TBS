@@ -1,0 +1,205 @@
+.sign-page {
+  background-color: #bcc3bd;
+}
+.page-sign-banner {
+  padding: 20px;
+  background-color: #f7d7bc;
+}
+.sign-description {
+  font-size: 8rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-align: center;
+  color: #000000;
+  font-family: "Moveo Sans W00 Bold";
+}
+.sign-form-container {
+  background-color: #fff;
+  padding: 20px;
+  box-shadow: 0 4px 10px #0000001a;
+  margin: 20px auto;
+  max-width: 900px;
+}
+.sign-descript {
+  font-size: 2rem;
+    text-align: center;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.sign-app-box {
+  font-size: 32px;
+    text-align: center;
+    color: #64340d;
+    margin-bottom: 10px;
+}
+.sign-fill {
+  font-size: 20px;
+    color: #8b4c18;
+    text-align: center;
+    margin-bottom: 30px;
+}
+.bracket-img-section {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.bracket-img-container {
+  flex: 0 0 33.33%; /* 3 images in a row */
+  text-align: center;
+}
+
+.bracket-img {
+  width: 100%; /* Ensure images fill their containers */
+}
+
+.bracket-img-text {
+  font-size: 18px; /* Adjust font size as needed */
+}
+.post-img-section {
+  display: flex;
+  margin-left: 100px;
+  justify-content: flex-start;
+  position: relative;
+  margin-bottom: 30px;
+  max-width: 500%;
+}
+
+.post-img-container {
+  flex: 0 0 33.33%; /* 3 items in a row */
+  text-align: center;
+    display: block;
+    position: relative;
+    width: 100%;
+}
+
+.post2-img-container {
+  flex: 0 0 33.33%;
+  text-align: center;
+  display: block;
+  position: relative;
+  width: 250%;
+}
+
+.post-img {
+  width: 150%; /* Ensure images fill their containers */
+  margin: 10px;
+}
+
+.post-img-text {
+  font-size: 18px; /* Adjust font size as needed */
+  padding-left: 140px;
+}
+.post2-img-text {
+  font-size: 18px; /* Adjust font size as needed */
+  padding-left: 140px;
+}
+
+.sign-img-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Responsive grid */
+  gap: 20px;
+  padding: 20px;
+  background-color: #fff;
+  box-shadow: 0 4px 10px #0000001a;
+  justify-items: center;
+  align-items: center;
+}
+
+.sign-3img-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 250px;
+}
+
+.sign-single-img-container {
+  position: absolute; /* Position absolutely */
+  top: 100%;
+  max-width: 30%;
+  left: 21%; /* Center horizontally */
+  transform: translateX(-50%); /* Center horizontally */
+}
+
+.sign-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.sign-img-container {
+  text-align: center;
+}
+.sign-img-container p {
+  font-size: 1.5rem;
+  margin: 0;
+  color: #333;
+}
+.sign-img-container.single-image {
+  grid-column: span 3;
+}
+
+.sign-img-container img {
+  width: 100%;
+  max-width: 150px; /* Limit image size */
+  margin-bottom: 10px;
+}
+
+.sign-img-text {
+ font-size: 18px;
+}
+.sign-img-input {
+  display: flex;
+    background-color: #e67e22;
+    color: #fff;
+    padding: 10px 20px;
+    font-size: 2rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.sign-img-selector {
+  display: flex;
+    align-items: center;
+}
+.first-name-sign-input,
+.company-sign-input,
+.emailphone-sign-input,
+.address-sign-input-container,
+.reflective-section,
+.size-section,
+.post-container,
+.bracket-container,
+.traffic-sign-img-input,
+.sign-message-container {
+  background-color: #f1f1f1;
+  padding: 20px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 10px #00000084;
+}
+.file-sign-label, 
+.remove-sign-file-button {
+  background-color: #e67e22;
+color: #fff;
+border: none;
+display: flex;
+justify-content: center;
+align-items: center;
+padding: 15px 20px;
+text-align: center;
+font-size: 18px;
+cursor: pointer;
+width: 100%;
+border-radius: 5px;
+}
+.file-sign-label input[type="file"] {
+  display: none;
+}
+.message-sign-text {
+  font-size: 1.5rem;
+  height: 20rem;
+  font-family: Arial, Helvetica, sans-serif;
+}
+.submit-sign, .submit-bracket, .submit-post, .submit-size, .submit-reflective {
+  display: flex;
+  font-size: 1.3rem;
+  justify-content: center;
+}

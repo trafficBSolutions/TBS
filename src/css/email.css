@@ -1,0 +1,166 @@
+.form-field {
+                        margin-bottom: 15px;
+                    }
+                    .form-field label {
+                        display: block;
+                        font-weight: bold;
+                        margin-bottom: 5px;
+                    }
+                    .form-field input[type="text"],
+                    .form-field input[type="email"],
+                    .form-field textarea {
+                        width: 100%;
+                        padding: 10px;
+                        border: 1px solid #ccc;
+                        border-radius: 5px;
+                        box-sizing: border-box;
+                    }
+                    .form-field textarea {
+                        height: 100px;
+                    }
+                    .form-submit {
+                        text-align: center;
+                    }
+                    .form-submit button {
+                        padding: 10px 20px;
+                        background-color: #007bff;
+                        color: #fff;
+                        border: none;
+                        border-radius: 5px;
+                        cursor: pointer;
+                    }
+
+                    .form-text {
+                        font-size: 48px;
+                        text-align: center;
+                        font-family: "Kairos W04 Extended Bold";
+                        margin-left: 160px;
+                        padding: 8px;
+                        color:#000000;
+                    }
+                    .traffic-plan {
+                        margin-top: 20px;
+                        font-size: 47px;
+                        text-align: center;
+                        font-family: "Kairos W04 Extended Bold";
+                        color:#000000;
+                    }
+
+                    .paragraph {
+                        margin: 0;
+                        font-size: 20px;
+                    }
+                    .paragraph-boxing {
+                        font-family: "Kairos W04 Extended Bold";
+                        font-style: normal;
+                        margin-top: 20px;
+                        font-size: 40px;
+                    }
+
+                    .paragraph-container {
+                        margin-top: 80px;
+                        font-family: "Kairos W04 Extended Bold";
+                        line-height: 26px;
+                    }
+
+                    .paragraph-end {
+                        margin-top: 20px;
+                        font-family: "Kairos W04 Extended Bold";
+                        line-height: 26px;
+                    }
+
+                    .email-form {
+                        padding-top: 10px;
+    background-color: #e7e7e7;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.name-para {
+    font-size: 30px;
+    margin-top: 20px;
+    font-family: "Kairos W04 Extended Bold";
+    line-height: 30px;
+}
+
+
+.form-container {
+    background-color: #efad76;
+}
+
+.user-info {
+    margin-top: 10px;
+    font-size: 30px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+    
+
+.header-form {
+    display: flex;
+    align-items: center;
+    background-color: #efad76;
+    height: 130px;
+    padding: 0 4.8rem;
+    position: relative;
+}
+
+.header-img {
+    width: 100px;
+    height: auto; /* Maintain aspect ratio */
+    display: block; /* Ensure image behaves as a block element */
+    margin: 0 auto; /* Center the image horizontally */
+    position: sticky;
+    transform: scale(0.3);
+}
+
+.paragraph-contact {
+    font-family: "Kairos W04 Extended Bold";
+    font-style: normal;
+    margin-top: 20px;
+    font-size: 40px;
+    color:#000000;
+}
+
+.address-catagory {
+    font-family: "Kairos W04 Extended Bold";
+    font-style: normal;
+    margin-top: 40px;
+    font-size: 60px;
+    color:#000000;
+}
+
+.contact-category {
+    color:#000000;
+    font-family: "Kairos W04 Extended Bold";
+    font-style: normal;
+    margin-top: 40px;
+    font-size: 60px;
+}
+
+.contact-text {
+    font-family: "Moveo Sans w00 Regular";
+}
+
+.paragraph-applicant {
+    margin-top: 10px;
+    font-family: "Moveo Sans w00 Regular";
+}
+
+.paragraph-app-message {
+    margin-top: 5px;
+    font-family: "Moveo Sans w00 Regular";
+}
+
+.paragraph-message {
+    color:#000000;
+    font-family: "Kairos W04 Extended Bold";
+    font-style: normal;
+    margin-top: 40px;
+    font-size: 60px;
+}
+
+.contact-info {
+    padding-top: 10px;
+}

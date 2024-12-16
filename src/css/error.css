@@ -1,0 +1,121 @@
+.error-main {
+    background-color: #bcc3bd;
+}
+.error-img-1 {
+    text-align: center;
+    width: 10%;
+    display: block;
+    left: 45%;
+    position: relative;
+    height: auto;
+}
+.NotFound {
+    font-size: 70px;
+    text-align: center;
+    color: black;
+    font-family: "Kairos W04 Extended Bold";
+}
+
+.page-info {
+    font-size: 25px;
+    text-align: center;
+    color: black;
+    margin: 5px;
+    font-family: "Moveo Sans W00 Regular";
+}
+
+.link-button {
+    background-color: #e67e22;
+    position: relative;
+    font-size: 30px;
+    margin-top: 30px;
+    margin-bottom: 30px;
+    width: 28%;
+    left: 36%;
+    margin: 5 auto;
+    color: #fff;
+}
+@media screen and (min-width: 240px) and (max-width: 320px) and (orientation: portrait) and (-webkit-min-device-pixel-ratio: 1) {
+    .error-img-1 {
+        width: 100%;
+        left: 0;
+    }
+    .NotFound {
+        font-size: 50px;
+    }
+    .link-button {
+        font-size: 20px;
+        width: 90%;
+        left: 5%;
+    }
+}
+@media screen and (min-width: 240px) and (max-width: 320px) and (orientation: landscape) and (-webkit-min-device-pixel-ratio: 1) {
+    .error-img-1 {
+        width: 100%;
+        left: 0;
+    }
+    .NotFound {
+        font-size: 50px;
+    }
+    .link-button {
+        font-size: 24px;
+        width: 70%;
+        left: 16%;
+    }
+}
+@media screen and (min-width: 353px) and (max-width: 745px) and (orientation: portrait) and (-webkit-min-device-pixel-ratio: 1){
+    .error-img-1 {
+        width: 100%;
+        left: 0;
+    }
+    .NotFound {
+        font-size: 60px;
+    }
+    .link-button {
+        font-size: 24px;
+        width: 70%;
+        left: 16%;
+    }
+}
+@media screen and (min-width: 353px) and (max-width: 745px) and (orientation: landscape) and (-webkit-min-device-pixel-ratio: 1){
+    .error-img-1 {
+        width: 40%;
+        left: 30%;
+    }
+    .NotFound {
+        font-size: 60px;
+    }
+    .link-button {
+        font-size: 24px;
+        width: 70%;
+        left: 16%;
+    }
+}
+@media screen and (min-width: 600px) and (max-width: 1024px) and (orientation: portrait) and (-webkit-min-device-pixel-ratio: 1) {
+    .error-img-1 {
+        width: 40%;
+        left: 30%;
+    }
+    .NotFound {
+        font-size: 60px;
+    }
+    .link-button {
+        font-size: 24px;
+        width: 70%;
+        left: 16%;
+    }
+}
+@media screen and (min-width: 600px) and (max-width: 1024px) and (orientation: landscape) and (-webkit-min-device-pixel-ratio: 1) {
+    .error-img-1 {
+        width: 30%;
+        left: 35%;
+    }
+    .NotFound {
+        font-size: 90px;
+    }
+    .link-button {
+        font-size: 24px;
+        width: 70%;
+        left: 16%;
+    }
+}

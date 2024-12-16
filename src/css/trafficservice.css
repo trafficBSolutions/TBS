@@ -1,0 +1,377 @@
+.page-traffic-banner-title {
+    font-size: 7rem;
+    font-weight: 600;
+    color: #333333;
+    margin-bottom: 20px;
+    margin-top: 20px;
+    text-align: center;
+}
+.traffic-con-h2 {
+    font-size: 6rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 20px;
+    text-align: center;
+    text-shadow: 3px 3px 0 #000000
+    ;
+}
+.traffic-con-services-description {
+    font-size: 4rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 20px;
+    text-align: center;
+    text-shadow: 3px 3px 0 #000000
+    ;
+}
+.traffic-con-services {
+    padding: 4rem;
+}
+.section-traffic-service {
+    display: flex;
+
+    background: url(../assets/flaggers/TBSWhiteBarricades.svg) no-repeat center center;
+    background-size: cover;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.traffic-con-services-content {
+    background-color: rgba(0, 0, 0, 0.404);
+    display: flex;
+    padding: 2.5rem 0;
+}
+.traffic-con-services-img {
+    display: block;
+}
+.traffic-service-img{
+    max-width: 800px;
+    border: #e67e22 solid 40px;
+    box-shadow: -3px -3px 0 #efad76, 3px -3px 0 #efad76, -3px 3px 0 #efad76, 3px 3px 0 #efad76;  
+    ;
+    border-radius: 100%;
+}
+/* CSS for the Traffic Control Section */
+.section-traffic-service-button {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px; /* Add some spacing between buttons */
+    padding: 20px;
+    background-color: #f4f4f4;
+}
+
+.traffic-con-services-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    width: 250px; /* Set a consistent width */
+    height: 350px; /* Set a consistent height */
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.flagger-img {
+    max-width: 80%;
+    height: auto;
+    margin-bottom: 15px;
+}
+
+.btn-controller {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 1.5rem; /* Adjust font size for button text */
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+    margin-top: auto; /* Align button to the bottom */
+}
+.traffic-services-con-h1 {
+    font-size: 7rem;
+    font-family: "Moveo Sans W00 Bold";
+    font-weight: 600;
+    color: #000000;
+    margin-bottom: 20px;
+    margin-top: 20px;
+    text-align: center;
+    text-shadow: 3px 3px 0 silver
+    ;
+}
+.traffic-services-con-h2 {
+    font-size: 4rem;
+    font-weight: 600;
+    color: #000000;
+    margin-bottom: 20px;
+    margin-top: 20px;
+    text-align: center;
+    text-shadow: 3px 3px 0 silver
+    ;
+}
+.btn-controller:hover {
+    background-color: #d35400;
+}
+@media screen and (min-width: 1200px) and (max-width: 1800px) and (orientation: landscape) {
+    .page-traffic-banner-title {
+        font-size: 6rem;
+    }
+
+    .traffic-con-h2 {
+        font-size: 5rem;
+    }
+    .traffic-con-services-description {
+        font-size: 2rem;
+
+    }
+    .traffic-con-services-content {
+        align-items: center;
+        padding: 1.5rem 0;
+    }
+    .traffic-con-services-img {
+        text-align: center;
+    }
+    .traffic-service-img {
+        max-width: 600px;
+        margin: 0 auto;
+        text-align: center;
+        border: #e67e22 solid 40px;
+    }
+    .traffic-services-con-h1 {
+        font-size: 5rem;
+    }
+    .traffic-services-con-h2 {
+        font-size: 2rem;
+    }
+    .traffic-con-services-button {
+        width: 200px;
+        
+    }
+    .flagger-img {
+        max-width: 150px;
+    }
+    .section-traffic-service-button {
+        gap: 0;
+    }
+}
+@media screen and (max-width: 1200px) and (orientation: landscape) {
+    .page-traffic-banner-title {
+        font-size: 6rem;
+    }
+    .traffic-con-services-content {
+        padding: 1.5rem 0;
+    }
+    .section-traffic-service {
+        margin: 0;
+    }
+    .traffic-con-services {
+        padding: 0;
+    }
+    .traffic-con-h2 {
+        font-size: 1.5rem;
+    }
+    .traffic-con-services-description {
+        font-size: 1.2rem;
+        margin: 10px;
+    }
+    .traffic-con-services-img {
+        text-align: center;
+    }
+    .traffic-service-img {
+        max-width: 250px;
+        margin: 0 auto;
+        text-align: center;
+        border: #e67e22 solid 10px;
+    }
+    .traffic-services-con-h1 {
+        font-size: 5rem;
+    }
+    .traffic-services-con-h2 {
+        font-size: 2rem;
+    }
+    .traffic-con-services-button {
+        width: 200px;
+        
+    }
+    .flagger-img {
+        max-width: 150px;
+    }
+    .section-traffic-service-button {
+        gap: 0;
+    }
+}
+@media screen and (max-width: 1200px) and (orientation: portrait) {
+    .traffic-service-img {
+        max-width: 300px;
+        border: #e67e22 solid 20px;
+    }
+    .traffic-con-h2 {
+        font-size: 3rem;
+    }
+    .traffic-con-services-description {
+        font-size: 1.5rem;
+    }
+    .traffic-con-services {
+        padding: 1rem;
+    }
+    .traffic-con-services-content {
+        align-items: center;
+        justify-self: start;
+    }
+    .section-traffic-service-button {
+        gap: 5px;
+    }
+    .traffic-services-con-h1 {
+        font-size: 5rem;
+    }
+    .traffic-services-con-h2 {
+        font-size: 2rem;
+    }
+    .section-traffic-service {
+        margin: 0;
+    }
+}
+
+@media screen and (min-width: 320px) and (max-width: 640px) and (orientation: portrait) {
+    .page-traffic-banner-title {
+        font-size: 4rem;
+    }
+    .traffic-con-services-content {
+        display: block;
+    }
+    .section-traffic-service {
+        padding: 1rem 0;
+        margin: 0;
+    }
+    .traffic-con-services {
+        padding: 0;
+    }
+    .traffic-con-h2 {
+        font-size: 2rem;
+    }
+    .traffic-con-services-description {
+        font-size: 1.5rem;
+    }
+    .traffic-con-services-img {
+        text-align: center;
+    }
+    .traffic-service-img {
+        max-width: 250px;
+        margin: 0 auto;
+        text-align: center;
+        border: #e67e22 solid 10px;
+    }
+    .section-traffic-service-button {
+        display: block;
+    }
+    .traffic-services-con-h1 {
+        font-size: 5rem;
+    }
+    .traffic-services-con-h2 {
+        font-size: 2rem;
+    }
+    .traffic-con-services-button {
+        display: block;
+        width: auto;
+        height: auto;
+        margin: 10px 0;
+    }
+    .flagger-img {
+        max-width: 150px;
+    }
+}
+@media screen and (max-width: 320px) and (orientation: landscape) {
+    .page-traffic-banner-title {
+        font-size: 4rem;
+    }
+    .traffic-con-services-content {
+        display: block;
+    }
+    .section-traffic-service {
+        padding: 1rem 0;
+        margin: 0;
+    }
+    .traffic-con-services {
+        padding: 0;
+    }
+    .traffic-con-h2 {
+        font-size: 2rem;
+    }
+    .traffic-con-services-description {
+        font-size: 1.5rem;
+    }
+    .traffic-con-services-img {
+        text-align: center;
+    }
+    .traffic-service-img {
+        max-width: 250px;
+        margin: 0 auto;
+        text-align: center;
+        border: #e67e22 solid 10px;
+    }
+    .section-traffic-service-button {
+        display: block;
+    }
+    .traffic-services-con-h1 {
+        font-size: 5rem;
+    }
+    .traffic-services-con-h2 {
+        font-size: 2rem;
+    }
+    .traffic-con-services-button {
+        display: block;
+        width: auto;
+        height: auto;
+        margin: 10px 0;
+    }
+    
+}
+@media screen and (max-width: 320px) and (orientation: portrait) {
+    .page-traffic-banner-title {
+        font-size: 4rem;
+    }
+    .traffic-con-services-content {
+        display: block;
+        padding: 1.5rem 0;
+    }
+    .section-traffic-service {
+        padding: 1rem 0;
+        margin: 0;
+    }
+    .traffic-con-services {
+        padding: 0;
+    }
+    .traffic-con-h2 {
+        font-size: 2rem;
+    }
+    .traffic-con-services-description {
+        font-size: 1.5rem;
+    }
+    .traffic-con-services-img {
+        text-align: center;
+    }
+    .traffic-service-img {
+        max-width: 220px;
+        margin: 0 auto;
+        text-align: center;
+        border: #e67e22 solid 10px;
+    }
+    .section-traffic-service-button {
+        display: block;
+    }
+    .traffic-services-con-h1 {
+        font-size: 4rem;
+    }
+    .traffic-services-con-h2 {
+        font-size: 2rem;
+    }
+    .traffic-con-services-button {
+        display: block;
+        width: auto;
+        height: auto;
+        margin: 10px 0;
+    }
+    
+}

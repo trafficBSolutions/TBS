@@ -1,0 +1,1033 @@
+@font-face {
+  font-family: "Kairos W04 Extended Bold";
+  src: url("https://db.onlinewebfonts.com/t/719c54498fe1a1ad6c8102d0d9bdb292.eot");
+  src: url("https://db.onlinewebfonts.com/t/719c54498fe1a1ad6c8102d0d9bdb292.eot?#iefix")format("embedded-opentype"),
+  url("https://db.onlinewebfonts.com/t/719c54498fe1a1ad6c8102d0d9bdb292.woff2")format("woff2"),
+  url("https://db.onlinewebfonts.com/t/719c54498fe1a1ad6c8102d0d9bdb292.woff")format("woff"),
+  url("https://db.onlinewebfonts.com/t/719c54498fe1a1ad6c8102d0d9bdb292.ttf")format("truetype"),
+  url("https://db.onlinewebfonts.com/t/719c54498fe1a1ad6c8102d0d9bdb292.svg#Kairos W04 Extended Bold")format("svg");
+}
+
+@font-face {
+  font-family: "Kairos W01 Extended Medium";
+  src: url("https://db.onlinewebfonts.com/t/120dd7d3bdc7d3614c6bebe41d4d7911.eot");
+  src: url("https://db.onlinewebfonts.com/t/120dd7d3bdc7d3614c6bebe41d4d7911.eot?#iefix")format("embedded-opentype"),
+  url("https://db.onlinewebfonts.com/t/120dd7d3bdc7d3614c6bebe41d4d7911.woff2")format("woff2"),
+  url("https://db.onlinewebfonts.com/t/120dd7d3bdc7d3614c6bebe41d4d7911.woff")format("woff"),
+  url("https://db.onlinewebfonts.com/t/120dd7d3bdc7d3614c6bebe41d4d7911.ttf")format("truetype"),
+  url("https://db.onlinewebfonts.com/t/120dd7d3bdc7d3614c6bebe41d4d7911.svg#Kairos W01 Extended Medium")format("svg");
+}
+
+@font-face {
+  font-family: "Moveo Sans W00 Regular";
+  src: url("https://db.onlinewebfonts.com/t/0bce49d73e94815c847c3100a1a9831d.eot");
+  src: url("https://db.onlinewebfonts.com/t/0bce49d73e94815c847c3100a1a9831d.eot?#iefix")format("embedded-opentype"),
+  url("https://db.onlinewebfonts.com/t/0bce49d73e94815c847c3100a1a9831d.woff2")format("woff2"),
+  url("https://db.onlinewebfonts.com/t/0bce49d73e94815c847c3100a1a9831d.woff")format("woff"),
+  url("https://db.onlinewebfonts.com/t/0bce49d73e94815c847c3100a1a9831d.ttf")format("truetype"),
+  url("https://db.onlinewebfonts.com/t/0bce49d73e94815c847c3100a1a9831d.svg#Moveo Sans W00 Regular")format("svg");
+}
+@font-face {
+  font-family: "Highway Gothic Narrow";
+  src: url("https://db.onlinewebfonts.com/t/f1d461b4bad8f8aac1730a9e629e702d.eot");
+  src: url("https://db.onlinewebfonts.com/t/f1d461b4bad8f8aac1730a9e629e702d.eot?#iefix")format("embedded-opentype"),
+  url("https://db.onlinewebfonts.com/t/f1d461b4bad8f8aac1730a9e629e702d.woff2")format("woff2"),
+  url("https://db.onlinewebfonts.com/t/f1d461b4bad8f8aac1730a9e629e702d.woff")format("woff"),
+  url("https://db.onlinewebfonts.com/t/f1d461b4bad8f8aac1730a9e629e702d.ttf")format("truetype"),
+  url("https://db.onlinewebfonts.com/t/f1d461b4bad8f8aac1730a9e629e702d.svg#Highway Gothic Narrow")format("svg");
+}
+@font-face {
+  font-family: "Moveo Sans W00 Bold";
+  src: url("https://db.onlinewebfonts.com/t/82baa4951eee7df05175ada4cb171e35.eot");
+  src: url("https://db.onlinewebfonts.com/t/82baa4951eee7df05175ada4cb171e35.eot?#iefix")format("embedded-opentype"),
+  url("https://db.onlinewebfonts.com/t/82baa4951eee7df05175ada4cb171e35.woff2")format("woff2"),
+  url("https://db.onlinewebfonts.com/t/82baa4951eee7df05175ada4cb171e35.woff")format("woff"),
+  url("https://db.onlinewebfonts.com/t/82baa4951eee7df05175ada4cb171e35.ttf")format("truetype"),
+  url("https://db.onlinewebfonts.com/t/82baa4951eee7df05175ada4cb171e35.svg#Moveo Sans W00 Bold")format("svg");
+}
+
+/* Common styles for all devices */
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+label {
+  font-size: 18px;
+  color: #5a270f;
+  margin-bottom: 5px;
+  display: block;
+}
+html {
+  font-size: 62.5%;
+  overflow-x: hidden;
+}
+input[type=text], input[type=number], select, textarea {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+/* Font faces */
+
+/* Body styles */
+body {
+  font-family: "Rubik", sans-serif;
+  line-height: 1;
+  font-weight: 400;
+  color: #555;
+  overflow-x: hidden;
+}
+
+/* General reusable components */
+.container {
+  max-width: 1200px;
+  padding: 0 2rem;
+  margin: 0 auto;
+}
+.grid {
+  display: grid;
+  gap: 1.6rem;
+}
+.web-dev-creator-title {
+  font-size: 4rem;
+  font-weight: 700;
+  color: #333;
+  letter-spacing: -0.5px;
+  margin-top: 3.2rem;
+  text-align: center;
+}
+.grid:not(:last-child) {
+  margin-bottom: 9.6rem;
+}
+
+.grid--2-cols {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.grid--3-cols {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.grid--center {
+  align-items: center;
+  justify-items: center;
+}
+
+.heading-primary,
+.heading-secondary,
+.heading-tertiary {
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  text-align: center;
+}
+
+.heading-primary {
+  font-size: 4rem;
+  color: #ffffff;
+  
+  margin-bottom: 1.6rem;
+  font-family: "Kairos W04 Extended Bold";
+}
+.heading-secondary {
+  font-size: 3.2rem;
+  color: #333;
+}
+
+.heading-tertiary {
+  font-size: 2.4rem;
+  color: #555;
+}
+.image-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-box img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+.submit-app {
+  display: flex;
+  font-size: 1rem;
+  justify-content: center;
+}
+
+.btn, .btn:link, .btn:visited {
+    background-color: #e67e22;
+    text-decoration: none;
+    padding: 1rem 2rem;
+    border-radius: 5px;
+    color: #fff;
+    text-align: center;
+    margin: 1rem;
+    transition: background-color .3s ease;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+.btn:hover {
+  background-color: #d35400;
+}
+.btn--full {
+  width: 100%;
+  max-width: 250px;
+  margin: 10px auto;
+}
+.btn--small {
+  font-size: 1.6rem;
+}
+
+/* Home img section */
+.name-container {
+  position: relative;
+}
+.veteran-logo-container {
+  padding-top: 20px;
+  background-color: #f7d7bc;
+}
+.veteran-description {
+  font-size: 60px;
+  font-family: "Kairos W04 Extended Bold";
+  text-align: center;
+}
+.veteran-logo-text {
+  font-size: 30px;
+  font-family: "Moveo Sans W00 Regular";
+  text-align: center;
+}
+.veteran-logo {
+  width: 30%;
+  text-align: center;
+  margin: 0 auto;
+  display: block;
+}
+.tbs-name-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.gallery-navigation-arrow-left,
+.gallery-navigation-arrow-right {
+  background-color: #e67e22;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  padding: 10px;
+  border-radius: 50%;
+  color: #fff;
+  transition: background-color 0.3s;
+}
+
+.gallery-navigation-arrow-left:hover,
+.gallery-navigation-arrow-right:hover {
+  background-color: #cf711f;
+}
+/* Reset styles for larger screens */
+  .tbs-name {
+    font-family: "Kairos W04 Extended Bold";
+    font-size: 8.2rem; /* Adjust font size as needed for smaller screens */
+    color: #ddd;
+    text-align: center;
+  }
+  .page-banner__bg-vid-dash {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -1;
+  }
+  .page-banner {
+    padding: 300px 0 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hiring-tbs, .web-tbs {
+    font-size: 100px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    text-align: center;
+    font-family: "Kairos W04 Extended Bold";
+  }
+  .web-tbs {
+    font-size: 60px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    text-align: center;
+    font-family: "Kairos W04 Extended Bold";
+  }
+  .workfor, .will-web {
+    font-size: 40px;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    text-align: center;
+  }
+  
+
+.applybutton, .web-button {
+  background-color: #e67e22;
+  position: relative;
+  font-size: 60px;
+  margin-bottom: 30px;
+  margin: 0 auto; /* Center horizontally */
+  display: block; /* Ensure it takes full width */
+  width: fit-content; /* Adjusts width based on content */
+  color: #fff;
+  font-family: "Kairos W04 Extended Bold";
+}
+
+
+.tbs-name:nth-child(n+2) {
+  margin: 0 10px;
+}
+
+.tbs-name-below {
+  display: block;
+  text-align: center;
+  color: #ddd;
+  font-family: "Kairos W04 Extended Bold";
+  font-size: 60px;
+}
+
+/* Hero section */
+.section-how {
+  color: #000;
+  background-color: #e67d228e;
+  text-align: center;
+}
+.background-how, .background-how-man {
+  display: flex;
+  flex-direction: column;
+  padding: 50px;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  text-align: center;
+}
+.background-how {
+  background-color: rgba(128, 70, 20, 0.781); /* Adjust opacity as needed */
+}
+.background-how-man {
+  background-color: rgba(0, 0, 0, 0.781); /* Adjust opacity as needed */
+}
+.subheading {
+  font-size: 5rem;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+.home-services {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  color: #ffffff;
+}
+.traffic-services {
+  background: url(../assets/flaggers/trafficset5.jpg) center center / cover no-repeat;
+}
+.traffic-services-description, .man-services-description {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+.man-services {
+  background: url(../assets/flaggers/arrowboard.png) center center / cover no-repeat;
+}
+.traffic-services, .man-services {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  background-size: cover;
+  background-position: center;
+}
+.traffic-services h2, .man-services h2 {
+  font-size: 3rem;
+  margin-bottom: 10px;
+}
+.traffic-services li, .man-services li {
+  margin: 5px 0;
+  font-size: 1.7rem;
+  padding: 8px;
+  border-radius: 5px;
+}
+.btn-traffic, .btn-product {
+  margin: 0 auto;
+  display: flex;
+  font-size: 4rem;
+  max-width: 500px;
+}
+.traffic-services-content, .man-services-content {
+  margin-bottom: 4rem;
+}
+.section-hero {
+  background-color: #e67e22;
+  padding: 2rem;
+}
+.hero {
+  margin: 0 auto;
+  padding: 0 3.2rem;
+  display: flex;
+  grid-template-columns: 1fr 1fr;
+  gap: 10rem;
+  align-items: center;
+}
+
+.hero-description {
+  font-size: 2rem;
+  line-height: 1.6;
+  text-align: center;
+  color: #ffffff;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.trafficbarrels {
+  align-items: center;
+  margin-right: 25px;
+}
+
+/* Now hiring section */
+.now-hiring, .web-dev {
+  background-color: rgb(219, 211, 217);
+  padding-bottom: 50px;
+  padding-top: 5px;
+}
+.web-dev {
+  background-color: rgb(201, 198, 200);
+  padding-bottom: 50px;
+  padding-top: 5px;
+}
+.box {
+  content: normal;
+  display: flex;
+  flex-wrap: wrap;
+  border: 3px solid black;
+  position: relative;
+  box-sizing: border-box;
+  padding: 0;
+  width: 1000px; /* Adjust the width as needed */
+  margin: auto; /* Center the box horizontally */
+}
+
+
+.hiring-img {
+  position: relative;
+  left: 900px;
+  bottom: 238px;
+  height: 150px;
+}
+
+.workingmen {
+  left: 20px;
+  bottom: 250px;
+  height: 400px;
+}
+
+
+.step-number {
+  font-size: 8.6rem;
+  font-weight: 600;
+  color: #ddd;
+  margin-bottom: 1.2rem;
+}
+
+.step-description {
+  font-size: 1.6rem;
+  line-height: 1.5;
+  color: #555;
+}
+
+.step-img-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.photo-note {
+  font-size: 50px;
+    text-align: center;
+    font-family: "Arial Black", Gadget, sans-serif;
+}
+.material-installation {
+  padding: 20px;
+  background-color: #FAF0CA;
+  border-radius: 8px;
+  width: 100%;
+  text-align: center;
+}
+
+.services {
+  display: flex;
+  justify-content: space-evenly; /* More balanced spacing */
+  flex-wrap: wrap;
+}
+
+.installation, .maintenance {
+  flex: 1;
+  padding: 15px; /* Slightly reduced padding for a cleaner look */
+  max-width: 360px; /* Reduced max-width to avoid excessive empty space */
+}
+
+.material-installation h2 {
+  font-size: 26px; /* Slightly smaller to keep the design simple */
+  margin-bottom: 16px;
+}
+
+.installation h3, .maintenance h3 {
+  font-size: 22px; /* Smaller for a more balanced look */
+  margin-bottom: 8px;
+}
+
+.installation p, .maintenance p {
+  font-size: 15px; /* Reduced slightly for simplicity */
+  margin-bottom: 8px;
+}
+
+.installation ul, .maintenance ul {
+  list-style: none;
+  padding: 0;
+}
+
+.installation ul li, .maintenance ul li {
+  background: #f0f0f0; /* Slightly lighter background for better contrast */
+  margin: 6px 0; /* Consistent margin for better spacing */
+  font-size: 1.3rem; /* Slightly smaller font for better readability */
+  padding: 8px; /* Less padding for a sleeker design */
+  border-color: #000;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: 4px; /* Smaller radius for a subtle rounded effect */
+}
+
+.gallery {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  align-items: center;
+  margin-top: 20px;
+}
+.navigation-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+.gallery-container {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+}
+.gallery-item {
+  flex: 1;
+  width: 550px; /* Fixed width */
+  height: 550px; /* Fixed height */
+  overflow: hidden;
+  border-radius: 8px;
+}
+.gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Maintain aspect ratio and fill the area */
+}
+.section-featured {
+  background-color: #fdf2e9;
+  display: flex;
+  width: 100%;
+  height: auto;
+}
+.map-h1 {
+  font-size: 50px;
+  font-family: "Arial Black", Gadget, sans-serif;
+  text-align: center;
+}
+.container-photos {
+  background-color: #FAF0CA;
+  width: auto;
+  height: auto;
+  flex: 1;
+}
+.map-contain-home {
+  width: 100%;
+    border: none;
+    background-color: silver;
+    flex: 1;
+}
+.map-container-home {
+  border-color: #000;
+    max-width: 1100px;
+    flex: 1;
+    margin: 0 auto;
+    border-style: solid;
+}
+.step-img2-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 50px;
+  width: 50px;
+  overflow: hidden;
+  border-radius: 50%;
+  justify-content: center;
+}
+.step-img-box::before,
+.step-img-box::after {
+  content: "";
+  display: block;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.step-img-box::before {
+  width: 60%;
+  padding-bottom: 60%;
+  background-color: #fdf2e9;
+  z-index: -2;
+}
+
+.step-img-box::after {
+  width: 45%;
+  padding-bottom: 45%;
+  background-color: #fae5d3;
+  z-index: -1;
+}
+
+.step-img {
+  width: 35%;
+}
+
+.veteran-owned {
+  background-color: #dbdbdb;
+  text-align: center;
+}
+.jobs-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 20px;
+  background-color: #ccc;
+  padding: 50px;
+}
+
+.job-year-content, 
+.sign-content,
+.plan-content,
+.control-job-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.established-year, 
+.sign-established,
+.plan-established,
+.control-job-established {
+  font-size: 8rem;
+  font-family: "Moveo Sans W00 Bold";
+  font-weight: 600;
+  color: #cf711f;
+  margin-bottom: 1.6rem;
+}
+.established-year-text,
+.sign-established-text,
+.plan-established-text,
+.control-job-established-text {
+  font-size: 3rem;
+  line-height: 1.8;
+}
+.tbs-container {
+  position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    text-align: center;
+}
+.tbs-container img {
+  width: 100%;
+  height: auto;
+  max-width: 600px;
+}
+.map-container-home {
+  height: 600px;
+}
+@media screen and (min-width: 1200px) and (max-width: 1800px) and (orientation: landscape) {
+  .tbs-container img {
+    width: 100%;
+    height: auto;
+    max-width: 500px;
+}
+  }
+
+@media screen and (max-width: 1200px) and (orientation: landscape) {
+  .page-banner {
+    padding: 100px 0;
+  }
+  .page-banner__bg-vid-dash {
+    width: 100%;
+    height: auto;
+  }
+  .hero {
+    padding: 0;
+  }
+  .tbs-container img {
+    width: 100%;
+    height: auto;
+    max-width: 300px;
+}
+  .heading-primary {
+    font-size: 2.5rem;
+  }
+  .hero-description {
+    font-size: 1.5rem;
+    line-height: 1.3;
+  }
+  .traffic-services h2, .man-services h2 {
+    font-size: 2.5rem;
+}
+.background-how, .background-how-man {
+  padding: 30px;
+}
+.traffic-services-description, .man-services-description {
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+}
+.jobs-container {
+  padding: 10px;
+}
+.traffic-services li, .man-services li  {
+  font-size: 1.4rem;
+}
+.established-year, .sign-established, .plan-established, .control-job-established {
+  font-size: 4.6rem;
+  margin: 0 auto;
+}
+.established-year-text, .sign-established-text, .plan-established-text, .control-job-established-text {
+  font-size: 1.3rem;
+}
+.btn-traffic, .btn-product {
+  font-size: 2rem;
+}
+
+.map-h1, .photo-note {
+  font-size: 4rem;
+  padding: 10px;
+}
+.gallery {
+  max-width: 350px;
+  margin: 0 auto;
+}
+.gallery-item {
+  height: auto;
+}
+.map-contain-home {
+
+  margin: 0 auto;
+  height: auto;
+}
+.map-container-home {
+  height: 200px;
+}
+}
+@media screen and (max-width: 1200px) and (orientation: portrait) {
+  .page-banner {
+    padding: 100px 0;
+  }
+  .page-banner__bg-vid-dash {
+    width: 100%;
+    height: auto;
+  }
+  .hero {
+    padding: 0;
+  }
+  .tbs-container img {
+    width: 100%;
+    max-width: 300px;
+  }
+  .heading-primary {
+    font-size: 2.5rem;
+  }
+  .hero-description {
+    font-size: 1.5rem;
+    line-height: 1.3;
+  }
+  .traffic-services h2, .man-services h2 {
+    font-size: 2.5rem;
+}
+.background-how, .background-how-man {
+  padding: 30px;
+}
+.traffic-services-description, .man-services-description {
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+}
+.jobs-container {
+  padding: 10px;
+}
+.traffic-services li, .man-services li  {
+  font-size: 1.4rem;
+}
+.established-year, .sign-established, .plan-established, .control-job-established {
+  font-size: 4.6rem;
+  margin: 0 auto;
+}
+.established-year-text, .sign-established-text, .plan-established-text, .control-job-established-text {
+  font-size: 1.3rem;
+}
+.btn-traffic, .btn-product {
+  font-size: 2rem;
+}
+
+.map-h1, .photo-note {
+  font-size: 4rem;
+  padding: 10px;
+}
+.gallery {
+  max-width: 350px;
+  margin: 0 auto;
+}
+.gallery-item {
+  height: auto;
+}
+.map-container-home {
+  height: 300px;
+}
+}
+@media screen and (min-width: 320px) and (max-width: 640px) and (orientation: portrait) {
+  .page-banner {
+    padding: 100px 0;
+  }
+  .page-banner__bg-vid-dash {
+    width: 100%;
+    height: auto;
+  }
+  .hero {
+    padding: 0;
+  }
+  .heading-primary {
+    font-size: 2.5rem;
+  }
+  .hero-description {
+    font-size: 1.5rem;
+    line-height: 1.3;
+  }
+  .traffic-services h2, .man-services h2 {
+    font-size: 2.5rem;
+}
+.background-how, .background-how-man {
+  padding: 10px;
+}
+.traffic-services-description, .man-services-description {
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+}
+.traffic-services li, .man-services li {
+  padding: 3px;
+}
+.jobs-container {
+  padding: 10px;
+}
+.traffic-services li, .man-services li  {
+  font-size: 1.4rem;
+}
+.established-year, .sign-established, .plan-established, .control-job-established {
+  font-size: 2.2rem;
+  margin: 0 auto;
+}
+.established-year-text, .sign-established-text, .plan-established-text, .control-job-established-text {
+  font-size: 1rem;
+}
+.btn-traffic, .btn-product {
+  font-size: 2rem;
+}
+.map-h1, .photo-note {
+  font-size: 2.5rem;
+  padding: 10px;
+}
+.gallery {
+  max-width: 100px;
+  margin: 0 auto;
+  display: block;
+}
+.gallery-item {
+  width: 120%;
+  height: 100px;
+}
+.map-container-home {
+  height: 300px;
+  margin: 0 auto;
+}
+.map-contain-home {
+  width: 70%;
+}
+}
+@media screen and (max-width: 320px) and (orientation: landscape){
+  .hero {
+    padding: 0;
+  }
+
+  .page-banner {
+    padding-top: 90px;
+}
+.background-how, .background-how-man {
+  padding: 0;
+}
+.heading-primary {
+  font-size: 2rem;
+  text-align: center;
+  align-self: start;
+}
+.hero-description {
+  font-size: 1.2rem;
+  line-height: 1.8;
+  margin: 0;
+}
+.btn-traffic, .btn-product {
+  font-size: 2rem;
+}
+.jobs-container {
+  padding: 0;
+  display: block;
+
+}
+.job-year-content, .sign-content, .plan-content, .control-job-content {
+  display: block;
+  padding: 15px;
+}
+.established-year, .sign-established, .plan-established, .control-job-established {
+  font-size: 4rem;
+  margin: 0;
+}
+.established-year-text, .sign-established-text, .plan-established-text, .control-job-established-text {
+  font-size: 2rem;
+}
+.section-featured {
+  display: block;
+}
+.map-h1, .photo-note {
+  font-size: 3rem;
+  text-align: center;
+}
+.map-container-home  {
+  height: 200px;
+}
+.gallery {
+  display: block;
+  gap: 0;
+  margin-top: 0;
+  
+}
+.footer-title {
+  font-size: 2.5rem;
+}
+.gallery-item {
+  width: 100%;
+  height: 100%;
+  max-width: 500px;
+}
+.traffic-services h2, .man-services h2 {
+  font-size: 2.5rem;
+}
+.traffic-services-description, .man-services-description {
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+}
+.traffic-services li, .man-services li {
+  font-size: 1.2rem;
+}
+.statement, .trademark-warning {
+  font-size: 1.2rem;
+}
+.contact-info a {
+  font-size: 1.3rem;
+}
+}
+@media screen and (max-width: 320px) and (orientation: portrait){
+  .hero {
+    padding: 0;
+  }
+
+  .page-banner {
+    padding-top: 90px;
+}
+.background-how, .background-how-man {
+  padding: 0;
+}
+.heading-primary {
+  font-size: 2rem;
+  text-align: center;
+  align-self: start;
+}
+.hero-description {
+  font-size: 1.2rem;
+  line-height: 1.8;
+  margin: 0;
+}
+.btn-traffic, .btn-product {
+  font-size: 2rem;
+}
+.jobs-container {
+  padding: 0;
+  display: block;
+
+}
+.job-year-content, .sign-content, .plan-content, .control-job-content {
+  display: block;
+  padding: 15px;
+}
+.established-year, .sign-established, .plan-established, .control-job-established {
+  font-size: 4rem;
+  margin: 0;
+}
+.established-year-text, .sign-established-text, .plan-established-text, .control-job-established-text {
+  font-size: 2rem;
+}
+.section-featured {
+  display: block;
+}
+.map-h1, .photo-note {
+  font-size: 3rem;
+  text-align: center;
+}
+.map-container-home  {
+  height: 200px;
+}
+.gallery {
+  display: block;
+  gap: 0;
+  margin-top: 0;
+  
+}
+.footer-title {
+  font-size: 2.5rem;
+}
+.gallery-item {
+  width: 100%;
+  height: 100%;
+  max-width: 500px;
+}
+.traffic-services h2, .man-services h2 {
+  font-size: 2.5rem;
+}
+.traffic-services-description, .man-services-description {
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+}
+.traffic-services li, .man-services li {
+  font-size: 1.2rem;
+}
+.statement, .trademark-warning {
+  font-size: 1.2rem;
+}
+.contact-info a {
+  font-size: 1.3rem;
+}
+}

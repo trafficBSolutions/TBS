@@ -1,0 +1,798 @@
+/**************************/
+  /* HEADER */
+  /**************************/
+
+  .header {
+    display: flex;
+    align-items: center; /* Center vertically */
+    justify-content: space-between; /* Space all contents */
+    background-image: url(../assets/bollards/asphalt.jpg);
+    height: 15rem;
+    background-color: #000;
+    padding: 0 20px; /* Adjust padding */
+    position: relative;
+}
+
+.header-logo {
+  width: auto;
+  height: auto;
+  margin-right: auto; /* Align to the far left */
+}
+.phone-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+  .header-phone-img {
+    max-width: 300px;
+    height: auto;
+}
+.main-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  flex: 1; /* Center-align main navigation */
+  padding: 0;
+}
+
+  .tbs-logo-img {
+    width: 100%; /* Ensure the logo scales within the container */
+    height: auto;
+    max-width: 250px; /* Set max-width to prevent distortion */
+}
+  .header-logo:hover {
+    background-color: #e67e22;
+  }
+
+  .header-logo img {
+    height: auto; /* Maintain the aspect ratio */
+  }
+
+
+  .main-nav-list {
+    display: flex;
+    gap: 7rem; /* Spacing between list items */
+}
+
+.main-nav-link {
+  text-decoration: none;
+  color: #fff;
+  font-size: 2.5rem;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+.main-nav-link:hover {
+  color: #e67e22;
+}
+  .sub-nav-list {
+    display: none;
+    position: absolute; /* Makes the dropdown appear over the content */
+    background-color: #333; /* Background color for the dropdown */
+    padding: 1rem;
+    line-height: 1.8rem;
+    text-decoration: none;
+    text-align: center;
+    flex-direction: column; /* Makes the items appear in a column */
+    box-shadow: none; /* Optional shadow for dropdown */
+    border-radius: 6px; /* Rounded edges for the dropdown */
+    z-index: 1000; /* Ensure it's above other content */
+    list-style: none;
+  }
+  .sub-main-nav-link-view {
+    color: #FAF0CA;
+    
+  }
+  /* Display the services list when hovering over the parent "Services" item */
+  .main-nav-list li:hover .sub-nav-list {
+    display: flex;
+    text-decoration: none;
+  }
+  
+  /* Adjusting the link styles for better UX */
+  .sub-nav-list li {
+    margin: 0.5rem 0; /* Space between each item */
+  }
+  .sub-nav-list a {
+    text-decoration: none;
+    color: #fff;
+    font-weight: 500;
+    font-size: 2rem;
+    padding: 0;
+    text-align: center;
+    box-shadow: none;
+    border: none;
+    font-family: Arial, Helvetica, sans-serif;
+    transition: background-color 0.3s;
+    list-style: none;
+  }
+  .sub-nav-list a:hover {
+    background-color: #555; /* Darken on hover */
+}
+.sub-main-nav-link {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #cee1ff;
+    padding: 1rem;
+    line-height: 1.8rem;
+    text-decoration: none;
+    text-align: center;
+    flex-direction: column;
+    box-shadow: none;
+    border-radius: 6px;
+    z-index: 1000;
+    list-style: none;
+}
+.sub-nav-list-view {
+  background-color: #000000;
+}
+  .main-nav-link-view {
+    text-decoration: none;
+  color: #ffcb9e;
+  font-size: 2.5rem;
+  font-weight: 500;
+  transition: color .3s ease;
+  }
+  .main-nav-link:hover,
+  .main-nav-link:active {
+    color: #ffcb9e;
+  }
+
+  .mobile-nav {
+    background-color: #e67e22;
+    color: #fff;
+    border: none;
+    text-align: center;
+    padding: 10px 20px;
+    font-size: 20px;
+    font-family: "Kairos W04 Extended Bold";
+    display: none;
+  }
+.phone-header-link {
+  text-decoration: none;
+  color: #e67e22; /* Your original text color */
+  font-weight: 500;
+  font-size: 2.7rem; /* Adjust font size */
+  transition: all 0.3s;
+  text-align: center;
+  font-family: Arial, Helvetica, sans-serif;
+  display: flex;
+  align-items: center; /* Ensure image and text align vertically inside the link */
+}
+.phone-header-link:hover {
+  background-color: #ffcb9e;
+}
+.btn-mobile-nav {
+  display: none; /* Hide the button by default */
+}
+
+.material-worx-img {
+  max-width: 200px;
+  height: auto;
+}
+
+.header-worx-logo {
+  display: flex;
+  align-items: center;
+  background-color: grey;
+  padding: 5px 10px;
+  border-radius: 6px;
+  transition: background-color 0.3s;
+}
+.header-worx-logo:hover {
+    background-color: #949494;
+}
+@media screen and (min-width: 1200px) and (max-width: 1920px) and (orientation: landscape) {
+  .main-nav {
+    gap: 3rem;
+  }
+  .main-nav-list {
+    gap: 3rem;
+  }
+  .main-nav-link-view {
+    font-size: 1.7rem;
+  }
+  .header-logo {
+    width: 300%;
+    max-width: 100px;
+  }
+  .header-phone-img {
+    max-width: 200px;
+  }
+  .phone-header-link {
+    font-size: 1.3rem;
+  }
+  .main-nav-link {
+    font-size: 1.7rem;
+  }
+}
+@media screen and (min-width: 1200px) and (max-width: 1920px) and (orientation: portrait) {
+  .main-nav {
+    gap: 3rem;
+  }
+  .main-nav-list {
+    gap: 3rem;
+  }
+  .main-nav-link-view {
+    font-size: 1.7rem;
+  }
+  .header-logo {
+    width: 300%;
+    max-width: 100px;
+  }
+  .header-phone-img {
+    max-width: 200px;
+  }
+  .phone-header-link {
+    font-size: 1.3rem;
+  }
+  .main-nav-link {
+    font-size: 1.7rem;
+  }
+}
+@media screen and (max-width: 1200px) and (orientation: portrait) {
+  .header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 50px;
+    padding: 0 10px;
+}
+.mobile-nav {
+  background-color: #e67e22;
+  color: #fff;
+  border: none;
+  text-align: center;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-family: "Kairos W04 Extended Bold";
+  display: block;
+  width: 60px;
+  height: 30px;
+  border-radius: 6px;
+}
+.main-nav {
+display: none; /* Hide menu by default */
+flex-direction: column;
+position: absolute;
+top: 50px; /* Position below header */
+left: 0;
+width: 100%; /* Full-width menu */
+background-color: #000; /* Match header background */
+z-index: 1000; /* Ensure it appears above content */
+padding: 10px 0;
+border-top: 1px solid #555; /* Optional styling */
+}
+
+.main-nav.active {
+display: flex; /* Show menu when active */
+}
+.header-logo {
+width: 100%;
+      height: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+}
+.header-logo img {
+max-width: 150px;
+height: auto;
+}
+.main-nav-list {
+margin: 0;
+padding: 0;
+display: flex;
+flex-direction: column;
+align-items: center;
+list-style: none;
+gap: 2rem;
+}
+.main-nav-list li {
+position: relative;
+}
+.main-nav-link {
+text-decoration: none;
+color: #ffffff;
+font-weight: 500;
+font-size: 20px;
+transition: all .3s;
+padding: 5px 10px;
+line-height: 1.5;
+border: 1px solid #ffffff;
+border-radius: 5px;
+}
+.main-nav-link-view {
+text-decoration: none;
+      color: #FAF0CA;
+      font-weight: 500;
+      font-size: 20px;
+      transition: all .3s;
+      padding: 5px 10px;
+      line-height: 1.5;
+      border: 1px solid #FAF0CA;
+      border-radius: 5px;
+}
+.phone-header {
+display: block;
+margin: 0 auto;
+}
+.phone-header-link {
+font-size: 25px;
+}
+.header-phone-img {
+max-width: 200px;
+height: auto;
+margin: 0 auto;
+padding: 5px 10px;
+}
+.header-worx-logo {
+text-decoration: none;
+color: #a4f7ff;
+font-weight: 500;
+font-size: 10px;
+font-family: "Kairos W04 Extended Bold";
+transition: all .3s;
+display: flex;
+align-items: center;
+background-color: grey;
+border-radius: 5px;
+padding: 5px 10px;
+margin-left: auto;
+width: 100%;
+height: auto;
+}
+.material-worx-img {
+width: 100%;
+}
+}
+@media screen and (max-width: 1200px) and (orientation: landscape) {
+  .header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 50px;
+    padding: 0 10px;
+}
+.mobile-nav {
+  background-color: #e67e22;
+  color: #fff;
+  border: none;
+  text-align: center;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-family: "Kairos W04 Extended Bold";
+  display: block;
+  width: 60px;
+  height: 30px;
+  border-radius: 6px;
+}
+.main-nav {
+display: none; /* Hide menu by default */
+flex-direction: column;
+position: absolute;
+top: 50px; /* Position below header */
+left: 0;
+width: 100%; /* Full-width menu */
+background-color: #000; /* Match header background */
+z-index: 1000; /* Ensure it appears above content */
+padding: 10px 0;
+border-top: 1px solid #555; /* Optional styling */
+}
+
+.main-nav.active {
+display: flex; /* Show menu when active */
+}
+.header-logo {
+width: 100%;
+      height: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+}
+.header-logo img {
+max-width: 150px;
+height: auto;
+}
+.main-nav-list {
+margin: 0;
+padding: 0;
+display: flex;
+flex-direction: column;
+align-items: center;
+list-style: none;
+gap: 2rem;
+}
+.main-nav-list li {
+position: relative;
+}
+.main-nav-link {
+text-decoration: none;
+color: #ffffff;
+font-weight: 500;
+font-size: 20px;
+transition: all .3s;
+padding: 5px 10px;
+line-height: 1.5;
+border: 1px solid #ffffff;
+border-radius: 5px;
+}
+.main-nav-link-view {
+text-decoration: none;
+      color: #FAF0CA;
+      font-weight: 500;
+      font-size: 20px;
+      transition: all .3s;
+      padding: 5px 10px;
+      line-height: 1.5;
+      border: 1px solid #FAF0CA;
+      border-radius: 5px;
+}
+.phone-header {
+display: block;
+margin: 0 auto;
+}
+.phone-header-link {
+font-size: 25px;
+}
+.header-phone-img {
+max-width: 200px;
+height: auto;
+margin: 0 auto;
+padding: 5px 10px;
+}
+.header-worx-logo {
+text-decoration: none;
+color: #a4f7ff;
+font-weight: 500;
+font-size: 10px;
+font-family: "Kairos W04 Extended Bold";
+transition: all .3s;
+display: flex;
+align-items: center;
+background-color: grey;
+border-radius: 5px;
+padding: 5px 10px;
+margin-left: auto;
+width: 100%;
+height: auto;
+}
+.material-worx-img {
+width: 100%;
+}
+}
+@media screen and (min-width: 320px) and (max-width: 640px) and (orientation: portrait) {
+  .header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 50px;
+    padding: 0 10px;
+}
+.mobile-nav {
+  background-color: #e67e22;
+  color: #fff;
+  border: none;
+  text-align: center;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-family: "Kairos W04 Extended Bold";
+  display: block;
+  width: 60px;
+  height: 30px;
+  border-radius: 6px;
+}
+.main-nav {
+display: none; /* Hide menu by default */
+flex-direction: column;
+position: absolute;
+top: 50px; /* Position below header */
+left: 0;
+width: 100%; /* Full-width menu */
+background-color: #000; /* Match header background */
+z-index: 1000; /* Ensure it appears above content */
+padding: 10px 0;
+border-top: 1px solid #555; /* Optional styling */
+}
+
+.main-nav.active {
+display: flex; /* Show menu when active */
+}
+.header-logo {
+width: 100%;
+      height: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+}
+.header-logo img {
+max-width: 150px;
+height: auto;
+}
+.main-nav-list {
+margin: 0;
+padding: 0;
+display: flex;
+flex-direction: column;
+align-items: center;
+list-style: none;
+gap: 2rem;
+}
+.main-nav-list li {
+position: relative;
+}
+.main-nav-link {
+text-decoration: none;
+color: #ffffff;
+font-weight: 500;
+font-size: 20px;
+transition: all .3s;
+padding: 5px 10px;
+line-height: 1.5;
+border: 1px solid #ffffff;
+border-radius: 5px;
+}
+.main-nav-link-view {
+text-decoration: none;
+      color: #FAF0CA;
+      font-weight: 500;
+      font-size: 20px;
+      transition: all .3s;
+      padding: 5px 10px;
+      line-height: 1.5;
+      border: 1px solid #FAF0CA;
+      border-radius: 5px;
+}
+.phone-header {
+display: block;
+margin: 0 auto;
+}
+.phone-header-link {
+font-size: 25px;
+}
+.header-phone-img {
+max-width: 200px;
+height: auto;
+margin: 0 auto;
+padding: 5px 10px;
+}
+.header-worx-logo {
+text-decoration: none;
+color: #a4f7ff;
+font-weight: 500;
+font-size: 10px;
+font-family: "Kairos W04 Extended Bold";
+transition: all .3s;
+display: flex;
+align-items: center;
+background-color: grey;
+border-radius: 5px;
+padding: 5px 10px;
+margin-left: auto;
+width: 100%;
+height: auto;
+}
+.material-worx-img {
+width: 100%;
+}
+}
+@media screen and (max-width: 320px) and (orientation: portrait) {
+  .header {
+      position: relative;
+      display: flex;
+      align-items: center;
+      height: 50px;
+      padding: 0 10px;
+  }
+  .mobile-nav {
+    background-color: #e67e22;
+    color: #fff;
+    border: none;
+    text-align: center;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-family: "Kairos W04 Extended Bold";
+    display: block;
+    width: 60px;
+    height: 30px;
+    border-radius: 6px;
+}
+.main-nav {
+  display: none; /* Hide menu by default */
+  flex-direction: column;
+  position: absolute;
+  top: 50px; /* Position below header */
+  left: 0;
+  width: 100%; /* Full-width menu */
+  background-color: #000; /* Match header background */
+  z-index: 1000; /* Ensure it appears above content */
+  padding: 10px 0;
+  border-top: 1px solid #555; /* Optional styling */
+}
+
+.main-nav.active {
+  display: flex; /* Show menu when active */
+}
+.header-logo {
+  width: 100%;
+        height: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+}
+.header-logo img {
+  max-width: 150px;
+  height: auto;
+}
+.main-nav-list {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  list-style: none;
+  gap: 2rem;
+}
+.main-nav-list li {
+  position: relative;
+}
+.main-nav-link {
+  text-decoration: none;
+  color: #ffffff;
+  font-weight: 500;
+  font-size: 20px;
+  transition: all .3s;
+  padding: 5px 10px;
+  line-height: 1.5;
+  border: 1px solid #ffffff;
+  border-radius: 5px;
+}
+.main-nav-link-view {
+  text-decoration: none;
+        color: #FAF0CA;
+        font-weight: 500;
+        font-size: 20px;
+        transition: all .3s;
+        padding: 5px 10px;
+        line-height: 1.5;
+        border: 1px solid #FAF0CA;
+        border-radius: 5px;
+}
+.phone-header {
+  display: block;
+  margin: 0 auto;
+}
+.phone-header-link {
+  font-size: 25px;
+}
+.header-phone-img {
+  max-width: 200px;
+  height: auto;
+  margin: 0 auto;
+  padding: 5px 10px;
+}
+.header-worx-logo {
+  text-decoration: none;
+  color: #a4f7ff;
+  font-weight: 500;
+  font-size: 10px;
+  font-family: "Kairos W04 Extended Bold";
+  transition: all .3s;
+  display: flex;
+  align-items: center;
+  background-color: grey;
+  border-radius: 5px;
+  padding: 5px 10px;
+  margin-left: auto;
+  width: 100%;
+  height: auto;
+}
+.material-worx-img {
+  width: 100%;
+}
+}
+@media screen and (max-width: 320px) and (orientation: landscape) {
+  .header {
+      position: relative;
+      display: flex;
+      align-items: center;
+      height: 50px;
+      padding: 0 10px;
+  }
+  .mobile-nav {
+    background-color: #e67e22;
+    color: #fff;
+    border: none;
+    text-align: center;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-family: "Kairos W04 Extended Bold";
+    display: block;
+    width: 60px;
+    height: 30px;
+    border-radius: 6px;
+}
+.main-nav {
+  display: none; /* Hide menu by default */
+  flex-direction: column;
+  position: absolute;
+  top: 50px; /* Position below header */
+  left: 0;
+  width: 100%; /* Full-width menu */
+  background-color: #000; /* Match header background */
+  z-index: 1000; /* Ensure it appears above content */
+  padding: 10px 0;
+  border-top: 1px solid #555; /* Optional styling */
+}
+
+.main-nav.active {
+  display: flex; /* Show menu when active */
+}
+.header-logo {
+  width: 100%;
+        height: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+}
+.header-logo img {
+  max-width: 150px;
+  height: auto;
+}
+.main-nav-list {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  list-style: none;
+  gap: 2rem;
+}
+.main-nav-list li {
+  position: relative;
+}
+.main-nav-link {
+  text-decoration: none;
+  color: #ffffff;
+  font-weight: 500;
+  font-size: 20px;
+  transition: all .3s;
+  padding: 5px 10px;
+  line-height: 1.5;
+  border: 1px solid #ffffff;
+  border-radius: 5px;
+}
+.phone-header {
+  display: block;
+  margin: 0 auto;
+}
+.phone-header-link {
+  font-size: 25px;
+}
+.header-phone-img {
+  max-width: 200px;
+  height: auto;
+  margin: 0 auto;
+  padding: 5px 10px;
+}
+.header-worx-logo {
+  text-decoration: none;
+  color: #a4f7ff;
+  font-weight: 500;
+  font-size: 10px;
+  font-family: "Kairos W04 Extended Bold";
+  transition: all .3s;
+  display: flex;
+  align-items: center;
+  background-color: grey;
+  border-radius: 5px;
+  padding: 5px 10px;
+  margin-left: auto;
+  width: 100%;
+  height: auto;
+}
+.material-worx-img {
+  width: 100%;
+}
+}
