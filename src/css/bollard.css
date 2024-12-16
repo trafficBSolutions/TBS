@@ -83,3 +83,81 @@
   height: auto;
   border-radius: 5px;
 }
+@media screen and (max-width: 1200px) and (orientation: landscape) {
+  .bollard-flag {
+    font-size: 5rem;
+  }
+  .bollard-descript, .wheel-descript {
+    font-size: 2.5rem;
+  }
+  .bollard-form-box {
+    font-size: 3rem;
+  }
+  .bollard-form-descript {
+    font-size: 2rem;
+  }
+}
+@media screen and (max-width: 1200px) and (orientation: portrait) {
+  .bollard-flag {
+    font-size: 5rem;
+  }
+  .bollard-descript, .wheel-descript {
+    font-size: 2rem;
+  }
+  .bollard-form-box {
+    font-size: 2.5rem;
+  }
+  .bollard-form-descript {
+    font-size: 1.5rem;
+  }
+}
+@media screen and (min-width: 320px) and (max-width: 600px) and (orientation: portrait) {
+    .bollard-flag {
+    font-size: 3rem;
+  }
+  .bollard-descript, .wheel-descript {
+    font-size: 1.5rem;
+  }
+  .bollard-form-box {
+    font-size: 2.5rem;
+  }
+  .bollard-form-descript {
+    font-size: 1.5rem;
+  }
+}
+@media screen and (max-width: 320px) and (orientation: landscape) {
+  .bollard-flag {
+    font-size: 2.5rem;
+  }
+  .bollard-descript, .wheel-descript {
+    font-size: 1.5rem;
+  }
+  .bollard-form-box {
+    font-size: 2.5rem;
+  }
+  .bollard-form-descript {
+    font-size: 1.5rem;
+  }
+  .bollard-img-section, .wheel-img-section  {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+@media screen and (max-width: 320px) and (orientation: portrait) {
+    .bollard-flag {
+      font-size: 2.5rem;
+    }
+    .bollard-descript, .wheel-descript {
+      font-size: 1.5rem;
+    }
+    .bollard-form-box {
+      font-size: 2.5rem;
+    }
+    .bollard-form-descript {
+      font-size: 1.5rem;
+    }
+    .bollard-img-section, .wheel-img-section  {
+      flex-direction: column;
+      align-items: center;
+    }
+}
