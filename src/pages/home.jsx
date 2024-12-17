@@ -72,7 +72,7 @@ export default function Home() {
     <li>Speed Control Measures</li>
     <li>Advanced Warning Signs</li>
 </div>
-<button href="/traffic-control-services" className="btn -- btn-traffic">Traffic Control Services</button>
+<button onClick={() => window.location.href = "/traffic-control-services"} className="btn -- btn-traffic">Traffic Control Services</button>
 </div>
     </div>
     <div className="man-services">
