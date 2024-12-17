@@ -72,7 +72,7 @@ export default function Home() {
     <li>Speed Control Measures</li>
     <li>Advanced Warning Signs</li>
 </div>
-<a href="/traffic-control-services" className="btn -- btn-traffic">Traffic Control Services</a>
+<button href="/traffic-control-services" className="btn -- btn-traffic">Traffic Control Services</button>
 </div>
     </div>
     <div className="man-services">
