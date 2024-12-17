@@ -97,7 +97,7 @@ export default function Home() {
     <li>Sign Post Installation & Repair</li>
     <li>Construction Zone Safety Products</li>
 </div>
-<button href="/product-services" className="btn -- btn-product">Product Services</button>
+<button onClick={() => window.location.href = "/product-services"} className="btn -- btn-product">Product Services</button>
 </div>
 </div>
       
