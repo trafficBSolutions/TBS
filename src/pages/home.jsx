@@ -114,21 +114,21 @@ export default function Home() {
           </div>
           <div className="sign-content">
             <h1 className="sign-established">
-              700+
+              800+
             </h1>
             <h1 className="sign-established-text">
               Traffic Signs Installed</h1>
             </div>
             <div className="plan-content">
               <h1 className="plan-established">
-                150+
+                200+
                 </h1>
                 <h1 className="plan-established-text">
                   Traffic Control Plans Designed</h1>
                   </div>
                   <div className="control-job-content">
                     <h1 className="control-job-established">
-                      20,000+
+                      30,000+
                       </h1>
                       <h1 className="control-job-established-text">
                         Traffic Control Jobs Completed</h1>
