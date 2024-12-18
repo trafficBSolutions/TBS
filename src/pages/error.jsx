@@ -76,8 +76,8 @@ const Error = () => {
       <h2 className="footer-title">Navigation</h2>
     <ul className="footer-navigate">
       <li><a className="footer-nav-link" href="/about-us">About Us</a></li>
-      <li><a className="footer-nav-link" href="">Traffic Control Services</a></li>
-      <li><a className="footer-nav-link" href="">Product Services</a></li>
+      <li><a className="footer-nav-link" href="/traffic-control-services">Traffic Control Services</a></li>
+      <li><a className="footer-nav-link" href="/product-services">Product Services</a></li>
       <li><a className="footer-nav-link" href="/contact-us">Contact Us</a></li>
       <li><a className="footer-nav-link" href="/applynow">Careers</a></li>
     </ul>
