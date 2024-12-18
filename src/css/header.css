@@ -171,13 +171,28 @@
 .material-worx-img {
   max-width: 200px;
   height: auto;
+  margin: 0 auto;
+  
 }
-
+.material-worx-text {
+  font-family: "Moveo Sans W00 Bold";
+  font-size: 2rem;
+  color: #ffffff;
+  text-shadow: 3px 3px 0 #000000;
+}
+.material-worx-web {
+  font-family: "Moveo Sans W00 Bold";
+  font-size: 2rem;
+  color: #a6d8fa;
+  text-shadow: 3px 3px 0 #000000;
+}
 .header-worx-logo {
   display: flex;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
+  padding: 10px;
   background-color: grey;
-  padding: 5px 10px;
   border-radius: 6px;
   transition: background-color 0.3s;
 }
@@ -672,21 +687,8 @@ width: 100%;
   margin: 0 auto;
   padding: 5px 10px;
 }
-.header-worx-logo {
-  text-decoration: none;
-  color: #a4f7ff;
-  font-weight: 500;
-  font-size: 10px;
-  font-family: "Kairos W04 Extended Bold";
-  transition: all .3s;
-  display: flex;
-  align-items: center;
-  background-color: grey;
-  border-radius: 5px;
-  padding: 5px 10px;
-  margin-left: auto;
-  width: 100%;
-  height: auto;
+.material-worx-web {
+  font-size: 1.5rem;
 }
 .material-worx-img {
   width: 100%;
@@ -794,5 +796,8 @@ width: 100%;
 }
 .material-worx-img {
   width: 100%;
+}
+.material-worx-web {
+  font-size: 1.5rem;
 }
 }
