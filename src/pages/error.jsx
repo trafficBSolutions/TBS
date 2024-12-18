@@ -66,7 +66,7 @@ const Error = () => {
 <div className="not-found-container">
             <h1 className="NotFound">404 - Not Found</h1>
             <p className="page-info">The page you are looking for might have been removed, had its name changed, or does not exist.</p>
-            <button className="btn btn--full link-button" to="/">Back to Home Page</button>
+            <button className="btn btn--full link-button" onClick={() => window.location.href = "/"}>Back to Home Page</button>
             </div>
 </main>
 <footer className="footer">
