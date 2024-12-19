@@ -262,7 +262,7 @@ const handleQuantityChange = (e) => {
         <div className="ppe-form-container container--narrow page-section">
 
 <h1 className="ppe-form-h1">PPE Sale Form</h1>
-<h2 className="ppe-fill">Please Fill Out the Form Below to Request Personal Protective Equipment you Need to Rent!</h2>
+<h2 className="ppe-fill">Please Fill Out the Form Below to Request Personal Protective Equipment!</h2>
 <div className="first-ppe-input">
 
   <div className="first-ppe-name">
