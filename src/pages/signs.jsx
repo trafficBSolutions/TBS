@@ -921,7 +921,7 @@ and what time you want a TBS crew will arrive.</h2>
   </div>
 </footer>
 <div className="footer-copyright">
-      <p className="footer-copy-p">&copy; 2024 Traffic & Barrier Solutions, LLC - 
+      <p className="footer-copy-p">&copy; 2025 Traffic & Barrier Solutions, LLC - 
         Website Created & Deployed by William Rowell - All Rights Reserved.</p>
     </div>
         </div>
