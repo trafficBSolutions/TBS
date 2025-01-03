@@ -93,10 +93,11 @@
 .footer-copyright {
   background-color: #000000;
   color: #fff;
+  padding: 10px 0;
   text-align: center;
 }
 .footer-copy-p {
-  font-size: 2rem;
+  font-size: 1.5rem;
 }
 .statement, .trademark-warning {
   color: #ffffff;
