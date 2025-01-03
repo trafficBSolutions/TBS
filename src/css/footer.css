@@ -113,6 +113,13 @@
 .statement-box {
   padding: 2rem;
 }
+.footer-face {
+  color: #FAF0CA;
+}
+.footer-face:hover {
+  color:aliceblue;
+  background-color: #333;
+}
 @media screen and (min-width: 1200px) and (max-width: 1800px) and (orientation: landscape) {
   .site-footer__inner {
     display: flex;
