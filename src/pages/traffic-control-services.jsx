@@ -119,7 +119,7 @@ const TService = () => {
 </footer>
 <div className="footer-copyright">
       <p className="footer-copy-p">&copy; 2025 Traffic & Barrier Solutions, LLC - 
-        Website Created & Deployed by William Rowell - All Rights Reserved.</p>
+        Website Created & Deployed by <a className="footer-face"href="https://www.facebook.com/will.rowell.779" target="_blank" rel="noopener noreferrer">William Rowell</a> - All Rights Reserved.</p>
     </div>
         </div>
     )
