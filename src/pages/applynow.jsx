@@ -148,16 +148,17 @@ export default function Apply() {
                     <li><a className="main-nav-link" href="/contact-us">Contact Us</a></li>
                     <li><a className="main-nav-link-view" href="">Careers</a></li>
                 </ul>
-
-                {/* Phone and External Link */}
-<div className="phone-header">
+            </nav>
+                       {/* Phone and External Link */}
+             <div className="phone-header">
                     <a className="header-worx-logo" target="_blank" rel="noopener noreferrer" href="https://www.material-worx.com">
                         <img className="material-worx-img" alt="Material WorX logo" src={images["../assets/tbs_companies/Material WorX.svg"].default} />
-                        <p className="material-worx-text">CUSTOM SHOP &#x1F80A;</p>
-                        <p className="material-worx-web">www.material-worx.com</p>
+                        <div className="material-worx">
+                            <p className="material-worx-text">CUSTOM SHOP &#x1F80A;</p>
+                            <p className="material-worx-web">www.material-worx.com</p>
+                        </div>
                     </a>
                 </div>
-            </nav>
         </header>
       <main className="apply-main">
         <div className="apply-container">
