@@ -20,6 +20,7 @@
 }
 .phone-header {
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 10px;
   margin-left: auto;
@@ -28,12 +29,13 @@
     max-width: 300px;
     height: auto;
 }
+
 .main-nav {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 2rem;
-  flex: 1; /* Center-align main navigation */
+  flex: 0.9; /* Center-align main navigation */
   padding: 0;
 }
 
@@ -177,18 +179,19 @@
 .material-worx-text {
   font-family: "Moveo Sans W00 Bold";
   font-size: 2rem;
+  text-align: center;
   color: #ffffff;
   text-shadow: 3px 3px 0 #000000;
 }
 .material-worx-web {
   font-family: "Moveo Sans W00 Bold";
   font-size: 2rem;
+  text-align: center;
   color: #a6d8fa;
   text-shadow: 3px 3px 0 #000000;
 }
 .header-worx-logo {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 10px;
@@ -252,7 +255,7 @@
     position: relative;
     display: flex;
     align-items: center;
-    height: 50px;
+    height: 60px;
     padding: 0 10px;
 }
 .mobile-nav {
@@ -359,8 +362,15 @@ width: 100%;
 height: auto;
 }
 .material-worx-img {
-width: 100%;
-}
+  width: 100%;
+  max-width: 100px;
+  }
+  .material-worx-text {
+    font-size: 1.5rem;
+  }
+  .material-worx-web {
+    font-size: 1.3rem;
+  }
 }
 @media screen and (max-width: 1200px) and (orientation: landscape) {
   .header {
@@ -458,31 +468,38 @@ margin: 0 auto;
 padding: 5px 10px;
 }
 .header-worx-logo {
-text-decoration: none;
-color: #a4f7ff;
-font-weight: 500;
-font-size: 10px;
-font-family: "Kairos W04 Extended Bold";
-transition: all .3s;
-display: flex;
-align-items: center;
-background-color: grey;
-border-radius: 5px;
-padding: 5px 10px;
-margin-left: auto;
-width: 100%;
-height: auto;
-}
-.material-worx-img {
-width: 100%;
-}
+  text-decoration: none;
+  color: #a4f7ff;
+  font-weight: 500;
+  font-size: 10px;
+  font-family: "Kairos W04 Extended Bold";
+  transition: all .3s;
+  display: flex;
+  align-items: center;
+  background-color: grey;
+  border-radius: 5px;
+  padding: 1px 10px;
+  margin-left: auto;
+  width: 100%;
+  height: auto;
+  }
+  .material-worx-img {
+    width: 100%;
+    max-width: 100px;
+    }
+    .material-worx-text {
+      font-size: 1.5rem;
+    }
+    .material-worx-web {
+      font-size: 1.3rem;
+    }
 }
 @media screen and (min-width: 320px) and (max-width: 640px) and (orientation: portrait) {
   .header {
     position: relative;
     display: flex;
     align-items: center;
-    height: 50px;
+    height: 80px;
     padding: 0 10px;
 }
 .mobile-nav {
@@ -522,7 +539,6 @@ width: 100%;
       justify-content: center;
 }
 .header-logo img {
-max-width: 150px;
 height: auto;
 }
 .main-nav-list {
@@ -569,8 +585,8 @@ font-size: 25px;
 .header-phone-img {
 max-width: 200px;
 height: auto;
-margin: 0 auto;
-padding: 5px 10px;
+margin: 0;
+padding: 0;
 }
 .header-worx-logo {
 text-decoration: none;
@@ -590,214 +606,262 @@ height: auto;
 }
 .material-worx-img {
 width: 100%;
+max-width: 100px;
+}
+.material-worx-text {
+  font-size: 1.5rem;
+}
+.material-worx-web {
+  font-size: 1.3rem;
 }
 }
 @media screen and (max-width: 320px) and (orientation: portrait) {
   .header {
-      position: relative;
-      display: flex;
-      align-items: center;
-      height: 50px;
-      padding: 0 10px;
-  }
-  .mobile-nav {
-    background-color: #e67e22;
-    color: #fff;
-    border: none;
-    text-align: center;
-    padding: 5px 10px;
-    font-size: 12px;
-    font-family: "Kairos W04 Extended Bold";
-    display: block;
-    width: 60px;
-    height: 30px;
-    border-radius: 6px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 60px;
+    padding: 0 10px;
+}
+.mobile-nav {
+  background-color: #e67e22;
+  color: #fff;
+  border: none;
+  text-align: center;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-family: "Kairos W04 Extended Bold";
+  display: block;
+  width: 60px;
+  height: 30px;
+  border-radius: 6px;
 }
 .main-nav {
-  display: none; /* Hide menu by default */
-  flex-direction: column;
-  position: absolute;
-  top: 50px; /* Position below header */
-  left: 0;
-  width: 100%; /* Full-width menu */
-  background-color: #000; /* Match header background */
-  z-index: 1000; /* Ensure it appears above content */
-  padding: 10px 0;
-  border-top: 1px solid #555; /* Optional styling */
+display: none; /* Hide menu by default */
+flex-direction: column;
+position: absolute;
+top: 50px; /* Position below header */
+left: 0;
+width: 100%; /* Full-width menu */
+background-color: #000; /* Match header background */
+z-index: 1000; /* Ensure it appears above content */
+padding: 10px 0;
+border-top: 1px solid #555; /* Optional styling */
 }
 
 .main-nav.active {
-  display: flex; /* Show menu when active */
+display: flex; /* Show menu when active */
 }
 .header-logo {
-  width: 100%;
-        height: auto;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+width: 100%;
+      height: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
 }
 .header-logo img {
-  max-width: 150px;
-  height: auto;
+height: auto;
 }
 .main-nav-list {
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  list-style: none;
-  gap: 2rem;
+margin: 0;
+padding: 0;
+display: flex;
+flex-direction: column;
+align-items: center;
+list-style: none;
+gap: 2rem;
 }
 .main-nav-list li {
-  position: relative;
+position: relative;
 }
 .main-nav-link {
-  text-decoration: none;
-  color: #ffffff;
-  font-weight: 500;
-  font-size: 20px;
-  transition: all .3s;
-  padding: 5px 10px;
-  line-height: 1.5;
-  border: 1px solid #ffffff;
-  border-radius: 5px;
+text-decoration: none;
+color: #ffffff;
+font-weight: 500;
+font-size: 20px;
+transition: all .3s;
+padding: 5px 10px;
+line-height: 1.5;
+border: 1px solid #ffffff;
+border-radius: 5px;
 }
 .main-nav-link-view {
-  text-decoration: none;
-        color: #FAF0CA;
-        font-weight: 500;
-        font-size: 20px;
-        transition: all .3s;
-        padding: 5px 10px;
-        line-height: 1.5;
-        border: 1px solid #FAF0CA;
-        border-radius: 5px;
+text-decoration: none;
+      color: #FAF0CA;
+      font-weight: 500;
+      font-size: 20px;
+      transition: all .3s;
+      padding: 5px 10px;
+      line-height: 1.5;
+      border: 1px solid #FAF0CA;
+      border-radius: 5px;
 }
 .phone-header {
-  display: block;
-  margin: 0 auto;
+display: block;
+margin: 0 auto;
+max-width: 150px;
+width: 100%;
 }
 .phone-header-link {
-  font-size: 25px;
+font-size: 25px;
 }
 .header-phone-img {
-  max-width: 200px;
-  height: auto;
-  margin: 0 auto;
-  padding: 5px 10px;
+max-width: 50px;
+height: auto;
+margin: 0;
+padding: 0;
 }
-.material-worx-web {
-  font-size: 1.5rem;
+.header-worx-logo {
+text-decoration: none;
+color: #a4f7ff;
+font-weight: 500;
+font-size: 10px;
+font-family: "Kairos W04 Extended Bold";
+transition: all .3s;
+display: flex;
+align-items: center;
+background-color: grey;
+border-radius: 5px;
+padding: 1px 10px;
+margin-left: auto;
+width: 100%;
+height: auto;
 }
 .material-worx-img {
-  width: 100%;
+width: 100%;
+
+}
+.material-worx-text {
+  font-size: 0.5rem;
+  display: none;
+}
+.material-worx-web {
+  font-size: 0.5rem;
+  display: none;
 }
 }
 @media screen and (max-width: 320px) and (orientation: landscape) {
   .header {
-      position: relative;
-      display: flex;
-      align-items: center;
-      height: 50px;
-      padding: 0 10px;
-  }
-  .mobile-nav {
-    background-color: #e67e22;
-    color: #fff;
-    border: none;
-    text-align: center;
-    padding: 5px 10px;
-    font-size: 12px;
-    font-family: "Kairos W04 Extended Bold";
-    display: block;
-    width: 60px;
-    height: 30px;
-    border-radius: 6px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 50px;
+    padding: 0 10px;
+}
+.mobile-nav {
+  background-color: #e67e22;
+  color: #fff;
+  border: none;
+  text-align: center;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-family: "Kairos W04 Extended Bold";
+  display: block;
+  width: 60px;
+  height: 30px;
+  border-radius: 6px;
 }
 .main-nav {
-  display: none; /* Hide menu by default */
-  flex-direction: column;
-  position: absolute;
-  top: 50px; /* Position below header */
-  left: 0;
-  width: 100%; /* Full-width menu */
-  background-color: #000; /* Match header background */
-  z-index: 1000; /* Ensure it appears above content */
-  padding: 10px 0;
-  border-top: 1px solid #555; /* Optional styling */
+display: none; /* Hide menu by default */
+flex-direction: column;
+position: absolute;
+top: 50px; /* Position below header */
+left: 0;
+width: 100%; /* Full-width menu */
+background-color: #000; /* Match header background */
+z-index: 1000; /* Ensure it appears above content */
+padding: 10px 0;
+border-top: 1px solid #555; /* Optional styling */
 }
 
 .main-nav.active {
-  display: flex; /* Show menu when active */
+display: flex; /* Show menu when active */
 }
 .header-logo {
-  width: 100%;
-        height: auto;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+width: 100%;
+      height: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
 }
 .header-logo img {
-  max-width: 150px;
-  height: auto;
+height: auto;
 }
 .main-nav-list {
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  list-style: none;
-  gap: 2rem;
+margin: 0;
+padding: 0;
+display: flex;
+flex-direction: column;
+align-items: center;
+list-style: none;
+gap: 2rem;
 }
 .main-nav-list li {
-  position: relative;
+position: relative;
 }
 .main-nav-link {
-  text-decoration: none;
-  color: #ffffff;
-  font-weight: 500;
-  font-size: 20px;
-  transition: all .3s;
-  padding: 5px 10px;
-  line-height: 1.5;
-  border: 1px solid #ffffff;
-  border-radius: 5px;
+text-decoration: none;
+color: #ffffff;
+font-weight: 500;
+font-size: 20px;
+transition: all .3s;
+padding: 5px 10px;
+line-height: 1.5;
+border: 1px solid #ffffff;
+border-radius: 5px;
+}
+.main-nav-link-view {
+text-decoration: none;
+      color: #FAF0CA;
+      font-weight: 500;
+      font-size: 20px;
+      transition: all .3s;
+      padding: 5px 10px;
+      line-height: 1.5;
+      border: 1px solid #FAF0CA;
+      border-radius: 5px;
 }
 .phone-header {
-  display: block;
-  margin: 0 auto;
+display: block;
+margin: 0 auto;
+max-width: 150px;
+width: 100%;
 }
 .phone-header-link {
-  font-size: 25px;
+font-size: 25px;
 }
 .header-phone-img {
-  max-width: 200px;
-  height: auto;
-  margin: 0 auto;
-  padding: 5px 10px;
+max-width: 50px;
+height: auto;
+margin: 0;
+padding: 0;
 }
 .header-worx-logo {
-  text-decoration: none;
-  color: #a4f7ff;
-  font-weight: 500;
-  font-size: 10px;
-  font-family: "Kairos W04 Extended Bold";
-  transition: all .3s;
-  display: flex;
-  align-items: center;
-  background-color: grey;
-  border-radius: 5px;
-  padding: 5px 10px;
-  margin-left: auto;
-  width: 100%;
-  height: auto;
+text-decoration: none;
+color: #a4f7ff;
+font-weight: 500;
+font-size: 10px;
+font-family: "Kairos W04 Extended Bold";
+transition: all .3s;
+display: flex;
+align-items: center;
+background-color: grey;
+border-radius: 5px;
+padding: 1px 10px;
+margin-left: auto;
+width: 100%;
+height: auto;
 }
 .material-worx-img {
-  width: 100%;
+width: 100%;
+
+}
+.material-worx-text {
+  font-size: 0.5rem;
+  display: none;
 }
 .material-worx-web {
-  font-size: 1.5rem;
+  font-size: 0.5rem;
+  display: none;
 }
 }
