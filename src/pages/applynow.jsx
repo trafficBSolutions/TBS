@@ -162,7 +162,7 @@ export default function Apply() {
         </header>
       <main className="apply-main">
         <div className="apply-container">
-          <h1 className="apply-now">CAREERS</h1>
+          <h1 className="apply-now">JOB APPLICATION</h1>
           <h2 className="descript">Discover a career with TBS,
             a premier leader in traffic control solutions!
             As a dynamic and rapidly growing company in the traffic management industry,
