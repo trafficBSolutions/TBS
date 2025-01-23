@@ -233,7 +233,7 @@
   .footer-title {
     font-size: 2rem;
   }
-  .footer-nav-link {
+  .footer-nav-link, .footer-nav-link-view  {
     line-height: 1.2;
     font-size: 1.3rem;
   }
