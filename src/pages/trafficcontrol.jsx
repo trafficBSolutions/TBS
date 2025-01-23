@@ -471,9 +471,9 @@ onChange={(e) => setFormData({ ...formData, city: e.target.value })}
       <p className="contact-info">
         <a className="will-phone" href="tel:+17062630175">Call: 706-263-0175</a>
         <a className="will-email" href="mailto: tbsolutions1999@gmail.com">Email: tbsolutions1999@gmail.com</a>
-        <a className="will-address" href="https://www.google.com/maps/place/Traffic+%26+Barrier+Solutions%2FMaterial+WorX+Sign+Shop/@34.5115302,-84.9476215,94m/data=!3m1!1e3!4m6!3m5!1s0x886007df83843f3b:0x84510d87790af625!8m2!3d34.5117917!4d-84.948025!16s%2Fg%2F11l28zhlzt?entry=ttu&g_ep=EgoyMDI0MDkyNC4wIKXMDSoASAFQAw%3D%3D"
+        <a className="will-address" href="https://www.google.com/maps/place/Traffic+and+Barrier+Solutions,+LLC/@34.5025307,-84.899317,660m/data=!3m1!1e3!4m6!3m5!1s0x482edab56d5b039b:0x94615ce25483ace6!8m2!3d34.5018691!4d-84.8994308!16s%2Fg%2F11pl8d7p4t?entry=ttu&g_ep=EgoyMDI1MDEyMC4wIKXMDSoASAFQAw%3D%3D"
       >
-        723 N. Wall St, Calhoun, GA, 30701</a>
+        1995 Dews Pond Rd, Calhoun, GA 30701</a>
       </p>
     </div>
 
@@ -499,11 +499,6 @@ onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                     Our commitment to safety extends beyond compliance—it's a fundamental value embedded in everything we do. 
                     Together, we work tirelessly to promote a culture of safety, 
                     accountability, and excellence, because when it comes to traffic control, there's no compromise on safety.
-                </p>
-                <p className="trademark-warning">
-                  <b className="warning-trade">WARNING:</b><b> Trademark Notice</b><img className="trademark-img" src={images["../assets/tbs_companies/tbs white.svg"].default}></img> is a registered trademark of Traffic & Barrier Solutions, LLC. 
-                  Unauthorized use of this logo is strictly prohibited and may result in legal action. 
-                  All other trademarks, logos, and brands are the property of their respective owners.
                 </p>
             </div>
   </div>
