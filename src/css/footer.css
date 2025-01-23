@@ -229,6 +229,35 @@
   }
   
 }
+@media screen and (min-width: 320px) and (max-width: 640px) and (orientation: portrait) {
+  .footer-title {
+    font-size: 2rem;
+  }
+  .footer-nav-link {
+    line-height: 1.2;
+    font-size: 1.3rem;
+  }
+  .footer-contact {
+    margin: 10px 0;
+  }
+  .contact-info a {
+    line-height: 1.2;
+    font-size: 1.3rem;
+  }
+
+  .contact-info {
+    padding: 0;
+  }
+  .statement, .trademark-warning {
+    font-size: 1.2rem;
+    margin: 10px 0;
+    text-align: center;
+  }
+  .tbs-logo, .trademark-img {
+    max-width: 150px;
+    margin-bottom: 10px;
+  }
+}
 @media screen and (max-width:320px) and (orientation: landscape) {
   .footer {
     display: block;
