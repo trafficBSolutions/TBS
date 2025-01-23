@@ -25,7 +25,53 @@ export default function Home() {
               <h1 className="heading-primary">
                 TRAFFIC & BARRIER SOLUTIONS, LLC
               </h1>
-              <p className="hero-description">
+            </div>
+          </div>
+        </section>
+        <section className="section-featured">
+        <div className="container-photos">
+            <div className="gallery-container">
+              <HomePhotoGallery /> {/* Render the photo gallery here */}
+            </div>
+          </div>
+          <div className="map-contain-home">
+            <MapComponent />
+          </div>
+        </section>
+        <section className="section-jobs">
+        <div className="jobs-container">
+          <div className="job-year-content">
+            <h1 className="established-year">
+              2019
+              </h1>
+              <h1 className="established-year-text">
+                Year Established
+                </h1>
+          </div>
+          <div className="sign-content">
+            <h1 className="sign-established">
+              700+
+            </h1>
+            <h1 className="sign-established-text">
+              Traffic Signs Installed</h1>
+            </div>
+            <div className="plan-content">
+              <h1 className="plan-established">
+                150+
+                </h1>
+                <h1 className="plan-established-text">
+                  Traffic Control Plans Designed</h1>
+                  </div>
+                  <div className="control-job-content">
+                    <h1 className="control-job-established">
+                      20,000+
+                      </h1>
+                      <h1 className="control-job-established-text">
+                        Traffic Control Jobs Completed</h1>
+                        </div>
+          </div>
+          <div className="hero-dec">
+          <p className="hero-description">
               Traffic & Barrier Solutions, LLC is a comprehensive traffic management and 
               safety solutions provider, specializing in a wide range of services to ensure 
               the efficient flow of traffic and the protection of both motorists and pedestrians. 
@@ -39,9 +85,8 @@ export default function Home() {
                 With a commitment to excellence and customer satisfaction, Traffic & Barrier Solutions, LLC
                is your trusted partner for all your traffic and barrier needs.
               </p>
-            </div>
-          </div>
-        </section>
+              </div>
+      </section>
         <section className="section-how" id="how">
 <div className="home-services">
   <div className="traffic-services">
@@ -72,7 +117,7 @@ export default function Home() {
     <li>Speed Control Measures</li>
     <li>Advanced Warning Signs</li>
 </div>
-<button onClick={() => window.location.href = "/traffic-control-services"} className="btn -- btn-traffic">Traffic Control Services</button>
+<button href="/traffic-control-services" className="btn -- btn-traffic">Traffic Control Services</button>
 </div>
     </div>
     <div className="man-services">
@@ -97,55 +142,12 @@ export default function Home() {
     <li>Sign Post Installation & Repair</li>
     <li>Construction Zone Safety Products</li>
 </div>
-<button onClick={() => window.location.href = "/product-services"} className="btn -- btn-product">Product Services</button>
+<button  className="btn -- btn-product">Product Services</button>
 </div>
 </div>
       
       </div>
-      <section className="section-jobs">
-        <div className="jobs-container">
-          <div className="job-year-content">
-            <h1 className="established-year">
-              2019
-              </h1>
-              <h1 className="established-year-text">
-                Year Established
-                </h1>
-          </div>
-          <div className="sign-content">
-            <h1 className="sign-established">
-              800+
-            </h1>
-            <h1 className="sign-established-text">
-              Traffic Signs Installed</h1>
-            </div>
-            <div className="plan-content">
-              <h1 className="plan-established">
-                200+
-                </h1>
-                <h1 className="plan-established-text">
-                  Traffic Control Plans Designed</h1>
-                  </div>
-                  <div className="control-job-content">
-                    <h1 className="control-job-established">
-                      30,000+
-                      </h1>
-                      <h1 className="control-job-established-text">
-                        Traffic Control Jobs Completed</h1>
-                        </div>
-          </div>
-      </section>
   </section>
-        <section className="section-featured">
-          <div className="map-contain-home">
-            <MapComponent />
-          </div>
-          <div className="container-photos">
-            <div className="gallery-container">
-              <HomePhotoGallery /> {/* Render the photo gallery here */}
-            </div>
-          </div>
-        </section>
       </main>
       <footer className="footer">
   <div className="site-footer__inner">
@@ -165,9 +167,9 @@ export default function Home() {
       <p className="contact-info">
         <a className="will-phone" href="tel:+17062630175">Call: 706-263-0175</a>
         <a className="will-email" href="mailto: tbsolutions1999@gmail.com">Email: tbsolutions1999@gmail.com</a>
-        <a className="will-address" href="https://www.google.com/maps/place/Traffic+%26+Barrier+Solutions%2FMaterial+WorX+Sign+Shop/@34.5115302,-84.9476215,94m/data=!3m1!1e3!4m6!3m5!1s0x886007df83843f3b:0x84510d87790af625!8m2!3d34.5117917!4d-84.948025!16s%2Fg%2F11l28zhlzt?entry=ttu&g_ep=EgoyMDI0MDkyNC4wIKXMDSoASAFQAw%3D%3D"
+        <a className="will-address" href="https://www.google.com/maps/place/Traffic+and+Barrier+Solutions,+LLC/@34.5025307,-84.899317,660m/data=!3m1!1e3!4m6!3m5!1s0x482edab56d5b039b:0x94615ce25483ace6!8m2!3d34.5018691!4d-84.8994308!16s%2Fg%2F11pl8d7p4t?entry=ttu&g_ep=EgoyMDI1MDEyMC4wIKXMDSoASAFQAw%3D%3D"
       >
-        723 N. Wall St, Calhoun, GA, 30701</a>
+        1995 Dews Pond Rd, Calhoun, GA 30701</a>
       </p>
     </div>
 
@@ -194,17 +196,12 @@ export default function Home() {
                     Together, we work tirelessly to promote a culture of safety, 
                     accountability, and excellence, because when it comes to traffic control, there's no compromise on safety.
                 </p>
-                <p className="trademark-warning">
-                  <b className="warning-trade">WARNING:</b><b> Trademark Notice</b><img className="trademark-img" src={images["../assets/tbs_companies/tbs white.svg"].default}></img> is a registered trademark of Traffic & Barrier Solutions, LLC. 
-                  Unauthorized use of this logo is strictly prohibited and may result in legal action. 
-                  All other trademarks, logos, and brands are the property of their respective owners.
-                </p>
             </div>
   </div>
 </footer>
 <div className="footer-copyright">
-      <p className="footer-copy-p">&copy; 2025 Traffic & Barrier Solutions, LLC - 
-        Website MERN Stack Coded & Deployed by <a className="footer-face"href="https://www.facebook.com/will.rowell.779" target="_blank" rel="noopener noreferrer">William Rowell</a> - All Rights Reserved.</p>
+      <p className="footer-copy-p">&copy; 2024 Traffic & Barrier Solutions, LLC - 
+        Website Created & Deployed by <a className="footer-face"href="https://www.facebook.com/will.rowell.779" target="_blank" rel="noopener noreferrer">William Rowell</a> - All Rights Reserved.</p>
     </div>
             </div>
 )}; 
