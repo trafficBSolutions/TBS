@@ -195,6 +195,9 @@
   .footer-nav-link-view {
     font-size: 1rem;
   }
+  .footer-copy-p {
+    font-size: 1.2rem;
+  }
 }
 @media screen and (max-width: 1200px) and (orientation: portrait) {
   .footer {
