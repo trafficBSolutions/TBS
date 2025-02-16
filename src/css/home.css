@@ -847,6 +847,16 @@ body {
     width: 100%;
     height: auto;
   }
+    .now-hiring-title {
+    font-size: 3.3rem;
+  }
+  .now-hiring-text {
+    font-size: 1.5rem;
+  }
+  .careers-btn {
+    font-size: 1.7rem;
+    padding: 10px 20px;
+  }
   .section-featured {
     display: block;
   }
@@ -926,7 +936,16 @@ body {
   .hero {
     padding: 0;
   }
-
+  .now-hiring-title {
+    font-size: 3rem;
+  }
+  .now-hiring-text {
+    font-size: 1.2rem;
+  }
+  .careers-btn {
+    font-size: 1.5rem;
+    padding: 10px 20px;
+  }
   .page-banner {
     padding-top: 90px;
 }
@@ -1007,7 +1026,16 @@ body {
   .hero {
     padding: 0;
   }
-
+  .now-hiring-title {
+    font-size: 3rem;
+  }
+  .now-hiring-text {
+    font-size: 1.2rem;
+  }
+  .careers-btn {
+    font-size: 1.5rem;
+    padding: 10px 20px;
+  }
   .page-banner {
     padding-top: 90px;
 }
