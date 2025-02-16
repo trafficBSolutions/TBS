@@ -40,7 +40,7 @@ export default function Home() {
         </section>
                       <section className="now-hiring">
           <div className="now-hiring-container">
-            <h1 className="now-hiring-title">Apply Now</h1>
+            <h1 className="now-hiring-title">APPLY NOW</h1>
             <p className="now-hiring-text">
               TBS is hiring for all positions.
               We have out of town work, night work and emergency calls everyday.
