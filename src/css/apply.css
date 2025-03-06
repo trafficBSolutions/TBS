@@ -37,7 +37,52 @@
     margin: 20px auto;
     max-width: 900px; 
   }
-  
+    .carrier-section {
+    background-color: #d5bbaf;
+    color: #000000;
+    padding: 20px;
+  }
+  .carrier-section li {
+    font-size: 16px;
+    text-align: left;
+    padding: 10px;
+    margin: 10px auto;
+    max-width: 300px;
+    border-radius: 5px;
+    background-color: #fff;
+    box-shadow: 0 2px 5px #00000084;
+  }
+  .job-lists{
+    display: flex;
+    margin: 20px 0;
+    padding: 10px;
+    gap: 20px;
+    align-items: top;
+    justify-content: center;
+  }
+  .carrierh2 {
+    font-size: 30px;
+    padding: 10px 0;
+    text-align: center;
+    font-family: "Moveo Sans w00 Bold";
+  }
+  .requirements, .duties, .skills-required {
+    font-size: 30px;
+    padding: 10px 0;
+    text-align: center;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  }
+  .carrierh4 {
+    font-size: 2.4rem;
+    padding: 10px 0;
+    text-align: center;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  }
+  .carrier-ops {
+    font-size: 1.5rem;
+    margin: 2rem;
+    text-align: left;
+  }
   .job-app-box {
     font-size: 32px;
     text-align: center;
@@ -159,12 +204,24 @@
     font-size: 1rem;
   }
 }
+@media screen and (max-width: 1200px) and (orientation: portrait) {
+  .requirements, .duties, .skills-required {
+    font-size: 2.4rem;
+  }
+  .carrier-section li {
+    font-size: 1.2rem;
+    line-height: 1.5rem;
+  }
+}
 @media screen and (min-width: 320px) and (max-width: 640px) and (orientation: portrait) {
 .apply-now {
   font-size: 4.5rem;
 }
 .descript {
   font-size: 1.4rem;
+}
+.job-lists {
+  display: block;
 }
 .job-app-box {
   font-size: 2.5rem;
@@ -193,6 +250,35 @@
     max-width: 200px;
     display: block;
   }
+    .carrier-section {
+    padding: 1rem;
+  }
+  .carrier-section li {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+  .carrierh2 {
+    font-size: 2rem;
+    margin: 0;
+  }
+  .carrierh4 {
+    font-size: 1.5rem;
+    margin: 0;
+  }
+  .requirements, .duties, .skills-required {
+    font-size: 1.5rem;
+    margin: 0;
+  }
+  .carrier-ops {
+    font-size: 1.2rem;
+    margin: 1rem;
+    text-align: center;
+    }
+    .job-lists {
+      display: block;
+      margin: 1rem;
+      padding: 1rem;
+    }
   .job-app-box {
     font-size: 2.5rem;
   }
@@ -241,6 +327,35 @@ margin: 0 auto;
     max-width: 200px;
     display: block;
   }
+    .carrier-section {
+    padding: 1rem;
+  }
+  .carrier-section li {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+  .carrierh2 {
+    font-size: 2rem;
+    margin: 0;
+  }
+  .carrierh4 {
+    font-size: 1.5rem;
+    margin: 0;
+  }
+  .requirements, .duties, .skills-required {
+    font-size: 1.5rem;
+    margin: 0;
+  }
+  .carrier-ops {
+    font-size: 1.2rem;
+    margin: 1rem;
+    text-align: center;
+    }
+    .job-lists {
+      display: block;
+      margin: 1rem;
+      padding: 1rem;
+    }
   .job-app-box {
     font-size: 2.5rem;
   }
