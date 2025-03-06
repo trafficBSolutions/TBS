@@ -170,14 +170,61 @@ export default function Apply() {
             Join our dedicated team and contribute to creating safer,
             more efficient roadways.</h2>
         </div>
-
-
+        <section className="carrier-section">
+    <h2 className="carrierh2">
+      TRAFFIC CONTROLLER
+    </h2>
+    <h4 className="carrierh4">
+      JOB DESCRIPTION
+    </h4>
+    <p className="carrier-ops">
+      A Traffic Controller is responsible for directing and managing the flow of vehicles and pedestrians in and around designated areas.
+      They ensure the safety of all parties, while also making sure that traffic moves efficiently. 
+      We offer traffic controllers with leadership opportunities including crew leads and drivers.
+      If you're dependable, alert, and ready for a rewarding career, apply today and be part of something that keeps communities moving safely!
+    </p>
+    <div className="job-lists">
+    <div className="require-div">
+    <h2 className="requirements">Job Requirements</h2>
+      <li>High School Diploma or General Education Development(GED)</li>
+      <li>Excellent communication and interpersonal skills</li>
+      <li>Valid Traffic Controller Certification or the ability to obtain one</li>
+      <li>Able to work in ALL weather conditions</li>
+      <li>Ability to stand, walk, and/or direct traffic for extended periods of time</li>
+      <li>Quick decision-making abilities and ability to adapt to changing situations</li>
+      <li>Must pass a background check and drug test</li>
+      <li>Must be able to lift up to 50IBS</li>
+      <li>Ability to move quickly out of harms way incase of emergency</li>
+      <li>Must follow company dress code policy</li>
+      </div>
+      <div className="duty-div">
+    <h2 className="duties">Job Duties</h2>
+      <li>Direct vehicles and pedestrians to ensure safety and efficiency</li>
+      <li>Monitor traffic flow and adjust signals and signs as needed</li>
+      <li>Communicate with other traffic controllers and emergency services as necessary</li>
+      <li>Enforce traffic laws and regulations</li>
+      <li>Implement detours and traffic control plans during special events or emergencies</li>
+      <li>Provide assistance to disabled or stranded motorist</li>
+      <li>Maintain records of traffic control activities</li>
+      </div>
+      <div className="skills-div">
+    <h2 className="skills-required">Skills Required</h2>
+      <li>Strong communication skills</li>
+      <li>Ability to remain calm under pressure</li>
+      <li>Ability to enforce safety regulations while being courteous with the public</li>
+      <li>Awareness of local and federal laws and regulations</li>
+      <li>Good problem-solving skills</li>
+      <li>Excellent attention to detail</li>
+      <li>Adequate physical stamina to stand for long periods and work in challenging weather conditions</li>
+      <li>Ability to work well with others and follow rules given by your foreman/crew lead</li>
+    </div>
+    </div>
+</section>
         <form
           className="apply-set"
           method="post"
           onSubmit={handleSubmit}
         >
-
           <div className="job-container container--narrow page-section">
       <div className="job-app-info">
             <h1 className="job-app-box">JOB APPLICATION FORM</h1>
