@@ -246,6 +246,9 @@
   word-spacing: -0.1rem;
   line-height: 1.6rem;
 }
+  .carrier-section li {
+  font-size: 1.1rem;
+}
 .job-app-box {
   font-size: 2.5rem;
 }
