@@ -220,8 +220,28 @@
 .descript {
   font-size: 1.4rem;
 }
+.apply-set {
+  max-width: 350px;
+  margin: 0 auto;
+}
 .job-lists {
   display: block;
+  margin: 0 auto;
+  padding: 1rem;
+}
+.carrierh4 {
+  font-size: 2rem;
+}
+.requirements, .duties, .skills-required {
+  font-size: 1.9rem;
+}
+.require-div, .duty-div, .skill-div {
+  margin: 0 auto;
+  padding: 20px 0;
+}
+.carrier-ops {
+  font-size: 1.2rem;
+  margin: 1rem;
 }
 .job-app-box {
   font-size: 2.5rem;
