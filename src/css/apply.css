@@ -29,12 +29,15 @@
     font-family: "Moveo Sans w00 Bold";
     margin-bottom: 30px;
   }
-
+.apply-set {
+    padding: 20px 0;
+  }
   .job-container {
     background-color: #fff;
-    padding: 20px;
+    padding: 20px 30px;
     box-shadow: 0 4px 10px #0000001a;
     margin: 0 auto;
+    border-radius: 2rem;
     max-width: 900px; 
   }
     .carrier-section {
