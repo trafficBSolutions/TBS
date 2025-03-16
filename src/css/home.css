@@ -62,7 +62,7 @@ html {
   font-size: 62.5%;
   overflow-x: hidden;
 }
-input[type=text], input[type=number], select, textarea {
+input[type=text], input[type=number], input[type=date], select, textarea {
   width: 100%;
   padding: 10px;
   margin: 10px 0;
