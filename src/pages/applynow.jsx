@@ -1024,7 +1024,6 @@ to provide additional context regarding your background, please reach out to our
   </div>
   {data.background === "Yes" && (
   <div className="conviction-entries">
-    <h3 className="conviction-title">Background History</h3>
     {/* Input Fields for a New Conviction Before Adding */}
     <div className="conviction-entry">
       <label>Type of Charge:</label>
