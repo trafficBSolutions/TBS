@@ -363,6 +363,26 @@
 .file-apply-input-container {
   max-width: 120px;
 }
+.strong-warning {
+  font-size: 2.5rem;
+}
+.ed-warning {
+  font-size: 1.1rem;
+  text-align: center;
+
+  line-height: normal;
+}
+.contact-employer, .employment-p, .skills-p, .language-p, .background-p, .position-look {
+  font-size: 1.3rem;
+}
+.position-li, .yes-radio, .no-radio{
+  font-size: 1.2rem;  
+}
+.add-button, .remove-button, .remove-employment-btn {
+  font-size: 1.2rem;
+  padding: 1rem;
+  margin: 10px auto;
+}
 }
 @media screen and (max-width: 320px) and (orientation: landscape) {
   .apply-now {
@@ -448,6 +468,26 @@ margin: 0 auto;
   margin: 0;
   text-align: center;
 }
+.strong-warning {
+  font-size: 2.3rem;
+}
+.ed-warning {
+  font-size: 0.9rem;
+  text-align: center;
+
+  line-height: normal;
+}
+.contact-employer, .employment-p, .skills-p, .language-p, .background-p, .position-look {
+  font-size: 1rem;
+}
+.position-li, .yes-radio, .no-radio{
+  font-size: 1rem;  
+}
+.add-button, .remove-button, .remove-employment-btn {
+  font-size: 1.2rem;
+  padding: 1rem;
+  margin: 10px auto;
+}
 }
 @media screen and (max-width: 320px) and (orientation: portrait) {
   .apply-now {
@@ -529,5 +569,25 @@ margin: 0 auto;
   font-size: 1.2rem;
   margin: 0;
   text-align: center;
+}
+.strong-warning {
+  font-size: 2.3rem;
+}
+.ed-warning {
+  font-size: 0.9rem;
+  text-align: center;
+
+  line-height: normal;
+}
+.contact-employer, .employment-p, .skills-p, .language-p, .background-p, .position-look {
+  font-size: 1rem;
+}
+.position-li, .yes-radio, .no-radio{
+  font-size: 1rem;  
+}
+.add-button, .remove-button, .remove-employment-btn {
+  font-size: 1.2rem;
+  padding: 1rem;
+  margin: 10px auto;
 }
 }
