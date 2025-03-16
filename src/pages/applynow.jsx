@@ -506,7 +506,7 @@ if (!data.background) {
       if (error.response && error.response.status === 400) {
         setSubmissionErrorMessage(error.response.data.message || "There was an error with your submission.");
       } else {
-        setSubmissionErrorMessage("An unexpected error occurred. Please try again later.");
+        setSubmissionErrorMessage("Application has already been submitted with this email and/or phone number.");
       }
     }
   };
