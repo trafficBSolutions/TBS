@@ -6,17 +6,182 @@ import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import images from '../utils/tbsImages';
-export default function Apply() {
+const states = [
+  { abbreviation: 'AL', name: 'Alabama' },
+  { abbreviation: 'AK', name: 'Alaska' },
+  { abbreviation: 'AZ', name: 'Arizona' },
+  { abbreviation: 'AR', name: 'Arkansas' },
+  { abbreviation: 'CA', name: 'California' },
+  { abbreviation: 'CO', name: 'Colorado' },
+  { abbreviation: 'CT', name: 'Connecticut' },
+  { abbreviation: 'DE', name: 'Delaware' },
+  { abbreviation: 'FL', name: 'Florida' },
+  { abbreviation: 'GA', name: 'Georgia' },
+  { abbreviation: 'HI', name: 'Hawaii' },
+  { abbreviation: 'ID', name: 'Idaho' },
+  { abbreviation: 'IL', name: 'Illinois' },
+  { abbreviation: 'IN', name: 'Indiana' },
+  { abbreviation: 'IA', name: 'Iowa' },
+  { abbreviation: 'KS', name: 'Kansas' },
+  { abbreviation: 'KY', name: 'Kentucky' },
+  { abbreviation: 'LA', name: 'Louisiana' },
+  { abbreviation: 'ME', name: 'Maine' },
+  { abbreviation: 'MD', name: 'Maryland' },
+  { abbreviation: 'MA', name: 'Massachusetts' },
+  { abbreviation: 'MI', name: 'Michigan' },
+  { abbreviation: 'MN', name: 'Minnesota' },
+  { abbreviation: 'MS', name: 'Mississippi' },
+  { abbreviation: 'MO', name: 'Missouri' },
+  { abbreviation: 'MT', name: 'Montana' },
+  { abbreviation: 'NE', name: 'Nebraska' },
+  { abbreviation: 'NV', name: 'Nevada' },
+  { abbreviation: 'NH', name: 'New Hampshire' },
+  { abbreviation: 'NJ', name: 'New Jersey' },
+  { abbreviation: 'NM', name: 'New Mexico' },
+  { abbreviation: 'NY', name: 'New York' },
+  { abbreviation: 'NC', name: 'North Carolina' },
+  { abbreviation: 'ND', name: 'North Dakota' },
+  { abbreviation: 'OH', name: 'Ohio' },
+  { abbreviation: 'OK', name: 'Oklahoma' },
+  { abbreviation: 'OR', name: 'Oregon' },
+  { abbreviation: 'PA', name: 'Pennsylvania' },
+  { abbreviation: 'RI', name: 'Rhode Island' },
+  { abbreviation: 'SC', name: 'South Carolina' },
+  { abbreviation: 'SD', name: 'South Dakota' },
+  { abbreviation: 'TN', name: 'Tennessee' },
+  { abbreviation: 'TX', name: 'Texas' },
+  { abbreviation: 'UT', name: 'Utah' },
+  { abbreviation: 'VT', name: 'Vermont' },
+  { abbreviation: 'VA', name: 'Virginia' },
+  { abbreviation: 'WA', name: 'Washington' },
+  { abbreviation: 'WV', name: 'West Virginia' },
+  { abbreviation: 'WI', name: 'Wisconsin' },
+  { abbreviation: 'WY', name: 'Wyoming' }
+];
+const startMonths = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December"
+]
+const endMonths = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December"
+]
+const misdemeanorCharges = [
+  "Speeding Ticket",
+  "Failure to Appear",
+  "DUI",
+  "Hit and Run(Property Damage)",
+  "Reckless Driving",
+  "Driving with a Suspended/Revoked License",
+  "Driving without insurance",
+  "Driving with an expired registration/license",
+  "Public Intoxication",
+  "Disorderly Conduct",
+  "Trespassing",
+  "Vandalism",
+  "Simple Assault",
+  "Simple Stalking",
+  "Petty Theft",
+  "Prostitution",
+  "Possession of Small Amounts of Controlled Substances",
+];
+
+const felonyCharges = [
+  "Murder",
+  "Attempted Murder",
+  "Manslaughter",
+  "Hit and Run(DUI, Caused Injury, or Death)",
+  "Domestic Violence",
+  "Possession of Controlled Substances(Felony Conviction)",
+  "Failure to Register as a Sex Offender",
+  "Aggravated Assault/Battery",
+  "Aggravated Stalking",
+  "Child Molestation",
+  "Child Pornography",
+  "Child Endangerment",
+  "Extortion",
+  "Kidnapping",
+  "Drug Trafficking",
+  "Arson",
+  "Embezzlement",
+  "Identity Theft",
+  "Money Laundering",
+  "Burglary",
+  "Robbery",
+  "Parole Violation",
+];
+
+const selectLanguages = [
+  {name: "English(Inglés)", disabled: false},
+  {name: "Spanish(Español)", disabled: false},
+  {name: "Both(English & Spanish)", disabled: false}
+]
+const Apply = () => {
   const [phone, setPhone] = useState('');
   const navigate = useNavigate();
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [errors, setErrors] = useState({});
+  const [school, setSchool] = useState('');
+  const [startMonth, setStartMonth] = useState('');
+  const [startYear, setStartYear] = useState('');
+  const [endMonth, setEndMonth] = useState('');
+  const [endYear, setEndYear] = useState('');
+  const [addedEd, setAddedEd] = useState([]);
+  const [workError, setWorkError] = useState(""); // Yes or No selection
+  const [educationError, setEducationError] = useState(""); // Yes or No selection
+  const [backgroundError, setBackgroundError] = useState(""); 
+  const [convictions, setConvictions] = useState([]);
+  const [newConviction, setNewConviction] = useState({
+    type: "Misdemeanor",
+    charge: "",
+    date: "",
+    explanation: "",
+  });
+  const [employmentEntries, setEmploymentEntries] = useState([]);
+  const [newEmploy, setNewEmploy] = useState({
+  employerName: "",
+  address: "",
+  city: "",
+  state: "",
+  zip: "",
+  phone: "",
+  duties: "",
+  currentlyEmployed: false,
+  reasonForLeaving: "",
+  mayContact: "",
+});
   const [data, formData] = useState({
     first: '',
     last: '',
     email: '',
     phone: '',
+    education: '',
+    position: '',
+    background: '',
+    languages: '',
+    skills: '',
+    workHistory: '',
     resume: '',
     cover: '',
     message: ''
@@ -27,13 +192,207 @@ export default function Apply() {
   const toggleMenu = () => {
     setIsNavOpen(!isNavOpen);
 };
-  const handlePhoneChange = (event) => {
-    const input = event.target.value;
-    const formatted = input.replace(/\D/g, '').replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
-    setPhone(formatted);
-    // Also update the data state to include the formatted phone number
-    formData({ ...data, phone: formatted });
+const handleAddEducation = () => {
+  let isValid = true;
+
+  if (!school) {
+    setErrors((prevErrors) => ({ ...prevErrors, school: "School name is required" }));
+    isValid = false;
+  }
+  if (!startMonth) {
+    setErrors((prevErrors) => ({ ...prevErrors, startMonth: "Start month is required" }));
+    isValid = false;
+  }
+  if (!startYear) {
+    setErrors((prevErrors) => ({ ...prevErrors, startYear: "Start year is required" }));
+    isValid = false;
+  }
+  if (!endMonth) {
+    setErrors((prevErrors) => ({ ...prevErrors, endMonth: "End month is required" }));
+    isValid = false;
+  }
+  if (!endYear) {
+    setErrors((prevErrors) => ({ ...prevErrors, endYear: "End year is required" }));
+    isValid = false;
+  }
+
+  if (!isValid) return;
+
+  setAddedEd([...addedEd, { school, startMonth, startYear, endMonth, endYear }]);
+  setSubmissionErrorMessage(""); // Remove error after successful addition
+  // ✅ Clear the "Education is Required" error once an entry is added
+  setEducationError("");
+
+  // Clear input fields
+  setSchool("");
+  setStartMonth("");
+  setStartYear("");
+  setEndMonth("");
+  setEndYear("");
+};
+
+
+const handleRemoveEducation = (index) => {
+  if (addedEd.length > 1) {
+    setAddedEd(addedEd.filter((_, i) => i !== index));
+  }
+};
+
+const addConviction = () => {
+  if (!newConviction.charge || !newConviction.date || !newConviction.explanation) {
+    setBackgroundError("Please fill in all background fields before adding.");
+    return;
+  }
+
+  setConvictions([...convictions, newConviction]);
+
+  // Clear the new conviction input fields
+  setNewConviction({
+    type: "Misdemeanor",
+    charge: "",
+    date: "",
+    explanation: "",
+  });
+  setSubmissionErrorMessage(""); // Remove error after successful addition
+  // ✅ Remove error once a background entry is added
+  setBackgroundError("");
+};
+
+const removeConviction = (index) => {
+  setConvictions((prev) => {
+    const updatedConvictions = prev.filter((_, i) => i !== index);
+    return updatedConvictions;
+  });
+
+  // ✅ If the user removes all convictions, re-trigger the error if "Yes" is selected
+  if (convictions.length === 1) {
+    setBackgroundError("Background is required.");
+  }
+};
+const handleBackgroundChange = (event) => {
+  const value = event.target.value;
+  formData({ ...data, background: value });
+
+  if (value === "No") {
+    setConvictions([]); // Clear convictions if "No" is selected
+    setBackgroundError(""); // ✅ Remove error if user selects "No"
+  } else {
+    setConvictions([]); // Reset convictions for "Yes"
+    setBackgroundError(""); // ✅ Remove error message
+  }
+};
+
+const addEmploymentEntry = () => {
+  // Validate fields before adding
+  if (
+    !newEmploy.employerName ||
+    !newEmploy.address ||
+    !newEmploy.city ||
+    !newEmploy.state ||
+    !newEmploy.zip ||
+    !newEmploy.phone ||
+    !newEmploy.duties ||
+    (!newEmploy.currentlyEmployed && !newEmploy.reasonForLeaving) ||
+    !newEmploy.mayContact
+  ) {
+    setWorkError("Please fill in all employment fields before adding.");
+    return;
+  }
+
+  // Add new employment entry to the list
+  setEmploymentEntries((prevEntries) => {
+    const updatedEntries = [...prevEntries, newEmploy];
+    return updatedEntries;
+  });
+
+  // Reset form fields for the next entry
+  setNewEmploy({
+    employerName: "",
+    address: "",
+    city: "",
+    state: "",
+    zip: "",
+    phone: "",
+    duties: "",
+    currentlyEmployed: false,
+    reasonForLeaving: "",
+    mayContact: "",
+  });
+  setSubmissionErrorMessage(""); // Remove error after successful addition
+  setWorkError(""); // Remove error after successful addition
+};
+
+const handleEmploymentChange = (event) => {
+  const value = event.target.value;
+  formData({ ...data, workHistory: value });
+
+  if (value === "No") {
+    setEmploymentEntries([]); // ✅ Clear employment entries when "No" is selected
+    setWorkError(""); // ✅ Remove error if user selects "No"
+  } else {
+    setEmploymentEntries([]); // ✅ Reset employment for "Yes"
+    setWorkError(""); // ✅ Remove error message
+  }
+};
+
+
+const handleEmployment2Change = (field, value) => {
+  let formattedValue = value;
+
+  // Format Phone Number as (000) 000-0000
+  if (field === "phone") {
+    const rawDigits = value.replace(/\D/g, ""); // Remove non-numeric characters
+
+    if (rawDigits.length <= 10) {
+      formattedValue = rawDigits.replace(
+        /(\d{3})(\d{3})(\d{4})/,
+        "($1) $2-$3"
+      );
+    }
+  }
+
+  // Ensure ZIP Code is exactly 5 digits
+  if (field === "zip") {
+    const rawDigits = value.replace(/\D/g, ""); // Remove non-numeric characters
+    formattedValue = rawDigits.slice(0, 5); // Limit to 5 digits
+  }
+
+  setNewEmploy((prev) => ({
+    ...prev,
+    [field]: formattedValue,
+  }));
+};
+
+
+
+  // Function to remove an employment entry
+  const removeEmploymentEntry = (index) => {
+    setEmploymentEntries((prevEntries) => {
+      const updatedEntries = prevEntries.filter((_, i) => i !== index);
+      return updatedEntries;
+    });
+  
+    // Check employmentEntries.length instead of newEmploy.length
+    if (employmentEntries.length === 1) {
+      setWorkError("Employment is required.");
+    }
   };
+  
+const handlePhoneChange = (event) => {
+  const input = event.target.value;
+  const rawInput = input.replace(/\D/g, ''); // Remove non-digit characters
+  const formatted = rawInput.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+  
+  setPhone(formatted);
+  formData({ ...data, phone: formatted });
+
+  // Check if the input has 10 digits and clear the error if it does
+  if (rawInput.length === 10) {
+    setErrors((prevErrors) => ({ ...prevErrors, phone: '' }));
+  } else {
+    setErrors((prevErrors) => ({ ...prevErrors, phone: 'Please enter a valid 10-digit phone number.' }));
+  }
+};
 
   const handleFileChange = (e, fileType) => {
     const file = e.target.files[0];
@@ -43,34 +402,85 @@ export default function Apply() {
   const handleFileRemove = (fileType) => {
     formData({ ...data, [fileType]: '' });
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log('Form submitted');
   
     // Check for required fields
-    const requiredFields = ['first', 'last', 'email', 'phone', 'resume', 'message'];
+    const requiredFields = ["first", "last", "email", "phone", "position", "languages", "skills", "message"];
     const newErrors = {};
+    let hasError = false;
+    
     requiredFields.forEach(field => {
       if (!data[field]) {
         newErrors[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} is required`;
+        hasError = true;
       }
     });
   
-    if (Object.keys(newErrors).length > 0) {
-      setErrorMessage('Required fields are missing.'); // Set the general error message
+   // ✅ Check if resume is uploaded
+   if (!data.resume) {
+    newErrors.resume = "Resume is required.";
+    hasError = true;
+}
+
+// ✅ Education Validation
+if (addedEd.length === 0) {
+    setEducationError("Education is required.");
+    hasError = true;
+} else {
+    setEducationError(""); // ✅ Clears error if education entry exists
+}
+// ✅ Employment Validation
+if (!data.workHistory) {
+  setWorkError("Employment is required.");
+  hasError = true;
+} else if (data.workHistory === "Yes" && employmentEntries.length === 0) {
+  setWorkError("Please add at least one employment, otherwise select 'No'.");
+  hasError = true;
+} else {
+  setWorkError(""); // ✅ Clears error if background is valid
+}
+// ✅ Background Validation
+if (!data.background) {
+    setBackgroundError("Background is required.");
+    hasError = true;
+} else if (data.background === "Yes" && convictions.length === 0) {
+    setBackgroundError("Please add at least one background, otherwise select 'No'.");
+    hasError = true;
+} else {
+    setBackgroundError(""); // ✅ Clears error if background is valid
+}
+    if (hasError || Object.keys(newErrors).length > 0) {
+      setErrorMessage('Required fields are missing.');
       setErrors(newErrors);
       return;
     }
   
     const formDataObj = new FormData();
+    
+    // Add basic form fields
     formDataObj.append('first', data.first);
     formDataObj.append('last', data.last);
     formDataObj.append('email', data.email);
     formDataObj.append('phone', data.phone);
-    formDataObj.append('resume', data.resume);
-    formDataObj.append('cover', data.cover);
+    formDataObj.append('position', data.position);
+    formDataObj.append('languages', data.languages);
+    formDataObj.append('skills', data.skills);
     formDataObj.append('message', data.message);
+    
+    // Add files if they exist
+    if (data.resume) {
+      formDataObj.append("resume", data.resume);
+    }
+    if (data.cover) {
+      formDataObj.append("cover", data.cover);
+    }
+    
+    // Convert arrays to JSON strings before appending
+    formDataObj.append("education", JSON.stringify(addedEd));
+    formDataObj.append("background", JSON.stringify(convictions));
+    formDataObj.append("workHistory", JSON.stringify(employmentEntries));
   
     try {
       const response = await axios.post('/applynow', formDataObj, {
@@ -80,35 +490,183 @@ export default function Apply() {
       });
     
       if (response.data.errors) {
-        // Check response.data.errors instead of response.data.message
-        const errors = response.data.errors; 
-    
         if (response.data.error === "Duplicate email or phone") {
           setSubmissionErrorMessage("Application has already been submitted with this email, phone number, resume, or cover letter. If you recently worked for TBS, please call 706-263-0175. If you're new and have submitted before, please wait until we review your application.");
-        } else if (response.data.error === "Invalid email address") {
-          // Handle invalid email address error
         } else {
-          // Clear any previous error messages
           setSubmissionErrorMessage('');
-      }
-    }
-    
-      // Process submission success if no validation errors
-      setSubmissionMessage('Application Submitted! We will be with you as soon as possible!');
-      toast.success('Application Submitted! We will be with you as soon as possible!');;
-      navigate('/applynow');
-    
-    } catch (error) {
-      if (error.response && error.response.status === 400) {
-        // Handle other types of errors here, if needed
+        }
       } else {
-        console.log(error);
+        // Process submission success
+        setSubmissionMessage('Application Submitted! We will be with you as soon as possible!');
+        toast.success('Application Submitted! We will be with you as soon as possible!');
+        navigate('/applynow');
+      }
+    } catch (error) {
+      console.error("Submission error:", error);
+      if (error.response && error.response.status === 400) {
+        setSubmissionErrorMessage(error.response.data.message || "There was an error with your submission.");
+      } else {
+        setSubmissionErrorMessage("An unexpected error occurred. Please try again later.");
       }
     }
-  }
+  };
+  /*
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // ✅ Reset error states before validation begins
+    setErrors({});
+    setSubmissionErrorMessage(""); // ✅ Clear this immediately on new submit
+    setErrorMessage("");
+
+    let hasError = false;
+    let newErrors = {};
+
+    // Required fields validation
+    const requiredFields = ["first", "last", "email", "phone", "position", "languages", "skills", "message"];
+    requiredFields.forEach((field) => {
+        if (!data[field]) {
+            newErrors[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} is required`;
+            hasError = true;
+        }
+    });
+
+    // ✅ Check if resume is uploaded
+    if (!data.resume) {
+        newErrors.resume = "Resume is required.";
+        hasError = true;
+    }
+
+    // ✅ Education Validation
+    if (addedEd.length === 0) {
+        setEducationError("Education is required.");
+        hasError = true;
+    } else {
+        setEducationError(""); // ✅ Clears error if education entry exists
+    }
+
+    // ✅ Employment Validation
+    if (!data.workHistory) {
+        setWorkError("Please Add an Employment or select No");
+        hasError = true;
+    } else if (data.workHistory === "Yes" && employmentEntries.length === 0) {
+        setWorkError("Please add at least one employment entry.");
+        hasError = true;
+    } else {
+        setWorkError(""); // ✅ Clears error if employment history is valid
+    }
+
+    // ✅ Background Validation
+    if (!data.background) {
+        setBackgroundError("Background is required.");
+        hasError = true;
+    } else if (data.background === "Yes" && convictions.length === 0) {
+        setBackgroundError("Please add at least one background, otherwise select 'No'.");
+        hasError = true;
+    } else {
+        setBackgroundError(""); // ✅ Clears error if background is valid
+    }
+
+    // ✅ If any errors exist, return early
+    if (hasError) {
+        setErrorMessage("Required fields are missing.");
+        setErrors(newErrors);
+        return;
+    }
+
+    // ✅ If everything is correct, clear error messages
+    setErrors({});
+    setErrorMessage("");
+
+    // ✅ Prepare FormData for submission
+    const formDataObj = new FormData();
+    
+    Object.entries(data).forEach(([key, value]) => {
+        formDataObj.append(key, value);
+    });
+
+    // Ensure file inputs are appended correctly
+    if (data.resume) {
+        formDataObj.append("resume", data.resume);
+    }
+    if (data.cover) {
+        formDataObj.append("cover", data.cover);
+    }
+
+    formDataObj.append("education", JSON.stringify(addedEd));
+    formDataObj.append("convictions", JSON.stringify(convictions));
+    formDataObj.append("employmentEntries", JSON.stringify(employmentEntries));
+
+    // 🚀 Debugging: Print all keys before submitting
+    for (let pair of formDataObj.entries()) {
+        console.log(`Key: ${pair[0]}, Value:`, pair[1]); 
+    }
+
+    if (data.resume) {
+        formDataObj.append("resume", data.resume);
+    }
+    if (data.cover) {
+        formDataObj.append("cover", data.cover);
+    }
+
+    try {
+        const response = await axios.post("/applynow", formDataObj, {
+            headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        if (response.data.errors) {
+            if (response.data.error === "Duplicate email or phone") {
+                setSubmissionErrorMessage(
+                    "Application has already been submitted with this email and/or phone number. If you recently worked for TBS, please call (706) 263-0175. If you're new and have submitted before, please wait until we review your application."
+                );
+            } else {
+                setSubmissionErrorMessage("");
+            }
+            return;
+        }
+
+        // ✅ Reset form fields after successful submission
+        formData({
+            first: "",
+            last: "",
+            email: "",
+            phone: "",
+            education: "",
+            position: "",
+            background: "",
+            languages: "",
+            skills: "",
+            workHistory: "",
+            resume: "",
+            cover: "",
+            message: "",
+        });
+
+        setEmploymentEntries([]);
+        setAddedEd([]);
+        setConvictions([]);
+        setPhone("");
+
+        // ✅ Clear error messages upon success
+        setSubmissionErrorMessage(""); // ✅ Ensure it's cleared upon successful submission
+        setErrorMessage("");
+
+        // ✅ Show success message
+        setSubmissionMessage("Application Submitted! We will be with you as soon as possible!");
+        toast.success("Application Submitted! We will be with you as soon as possible!");
+        navigate("/applynow");
+
+    } catch (error) {
+        console.error("Submission error:", error);
+        if (error.response && error.response.status === 400) {
+            console.log("Validation error:", error.response.data);
+        }
+    }
+};
+*/
   return (
     <div>
-        <header className="header">
+<header className="header">
             <div className="mobile-nav-icon">
                 <button className="mobile-nav" onClick={toggleMenu}>
                     <ion-icon className="icon-mobile-nav" name="menu-outline">---</ion-icon>
@@ -162,7 +720,7 @@ export default function Apply() {
         </header>
       <main className="apply-main">
         <div className="apply-container">
-          <h1 className="apply-now">JOB APPLICATION</h1>
+          <h1 className="apply-now">CAREERS</h1>
           <h2 className="descript">Discover a career with TBS,
             a premier leader in traffic control solutions!
             As a dynamic and rapidly growing company in the traffic management industry,
@@ -170,7 +728,7 @@ export default function Apply() {
             Join our dedicated team and contribute to creating safer,
             more efficient roadways.</h2>
         </div>
-        <section className="carrier-section">
+<section className="carrier-section">
     <h2 className="carrierh2">
       TRAFFIC CONTROLLER
     </h2>
@@ -198,7 +756,7 @@ export default function Apply() {
       <li>Must follow company dress code policy</li>
       </div>
       <div className="duty-div">
-    <h2 className="duties">Job Duties</h2>
+    <h2 className="duties-div">Job Duties</h2>
       <li>Direct vehicles and pedestrians to ensure safety and efficiency</li>
       <li>Monitor traffic flow and adjust signals and signs as needed</li>
       <li>Communicate with other traffic controllers and emergency services as necessary</li>
@@ -225,11 +783,12 @@ export default function Apply() {
           method="post"
           onSubmit={handleSubmit}
         >
-          <div className="job-container container--narrow page-section">
+          <div className="job-container container--narrow page-apply-container">
       <div className="job-app-info">
             <h1 className="job-app-box">JOB APPLICATION FORM</h1>
             <h2 className="job-fill">Please Fill Out the Form Below to Submit Your Job Application!</h2>
     </div>
+    
     <div className="job-actual">
       <div className="job-name">
             <div className="first-input">
@@ -238,7 +797,14 @@ export default function Apply() {
                 <div className="firstname-input">
                   <label className="first-label-name">First Name *</label>
                   <input name="first" type="text" className="first-name-input" text="first-name--input" placeholder="Enter First Name"
-                    value={data.first} onChange={(e) => formData({ ...data, first: e.target.value })}/>
+                    value={data.first}
+                    onChange={(e) => { 
+                      formData({ ...data, first: e.target.value });
+                    if (e.target.value) {
+                      setErrors((prevErrors) => ({ ...prevErrors, first: '' })); // Clear the error
+                    }
+                    }}
+                    />
                 </div>
                 {errors.first && <div className="error-message">{errors.first}</div>}
               </div>
@@ -246,7 +812,14 @@ export default function Apply() {
                 <div className="lastname-input">
                   <label className="last-label-name">Last Name *</label>
                   <input name="last" type="text" className="last-name-input" text="last-name--input" placeholder="Enter Last Name"
-                    value={data.last} onChange={(e) => formData({ ...data, last: e.target.value })}/>
+                    value={data.last} 
+                    onChange={(e) => { 
+                      formData({ ...data, last: e.target.value });
+                    if (e.target.value) {
+                      setErrors((prevErrors) => ({ ...prevErrors, last: '' })); // Clear the error
+                    }
+                    }}
+                    />
                 </div>
                 {errors.last && <div className="error-message">{errors.last}</div>}
               </div>
@@ -254,12 +827,18 @@ export default function Apply() {
             </div>
             <div className="job-emailphone">
             <div className="emailphone-input">
-
               <div className="email">
                 <div className="emailname-input">
                   <label className="email-name">Email *</label>
                   <input name="email" type="text" className="email-box" text="email--input" placeholder="Enter Email"
-                    value={data.email} onChange={(e) => formData({ ...data, email: e.target.value })}/>
+                    value={data.email}
+                    onChange={(e) => { 
+                      formData({ ...data, email: e.target.value });
+                    if (e.target.value) {
+                      setErrors((prevErrors) => ({ ...prevErrors, email: '' })); // Clear the error
+                    }
+                    }}
+                    />
                 </div>
                 {errors.email && <div className="error-message">{errors.email}</div>}
               </div>
@@ -281,6 +860,456 @@ export default function Apply() {
               </div>
             </div>
             </div>
+            <div className="education-info">
+  <label className="education-label">Education History *</label>
+
+
+  <div className="education-entry">
+    <label>School Name:</label>
+    <input
+      type="text"
+      value={school}
+      placeholder="Enter School Name"
+      onChange={(e) => setSchool(e.target.value)}
+    />
+{errors.school && <div className="error-message">{errors.school}</div>}
+    <div className="date-inputs">
+      <label>Start Date:</label>
+      <select
+  value={startMonth} // ✅ Correct: Use single selected value
+  onChange={(e) => setStartMonth(e.target.value)}
+>
+  <option value="">Month</option>
+  {startMonths.map((month, idx) => (
+    <option key={idx} value={month}>{month}</option>
+  ))}
+</select>
+
+      {errors.startMonth && <div className="error-message">{errors.startMonth}</div>}
+
+      <input
+        type="number"
+        placeholder="Year"
+        onChange={(e) => setStartYear(e.target.value)}
+        min="1900"
+        max={new Date().getFullYear()}
+      />
+      {errors.startYear && <div className="error-message">{errors.startYear}</div>}
+    </div>
+
+    <div className="date-inputs">
+      <label>End Date:</label>
+      <select
+  value={endMonth} // ✅ Correct: Use single selected value
+  onChange={(e) => setEndMonth(e.target.value)}
+>
+  <option value="">Month</option>
+  {endMonths.map((month, idx) => (
+    <option key={idx} value={month}>{month}</option>
+  ))}
+</select>
+
+      {errors.endMonth && <div className="error-message">{errors.endMonth}</div>}
+
+      <input
+        type="number"
+        placeholder="Year"
+        onChange={(e) => setEndYear(e.target.value)}
+        min="1900"
+        max={new Date().getFullYear()}
+      />
+      {errors.endYear && <div className="error-message">{errors.endYear}</div>}
+    </div>
+  </div>
+
+  <button type="button" className="add-button" onClick={handleAddEducation}>
+    + Add Education
+  </button>
+
+{addedEd.length > 0 ? (
+        <ul className="education-list">
+          {addedEd.map((entry, index) => (
+           <li key={index} className="education-item">
+           <p><b>School:</b> {entry.school}</p>
+           <p><b>Start:</b> {entry.startMonth} {entry.startYear}</p>
+           <p><b>End:</b> {entry.endMonth} {entry.endYear}</p>
+     
+           {/* Remove button only if there's more than one entry */}
+           {addedEd.length > 0 && (
+             <button type="button" className="remove-button" onClick={() => handleRemoveEducation(index)}>
+               Remove
+             </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="no-education-message">No education added yet.</p>
+      )}
+      {educationError && <div className="error-message">{educationError}</div>}
+   </div>
+            <div className="position-info">
+  <label className="position-name">Position *</label>
+  <p className="position-look">What position are you looking for?</p>
+  <div>
+    <input className="position-checkbox" id="full" type="radio" name="position"
+    value="Full Time"
+    onChange={(e) => { 
+      formData({ ...data, position: e.target.value });
+    if (e.target.value) {
+      setErrors((prevErrors) => ({ ...prevErrors, position: '' })); // Clear the error
+    }}}
+    />
+    <label className="position-li" htmlFor="full">Full-Time</label>
+  </div>
+  <div>
+    <input className="position-checkbox" id="part" type="radio" name="position"
+    value="Part Time"
+    onChange={(e) => { 
+      formData({ ...data, position: e.target.value });
+    if (e.target.value) {
+      setErrors((prevErrors) => ({ ...prevErrors, position: '' })); // Clear the error
+    }}}
+    />
+    <label className="position-li" htmlFor="part">Part-Time</label>
+  </div>
+  {errors.position && <div className="error-message">{errors.position}</div>}
+  </div>
+  <div className="background-history">
+  <label className="background-label">Background History *</label>
+  <p className="background-p">Have you ever been convicted of a felony, 
+    have any misdemeanors(Ex: Speeding Tickets), and/or are on probation or parole?
+    <strong> Note: </strong> If you're applying to be a driver, please click "Yes"
+    and add your driving charges: Ex: How many Speeding Tickets, DUIs, and other Traffic Violation charges.
+    </p>
+
+
+  <div>
+    <input
+      className="position-checkbox"
+      id="back-yes"
+      type="radio"
+      name="background"
+      value="Yes"
+      onChange={handleBackgroundChange}
+      checked={data.background === "Yes"}
+    />
+    <label className="position-li" htmlFor="back-yes">Yes, I have charges</label>
+
+    <input
+      className="position-checkbox"
+      id="back-no"
+      type="radio"
+      name="background"
+      value="No"
+      onChange={handleBackgroundChange}
+      checked={data.background === "No"}
+    />
+    <label className="position-li" htmlFor="back-no">No, my record is clean</label>
+    {data.background === "No" && (
+    <div className="warning-ed-message">
+      <strong className="strong-warning">WARNING:</strong>
+      <p className="ed-warning">
+      As part of our hiring process, we conduct automated background checks to verify any history of felonies, 
+      misdemeanors, parole, or probation. If you have any of these and selected "No" 
+      on your application, it may result in disqualification from the hiring process because
+      of dishonesty and misconduct behavior. Honesty and integrity are fundamental values in our workplace. 
+      Providing false or misleading information may result in your application being withdrawn. 
+      We are committed to maintaining a safe and secure environment for our employees and customers.
+We encourage all applicants to be truthful in their responses. If you have any concerns or would like 
+to provide additional context regarding your background, please reach out to our hiring team.
+      </p>
+    </div>
+  )}
+  </div>
+  {data.background === "Yes" && (
+  <div className="conviction-entries">
+    <h3 className="conviction-title">Background History</h3>
+    {/* Input Fields for a New Conviction Before Adding */}
+    <div className="conviction-entry">
+      <label>Type of Charge:</label>
+      <select
+        value={newConviction.type}
+        onChange={(e) => setNewConviction({ ...newConviction, type: e.target.value })}
+      >
+        <option value="Misdemeanor">Misdemeanor</option>
+        <option value="Felony">Felony</option>
+      </select>
+
+      <label>Charge:</label>
+      <select
+        value={newConviction.charge}
+        onChange={(e) => setNewConviction({ ...newConviction, charge: e.target.value })}
+      >
+        <option value="">Select a Charge</option>
+        {newConviction.type === "Misdemeanor"
+          ? misdemeanorCharges.map((charge, idx) => (
+              <option key={idx} value={charge}>{charge}</option>
+            ))
+          : felonyCharges.map((charge, idx) => (
+              <option key={idx} value={charge}>{charge}</option>
+            ))}
+      </select>
+
+      <label>Date of Conviction:</label>
+      <input
+        type="date"
+        value={newConviction.date}
+        onChange={(e) => setNewConviction({ ...newConviction, date: e.target.value })}
+      />
+
+      <label>Explain your charge:</label>
+      <textarea
+        placeholder="Provide details of this charge/conviction..."
+        className="conviction-textarea"
+        value={newConviction.explanation}
+        onChange={(e) => setNewConviction({ ...newConviction, explanation: e.target.value })}
+      />
+
+      {/* Add Conviction Button */}
+      <button type="button" className="add-button" onClick={addConviction}>
+        + Add Background
+      </button>
+    </div>
+    {/* Display Convictions as a List */}
+    {convictions.length > 0 ? (
+        <ul className="conviction-list">
+          {convictions.map((conviction, index) => (
+            <li key={index} className="conviction-item">
+              <p><b>Type:</b> {conviction.type}</p>
+              <p><b>Charge:</b> {conviction.charge}</p>
+              <p><b>Date:</b> {conviction.date}</p>
+              <p><b>Explanation:</b> {conviction.explanation}</p>
+
+              {/* ✅ Remove Button - Only Show if More Than One Employment Entry Exists */}
+              {convictions.length > 0 && (
+                <button type="button" className="remove-button" onClick={() => removeConviction(index)}>
+                Remove
+              </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="no-conviction-message">No charges added yet.</p>
+      )}
+   </div>)}
+   {backgroundError && <div className="error-message">{backgroundError}</div>}
+   </div>
+        <div className="skills">
+      <label className="skills-label">Professional Skills *</label>
+
+      {/* Language Selection */}
+      <div className="language-section">
+        <p className="language-p">Languages Spoken:</p>
+        <select
+  name="languages"
+  className="language-dropbox"
+  value={data.languages || ""}  // ✅ Ensure it always has a default value
+  onChange={(e) => {
+    formData({ ...data, languages: e.target.value });
+    if (e.target.value) {
+      setErrors((prevErrors) => ({ ...prevErrors, languages: '' })); // Clear the error
+    }
+  }}
+>
+  <option value="">Select a language</option>
+  {selectLanguages.map((lang, index) => (
+    <option key={index} value={lang.name}>{lang.name}</option>
+  ))}
+</select>
+
+    {errors.languages && <div className="error-message">{errors.languages}</div>}
+      </div>
+
+      {/* Skills Textbox */}
+      <div className="skills-textbox">
+        <p className="skills-p">Tell us about your professional skills (current and past):</p>
+        <textarea
+  className="skills-input"
+  placeholder="Enter your skills here..."
+  value={data.skills || ""}  // ✅ Ensure it always has a default value
+  onChange={(e) => { 
+    formData({ ...data, skills: e.target.value });
+    if (e.target.value) {
+      setErrors((prevErrors) => ({ ...prevErrors, skills: '' })); // Clear the error
+    }
+  }}
+/>
+
+      </div>
+      {errors.skills && <div className="error-message">{errors.skills}</div>}
+    </div>
+    <div className="employment-history">
+  <label className="employment-label">Employment History *</label>
+
+  <p className="employment-p">Have you had any previous employment?</p>
+
+  <div>
+    <input
+      type="radio"
+      id="emp-yes"
+      name="employment"
+      value="Yes"
+      onChange={handleEmploymentChange}
+      checked={data.workHistory === "Yes"}
+    />
+    <label className="yes-radio" htmlFor="emp-yes">Yes, I want to add my employment history</label>
+
+    <input
+      type="radio"
+      id="emp-no"
+      name="employment"
+      value="No"
+      onChange={handleEmploymentChange}
+      checked={data.workHistory === "No"}
+    />
+    <label className="no-radio"  htmlFor="emp-no">I don't have or don't want to add my employment history</label>
+  </div>
+
+  {/* Show message if "No" is selected */}
+  {data.workHistory === "No" && (
+    <div className="no-employment-message">
+      <p>It's okay if you're just starting in the workforce or prefer not to provide past employment details.</p>
+    </div>
+  )}
+
+  {/* Show input fields only if "Yes" is selected */}
+  {data.workHistory === "Yes" && (
+    <div className="employment-entries">
+      <div className="employment-entry">
+        <input
+          className="employer-name"
+          placeholder="Employer Name"
+          type="text"
+          value={newEmploy.employerName}
+          onChange={(e) => handleEmployment2Change("employerName", e.target.value)}
+        />
+        <input
+          className="address"
+          placeholder="Employer Address"
+          type="text"
+          value={newEmploy.address}
+          onChange={(e) => handleEmployment2Change("address", e.target.value)}
+        />
+        <input
+          className="city"
+          placeholder="City"
+          type="text"
+          value={newEmploy.city}
+          onChange={(e) => handleEmployment2Change("city", e.target.value)}
+        />
+        <select
+          className="state"
+          value={newEmploy.state}
+          onChange={(e) => handleEmployment2Change("state", e.target.value)}
+        >
+          <option value="">Select a State</option>
+          {states.map((state) => (
+            <option key={state.abbreviation} value={state.abbreviation}>
+              {state.name}
+            </option>
+          ))}
+        </select>
+        <input
+          className="zip"
+          placeholder="Zip Code"
+          type="text"
+          value={newEmploy.zip}
+          onChange={(e) => handleEmployment2Change("zip", e.target.value)}
+        />
+        <input
+          className="phone"
+          placeholder="Employer Phone Number"
+          type="text"
+          value={newEmploy.phone}
+          onChange={(e) => handleEmployment2Change("phone", e.target.value)}
+        />
+        <textarea
+          className="duties"
+          placeholder="Describe your job duties"
+          value={newEmploy.duties}
+          onChange={(e) => handleEmployment2Change("duties", e.target.value)}
+        ></textarea>
+
+        <div>
+          <input
+            type="checkbox"
+            id="currently-employed"
+            checked={newEmploy.currentlyEmployed}
+            onChange={(e) => handleEmployment2Change("currentlyEmployed", e.target.checked)}
+          />
+          <label htmlFor="currently-employed">Currently Employed</label>
+        </div>
+
+        {!newEmploy.currentlyEmployed && (
+          <textarea
+            className="reason-for-leaving"
+            placeholder="Reason for Leaving"
+            value={newEmploy.reasonForLeaving}
+            onChange={(e) => handleEmployment2Change("reasonForLeaving", e.target.value)}
+          />
+        )}
+
+        <p className="contact-employer">May we contact this employer?</p>
+        <div>
+          <input
+            type="radio"
+            id="contact-yes"
+            name="mayContact"
+            value="Yes"
+            onChange={(e) => handleEmployment2Change("mayContact", e.target.value)}
+            checked={newEmploy.mayContact === "Yes"}
+          />
+          <label htmlFor="contact-yes">Yes</label>
+
+          <input
+            type="radio"
+            id="contact-no"
+            name="mayContact"
+            value="No"
+            onChange={(e) => handleEmployment2Change("mayContact", e.target.value)}
+            checked={newEmploy.mayContact === "No"}
+          />
+          <label htmlFor="contact-no">No</label>
+        </div>
+
+        {/* ✅ Add Employment Button */}
+        <button type="button" className="add-button" onClick={addEmploymentEntry}>
+          + Add Employment
+        </button>
+      </div>
+
+      {/* ✅ Show List Only If an Entry Exists */}
+      {employmentEntries.length > 0 ? (
+        <ul className="employment-list">
+          {employmentEntries.map((entry, index) => (
+            <li key={index} className="employment-item">
+              <p><b>Employer:</b> {entry.employerName}</p>
+              <p><b>Address:</b> {entry.address}, {entry.city}, {entry.state}, {entry.zip}</p>
+              <p><b>Phone:</b> {entry.phone}</p>
+              <p><b>Job Duties:</b> {entry.duties}</p>
+              <p><b>Currently Employed:</b> {entry.currentlyEmployed ? "Yes" : "No"}</p>
+              {!entry.currentlyEmployed && <p><b>Reason for Leaving:</b> {entry.reasonForLeaving}</p>}
+              <p><b>May We Contact?:</b> {entry.mayContact}</p>
+
+              {/* ✅ Remove Button - Only Show if More Than One Employment Entry Exists */}
+              {employmentEntries.length > 0 && (
+                <button type="button" onClick={() => removeEmploymentEntry(index)} className="remove-employment-btn">
+                  Remove Employment
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="no-employment-message">No employments added yet.</p>
+      )}
+    </div>
+  )}
+  {/* ✅ Show error message if needed */}
+  {workError && <div className="error-message">{workError}</div>}
+</div>
             <div className="job-resume">
             <h2 className="resume-note"><b className="resume-note-b">NOTE:</b> You can only submit .doc, .pdf, .txt, and .pages files. Your resume is required before you submit.
               Cover letters are optional but are recommended. </h2>
@@ -295,7 +1324,12 @@ export default function Apply() {
                       ) : (
                         <span>CHOOSE RESUME</span>
                       )}
-                      <input type="file" name="resume" accept=".pdf,.doc,.docx,.txt,.page" onChange={(e) => handleFileChange(e, 'resume')} />
+                      <input type="file" name="resume" accept=".pdf,.doc,.docx,.txt,.page" onChange={(e) => {
+                        handleFileChange(e, 'resume');
+                          if (e.target.files[0]) {
+                            setErrors((prevErrors) => ({ ...prevErrors, resume: '' })); // Clear the error
+                          }}}
+                          />
                     </label>
                     {data.resume && (
                       <button type="button" className="remove-apply-file-button" onClick={() => handleFileRemove('resume')}>REMOVE</button>
@@ -329,15 +1363,23 @@ export default function Apply() {
             <h2 className="message-note">Tell us why you want to work for TBS! </h2>
 
             <textarea className="message-text" name="message" type="text" placeholder="Enter Message"
-              value={data.message} onChange={(e) => formData({ ...data, message: e.target.value })} />
+              value={data.message}
+              onChange={(e) => { 
+                formData({ ...data, message: e.target.value });
+              if (e.target.value) {
+                setErrors((prevErrors) => ({ ...prevErrors, message: '' })); // Clear the error
+              }
+              }}
+              />
               {errors.message && <div className="error-message">{errors.message}</div>}
             <h2 className="warning-message"><b className="submit-notice">NOTICE:</b> If you have already submitted before, you will not be able to submit again. If you're a former
               employee for TBS and want your job back, please call (706) 263-0175. If you're new and just submitted, your information has already
                  been received!</h2>
                  </div>
+                 </div>
             <button type="submit" className="btn btn--full submit-app">SUBMIT APPLICATION</button>
             
-            </div>
+            
             {submissionErrorMessage && (
   <div className="submission-error-message">{submissionErrorMessage}</div>
 )}
@@ -349,9 +1391,9 @@ export default function Apply() {
 {submissionMessage && (
   <div className="submission-message">{submissionMessage}</div>
 )}
-            </div>
+            
           {/* Display submission error message */}
-
+          </div>
         </form>
 
       </main>
@@ -363,19 +1405,19 @@ export default function Apply() {
     <ul className="footer-navigate">
       <li><a className="footer-nav-link" href="/about-us">About Us</a></li>
       <li><a className="footer-nav-link" href="/traffic-control-services">Traffic Control Services</a></li>
-      <li><a className="footer-nav-link" href="/product-services">Product Services</a></li>
+      <li><a className="footer-nav-link" href="product-services">Product Services</a></li>
       <li><a className="footer-nav-link" href="/contact-us">Contact Us</a></li>
       <li><a className="footer-nav-link-view" href="">Careers</a></li>
     </ul>
     </div>
-       <div className="footer-contact">
+    <div className="footer-contact">
       <h2 className="footer-title">Contact</h2>
       <p className="contact-info">
         <a className="will-phone" href="tel:+17062630175">Call: 706-263-0175</a>
         <a className="will-email" href="mailto: tbsolutions1999@gmail.com">Email: tbsolutions1999@gmail.com</a>
-        <a className="will-address" href="https://www.google.com/maps/place/Traffic+and+Barrier+Solutions,+LLC/@34.5025307,-84.899317,660m/data=!3m1!1e3!4m6!3m5!1s0x482edab56d5b039b:0x94615ce25483ace6!8m2!3d34.5018691!4d-84.8994308!16s%2Fg%2F11pl8d7p4t?entry=ttu&g_ep=EgoyMDI1MDEyMC4wIKXMDSoASAFQAw%3D%3D"
+        <a className="will-address" href="https://www.google.com/maps/place/Traffic+%26+Barrier+Solutions%2FMaterial+WorX+Sign+Shop/@34.5115302,-84.9476215,94m/data=!3m1!1e3!4m6!3m5!1s0x886007df83843f3b:0x84510d87790af625!8m2!3d34.5117917!4d-84.948025!16s%2Fg%2F11l28zhlzt?entry=ttu&g_ep=EgoyMDI0MDkyNC4wIKXMDSoASAFQAw%3D%3D"
       >
-        1995 Dews Pond Rd, Calhoun, GA 30701</a>
+        723 N. Wall St, Calhoun, GA, 30701</a>
       </p>
     </div>
 
@@ -402,6 +1444,11 @@ export default function Apply() {
                     Together, we work tirelessly to promote a culture of safety, 
                     accountability, and excellence, because when it comes to traffic control, there's no compromise on safety.
                 </p>
+                <p className="trademark-warning">
+                  <b className="warning-trade">WARNING:</b><b> Trademark Notice</b><img className="trademark-img" src={images["../assets/tbs_companies/tbs white.svg"].default}></img> is a registered trademark of Traffic & Barrier Solutions, LLC. 
+                  Unauthorized use of this logo is strictly prohibited and may result in legal action. 
+                  All other trademarks, logos, and brands are the property of their respective owners.
+                </p>
             </div>
   </div>
 </footer>
@@ -412,3 +1459,4 @@ export default function Apply() {
     </div>
   );
 }
+export default Apply;
