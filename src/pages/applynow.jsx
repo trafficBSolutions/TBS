@@ -506,7 +506,7 @@ if (!data.background) {
       if (error.response && error.response.status === 400) {
         setSubmissionErrorMessage(error.response.data.message || "There was an error with your submission.");
       } else {
-        setSubmissionErrorMessage("An unexpected error occurred. Please try again later.");
+        setSubmissionErrorMessage("An unexpected error occurred. Please report any submission errors to William Rowell: (706) 879-0106 to fix the issue.");
       }
     }
   };
