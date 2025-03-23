@@ -213,7 +213,6 @@ const handleFileRemove = (fileType) => {
   <ul className="emergency-contacts">
     <li><a href="tel:+17062630175">Bryson Davis (Owner): (706) 263-0175</a></li>
     <li><a href="tel:+17065814465">Carson Speer (Traffic Control Manager): (706) 581-4465</a></li>
-    <li><a href="tel:+17068799246">Jonkell Tolbert (Foreman Manager): (706) 879-9246</a></li>
   </ul>
   <p className="response-time">We aim to respond to emergency requests within 2 hours.</p>
 </div>
