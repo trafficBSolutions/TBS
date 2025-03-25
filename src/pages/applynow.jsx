@@ -131,7 +131,7 @@ const felonyCharges = [
   "Burglary",
   "Robbery",
   "Parole Violation",
-  "Other (Please Explain the Felony)
+  "Other (Please Explain the Felony)",
 ];
 
 const selectLanguages = [
