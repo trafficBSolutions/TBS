@@ -104,6 +104,7 @@ const misdemeanorCharges = [
   "Petty Theft",
   "Prostitution",
   "Possession of Small Amounts of Controlled Substances",
+  "Other (Please Explain the Misdemeanor)",
 ];
 
 const felonyCharges = [
@@ -112,6 +113,7 @@ const felonyCharges = [
   "Manslaughter",
   "Hit and Run(DUI, Caused Injury, or Death)",
   "Domestic Violence",
+  "Criminal Damage to Property",
   "Possession of Controlled Substances(Felony Conviction)",
   "Failure to Register as a Sex Offender",
   "Aggravated Assault/Battery",
@@ -129,6 +131,7 @@ const felonyCharges = [
   "Burglary",
   "Robbery",
   "Parole Violation",
+  "Other (Please Explain the Felony)
 ];
 
 const selectLanguages = [
