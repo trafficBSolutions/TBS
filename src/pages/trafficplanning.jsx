@@ -428,7 +428,7 @@ Together, we can create safer roads, smoother traffic flow, and more resilient c
 
             <div className="input-message-plan-container">
             <label className="message-plan-label">Message *</label>
-            <h1 className="message-plan-note">Tell us how your plan needs to be designed! </h1>
+            <h1 className="message-plan-note">Please include your Project Number or Job Number of your plan. Also, please explain how your plan needs to be designed and be descriptive! </h1>
 
             <textarea className="message-plan-text" name="message" type="text" placeholder="Enter Message"
               value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })}
