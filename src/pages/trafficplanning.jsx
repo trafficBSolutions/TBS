@@ -390,7 +390,7 @@ Together, we can create safer roads, smoother traffic flow, and more resilient c
   
   <label className="structure-plan-label">Structure of Plan:</label>
   <h2 className="structure-note">
-    Upload a .png, .jpg, or .jpeg image of your Google Maps screenshot with marked locations (e.g., crossings, lane closures).
+    Upload a PDF, or a Word Document for your plan's structure or you can upload a .png, .jpg, or .jpeg image of your Google Maps screenshot with marked locations (e.g., crossings, lane closures).
     This is required to help us locate your job site.
   </h2>
   <div className="structure-plan-input">
