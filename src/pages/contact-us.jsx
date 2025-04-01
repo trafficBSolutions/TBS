@@ -6,6 +6,8 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import MapComponent from '../components/MapContact';
 import Header from '../components/headerviews/HeaderDropContact'
+import ReCAPTCHA from "react-google-recaptcha";
+const recaptchaRef = useRef();
 const Contact = () => {
     const [phone, setPhone] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
@@ -39,64 +41,63 @@ const Contact = () => {
 
             const handleSubmit = async (e) => {
               e.preventDefault();
-          
-              // Clear previous error and submission messages
-              setErrorMessage(''); // Clear error message at the start
+              setErrorMessage('');
               setSubmissionErrorMessage('');
               setSubmissionMessage('');
           
               const requiredFields = ['first', 'last', 'company', 'email', 'phone', 'message'];
               const newErrors = {};
           
-              // Validation check for required fields
+              // Validation
               requiredFields.forEach(field => {
-                  if (!formData[field]) {
-                      let fieldLabel = field.charAt(0).toUpperCase() + field.slice(1);
-                      if (field === 'first') fieldLabel = 'First Name';
-                      if (field === 'last') fieldLabel = 'Last Name';
-                      if (field === 'company') fieldLabel = 'Company Name';
-                      if (field === 'phone') fieldLabel = 'Phone Number';
-                      newErrors[field] = `${fieldLabel} is required!`;
-                  }
+                if (!formData[field]) {
+                  let fieldLabel = field.charAt(0).toUpperCase() + field.slice(1);
+                  if (field === 'first') fieldLabel = 'First Name';
+                  if (field === 'last') fieldLabel = 'Last Name';
+                  if (field === 'company') fieldLabel = 'Company Name';
+                  if (field === 'phone') fieldLabel = 'Phone Number';
+                  newErrors[field] = `${fieldLabel} is required!`;
+                }
               });
           
-              // If there are any errors, set the error message and stop submission
               if (Object.keys(newErrors).length > 0) {
-                  setErrors(newErrors);
-                  setErrorMessage('Required fields are missing.');
-                  return;
+                setErrors(newErrors);
+                setErrorMessage('Required fields are missing.');
+                return;
               }
-          
-              // Clear the error message if all validations pass
-              setErrorMessage('');  // This ensures the error message is cleared before submission
           
               try {
-                  const formDataToSend = { ...formData };
-                  const response = await axios.post('/contact-us', formDataToSend, {
-                      headers: {
-                          'Content-Type': 'application/json',
-                      }
-                  });
+                const token = await recaptchaRef.current.executeAsync();
+                recaptchaRef.current.reset();
           
-                  // Success: clear the form and show success message
-                  console.log(response.data);
-                  setFormData({
-                      first: '',
-                      last: '',
-                      company: '',
-                      email: '',
-                      phone: '',
-                      message: ''
-                  });
-                  setErrors({});
-                  setPhone('');
-                  setSubmissionMessage('Message has been sent! We will be with you within 48 hours.');
+                if (!token) {
+                  setSubmissionErrorMessage('reCAPTCHA verification failed.');
+                  return;
+                }
+          
+                const formDataToSend = { ...formData, token };
+          
+                const response = await axios.post('/contact-us', formDataToSend, {
+                  headers: { 'Content-Type': 'application/json' }
+                });
+          
+                console.log(response.data);
+                setFormData({
+                  first: '',
+                  last: '',
+                  company: '',
+                  email: '',
+                  phone: '',
+                  message: ''
+                });
+                setPhone('');
+                setErrors({});
+                setSubmissionMessage('Message has been sent! We will be with you within 48 hours.');
               } catch (error) {
-                  console.error('Error submitting message:', error);
-                  setSubmissionErrorMessage('An error occurred while submitting. Please try again.');
+                console.error('Error submitting message:', error);
+                setSubmissionErrorMessage('An error occurred while submitting. Please try again.');
               }
-          };
-          
+            };
     return (
         <div>
             <Header/>
@@ -259,6 +260,11 @@ onChange={handlePhoneChange}
             <div className="submission-error-message">{errorMessage}</div>
           }
 </div>
+<ReCAPTCHA
+            sitekey="PUBLIC_SITE_KEY"
+            size="invisible"
+            ref={recaptchaRef}
+          />
 </form>
 <div className="contact-alt">
 <div className="google-map-contact">
@@ -322,7 +328,7 @@ onChange={handlePhoneChange}
     <div className="footer-contact">
       <h2 className="footer-title">Contact</h2>
       <p className="contact-info">
-        <a className="will-phone" href="tel:+17062630175">Call: 706-263-0175</a>
+        <a className="will-phone" href="tel:+17062630175">Call: (706) 263-0175</a>
         <a className="will-email" href="mailto: tbsolutions1999@gmail.com">Email: tbsolutions1999@gmail.com</a>
         <a className="will-address" href="https://www.google.com/maps/place/Traffic+and+Barrier+Solutions,+LLC/@34.5025307,-84.899317,660m/data=!3m1!1e3!4m6!3m5!1s0x482edab56d5b039b:0x94615ce25483ace6!8m2!3d34.5018691!4d-84.8994308!16s%2Fg%2F11pl8d7p4t?entry=ttu&g_ep=EgoyMDI1MDEyMC4wIKXMDSoASAFQAw%3D%3D"
       >
@@ -352,6 +358,11 @@ onChange={handlePhoneChange}
                     Our commitment to safety extends beyond compliance—it's a fundamental value embedded in everything we do. 
                     Together, we work tirelessly to promote a culture of safety, 
                     accountability, and excellence, because when it comes to traffic control, there's no compromise on safety.
+                </p>
+                <p className="trademark-warning">
+                  <b className="warning-trade">WARNING:</b><b> Trademark Notice</b><img className="trademark-img" src={images["../assets/tbs_companies/tbs white.svg"].default}></img> is a registered trademark of Traffic & Barrier Solutions, LLC. 
+                  Unauthorized use of this logo is strictly prohibited and may result in legal action. 
+                  All other trademarks, logos, and brands are the property of their respective owners.
                 </p>
             </div>
   </div>
