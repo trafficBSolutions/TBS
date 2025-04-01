@@ -7,8 +7,9 @@ import axios from 'axios';
 import MapComponent from '../components/MapContact';
 import Header from '../components/headerviews/HeaderDropContact'
 import ReCAPTCHA from "react-google-recaptcha";
-const recaptchaRef = useRef();
+
 const Contact = () => {
+    const recaptchaRef = useRef();
     const [phone, setPhone] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const [formData, setFormData] = useState({
