@@ -2,7 +2,7 @@ import '../css/contact.css'
 import '../css/header.css'
 import '../css/footer.css'
 import images  from '../utils/tbsImages';
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import MapComponent from '../components/MapContact';
 import Header from '../components/headerviews/HeaderDropContact'
