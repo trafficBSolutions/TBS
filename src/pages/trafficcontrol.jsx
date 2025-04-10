@@ -4,7 +4,8 @@ import '../css/footer.css'
 import images  from '../utils/tbsImages';
 import React, { useState } from 'react';
 import axios from 'axios';
-import MapComponent from '../components/MapComponent';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import Header from '../components/headerviews/HeaderDropControl'
 const states = [
   { abbreviation: 'AL', name: 'Alabama' },
@@ -58,24 +59,42 @@ const states = [
   { abbreviation: 'WI', name: 'Wisconsin' },
   { abbreviation: 'WY', name: 'Wyoming' }
 ];
-
+const timeOptions = [
+  "7:00 AM", "7:15 AM", "7:30 AM", "7:45 AM",
+  "8:00 AM", "8:15 AM", "8:30 AM", "8:45 AM",
+  "9:00 AM", "9:15 AM", "9:30 AM", "9:45 AM",
+  "10:00 AM", "10:15 AM", "10:30 AM", "10:45 AM",
+  "11:00 AM", "11:15 AM", "11:30 AM", "11:45 AM",
+  "12:00 PM", "12:15 PM", "12:30 PM", "12:45 PM",
+]
+const flaggerCount = [
+  "2 Flaggers", "3 Flaggers", "4 Flaggers", "5 Flaggers", "6 Flaggers"
+]
 export default function TrafficControl() {
   const [phone, setPhone] = useState('');
-  const [marker, setMarker] = useState(null);
+  const [jobDate, setJobDate] = useState(null);
+  const [time, setTime] = useState('7:00am');
   const [isSubmitting, setIsSubmitting] = useState(false); 
+  const [company, setCompany] = useState('');
+  const addressRegex = /^\d{3,}\s+[\w\s]+(?:\s+(?:NE|NW|SE|SW))?$/i;
+  const [coordinator, setCoordinator] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [formData, setFormData] = useState({
     first: '',
     last: '',
-    company: '',
     email: '',
     phone: '',
+    jobDate: '',
+    company: '',
+    coordinator: '',
+    time: '',
+    project: '',
+    flagger: '',
+    equipment: [],
     address: '',
     city: '',
     state: '',
     zip: '',
-    location: marker,
-    structureimg: null,
     message: ''
   });
   const [errors, setErrors] = useState({});
@@ -86,53 +105,64 @@ export default function TrafficControl() {
     setSelectedState(e.target.value);
     setErrors({ ...errors, state: '' }); // Clear state error when state changes
   };
-
-  const handlePhoneChange = (event) => {
-    const input = event.target.value;
-    const formatted = input.replace(/\D/g, '').replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
-    setPhone(formatted);
-    setFormData({ ...formData, phone: formatted });
-  };
-
-  const handleAddMarkerButtonClick = () => {
-    // Prevent form submission
-    setIsSubmitting(false);
-
-    if (!marker && map) {
-      const center = map.getCenter();
-      const newMarker = new window.google.maps.Marker({
-        position: center,
-        map: map,
-        draggable: true,
-        title: "Job Site"
-      });
-
-      newMarker.addListener('dragend', () => {
-        handleMarkerDrag(newMarker);
-      });
-
-      // Notify parent component about marker position
-      onMarkerAdd(center.lat(), center.lng());
-      setMarker(newMarker);
-
-      // Reset the isSubmitting state after adding the marker
+  const handleCoordinatorChange = (e) => {
+    const value = e.target.value;
+  
+    // Capitalize the first letter of each word
+    const capitalized = value.replace(/\b\w/g, (char) => char.toUpperCase());
+  
+    setCoordinator(capitalized);
+    setFormData({ ...formData, coordinator: capitalized });
+  
+    // Clear error if the input is no longer empty
+    if (value.trim() !== '') {
+      setErrors((prevErrors) => ({ ...prevErrors, coordinator: '' }));
     }
   };
-
-  const handleFileChange = (e, fileType) => {
-  const file = e.target.files[0];
-  setFormData({ ...formData, [fileType]: file });
-};
-
-const handleFileRemove = (fileType) => {
-  setFormData({ ...formData, [fileType]: null });
-};
-
+  
+  const handleEquipmentChange = (e) => {
+    const { value, checked } = e.target;
+    let updatedEquipment = [...formData.equipment];
+  
+    if (checked) {
+      // Add if not already included
+      if (!updatedEquipment.includes(value)) {
+        updatedEquipment.push(value);
+      }
+    } else {
+      // Remove if unchecked
+      updatedEquipment = updatedEquipment.filter(item => item !== value);
+    }
+  
+    setFormData({ ...formData, equipment: updatedEquipment });
+  
+    if (updatedEquipment.length > 0) {
+      setErrors((prev) => ({ ...prev, equipment: '' }));
+    }
+  };
+  
+  
+  const handlePhoneChange = (event) => {
+    const input = event.target.value;
+    const rawInput = input.replace(/\D/g, ''); // Remove non-digit characters
+    const formatted = rawInput.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+    
+    setPhone(formatted);
+    setFormData({ ...formData, phone: formatted });
+  
+    // Check if the input has 10 digits and clear the error if it does
+    if (rawInput.length === 10) {
+      setErrors((prevErrors) => ({ ...prevErrors, phone: '' }));
+    } else {
+      setErrors((prevErrors) => ({ ...prevErrors, phone: 'Please enter a valid 10-digit phone number.' }));
+    }
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const requiredFields = ['first', 'last', 'company', 'email', 'phone', 'address', 'city', 
-    'state', 'zip', 'structureimg', 'message'];
+    const requiredFields = ['first', 'last', 'email', 'phone', 'jobDate',
+      'company', 'coordinator', 'time', 'project', 'address', 'city', 
+    'state', 'zip', 'message'];
     const newErrors = {};
 
     requiredFields.forEach(field => {
@@ -140,57 +170,61 @@ const handleFileRemove = (fileType) => {
         let fieldLabel = field.charAt(0).toUpperCase() + field.slice(1);
         if (field === 'first') fieldLabel = 'First Name';
         if (field === 'last') fieldLabel = 'Last Name';
-        if (field === 'company') fieldLabel = 'Company Name';
+        if (field === 'email') fieldLabel = 'Email';
         if (field === 'phone') fieldLabel = 'Phone Number';
+        if (field === 'jobDate') fieldLabel = 'Job Date';
+        if (field === 'company') fieldLabel = 'Company Name';
+        if (field === 'coordinator') fieldLabel = 'Coordinator';
+        if (field === 'time') fieldLabel = 'Time';
+        if (field === 'project') fieldLabel = 'Project';
         if (field ==='address') fieldLabel = 'Address';
         if (field === 'city') fieldLabel = 'City';
         if (field ==='state') fieldLabel = 'State';
         if (field === 'zip') fieldLabel = 'Zip Code';
-        if (field === 'structureimg') fieldLabel = 'Location Pin';
         newErrors[field] = `${fieldLabel} is required!`;
       }
     });
-
+    if (formData.equipment.length === 0) {
+      newErrors.equipment = 'Please select at least one piece of equipment.';
+    }
+    if (!addressRegex.test(formData.address)) {
+      newErrors.address = 'Enter a valid address (e.g., "123 Main St SE")';
+    }
+    
     if (Object.keys(newErrors).length > 0) {
       setErrorMessage('Required fields are missing.'); // Set the general error message
       setErrors(newErrors);
       return;
     }
 
-    try {
-      const formDataToSend = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-        if (value !== null && typeof value !== 'undefined') {
-          formDataToSend.append(key, value);
-        }
-      });
-
       const response = await axios.post('/trafficcontrol', formData, {
         headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      console.log(response.data);
+          'Content-Type': 'application/json'
+      }})
+      console.log(response.data); // Now this works
+           
       setFormData({
         first: '',
         last: '',
-        company: '',
         email: '',
         phone: '',
+        jobDate: '',
+        company: '',
+        coordinator: '',
+        time: '',
+        project: '',
+        flagger: '',
+        equipment: [],
         address: '',
         city: '',
         state: '',
         zip: '',
-        structureimg: null,
         message: ''
       });
 
       setErrors({});
       setPhone('');
-      setSubmissionMessage('Traffic Control Job Submitted! We will be with you within 48 hours!');
-    } catch (error) {
-      console.error('Error submitting traffic control job:', error);
-    }
+      setSubmissionMessage('Got it! We will schedule your job!');
   };
     return (
         <div>
@@ -227,6 +261,7 @@ const handleFileRemove = (fileType) => {
 <div className="control-box">
 <h1 className="control-app-box">Traffic Control Form</h1>
 <h2 className="control-fill">Please Fill Out the Form Below to Submit Your Traffic Control Job!</h2>
+<h3 className="control-fill-info">Fields marked with * are required.</h3>
 </div>
 <div className="job-actual">
 <div className="first-control-input">
@@ -241,7 +276,12 @@ className="first-control-name-input"
 text="first-name--input"
 placeholder="Enter First Name"
 value={formData.first}
-onChange={(e) => setFormData({ ...formData, first: e.target.value })}
+onChange={(e) => { 
+  setFormData({ ...formData, first: e.target.value });
+if (e.target.value) {
+  setErrors((prevErrors) => ({ ...prevErrors, first: '' })); // Clear the error
+}
+}}
 />
 {errors.first && <div className="error-message">{errors.first}</div>}
 </div>
@@ -258,27 +298,18 @@ className="last-control-name-input"
 text="last-name--input"
 placeholder="Enter Last Name"
 value={formData.last}
-onChange={(e) => setFormData({ ...formData, last: e.target.value })}
+onChange={(e) => { 
+  setFormData({ ...formData, last: e.target.value });
+if (e.target.value) {
+  setErrors((prevErrors) => ({ ...prevErrors, last: '' })); // Clear the error
+}
+}}
 />
 {errors.last && <div className="error-message">{errors.last}</div>}
 </div>
     </div>
   </div>
-</div>
-<div className="company-input">
-  <div className="company">
-    <div className="company-name--input">
-    <div className="company-control-container">
-      <label className="company-control-name">Company *</label>
-      <input name="company-control-name-input" type="text" className="company-control-name-input" text="company--input" placeholder="Enter Company Name"
-        value={formData.company} onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-        />
-        {errors.company && <span className="error-message">{errors.company}</span>}
-        </div>
-    </div>
-  </div>
-  </div>
-<div className="emailphone-control-input">
+
   <div className="email">
     <div className="email-control-input">
     <div className="email-control-container">
@@ -290,48 +321,242 @@ className="email-control-box"
 text="email--input"
 placeholder="Enter Email"
 value={formData.email}
-onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+onChange={(e) => { 
+  setFormData({ ...formData, email: e.target.value });
+if (e.target.value) {
+  setErrors((prevErrors) => ({ ...prevErrors, email: '' })); // Clear the error
+}
+}}
 />
 {errors.email && <div className="error-message">{errors.email}</div>}
 </div>
     </div>
   </div>
-
-  <div className="phone-control">
-    <div className="name-control-input">
-    <div className="phone-control-container">
-<label className="phone-control-name">Phone Number *</label>
-<input
-name="phone"
-type="text"
-className="phone-box"
-text="phone--input"
-placeholder="Enter Phone Number"
-value={phone}
-onChange={handlePhoneChange}
-/>
-{errors.phone && <div className="error-message">{errors.phone}</div>}
-</div>
-    </div>
-  </div>
-</div>
-
+  <div className="phone">
+                <div className="phonename-input">
+                  <label className="phone">Phone Number *</label>
+                  <input
+                    name="phone"
+                    type="text"
+                    className="phone-box"
+                    text="phone--input"
+                    placeholder="Enter Phone Number"
+                    value={phone} // Bind to phone state
+                    onChange={handlePhoneChange}
+                  />
+                </div>
+                {errors.phone && <div className="error-message">{errors.phone}</div>}
+              </div>
+              </div>
 <div className="address-controler-container">
-<label className="address-control-label">Address of Job Site: </label>
-<div className="address-control-input ">
+<label className="address-controllabel">Job Information: </label>
+<div className="address-control-input">
 <div className="address-container">
-<label className="addr-control-label">Address *</label>
+<div className="datepicker-container">
+  <label className="job-control-label">Job Date *</label>
+  <p className="date-picker-label">Please select when your job will take place</p>
+  <DatePicker
+  selected={jobDate}
+  onChange={(date) => {
+    setJobDate(date);
+    setFormData({ ...formData, jobDate: date });
+
+    // Optional: clear error
+    setErrors((prevErrors) => ({ ...prevErrors, jobDate: '' }));
+  }}
+  minDate={new Date(new Date().setDate(new Date().getDate() + 1))}
+  inline
+  calendarClassName="custom-datepicker"
+/>
+
+  <div className="selected-date-display">
+    {jobDate
+      ? `Job Date Selected: ${jobDate.toLocaleDateString('en-US')}`
+      : "Please select a date starting tomorrow or later"}
+  </div>
+  {errors.jobDate && <div className="error-message">{errors.jobDate}</div>}
+</div>
+
+  <label className="project-control-label">Company Name *</label>
+  <input
+    className="project-company-input"
+    type="text"
+    placeholder="Enter Company Name"
+    value={formData.company}
+    onChange={(e) => {
+      const  value = e.target.value;
+      const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1);
+      setCompany(capitalizedValue);
+      setFormData({ ...formData, company: capitalizedValue });
+      // Clear error if the input is no longer empty
+      if (value.trim() !== '') {
+        setErrors((prevErrors) => ({ ...prevErrors, company: '' }));
+      }
+    }
+    }
+  />
+{errors.company && <div className="error-message">{errors.company}</div>}
+<label className="cord-label">Coordinator *</label>
 <input
-name="address-box"
-type="text"
-className="address-control-box"
-text="address--input"
-placeholder="Enter Address"
-value={formData.address}
-onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+  className="project-name-input"
+  type="text"
+  placeholder="Coordinator First & Last Name"
+  value={coordinator}
+  onChange={handleCoordinatorChange}
+/>
+{errors.coordinator && <span className="error-message">{errors.coordinator}</span>}
+<label className="project-time">Time of Arrival *</label>
+<p className="time-label">What time do you want the TBS crew to arrive?</p>
+<select
+  className="custom-time-dropdown"
+  value={time}
+  onChange={(e) => {
+  setTime(e.target.value)
+  setFormData({ ...formData, time: e.target.value });
+  if (e.target.value) {
+    setErrors((prevErrors) => ({ ...prevErrors, time: '' })); // Clear the error
+  }
+}
+}
+>
+  <option value="">Select a time</option>
+  {timeOptions.map((t) => (
+    <option key={t} value={t}>
+      {t}
+    </option>
+  ))}
+</select>
+{errors.time && <div className="error-message">{errors.time}</div>}
+  <label className="project-number-label">Project/Task Number *</label>
+  <input
+  className="project-number-input"
+  type="text"
+  placeholder="Enter Project/Task Number"
+  value={formData.project}
+  onChange={(e) => {
+    const value = e.target.value;
+
+    // Remove all non-alphanumeric characters, then convert to uppercase
+    const sanitized = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+
+    setFormData({ ...formData, project: sanitized });
+
+    if (sanitized.trim() !== '') {
+      setErrors((prevErrors) => ({ ...prevErrors, project: '' }));
+    }
+  }}
+/>
+<label className="project-flagger-label">Flaggers *</label>
+<p className="project-flagger-p">How many flaggers does your job need?</p>
+<select
+  className="project-flagger-input"
+  value={formData.flagger}
+  onChange={(e) => {
+    const value = e.target.value;
+    setFormData({ ...formData, flagger: value });
+
+    if (value.trim() !== '') {
+      setErrors((prevErrors) => ({ ...prevErrors, flagger: '' }));
+    }
+  }}
+>
+  <option value="">Select How Many Flaggers</option>
+  {flaggerCount.map((t) => (
+    <option key={t} value={t}>
+      {t}
+    </option>
+  ))}
+</select>
+
+  {errors.flagger && <div className="error-message">{errors.flagger}</div>}
+  <label className="equipment-setup-label">
+    Equipment Setup * (Select all that apply)
+  </label>
+  <div className="equipment-checkboxes">
+  <label>
+    <input 
+      type="checkbox" 
+      name="equipment" 
+      value="Arrow Board"
+      checked={formData.equipment.includes('Arrow Board')}
+      onChange={handleEquipmentChange}
+    />
+    Arrow Board
+  </label>
+  <label>
+    <input 
+      type="checkbox" 
+      name="equipment" 
+      value="Message Board"
+      checked={formData.equipment.includes('Message Board')}
+      onChange={handleEquipmentChange}
+    />
+    Message Board
+  </label>
+  <label>
+    <input 
+      type="checkbox" 
+      name="equipment" 
+      value="Barricades"
+      checked={formData.equipment.includes('Barriacades')}
+      onChange={handleEquipmentChange}
+    />
+    Barricades
+  </label>
+  <label>
+    <input 
+      type="checkbox" 
+      name="equipment" 
+      value="Cones"
+      checked={formData.equipment.includes('Cones')}
+      onChange={handleEquipmentChange}
+    />
+    Cones
+  </label>
+  <label>
+    <input 
+      type="checkbox" 
+      name="equipment" 
+      value="Barrels"
+      checked={formData.equipment.includes('Barrels')}
+      onChange={handleEquipmentChange}
+    />
+    Barrels
+  </label>
+  <label>
+    <input 
+      type="checkbox" 
+      name="equipment" 
+      value="Signs"
+      checked={formData.equipment.includes('Signs')}
+      onChange={handleEquipmentChange}
+    />
+    Signs
+  </label>
+  {errors.equipment && <div className="error-message">{errors.equipment}</div>}
+</div>
+
+<label className="addr-control-label">Job Site Address *</label>
+<input
+  name="address-box"
+  type="text"
+  className="address-control-box"
+  placeholder="Enter Address"
+  value={formData.address}
+  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+  onBlur={(e) => {
+    const addressRegex = /^\d{3,}\s+[\w\s]+(?:\s+(?:NE|NW|SE|SW))?$/i;
+    if (!addressRegex.test(e.target.value)) {
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        address: 'Enter a valid address (e.g., "123 Main St SE")',
+      }));
+    } else {
+      setErrors((prevErrors) => ({ ...prevErrors, address: '' }));
+    }
+  }}
 />
 {errors.address && <span className="error-message">{errors.address}</span>}
-<label className="city-control-label">City *</label>
 
 <input
 name="city-input"
@@ -340,16 +565,40 @@ className="city-control-box"
 text="city--input"
 placeholder="City"
 value={formData.city}
-onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+onChange={(e) => {
+  const rawValue = e.target.value;
+
+  // Remove commas, asterisks, digits, or other unwanted characters
+  const cleaned = rawValue.replace(/[^a-zA-Z\s]/g, '');
+
+  // Capitalize first letter of each word
+  const capitalized = cleaned.replace(/\b\w/g, (char) => char.toUpperCase());
+
+  // Regex: only letters and spaces (already enforced, but double-checked)
+  const cityRegex = /^[a-zA-Z\s]+$/;
+
+  if (!cityRegex.test(capitalized)) {
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      city: 'City must only contain letters and spaces',
+    }));
+  } else {
+    setErrors((prevErrors) => ({ ...prevErrors, city: '' }));
+  }
+
+  // Update formData with cleaned value
+  setFormData((prev) => ({ ...prev, city: capitalized }));
+}}
 />
 {errors.city && <span className="error-message">{errors.city}</span>}
 <div className="city-state">
-<label className="state-control-label">State *</label>
 <select
       name="state"
       className="state-control-box"
       value={formData.state}
-      onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+      onChange={(e) => 
+        setFormData({ ...formData, state: e.target.value })
+    }
     >
       <option value="">Select State</option>
       {states.map(state => (
@@ -357,15 +606,21 @@ onChange={(e) => setFormData({ ...formData, city: e.target.value })}
       ))}
     </select>
     {errors.state && <span className="error-message">{errors.state}</span>}
-
-
-<label className="zip-control-label">Zip Code *</label>
 <input
         name="zip"
         type="text"
         className="zip-control-box"
         value={formData.zip}
-        onChange={(e) => setFormData({ ...formData, zip: e.target.value })}
+        onChange={(e) => {
+          const value = e.target.value;
+          let formattedValue = value;
+          const rawDigits = value.replace(/\D/g, ""); // Remove non-numeric characters
+          formattedValue = rawDigits.slice(0, 5); // Limit to 5 digits
+          setFormData({ ...formData, zip: e.target.value })
+          if (formattedValue.length === 5) {
+            setErrors((prevErrors) => ({ ...prevErrors, zip: '' }));
+        }
+      }}
         placeholder="Zip Code"
         maxLength={5}
         pattern="\d{5}"
@@ -377,60 +632,10 @@ onChange={(e) => setFormData({ ...formData, city: e.target.value })}
 </div>
 </div>
 
-<div className="location-control-container">
-  <label className="google-control-label">Location of Job:</label>
-  <h2 className="location-control-note">
-    Use Google Maps to mark your job site. Add markers for key points, such as the middle of the job site or lane closures.
-    Take a screenshot of the map with your markers to include with your submission.
-  </h2>
-  <h2 className="important-control">
-    Google Maps doesn't allow direct submissions. Use your device's screenshot tool (e.g., Snipping Tool on Windows, Screenshot on Mac)
-    to capture the map and upload the image. This is optional but recommended for accuracy.
-  </h2>
-  
-  <div className="google-control-input">
-    <MapComponent onMarkerAdd={handleAddMarkerButtonClick} />
-    {errors.location && <span className="error-message">{errors.location}</span>}
-  </div>
-
-  <label className="structure-control-label">Google Maps/Pinned Location Image *</label>
-  <h2 className="structure-note">
-    Upload a .png, .jpg, or .jpeg image of your Google Maps screenshot with marked locations (e.g., crossings, lane closures).
-    This is required to help us locate your job site.
-  </h2>
-
-  <div className="structure-input">
-    <div className="file-input-control-container">
-      <label className="file-control-label">
-        {formData.structureimg ? (
-          <span>{formData.structureimg.name}</span>
-        ) : (
-          <span>Choose a Google Maps Screenshot</span>
-        )}
-        <input 
-          type="file" 
-          name="structureimg" 
-          accept=".png,.jpg,.jpeg" 
-          onChange={(e) => handleFileChange(e, 'structureimg')} 
-        />
-      </label>
-      {formData.structureimg && (
-        <button 
-          type="button" 
-          className="remove-control-file-button" 
-          onClick={() => handleFileRemove('structureimg')}
-        >
-          Remove
-        </button>
-      )}
-      {errors.structureimg && <span className="error-message">{errors.structureimg}</span>}
-    </div>
-  </div>
-</div>
-
 <div className="message-control-container">
 <label className="message-control-label">Message *</label>
-<h2 className="message-control-note">Tell us about your job and how do we need to set up! </h2>
+<h2 className="message-control-note">If you need additional equipment,
+  please explain here. Otherwise, please describe to us about your job and how do we need to set up! </h2>
 
 <textarea className="message-control-text" name="message" type="text" placeholder="Enter Message"
   value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })}
@@ -468,7 +673,7 @@ onChange={(e) => setFormData({ ...formData, city: e.target.value })}
     <div className="footer-contact">
       <h2 className="footer-title">Contact</h2>
       <p className="contact-info">
-        <a className="will-phone" href="tel:+17062630175">Call: 706-263-0175</a>
+        <a className="will-phone" href="tel:+17062630175">Call: (706) 263-0175</a>
         <a className="will-email" href="mailto: tbsolutions1999@gmail.com">Email: tbsolutions1999@gmail.com</a>
         <a className="will-address" href="https://www.google.com/maps/place/Traffic+and+Barrier+Solutions,+LLC/@34.5025307,-84.899317,660m/data=!3m1!1e3!4m6!3m5!1s0x482edab56d5b039b:0x94615ce25483ace6!8m2!3d34.5018691!4d-84.8994308!16s%2Fg%2F11pl8d7p4t?entry=ttu&g_ep=EgoyMDI1MDEyMC4wIKXMDSoASAFQAw%3D%3D"
       >
@@ -509,4 +714,3 @@ onChange={(e) => setFormData({ ...formData, city: e.target.value })}
         </div>
     )
 };
-
