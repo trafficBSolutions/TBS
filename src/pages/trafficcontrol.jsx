@@ -161,7 +161,7 @@ export default function TrafficControl() {
     e.preventDefault();
 
     const requiredFields = ['first', 'last', 'email', 'phone', 'jobDate',
-      'company', 'coordinator', 'time', 'project', 'address', 'city', 
+      'company', 'coordinator', 'time', 'project', 'flagger', 'address', 'city', 
     'state', 'zip', 'message'];
     const newErrors = {};
 
@@ -177,6 +177,7 @@ export default function TrafficControl() {
         if (field === 'coordinator') fieldLabel = 'Coordinator';
         if (field === 'time') fieldLabel = 'Time';
         if (field === 'project') fieldLabel = 'Project';
+        if (field === 'flagger') fieldLabel = 'Flagger Count';
         if (field ==='address') fieldLabel = 'Address';
         if (field === 'city') fieldLabel = 'City';
         if (field ==='state') fieldLabel = 'State';
@@ -494,14 +495,15 @@ if (e.target.value) {
     Message Board
   </label>
   <label>
-    <input 
-      type="checkbox" 
-      name="equipment" 
-      value="Barricades"
-      checked={formData.equipment.includes('Barriacades')}
-      onChange={handleEquipmentChange}
-    />
-    Barricades
+  <input 
+  type="checkbox" 
+  name="equipment" 
+  value="Barricades" // ✅ correct spelling
+  checked={formData.equipment.includes('Barricades')} // ✅ now it will work
+  onChange={handleEquipmentChange}
+/>
+Barricades
+
   </label>
   <label>
     <input 
