@@ -161,7 +161,46 @@ body {
   align-items: center;
   justify-items: center;
 }
-
+.now-hiring {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 10px 1rem;
+  background-color: rgb(219, 211, 217);
+}
+.now-hiring-title {
+  font-size: 4rem;
+  font-weight: 700;
+  color: #070707;
+  letter-spacing: -0.5px;
+  text-align: center;
+  font-family: "Moveo Sans W00 Bold";
+}
+.now-hiring-text {
+  font-size: 1.5rem;
+  line-height: 1.8;
+  margin: 1rem 0;
+  text-align: center;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+}
+.careers-btn {
+  display: inline-block;
+  font-size: 1.7rem;
+  font-weight: 600;
+  border-radius: 9px;
+  padding: 1.6rem 3.2rem;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.3s;
+  border: none;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  cursor: pointer;
+  font-family: inherit;
+  background-color: #e67e22;
+  color: #fff;
+}
 .heading-primary,
 .heading-secondary,
 .heading-tertiary {
@@ -434,46 +473,6 @@ body {
 }
 
 /* Now hiring section */
-.now-hiring {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 10px 1rem;
-  background-color: rgb(219, 211, 217);
-}
-.now-hiring-title {
-  font-size: 4rem;
-  font-weight: 700;
-  color: #070707;
-  letter-spacing: -0.5px;
-  text-align: center;
-  font-family: "Moveo Sans W00 Bold";
-}
-.now-hiring-text {
-  font-size: 1.5rem;
-  line-height: 1.8;
-  margin: 1rem 0;
-  text-align: center;
-  color: #000000;
-  font-family: Arial, Helvetica, sans-serif;
-}
-.careers-btn {
-  display: inline-block;
-  font-size: 1.7rem;
-  font-weight: 600;
-  border-radius: 9px;
-  padding: 1.6rem 3.2rem;
-  text-align: center;
-  text-decoration: none;
-  transition: all 0.3s;
-  border: none;
-  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-  cursor: pointer;
-  font-family: inherit;
-  background-color: #e67e22;
-  color: #fff;
-}
 .web-dev {
   background-color: rgb(219, 211, 217);
   padding-bottom: 50px;
@@ -738,6 +737,7 @@ body {
   height: 600px;
 }
 @media screen and (min-width: 1200px) and (max-width: 1800px) and (orientation: landscape) {
+  
   .tbs-container img {
     width: 100%;
     height: auto;
@@ -746,6 +746,19 @@ body {
   }
 
 @media screen and (max-width: 1200px) and (orientation: landscape) {
+  .schedule-title {
+    font-size: 3.4rem;
+  }
+  .flag-image {
+    max-width: 200px;
+  }
+  .schedule-text {
+    font-size: 1.3rem;
+  }
+  .schedule-btn {
+    font-size: 1.5rem;
+    padding: 10px 20px;
+  }
   .page-banner {
     padding: 100px 0;
   }
@@ -816,6 +829,19 @@ body {
 }
 }
 @media screen and (max-width: 1200px) and (orientation: portrait) {
+  .schedule-title {
+    font-size: 2.8rem;
+  }
+  .flag-image {
+    max-width: 190px;
+  }
+  .schedule-text {
+    font-size: 1.5rem;
+  }
+  .schedule-btn {
+    font-size: 1.5rem;
+    padding: 10px 20px;
+  }
   .page-banner {
     padding: 100px 0;
   }
@@ -880,14 +906,23 @@ body {
 }
 }
 @media screen and (min-width: 320px) and (max-width: 640px) and (orientation: portrait) {
+  .schedule-title {
+    font-size: 2.2rem;
+  }
+  .flag-image {
+    max-width: 150px;
+  }
+  .schedule-text {
+    font-size: 1.3rem;
+  }
+  .schedule-btn {
+    font-size: 1.5rem;
+    padding: 10px 20px;
+  }
   .page-banner {
     padding: 100px 0;
   }
-  .page-banner__bg-vid-dash {
-    width: 100%;
-    height: auto;
-  }
-    .now-hiring-title {
+  .now-hiring-title {
     font-size: 3.3rem;
   }
   .now-hiring-text {
@@ -896,6 +931,10 @@ body {
   .careers-btn {
     font-size: 1.7rem;
     padding: 10px 20px;
+  }
+  .page-banner__bg-vid-dash {
+    width: 100%;
+    height: auto;
   }
   .section-featured {
     display: block;
@@ -973,6 +1012,19 @@ body {
 }
 }
 @media screen and (max-width: 320px) and (orientation: landscape){
+  .schedule-title {
+    font-size: 2.2rem;
+  }
+  .flag-image {
+    max-width: 150px;
+  }
+  .schedule-text {
+    font-size: 1.3rem;
+  }
+  .schedule-btn {
+    font-size: 1.5rem;
+    padding: 10px 20px;
+  }
   .hero {
     padding: 0;
   }
@@ -1063,6 +1115,19 @@ body {
 }
 }
 @media screen and (max-width: 320px) and (orientation: portrait){
+  .schedule-title {
+    font-size: 2.2rem;
+  }
+  .flag-image {
+    max-width: 150px;
+  }
+  .schedule-text {
+    font-size: 1.3rem;
+  }
+  .schedule-btn {
+    font-size: 1.5rem;
+    padding: 10px 20px;
+  }
   .hero {
     padding: 0;
   }
