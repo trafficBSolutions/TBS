@@ -35,7 +35,7 @@ export default function Home() {
           </div>
           <div className="map-contain-home">
             <h1 className="schedule-title">Need to Schedule a Job?</h1>
-            <img src={images['../assets/flaggers/Flagger Symbol.svg'].default} alt="Map" className="flag-image" />
+            <img src={images['../assets/flaggers/Flagger SVG Symbol With Slow.svg'].default} alt="Map" className="flag-image" />
             <p className="schedule-text">Click here to schedule a job</p>
             <a href="/trafficcontrol" className="schedule-btn">Schedule a Job</a>
           </div>
