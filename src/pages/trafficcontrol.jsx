@@ -101,7 +101,7 @@ export default function TrafficControl() {
   const [submissionMessage, setSubmissionMessage] = useState('');
   const [submissionErrorMessage, setSubmissionErrorMessage] = useState('');
   useEffect(() => {
-    axios.get('https://tbs-server.onrender.com/jobs/full-dates')
+    axios.get('http://localhost:8000/jobs/full-dates')
       .then(res => {
         // Convert string dates (YYYY-MM-DD) to Date objects
         const fullDateObjects = res.data.map(dateStr => {
