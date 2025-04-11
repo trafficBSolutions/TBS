@@ -13,9 +13,5 @@ import TService from './traffic-control-services'
 import Product from './product-services'
 import Contact from './contact-us'
 import About from './about-us'
-import TrafficSoftware from './traffic-software'
-import AdminLog from './admin-login'
-import AdminDashboard from './admin-dashboard'
-import RegisterAdmin from './registerAdmin'
 import CancelJob from './cancel-job'
-export { CancelJob, About, RegisterAdmin, AdminDashboard, AdminLog, Contact, Apply, Home, TrafficControl, TrafficPlan, BollardsWheels, Signs, Rentals, PPE, Email, Error, Web, TService, Product, TrafficSoftware };
+export { CancelJob, About, Contact, Apply, Home, TrafficControl, TrafficPlan, BollardsWheels, Signs, Rentals, PPE, Email, Error, Web, TService, Product };
