@@ -11,7 +11,7 @@ const CancelJob = () => {
   const handleCancel = async () => {
     setLoading(true);
     try {
-      await axios.delete(`http://localhost:8000/cancel-job/${id}`);
+      await axios.delete(`https://tbs-server.onrender.com/cancel-job/${id}`);
       setMessage("✅ Your job has been cancelled successfully. Check your email for confirmation.");
     } catch (err) {
       console.error(err);
