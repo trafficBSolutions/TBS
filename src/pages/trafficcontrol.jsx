@@ -2,7 +2,7 @@ import '../css/trafficcontrol.css'
 import '../css/header.css'
 import '../css/footer.css'
 import images  from '../utils/tbsImages';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -79,9 +79,9 @@ export default function TrafficControl() {
   const addressRegex = /^\d{3,}\s+[\w\s]+(?:\s+(?:NE|NW|SE|SW))?$/i;
   const [coordinator, setCoordinator] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [fullDates, setFullDates] = useState([]);
   const [formData, setFormData] = useState({
-    first: '',
-    last: '',
+    name: '',
     email: '',
     phone: '',
     jobDate: '',
@@ -100,6 +100,20 @@ export default function TrafficControl() {
   const [errors, setErrors] = useState({});
   const [submissionMessage, setSubmissionMessage] = useState('');
   const [submissionErrorMessage, setSubmissionErrorMessage] = useState('');
+  useEffect(() => {
+    axios.get('http://localhost:8000/jobs/full-dates')
+      .then(res => {
+        // Convert string dates (YYYY-MM-DD) to Date objects
+        const fullDateObjects = res.data.map(dateStr => {
+          const [year, month, day] = dateStr.split('-').map(Number);
+          // Create date objects (month is 0-indexed)
+          return new Date(year, month - 1, day);
+        });
+        
+        setFullDates(fullDateObjects);
+      })
+      .catch(err => console.error("Error loading full dates", err));
+  }, []);
 
   const handleStateChange = (e) => {
     setSelectedState(e.target.value);
@@ -160,7 +174,7 @@ export default function TrafficControl() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const requiredFields = ['first', 'last', 'email', 'phone', 'jobDate',
+    const requiredFields = ['name', 'email', 'phone', 'jobDate',
       'company', 'coordinator', 'time', 'project', 'flagger', 'address', 'city', 
     'state', 'zip', 'message'];
     const newErrors = {};
@@ -168,8 +182,7 @@ export default function TrafficControl() {
     requiredFields.forEach(field => {
       if (!formData[field]) {
         let fieldLabel = field.charAt(0).toUpperCase() + field.slice(1);
-        if (field === 'first') fieldLabel = 'First Name';
-        if (field === 'last') fieldLabel = 'Last Name';
+        if (field === 'name') fieldLabel = 'Name';
         if (field === 'email') fieldLabel = 'Email';
         if (field === 'phone') fieldLabel = 'Phone Number';
         if (field === 'jobDate') fieldLabel = 'Job Date';
@@ -205,8 +218,7 @@ export default function TrafficControl() {
       console.log(response.data); // Now this works
            
       setFormData({
-        first: '',
-        last: '',
+        name: '',
         email: '',
         phone: '',
         jobDate: '',
@@ -269,48 +281,25 @@ export default function TrafficControl() {
   <div className="first-name">
     <div className="name-control-input">
     <div className="first-name-control-container">
-<label className="first-control-label-name">First Name *</label>
+<label className="first-control-label-name">Name *</label>
 <input
-name="first"
+name="namet"
 type="text"
 className="first-control-name-input"
 text="first-name--input"
-placeholder="Enter First Name"
-value={formData.first}
+placeholder="Enter First & Last Name"
+value={formData.name}
 onChange={(e) => { 
-  setFormData({ ...formData, first: e.target.value });
+  setFormData({ ...formData, name: e.target.value });
 if (e.target.value) {
-  setErrors((prevErrors) => ({ ...prevErrors, first: '' })); // Clear the error
+  setErrors((prevErrors) => ({ ...prevErrors, name: '' })); // Clear the error
 }
 }}
 />
-{errors.first && <div className="error-message">{errors.first}</div>}
+{errors.name && <div className="error-message">{errors.name}</div>}
 </div>
     </div>
   </div>
-  <div className="last-control-name">
-    <div className="last-control-input">
-    <div className="last-name-control-container">
-<label className="last-control-label-name">Last Name *</label>
-<input
-name="last"
-type="text"
-className="last-control-name-input"
-text="last-name--input"
-placeholder="Enter Last Name"
-value={formData.last}
-onChange={(e) => { 
-  setFormData({ ...formData, last: e.target.value });
-if (e.target.value) {
-  setErrors((prevErrors) => ({ ...prevErrors, last: '' })); // Clear the error
-}
-}}
-/>
-{errors.last && <div className="error-message">{errors.last}</div>}
-</div>
-    </div>
-  </div>
-
   <div className="email">
     <div className="email-control-input">
     <div className="email-control-container">
@@ -359,15 +348,28 @@ if (e.target.value) {
   <DatePicker
   selected={jobDate}
   onChange={(date) => {
-    setJobDate(date);
-    setFormData({ ...formData, jobDate: date });
+    if (!date) {
+      // If cleared, reset jobDate and formData
+      setJobDate(null);
+      setFormData(prev => ({ ...prev, jobDate: '' }));
+      return;
+    }
 
-    // Optional: clear error
+    const localMidnight = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate()
+    );
+
+    setJobDate(date);
+    setFormData({ ...formData, jobDate: localMidnight });
     setErrors((prevErrors) => ({ ...prevErrors, jobDate: '' }));
   }}
   minDate={new Date(new Date().setDate(new Date().getDate() + 1))}
+  excludeDates={fullDates}
   inline
   calendarClassName="custom-datepicker"
+  isClearable // <-- Add this line
 />
 
   <div className="selected-date-display">
@@ -545,7 +547,12 @@ Barricades
   className="address-control-box"
   placeholder="Enter Address"
   value={formData.address}
-  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+  onChange={(e) => {
+    const raw = e.target.value;
+    const cleaned = raw.replace(/[*,;/.']/g, ''); // Removes *, ; , / and .
+    setFormData({ ...formData, address: cleaned });
+  }}
+  
   onBlur={(e) => {
     const addressRegex = /^\d{3,}\s+[\w\s]+(?:\s+(?:NE|NW|SE|SW))?$/i;
     if (!addressRegex.test(e.target.value)) {
