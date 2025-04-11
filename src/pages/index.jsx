@@ -7,10 +7,9 @@ import Signs from './signs'
 import Rentals from './rentals'
 import PPE from './ppe'
 import Error from './error'
-import Web from './web-development'
 import TService from './traffic-control-services'
 import Product from './product-services'
 import Contact from './contact-us'
 import About from './about-us'
 import CancelJob from './cancel-job'
-export { CancelJob, About, Contact, Apply, Home, TrafficControl, TrafficPlan, BollardsWheels, Signs, Rentals, PPE, Error, Web, TService, Product };
+export { CancelJob, About, Contact, Apply, Home, TrafficControl, TrafficPlan, BollardsWheels, Signs, Rentals, PPE, Error, TService, Product };
