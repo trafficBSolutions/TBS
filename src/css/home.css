@@ -89,7 +89,7 @@ input[type=text], input[type=number], input[type=date], select, textarea {
 .flag-image {
   width: 100%;
   height: auto;
-  max-width: 420px;
+  max-width: 850px;
   max-height: 100%;
   object-fit: contain;
 }
@@ -750,7 +750,7 @@ body {
     font-size: 3.4rem;
   }
   .flag-image {
-    max-width: 200px;
+    max-width: 390px;
   }
   .schedule-text {
     font-size: 1.3rem;
@@ -833,7 +833,7 @@ body {
     font-size: 2.8rem;
   }
   .flag-image {
-    max-width: 190px;
+    max-width: 450px;
   }
   .schedule-text {
     font-size: 1.5rem;
@@ -910,7 +910,7 @@ body {
     font-size: 2.2rem;
   }
   .flag-image {
-    max-width: 150px;
+    max-width: 300px;
   }
   .schedule-text {
     font-size: 1.3rem;
@@ -1016,7 +1016,7 @@ body {
     font-size: 2.2rem;
   }
   .flag-image {
-    max-width: 150px;
+    max-width: 200px;
   }
   .schedule-text {
     font-size: 1.3rem;
@@ -1119,7 +1119,7 @@ body {
     font-size: 2.2rem;
   }
   .flag-image {
-    max-width: 150px;
+    max-width: 190px;
   }
   .schedule-text {
     font-size: 1.3rem;
