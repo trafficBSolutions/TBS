@@ -49,7 +49,7 @@ const TService = () => {
                         </h2>
                     </div>
                     <div className="traffic-con-services-button">
-                        <img className="flagger-img" src={images["../assets/flaggers/Flagger Symbol.svg"].default} alt="TBS logo" />
+                        <img className="flagger-img" src={images["../assets/flaggers/Flagger SVG Symbol With Stop.svg"].default} alt="TBS logo" />
                         <a href="/trafficcontrol" className="btn btn-controller">Traffic Control Jobs</a>
                         </div>
                         <div className="traffic-con-services-button">
