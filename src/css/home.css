@@ -74,6 +74,7 @@ input[type=text], input[type=number], input[type=date], select, textarea {
 /* Font faces */
 .map-contain-home {
   width: 100%;
+    padding: 0 10px;
     border: none;
     text-align: center;
     background-color: rgb(219, 219, 219);
@@ -81,18 +82,20 @@ input[type=text], input[type=number], input[type=date], select, textarea {
 }
 .schedule-title {
   font-size: 50px;
+  padding: 10px;
   text-align: center;
   font-family: "Arial Black", Gadget, sans-serif;
 }
 .flag-image {
   width: 100%;
   height: auto;
-  max-width: 450px;
+  max-width: 420px;
   max-height: 100%;
   object-fit: contain;
 }
 .schedule-text {
   font-size: 20px;
+  padding: 5px;
   font-family: "Arial Black", Gadget, sans-serif;
   text-align: center;
 }
