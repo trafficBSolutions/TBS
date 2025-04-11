@@ -5,7 +5,6 @@ import '../css/footer.css';
 import HomePhotoGallery from '../components/homephotogal'; 
 import Header from '../components/headerviews/HeaderDrop'
 import images from '../utils/tbsImages';
-import MapComponent from '../components/MapHome';
 export default function Home() {
     return (
       <div>
@@ -35,7 +34,10 @@ export default function Home() {
             </div>
           </div>
           <div className="map-contain-home">
-            <MapComponent />
+            <h1 className="schedule-title">Need to Schedule a Job?</h1>
+            <img src={images['../assets/flaggers/Flagger Symbol.svg'].default} alt="Map" className="flag-image" />
+            <p className="schedule-text">Click here to schedule a job</p>
+            <a href="/trafficcontrol" className="schedule-btn">Schedule a Job</a>
           </div>
         </section>
                       <section className="now-hiring">
