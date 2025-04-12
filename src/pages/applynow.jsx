@@ -790,8 +790,8 @@ if (!data.background) {
       <div className="job-app-info">
             <h1 className="job-app-box">JOB APPLICATION FORM</h1>
             <h2 className="job-fill">Please Fill Out the Form Below to Submit Your Job Application!</h2>
+        <h3 className="control-fill-info">Fields marked with * are required.</h3>
     </div>
-    
     <div className="job-actual">
       <div className="job-name">
             <div className="first-input">
