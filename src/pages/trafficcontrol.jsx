@@ -449,6 +449,7 @@ if (e.target.value) {
     }
   }}
 />
+  {errors.project && <div className="error-message">{errors.project}</div>}
 <label className="project-flagger-label">Flaggers *</label>
 <p className="project-flagger-p">How many flaggers does your job need?</p>
 <select
