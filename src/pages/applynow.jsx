@@ -1202,7 +1202,10 @@ to provide additional context regarding your background, please reach out to our
           placeholder="City"
           type="text"
           value={newEmploy.city}
-          onChange={(e) => handleEmployment2Change("city", e.target.value)}
+           onChange={(e) => {
+            const sanitizedValue = e.target.value.replace(/[^\w\s]/gi, ''); // removes ,./;' etc.
+            handleEmployment2Change("city", sanitizedValue);
+          }}
         />
         <select
           className="state"
