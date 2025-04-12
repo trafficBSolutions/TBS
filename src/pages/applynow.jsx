@@ -1187,13 +1187,16 @@ to provide additional context regarding your background, please reach out to our
           value={newEmploy.employerName}
           onChange={(e) => handleEmployment2Change("employerName", e.target.value)}
         />
-        <input
-          className="address"
-          placeholder="Employer Address"
-          type="text"
-          value={newEmploy.address}
-          onChange={(e) => handleEmployment2Change("address", e.target.value)}
-        />
+<input
+  className="address"
+  placeholder="Employer Address"
+  type="text"
+  value={newEmploy.address}
+  onChange={(e) => {
+    const sanitizedValue = e.target.value.replace(/[^\w\s]/gi, ''); // removes ,./;' etc.
+    handleEmployment2Change("address", sanitizedValue);
+  }}
+/>
         <input
           className="city"
           placeholder="City"
