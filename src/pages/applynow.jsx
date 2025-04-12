@@ -1184,13 +1184,17 @@ to provide additional context regarding your background, please reach out to our
   {data.workHistory === "Yes" && (
     <div className="employment-entries">
       <div className="employment-entry">
-        <input
-          className="employer-name"
-          placeholder="Employer Name"
-          type="text"
-          value={newEmploy.employerName}
-          onChange={(e) => handleEmployment2Change("employerName", e.target.value)}
-        />
+<input
+  className="employer-name"
+  placeholder="Employer Name"
+  type="text"
+  value={newEmploy.employerName}
+  onChange={(e) => {
+    const raw = e.target.value;
+    const formatted = raw.replace(/\b\w/g, (char) => char.toUpperCase());
+    handleEmployment2Change("employerName", formatted);
+  }}
+/>
 <input
   className="address"
   placeholder="Employer Address"
