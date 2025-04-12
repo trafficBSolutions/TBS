@@ -869,12 +869,16 @@ if (!data.background) {
 
   <div className="education-entry">
     <label>School Name:</label>
-    <input
-      type="text"
-      value={school}
-      placeholder="Enter School Name"
-      onChange={(e) => setSchool(e.target.value)}
-    />
+<input
+  type="text"
+  value={school}
+  placeholder="Enter School Name"
+  onChange={(e) => {
+    const value = e.target.value;
+    const capitalized = value.replace(/\b\w/g, (char) => char.toUpperCase());
+    setSchool(capitalized);
+  }}
+/>
 {errors.school && <div className="error-message">{errors.school}</div>}
     <div className="date-inputs">
       <label>Start Date:</label>
