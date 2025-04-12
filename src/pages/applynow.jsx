@@ -1205,16 +1205,19 @@ to provide additional context regarding your background, please reach out to our
     handleEmployment2Change("address", sanitizedValue);
   }}
 />
-        <input
-          className="city"
-          placeholder="City"
-          type="text"
-          value={newEmploy.city}
-           onChange={(e) => {
-            const sanitizedValue = e.target.value.replace(/[^\w\s]/gi, ''); // removes ,./;' etc.
-            handleEmployment2Change("city", sanitizedValue);
-          }}
-        />
+<input
+  className="city"
+  placeholder="City"
+  type="text"
+  value={newEmploy.city}
+  onChange={(e) => {
+    const sanitized = e.target.value.replace(/[^\w\s]/gi, ''); // Removes punctuation
+    const formatted = sanitized
+      .toLowerCase()
+      .replace(/\b\w/g, (char) => char.toUpperCase()); // Capitalizes first letter of each word
+    handleEmployment2Change("city", formatted);
+  }}
+/>
         <select
           className="state"
           value={newEmploy.state}
