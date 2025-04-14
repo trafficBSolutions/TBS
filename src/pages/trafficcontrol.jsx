@@ -344,7 +344,6 @@ if (e.target.value) {
 <div className="address-container">
 <div className="datepicker-container">
   <label className="job-control-label">Job Date *</label>
-  <p className="date-picker-label">Please select when your job will take place</p>
   <p className="date-picker-note"><b>NOTE:</b> If a date has been disabled, it means the schedule is full for that day.
   However, if someone else cancels a job, it will open that date back up again.</p>
   <DatePicker
