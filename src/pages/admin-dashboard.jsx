@@ -131,18 +131,22 @@ useEffect(() => {
 <div className="job-main-info-list">
 <h3>Jobs on {selectedDate?.toLocaleDateString()}</h3>
     <div className="job-info-list">
-  {jobs.map((job, index) => (
-    <div key={index} className="job-card">
-      <h4 className="job-company">{job.company}</h4>
-      <p><strong>Coordinator:</strong> {job.coordinator}</p>
-      <p><strong>Time:</strong> {job.time}</p>
-      <p><strong>Project:</strong> {job.project}</p>
-      <p><strong>Flaggers:</strong> {job.flagger}</p>
-      <p><strong>Equipment:</strong> {job.equipment.join(', ')}</p>
-      <p><strong>Address:</strong> {job.address}, {job.city}, {job.state} {job.zip}</p>
-      {job.message && <p><strong>Message:</strong> {job.message}</p>}
-    </div>
-  ))}
+ {jobs.map((job, index) => (
+  <div key={index} className="job-card">
+    <h4 className="job-company">{job.company}</h4>
+    <p><strong>Coordinator:</strong> {job.coordinator}</p>
+    {job.phone && (
+      <p><strong>Phone:</strong> <a href={`tel:${job.phone}`}>{job.phone}</a></p>
+    )}
+    <p><strong>Time:</strong> {job.time}</p>
+    <p><strong>Project:</strong> {job.project}</p>
+    <p><strong>Flaggers:</strong> {job.flagger}</p>
+    <p><strong>Equipment:</strong> {job.equipment.join(', ')}</p>
+    <p><strong>Address:</strong> {job.address}, {job.city}, {job.state} {job.zip}</p>
+    {job.message && <p><strong>Message:</strong> {job.message}</p>}
+  </div>
+))}
+
 </div>
   </div>
   </div>
