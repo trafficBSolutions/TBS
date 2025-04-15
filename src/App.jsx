@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate} from 'react-router-dom'
-import { About, CancelJob, AdminLog, AdminDashboard, Contact, Apply, Home, TrafficControl, TrafficPlan, Rentals, PPE, Signs, BollardsWheels, Error, TService, Product, registerAdmin } from './pages';
+import { About, CancelJob, AdminLog, AdminDashboard, Contact, Apply, Home, TrafficControl, TrafficPlan, Rentals, PPE, Signs, BollardsWheels, Error, TService, Product } from './pages';
 import axios from 'axios';
 import Navbar from './components/Navbar';
 import { Toaster } from 'react-hot-toast'
@@ -33,7 +33,6 @@ function App() {
     <Route path="/admin-dashboard"
         element={isAdminAuthenticated() ? <AdminDashboard /> : <Navigate to="/admin-login" />}
 />
-    <Route path="/registerAdmin" element={<registerAdmin />} />
     <Route path="/cancel-job/:id" element={<CancelJob />} />
   </Routes>
 </>
