@@ -1,0 +1,189 @@
+/* Make the calendar 100% width */
+.admin-date-picker {
+  font-size: 1.8rem;
+  width: 100%;
+  border-radius: 0px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+}
+
+.admin-date-picker .react-datepicker {
+  width: 100%;
+}
+
+.admin-date-picker .react-datepicker__month-container {
+  border: none;
+  background-color: #bcc3bd;
+  text-align: center;
+  font-size: 1.5rem;
+  width: 100%;
+}
+
+.admin-date-picker .react-datepicker__month {
+  width: 100%;
+}
+
+.admin-date-picker .react-datepicker__header {
+  background-color: #f7d7bc;
+  color: white;
+  width: 100%;
+  padding: 10px 0;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+}
+
+/* Adjust day cells to accommodate job count */
+.react-datepicker__day-name {
+  width: 13%;
+  height: 2rem;
+  margin: 0.1rem;
+  font-size: 1.5rem;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding-top: 0.3rem;
+  line-height: 0.1;
+  box-sizing: border-box;
+}
+.react-datepicker__day,
+.react-datepicker__time-name {
+  width: 13%;
+  height: 6.5rem; /* ⬅️ Increased from 5rem to avoid overlap */
+  margin: 0.1rem;
+  font-size: 1.5rem;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding-top: 0.3rem;
+  line-height: 1.2;
+  box-sizing: border-box;
+}
+.react-datepicker__day {
+  border: 1px solid #999; /* subtle gray lines for grid */
+  box-sizing: border-box;
+}
+
+/* Style for the jobs count text */
+.jobs-count {
+  font-size: 1rem;
+  color: #333;
+  margin-top: 0.5rem;
+}
+
+/* Enhance the styling for days with jobs */
+.has-jobs {
+  background-color: #f1a661;
+  color: #000;
+  font-weight: bold;
+  position: relative;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1); /* subtle outline */
+  border: 2px solid #e6943f;
+  z-index: 1;
+}
+
+/* Add a hover effect for better user experience */
+.has-jobs:hover {
+  background-color: #ffa94d;
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+}
+.react-datepicker__current-month {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+/* Adjust selected day styling */
+.react-datepicker__day--selected {
+  color: #000;
+  font-weight: bold;
+  background-color: #f1a661;
+}
+.job-main-info-list {
+  background-color: #efad76;
+  padding: 2rem;
+}
+.job-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+.job-card {
+  background: #fdfdfd;
+  border-left: 4px solid #efad76;
+  padding: 1rem 1.5rem;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.job-company {
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+.admin-job-calendar h3 {
+  font-size: 2.5rem;
+  color: #333;
+  padding-top: 1rem;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+.welcome {
+  font-size: 4rem;
+  color: #333;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+.admin-job-calendar h2 {
+  font-size: 2.5rem;
+  color: #333;
+  padding-top: 1rem;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+.job-card p {
+  margin: 0.3rem 0;
+  font-size: 1.4rem;
+  line-height: 1.4;
+  color: #444;
+}
+.calendar-day-kiss {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  height: 100%;
+  width: 100%;
+  padding: 0.3rem;
+  box-sizing: border-box;
+}
+
+.calendar-day-kiss .day-number {
+  font-weight: bold;
+  font-size: 1.3rem;
+  color: #222;
+}
+.react-datepicker__navigation {
+  top: 1rem;
+  right: 1rem;
+  font-size: 1.5rem;
+  color: #333;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  background-color: #333;
+}
+.calendar-day-kiss .job-count {
+  margin-top: 0.3rem;
+  font-size: 1.1rem;
+  color: #444;
+  font-weight: bold;
+  background-color: rgba(241, 166, 97, 0.3);
+  border-radius: 4px;
+  padding: 2px 4px;
+  width: 80%;
+  text-align: center;
+}
