@@ -45,7 +45,7 @@ const AdminLog = () => {
       
       try {
         setIsNavigating(true);
-        const res = await axios.post('http://localhost:8000/admin/login', { email, password });
+        const res = await axios.post('https://tbs-server.onrender.com/admin/login', { email, password });
         
         const { token, email: userEmail, firstName } = res.data;
         localStorage.setItem('adminUser', JSON.stringify({ email: userEmail, firstName, token }));
