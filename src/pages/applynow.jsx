@@ -155,6 +155,7 @@ const Apply = () => {
   const [educationError, setEducationError] = useState(""); // Yes or No selection
   const [backgroundError, setBackgroundError] = useState(""); 
   const [convictions, setConvictions] = useState([]);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [newConviction, setNewConviction] = useState({
     type: "Misdemeanor",
     charge: "",
