@@ -12,4 +12,6 @@ import Product from './product-services'
 import Contact from './contact-us'
 import About from './about-us'
 import CancelJob from './cancel-job'
-export { CancelJob, About, Contact, Apply, Home, TrafficControl, TrafficPlan, BollardsWheels, Signs, Rentals, PPE, Error, TService, Product };
+import AdminDashboard from './admin-dashboard'
+import AdminLog from './admin-login'
+export { AdminDashboard, CancelJob, About, Contact, Apply, Home, AdminLog, TrafficControl, TrafficPlan, BollardsWheels, Signs, Rentals, PPE, Error, TService, Product };
