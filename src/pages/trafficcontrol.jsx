@@ -249,7 +249,7 @@ export default function TrafficControl() {
           Neither aim can be achieved in isolation. 
           This is why traffic management is crucial. 
           It ensures the safety of everyone while reducing the time and money spent on any one project. 
-          TBS Offers 3 flaggers per crew with one foreman/crew lead per fully loaded truck.</h1>
+          TBS Offers 2-3 flaggers per crew with one foreman/crew lead per fully loaded truck.</h1>
           </div>
           <div className="emergency-container">
   <h2 className="emergency-header">EMERGENCY JOB REQUEST</h2>
