@@ -12,7 +12,16 @@
     padding: 0 20px; /* Adjust padding */
     position: relative;
 }
-
+.admin-worx-logo, .admin-dashboard-link {
+  width: 100%;
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.admin-worx-logo:hover, .admin-dashboard-link:hover {
+  background-color: #e67e22;
+}
 .header-logo {
   width: auto;
   height: auto;
@@ -202,6 +211,22 @@
 .header-worx-logo:hover {
     background-color: #949494;
 }
+.btn-main {
+  background-color: #e67e22;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.admin-options {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
 @media screen and (min-width: 1200px) and (max-width: 1920px) and (orientation: landscape) {
   .main-nav {
     gap: 3rem;
@@ -371,6 +396,9 @@ height: auto;
   .material-worx-web {
     font-size: 1.3rem;
   }
+  .admin-options {
+    margin: 0 auto;
+  };
 }
 @media screen and (max-width: 1200px) and (orientation: landscape) {
   .header {
@@ -493,6 +521,9 @@ padding: 5px 10px;
     .material-worx-web {
       font-size: 1.3rem;
     }
+    .admin-options {
+      margin: 0 auto;
+    };
 }
 @media screen and (min-width: 320px) and (max-width: 640px) and (orientation: portrait) {
   .header {
@@ -614,6 +645,9 @@ max-width: 100px;
 .material-worx-web {
   font-size: 1.3rem;
 }
+.admin-options {
+  margin: 0 auto;
+};
 }
 @media screen and (max-width: 320px) and (orientation: portrait) {
   .header {
@@ -738,6 +772,14 @@ width: 100%;
 .material-worx-web {
   font-size: 0.5rem;
   display: none;
+}
+.admin-options {
+  margin: 0 auto;
+  text-align: center
+};
+.btn-main {
+  font-size: 1rem;
+  text-align: center;
 }
 }
 @media screen and (max-width: 320px) and (orientation: landscape) {
@@ -864,4 +906,7 @@ width: 100%;
   font-size: 0.5rem;
   display: none;
 }
+.admin-options {
+  margin: 0 auto;
+};
 }
