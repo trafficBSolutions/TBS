@@ -196,6 +196,17 @@ const Apply = () => {
   const toggleMenu = () => {
     setIsNavOpen(!isNavOpen);
 };
+      const handleAdminClick = () => {
+        if (isAdmin) {
+            // Logging out
+            localStorage.removeItem('adminUser');
+            setIsAdmin(false);
+            navigate('/admin-login');
+        } else {
+            // Navigate to login
+            navigate('/admin-login');
+        }
+    };
 const handleAddEducation = () => {
   let isValid = true;
 
