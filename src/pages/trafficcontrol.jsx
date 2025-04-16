@@ -72,7 +72,7 @@ const flaggerCount = [
 ]
 export default function TrafficControl() {
   const [phone, setPhone] = useState('');
-  const [jobDate, setJobDate] = useState(null);
+  const [jobDates, setJobDates] = useState([]);
   const [time, setTime] = useState('7:00am');
   const [isSubmitting, setIsSubmitting] = useState(false); 
   const [company, setCompany] = useState('');
@@ -347,36 +347,44 @@ if (e.target.value) {
   <p className="date-picker-note"><b>NOTE:</b> If a date has been disabled, it means the schedule is full for that day.
   However, if someone else cancels a job, it will open that date back up again.</p>
   <DatePicker
-  selected={jobDate}
+  selected={null}
   onChange={(date) => {
-    if (!date) {
-      // If cleared, reset jobDate and formData
-      setJobDate(null);
-      setFormData(prev => ({ ...prev, jobDate: '' }));
-      return;
-    }
-
     const localMidnight = new Date(
       date.getFullYear(),
       date.getMonth(),
       date.getDate()
     );
 
-    setJobDate(date);
-    setFormData({ ...formData, jobDate: localMidnight });
+    const exists = jobDates.some(
+      (d) => d.toDateString() === localMidnight.toDateString()
+    );
+
+    const updatedDates = exists
+      ? jobDates.filter((d) => d.toDateString() !== localMidnight.toDateString())
+      : [...jobDates, localMidnight];
+
+    setJobDates(updatedDates);
+    setFormData((prev) => ({ ...prev, jobDate: updatedDates }));
     setErrors((prevErrors) => ({ ...prevErrors, jobDate: '' }));
   }}
+  highlightDates={[
+    {
+      "react-datepicker__day--highlighted-custom": jobDates
+    }
+  ]}
   minDate={new Date(new Date().setDate(new Date().getDate() + 1))}
   excludeDates={fullDates}
   inline
   calendarClassName="custom-datepicker"
-  isClearable // <-- Add this line
 />
-
   <div className="selected-date-display">
-    {jobDate
-      ? `Job Date Selected: ${jobDate.toLocaleDateString('en-US')}`
-      : "Please select a date starting tomorrow or later"}
+  {jobDates.length > 0 ? (
+  <div>
+    <strong>Job Dates Selected:</strong> {jobDates.map(d => d.toLocaleDateString('en-US')).join(', ')}
+  </div>
+) : (
+  "Please select one or more job dates starting tomorrow or later"
+)}
   </div>
   {errors.jobDate && <div className="error-message">{errors.jobDate}</div>}
 </div>
