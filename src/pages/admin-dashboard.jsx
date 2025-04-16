@@ -131,9 +131,12 @@ useEffect(() => {
 <div className="job-main-info-list">
 <h3>Jobs on {selectedDate?.toLocaleDateString()}</h3>
     <div className="job-info-list">
- {jobs.map((job, index) => (
-  <div key={index} className="job-card">
+    {jobs.map((job, index) => (
+  <div key={index} className={`job-card ${job.cancelled ? 'cancelled-job' : ''}`}>
     <h4 className="job-company">{job.company}</h4>
+    {job.cancelled && (
+  <p className="cancelled-label">❌ Cancelled on {new Date(job.cancelledAt).toLocaleDateString()}</p>
+)}
     <p><strong>Coordinator:</strong> {job.coordinator}</p>
     {job.phone && (
       <p><strong>Phone:</strong> <a href={`tel:${job.phone}`}>{job.phone}</a></p>
@@ -146,7 +149,6 @@ useEffect(() => {
     {job.message && <p><strong>Message:</strong> {job.message}</p>}
   </div>
 ))}
-
 </div>
   </div>
   </div>
