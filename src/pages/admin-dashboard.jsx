@@ -20,26 +20,26 @@ const fetchMonthlyJobs = async (date) => {
     const month = date.getMonth() + 1;
     const year = date.getFullYear();
     console.log(`Fetching jobs for ${month}/${year}`);
-    
+
     const res = await axios.get(`/jobs/month?month=${month}&year=${year}`);
     console.log("Jobs received:", res.data);
-    
-    // Group jobs by YYYY-MM-DD
+
+    // Group jobs by each date inside jobDates array
     const grouped = {};
     res.data.forEach(job => {
-      // Make sure we're using the correct date field from your job object
-      const jobDate = new Date(job.jobDate);
-      const dateStr = jobDate.toISOString().split('T')[0];
-      
-      if (!grouped[dateStr]) {
-        grouped[dateStr] = [];
-      }
-      grouped[dateStr].push(job);
+      (job.jobDates || []).forEach(jobDateObj => {
+        if (!jobDateObj.cancelled) {
+          const dateStr = new Date(jobDateObj.date).toISOString().split('T')[0];
+          if (!grouped[dateStr]) {
+            grouped[dateStr] = [];
+          }
+          grouped[dateStr].push(job);
+        }
+      });
     });
 
     console.log("Grouped jobs by date:", grouped);
     setMonthlyJobs(grouped);
-    // Force re-render of calendar
     setMonthlyKey(prev => prev + 1);
   } catch (err) {
     console.error("Failed to fetch monthly jobs:", err);
@@ -149,6 +149,7 @@ useEffect(() => {
     {job.message && <p><strong>Message:</strong> {job.message}</p>}
   </div>
 ))}
+
 </div>
   </div>
   </div>
