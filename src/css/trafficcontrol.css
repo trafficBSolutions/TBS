@@ -11,6 +11,35 @@
   max-width: 400px;
   margin: 0 auto;
 }
+.datepicker-container .rmdp-input {
+  display: none;
+}
+.custom-datepicker-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1rem;
+}
+.react-datepicker__day--highlighted-custom {
+  background-color: #f7b731 !important;
+  color: white !important;
+  border-radius: 50% !important;
+}
+
+.react-datepicker__day--highlighted-custom:hover {
+  background-color: #f39c12 !important;
+}
+.custom-datepicker-wrapper .rmdp-container {
+  display: block !important;
+}
+
+.custom-datepicker-wrapper .rmdp-calendar {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  transform: none !important;
+  position: static !important;
+}
 .control-fill-info  {
   font-size: 1.5rem;
   font-weight: bold;
