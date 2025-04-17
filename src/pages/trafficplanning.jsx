@@ -372,12 +372,11 @@ Together, we can create safer roads, smoother traffic flow, and more resilient c
 
 
  <div className="input-plan-container">
-            <label className="structure-plan-label">Structure of Plan:</label>
+            <label className="structure-plan-label">Structure of Plan *</label>
             <h1 className="structure-plan-note">Upload a PDF, or a Word Document for your plan's structure. </h1>
             <div className="structure-plan-input">
               <div className="structure-plan-section">
                 <div className="name-plan-structure-input">
-                  <label htmlFor="structure-plan-name" className="structure-plan-name">Structure of Plan* </label>
                   <div className="file-plan-input-container">
                     <label className="file-plan-label">
                       {formData.structurefile ? (
