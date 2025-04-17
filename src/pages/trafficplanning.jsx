@@ -75,7 +75,7 @@ export default function TrafficPlan() {
     state: '',
     zip: '',
     location: marker,
-    structurefile: null,
+    structureFile: null,
     structureimg: null,
     message: ''
   });
@@ -182,7 +182,7 @@ const handleFileRemove = (fileType) => {
         city: '',
         state: '',
         zip: '',
-        structurefile: null,
+        structureFile: null,
         structureimg: null,
         message: ''
       });
