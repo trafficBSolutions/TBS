@@ -407,7 +407,7 @@ Together, we can create safer roads, smoother traffic flow, and more resilient c
             <input 
               type="file" 
               name="structurefile" 
-              accept=".pdf,.doc,.docx,.txt,.pages,.png,.jpeg,.jpg" 
+              accept=".xlsx,.pdf,.doc,.docx,.txt,.pages,.png,.jpeg,.jpg" 
               onChange={(e) => handleFileChange(e, 'structurefile')} 
             />
           </label>
