@@ -371,30 +371,6 @@ Together, we can create safer roads, smoother traffic flow, and more resilient c
 
 
  <div className="input-plan-container">
-          <label className="google-plan-label">Location of Job: </label>
-            <h1 className="location-plan-note">You can use Google Maps to help you navigate where you want your
-            mid point or you can use the markers to pin the address for your job site. You can 
-            add as many markers as you want. It is recommended to make sure 
-            there is a middle marker when taking the screenshot for the middle of 
-            your job site(Used for the crossing point or the middle of a 
-            lane closure without crossing). You can add notes to 
-            the markers in the message box as to what the each marker is for and what needs to 
-            be done at that location. 
-            </h1>
-            <h1 className="plan-important">However, Google Maps will not allow a submission of the map to us. However,
-            you can take a screenshot of the location of the markers used and use it Structure of Plan to
-            help us locate your job site as well as pointers. Make sure to explain
-            what the marker is intended for. If you're using a Mac: use Screenshot. If you're using Windows, use 
-            Snipping Tools. This is not required but recommended.</h1>
-            <div className="google-plan-input">
-              <div className="google-plan-section">
-                <div className="name-map-plan-input">
-                <MapPlanComponent onMarkerAdd={handleAddMarkerButtonClick}  />
-                  {errors.location && <span className="error-message">{errors.location}</span>}
-                  </div>
-                </div>
-              </div>
-            </div>
             <label className="structure-plan-label">Structure of Plan:</label>
             <h1 className="structure-plan-note">Note: You can only submit .doc, .pdf, .txt, and .pages, .png, .jpg, .jpeg files. You 
             can submit a layout of points and instructions of where the job will be taken place. You can submit screenshots from 
@@ -420,6 +396,7 @@ Together, we can create safer roads, smoother traffic flow, and more resilient c
                 </div>
               </div>
             </div>
+   </div>
             <div className="input-message-plan-container">
             <label className="message-plan-label">Message *</label>
             <h1 className="message-plan-note">Please include your Project Number or Job Number of your plan. Also, please explain how your plan needs to be designed and be descriptive! </h1>
