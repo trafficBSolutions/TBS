@@ -372,10 +372,7 @@ Together, we can create safer roads, smoother traffic flow, and more resilient c
 
  <div className="input-plan-container">
             <label className="structure-plan-label">Structure of Plan:</label>
-            <h1 className="structure-plan-note">Note: You can only submit .doc, .pdf, .txt, and .pages, .png, .jpg, .jpeg files. You 
-            can submit a layout of points and instructions of where the job will be taken place. You can submit screenshots from 
-            the Location of Job from the Google Maps with your marked locations. Examples: Crossings, Lane Closures, and more.
-            This is not required but recommended. </h1>
+            <h1 className="structure-plan-note">Upload a PDF, or a Word Document for your plan's structure. </h1>
             <div className="structure-plan-input">
               <div className="structure-plan-section">
                 <div className="name-plan-structure-input">
