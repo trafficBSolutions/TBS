@@ -369,63 +369,44 @@ Together, we can create safer roads, smoother traffic flow, and more resilient c
   </div>
 </div>
 
+
 <div className="input-plan-container">
-  <label className="google-plan-label">Location of Job:</label>
-  <h2 className="location-control-note">
-    Use Google Maps to mark your job site. Add markers for key points, such as the middle of the job site or lane closures.
-    Take a screenshot of the map with your markers to include with your submission.
-  </h2>
-  <h2 className="important-control">
-    Google Maps doesn't allow direct submissions. Use your device's screenshot tool (e.g., Snipping Tool on Windows, Screenshot on Mac)
-    to capture the map and upload the image. This is optional but recommended for accuracy.
-  </h2>
-  <div className="google-plan-input">
-    <div className="google-plan-section">
-      <div className="name-map-plan-input">
-        <MapPlanComponent onMarkerAdd={handleAddMarkerButtonClick} />
-        {errors.location && <span className="error-message">{errors.location}</span>}
-      </div>
-    </div>
-  </div>
-  
-  <label className="structure-plan-label">Structure of Plan:</label>
+  <label className="structure-plan-label">Structure of Plan *</label>
   <h2 className="structure-note">
-    Upload a PDF, or a Word Document for your plan's structure or you can upload a .png, .jpg, or .jpeg image of your Google Maps screenshot with marked locations (e.g., crossings, lane closures).
-    This is required to help us locate your job site.
+    Upload a PDF, or a Word Document for your plan's structure.
   </h2>
   <div className="structure-plan-input">
     <div className="structure-plan-section">
       <div className="name-plan-structure-input">
-        <label htmlFor="structure-plan-name" className="structure-plan-name">Structure of Plan *</label>
         <div className="file-plan-input-container">
           <label className="file-plan-label">
-            {formData.structurefile ? (
-              <span>{formData.structurefile.name}</span>
+            {formData.structureFile ? (
+              <span>{formData.structureFile.name}</span>
             ) : (
               <span>Choose Structure File</span>
             )}
-            <input 
-              type="file" 
-              name="structurefile" 
-              accept=".xlsx,.pdf,.doc,.docx,.txt,.pages,.png,.jpeg,.jpg" 
-              onChange={(e) => handleFileChange(e, 'structurefile')} 
-            />
+            <input type="file" name="structureFile" accept=".pdf,.doc,.docx,.txt,.page" onChange={(e) => {
+                        handleFileChange(e, 'structureFile');
+                          if (e.target.files[0]) {
+                            setErrors((prevErrors) => ({ ...prevErrors, structureFile: '' })); // Clear the error
+                          }}}
+                          />
           </label>
-          {formData.structurefile && (
+          {formData.structureFile && (
             <button 
               type="button" 
               className="remove-file-plan-button" 
-              onClick={() => handleFileRemove('structurefile')}
+              onClick={() => handleFileRemove('structureFile')}
             >
               Remove
             </button>
           )}
+          {errors.structureFile && <span className="error-message">{errors.structureFile}</span>}
         </div>
       </div>
     </div>
   </div>
 </div>
-
             <div className="input-message-plan-container">
             <label className="message-plan-label">Message *</label>
             <h1 className="message-plan-note">Please include your Project Number or Job Number of your plan. Also, please explain how your plan needs to be designed and be descriptive! </h1>
