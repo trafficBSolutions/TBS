@@ -220,6 +220,7 @@ Together, we can create safer roads, smoother traffic flow, and more resilient c
       <div className="plan-box">
             <h1 className="plan-app-box">Traffic Control Plan Form</h1>
             <h2 className="plan-fill">Please Fill Out the Form Below to Submit Your Plan!</h2>
+        <h3 className="control-fill-info">Fields marked with * are required.</h3>
           </div>
             <div className="first-plan-input">
               <div className="first-plan-name">
