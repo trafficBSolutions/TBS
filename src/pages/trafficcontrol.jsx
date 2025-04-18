@@ -322,21 +322,6 @@ if (e.target.value) {
 </div>
     </div>
   </div>
-  <div className="phone">
-                <div className="phonename-input">
-                  <label className="phone">Phone Number *</label>
-                  <input
-                    name="phone"
-                    type="text"
-                    className="phone-box"
-                    text="phone--input"
-                    placeholder="Enter Phone Number"
-                    value={phone} // Bind to phone state
-                    onChange={handlePhoneChange}
-                  />
-                </div>
-                {errors.phone && <div className="error-message">{errors.phone}</div>}
-              </div>
               </div>
 <div className="address-controler-container">
 <label className="address-controllabel">Job Information: </label>
@@ -417,6 +402,17 @@ if (e.target.value) {
   onChange={handleCoordinatorChange}
 />
 {errors.coordinator && <span className="error-message">{errors.coordinator}</span>}
+                  <label className="phone">Coordinator Phone Number *</label>
+                  <input
+                    name="phone"
+                    type="text"
+                    className="phone-box"
+                    text="phone--input"
+                    placeholder="Enter Phone Number"
+                    value={phone} // Bind to phone state
+                    onChange={handlePhoneChange}
+                  />
+                {errors.phone && <div className="error-message">{errors.phone}</div>}
 <label className="project-time">Time of Arrival *</label>
 <p className="time-label">What time do you want the TBS crew to arrive?</p>
 <select
