@@ -547,7 +547,7 @@ Barricades
 </div>
 
 <label className="addr-control-label">Job Site Address *</label>
-input
+<input
   name="address-box"
   type="text"
   className="address-control-box"
