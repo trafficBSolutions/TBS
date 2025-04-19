@@ -547,20 +547,38 @@ Barricades
 </div>
 
 <label className="addr-control-label">Job Site Address *</label>
-<input
+input
   name="address-box"
   type="text"
   className="address-control-box"
   placeholder="Enter Address"
   value={formData.address}
   onChange={(e) => {
-    const raw = e.target.value;
-    const cleaned = raw.replace(/[*,;/.']/g, ''); // Removes *, ; , / and .
-    setFormData({ ...formData, address: cleaned });
+    let value = e.target.value;
+  
+    // Remove unwanted characters
+    value = value.replace(/[*,;/.']/g, '');
+  
+    // Capitalize first letter of each word
+    value = value.replace(/\b\w/g, (char) => char.toUpperCase());
+  
+    // Update form data
+    setFormData({ ...formData, address: value });
+  
+    // Check if it contains at least one digit
+    const hasNumber = /\d/.test(value);
+    if (!hasNumber) {
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        address: 'Address must contain at least one number.',
+      }));
+    } else {
+      setErrors((prevErrors) => ({ ...prevErrors, address: '' }));
+    }
   }}
   
   onBlur={(e) => {
-    const addressRegex = /^\d{3,}\s+[\w\s]+(?:\s+(?:NE|NW|SE|SW))?$/i;
+    const addressRegex = /.*\d+.*/;
     if (!addressRegex.test(e.target.value)) {
       setErrors((prevErrors) => ({
         ...prevErrors,
@@ -572,7 +590,6 @@ Barricades
   }}
 />
 {errors.address && <span className="error-message">{errors.address}</span>}
-
 <input
 name="city-input"
 type="text"
