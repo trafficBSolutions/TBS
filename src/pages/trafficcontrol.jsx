@@ -202,7 +202,7 @@ export default function TrafficControl() {
       newErrors.equipment = 'Please select at least one piece of equipment.';
     }
     if (!addressRegex.test(formData.address)) {
-      newErrors.address = 'Enter a valid address (e.g., "123 Main St SE, 1 US Hwy 41, 10 Joe and Frank Harris Pkwy")';
+      newErrors.address = 'Enter a valid address without punctuations(.,?!/;:=+-_"` etc) (e.g., "123 Main St SE" or "1 US Hwy 41" or "10 Joe and Frank Harris Pkwy")';
     }
     
     if (Object.keys(newErrors).length > 0) {
