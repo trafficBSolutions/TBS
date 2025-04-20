@@ -202,7 +202,7 @@ export default function TrafficControl() {
       newErrors.equipment = 'Please select at least one piece of equipment.';
     }
     if (!addressRegex.test(formData.address)) {
-      newErrors.address = 'Enter a valid address (e.g., "123 Main St SE")';
+      newErrors.address = 'Enter a valid address (e.g., "123 Main St SE, 1 US Hwy 41, 10 Joe and Frank Harris Pkwy")';
     }
     
     if (Object.keys(newErrors).length > 0) {
@@ -548,16 +548,29 @@ Barricades
 
 <label className="addr-control-label">Job Site Address *</label>
 <input
-  name="address-box"
+  name="address"
   type="text"
   className="address-control-box"
   placeholder="Enter Address"
   value={formData.address}
-  onChange={(e) => { 
-    setFormData({ ...formData, address: e.target.value });
-  if (e.target.value) {
-    setErrors((prevErrors) => ({ ...prevErrors, address: '' })); // Clear the error
-  }
+  onChange={(e) => {
+    const value = e.target.value;
+    setFormData({ ...formData, address: value });
+
+    if (value.trim()) {
+      setErrors((prevErrors) => ({ ...prevErrors, address: '' }));
+    }
+  }}
+  onBlur={(e) => {
+    const hasNumber = /\d/.test(e.target.value);
+    if (!hasNumber) {
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        address: 'Please enter a valid address (e.g., "123 Main St" or "1 U.S Hwy 41").',
+      }));
+    } else {
+      setErrors((prevErrors) => ({ ...prevErrors, address: '' }));
+    }
   }}
 />
 {errors.address && <div className="error-message">{errors.address}</div>}
