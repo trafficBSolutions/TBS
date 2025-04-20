@@ -553,46 +553,12 @@ Barricades
   className="address-control-box"
   placeholder="Enter Address"
   value={formData.address}
-  onChange={(e) => {
-    let raw = e.target.value;
-  
-    // Remove unwanted characters
-    raw = raw.replace(/[*,;/.']/g, '');
-  
-    const lowercaseWords = ['and', 'or', 'the', 'at', 'on', 'to', 'for', 'in', 'of', 'with'];
-    const directionals = ['ne', 'nw', 'se', 'sw'];
-  
-    const words = raw.split(/\s+/).map((word, index) => {
-      const lower = word.toLowerCase();
-  
-      // 🔷 Capitalize directionals fully
-      if (directionals.includes(lower)) {
-        return lower.toUpperCase();
-      }
-  
-      // 🔷 Keep lowercase words lowercase (unless it's the first word)
-      if (index !== 0 && lowercaseWords.includes(lower)) {
-        return lower;
-      }
-  
-      // 🔷 Capitalize all other words normally
-      return lower.charAt(0).toUpperCase() + lower.slice(1);
-    });
-  
-    const formatted = words.join(' ');
-  
-    setFormData({ ...formData, address: formatted });
-  
-    const hasNumber = /\d/.test(formatted);
-    if (!hasNumber) {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        address: 'Address must contain at least one number.',
-      }));
-    } else {
-      setErrors((prevErrors) => ({ ...prevErrors, address: '' }));
-    }
-  }}  
+  onChange={(e) => { 
+    setFormData({ ...formData, address: e.target.value });
+  if (e.target.value) {
+    setErrors((prevErrors) => ({ ...prevErrors, address: '' })); // Clear the error
+  }
+  }}
 />
 {errors.address && <div className="error-message">{errors.address}</div>}
 <input
@@ -633,9 +599,12 @@ onChange={(e) => {
       name="state"
       className="state-control-box"
       value={formData.state}
-      onChange={(e) => 
-        setFormData({ ...formData, state: e.target.value })
-    }
+      onChange={(e) => { 
+        setFormData({ ...formData, state: e.target.value });
+      if (e.target.value) {
+        setErrors((prevErrors) => ({ ...prevErrors, state: '' })); // Clear the error
+      }
+      }}
     >
       <option value="">Select State</option>
       {states.map(state => (
