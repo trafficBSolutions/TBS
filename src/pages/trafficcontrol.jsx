@@ -566,7 +566,7 @@ Barricades
     if (!hasNumber) {
       setErrors((prevErrors) => ({
         ...prevErrors,
-        address: 'Please enter a valid address (e.g., "123 Main St" or "1 U.S Hwy 41").',
+        address: 'Please enter a valid address (e.g., "123 Main St NE" or "1 US Hwy 41").',
       }));
     } else {
       setErrors((prevErrors) => ({ ...prevErrors, address: '' }));
