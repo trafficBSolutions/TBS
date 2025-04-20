@@ -76,7 +76,7 @@ export default function TrafficControl() {
   const [time, setTime] = useState('7:00am');
   const [isSubmitting, setIsSubmitting] = useState(false); 
   const [company, setCompany] = useState('');
-  const addressRegex = /^\d{3,}\s+[\w\s]+(?:\s+(?:NE|NW|SE|SW))?$/i;
+  const addressRegex = /^\d+\s+[A-Za-z0-9\s]+(?:\s+(?:NE|NW|SE|SW))?$/i;
   const [coordinator, setCoordinator] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [fullDates, setFullDates] = useState([]);
@@ -554,19 +554,27 @@ Barricades
   placeholder="Enter Address"
   value={formData.address}
   onChange={(e) => {
-    let value = e.target.value;
-  
+    let raw = e.target.value;
+
     // Remove unwanted characters
-    value = value.replace(/[*,;/.']/g, '');
-  
-    // Capitalize first letter of each word
-    value = value.replace(/\b\w/g, (char) => char.toUpperCase());
-  
-    // Update form data
-    setFormData({ ...formData, address: value });
-  
-    // Check if it contains at least one digit
-    const hasNumber = /\d/.test(value);
+    raw = raw.replace(/[*,;/.']/g, '');
+
+    const lowerCaseWords = ['and', 'or', 'the', 'at', 'on', 'to', 'for', 'in', 'of', 'with'];
+
+    const words = raw.split(/\s+/).map((word, index) => {
+      const lower = word.toLowerCase();
+      if (index === 0 || !lowerCaseWords.includes(lower)) {
+        return lower.charAt(0).toUpperCase() + lower.slice(1);
+      } else {
+        return lower;
+      }
+    });
+
+    const formatted = words.join(' ');
+
+    setFormData({ ...formData, address: formatted });
+
+    const hasNumber = /\d/.test(formatted);
     if (!hasNumber) {
       setErrors((prevErrors) => ({
         ...prevErrors,
@@ -576,10 +584,9 @@ Barricades
       setErrors((prevErrors) => ({ ...prevErrors, address: '' }));
     }
   }}
-  
-  onBlur={(e) => {
-    const addressRegex = /.*\d+.*/;
-    if (!addressRegex.test(e.target.value)) {
+  onBlur={() => {
+    const addressRegex = /.*\d+.*/; // Must contain at least one digit
+    if (!addressRegex.test(formData.address)) {
       setErrors((prevErrors) => ({
         ...prevErrors,
         address: 'Enter a valid address (e.g., "123 Main St SE")',
@@ -589,7 +596,7 @@ Barricades
     }
   }}
 />
-{errors.address && <span className="error-message">{errors.address}</span>}
+{errors.address && <div className="error-message">{errors.address}</div>}
 <input
 name="city-input"
 type="text"
