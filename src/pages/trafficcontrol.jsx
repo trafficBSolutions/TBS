@@ -555,25 +555,34 @@ Barricades
   value={formData.address}
   onChange={(e) => {
     let raw = e.target.value;
-
+  
     // Remove unwanted characters
     raw = raw.replace(/[*,;/.']/g, '');
-
-    const lowerCaseWords = ['and', 'or', 'the', 'at', 'on', 'to', 'for', 'in', 'of', 'with'];
-
+  
+    const lowercaseWords = ['and', 'or', 'the', 'at', 'on', 'to', 'for', 'in', 'of', 'with'];
+    const directionals = ['ne', 'nw', 'se', 'sw'];
+  
     const words = raw.split(/\s+/).map((word, index) => {
       const lower = word.toLowerCase();
-      if (index === 0 || !lowerCaseWords.includes(lower)) {
-        return lower.charAt(0).toUpperCase() + lower.slice(1);
-      } else {
+  
+      // 🔷 Capitalize directionals fully
+      if (directionals.includes(lower)) {
+        return lower.toUpperCase();
+      }
+  
+      // 🔷 Keep lowercase words lowercase (unless it's the first word)
+      if (index !== 0 && lowercaseWords.includes(lower)) {
         return lower;
       }
+  
+      // 🔷 Capitalize all other words normally
+      return lower.charAt(0).toUpperCase() + lower.slice(1);
     });
-
+  
     const formatted = words.join(' ');
-
+  
     setFormData({ ...formData, address: formatted });
-
+  
     const hasNumber = /\d/.test(formatted);
     if (!hasNumber) {
       setErrors((prevErrors) => ({
@@ -583,18 +592,7 @@ Barricades
     } else {
       setErrors((prevErrors) => ({ ...prevErrors, address: '' }));
     }
-  }}
-  onBlur={() => {
-    const addressRegex = /.*\d+.*/; // Must contain at least one digit
-    if (!addressRegex.test(formData.address)) {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        address: 'Enter a valid address (e.g., "123 Main St SE")',
-      }));
-    } else {
-      setErrors((prevErrors) => ({ ...prevErrors, address: '' }));
-    }
-  }}
+  }}  
 />
 {errors.address && <div className="error-message">{errors.address}</div>}
 <input
