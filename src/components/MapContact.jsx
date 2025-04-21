@@ -10,7 +10,7 @@ const MapComponent = (props) => {
   // Business address to display on the map
 const businessAddress = "1995 Dews Pond Rd, Calhoun, GA 30701";
 
-
+console.log("🔍 GOOGLE_MAPS_API_KEY from constantapi:", GOOGLE_MAPS_API_KEY);
   // Function to load the Google Maps script
   const loadGoogleMapsScript = () => {
     if (!window.google || !window.google.maps) {
