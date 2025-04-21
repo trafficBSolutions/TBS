@@ -1218,8 +1218,22 @@ to provide additional context regarding your background, please reach out to our
   type="text"
   value={newEmploy.address}
   onChange={(e) => {
-    const sanitizedValue = e.target.value.replace(/[^\w\s]/gi, ''); // removes ,./;' etc.
-    handleEmployment2Change("address", sanitizedValue);
+    const value = e.target.value;
+    handleEmployment2Change("address", value);
+    if (value.trim()) {
+      setErrors((prevErrors) => ({ ...prevErrors, address: '' }));
+    }
+  }}
+  onBlur={(e) => {
+    const hasNumber = /\d/.test(e.target.value);
+    if (!hasNumber) {
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        address: 'Please enter a valid address (e.g., "123 Main St NE" or "1 US Hwy 41").',
+      }));
+    } else {
+      setErrors((prevErrors) => ({ ...prevErrors, address: '' }));
+    }
   }}
 />
 <input
