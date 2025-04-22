@@ -482,6 +482,13 @@ border-radius: 5px;
     max-width: 300px;
     display: block;
   }
+    .address-note, .example-note {
+    font-size: 1.15rem;
+    text-align: center;
+    margin-top: 0.5rem;
+    line-height: 1.2rem;
+    display: block;
+  }
 }
 
 @media screen and (max-width: 320px) and (orientation: landscape) {
@@ -534,6 +541,11 @@ border-radius: 5px;
 .file-input-control-container {
   display: block;
 }
+  .address-note, .example-note {
+  font-size: 1.05rem;
+  margin-top: 0.5rem;
+  display: block;
+}
 }
 @media screen and (max-width: 320px) and (orientation: portrait) {
   .traffic-control-head {
@@ -583,6 +595,11 @@ border-radius: 5px;
   margin-left: 0;
 }
 .file-input-control-container {
+  display: block;
+}
+  .address-note, .example-note {
+  font-size: 01rem;
+  margin-top: 0.5rem;
   display: block;
 }
 }
