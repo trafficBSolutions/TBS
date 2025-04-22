@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { GOOGLE_MAPS_API_KEY2 } from '../constants/constantapi';
+import { GOOGLE_MAPS_API_KEY } from '../constants/constantapi';
 
 const MapComponent = (props) => {
   const [map, setMap] = useState(null);
@@ -10,12 +10,12 @@ const MapComponent = (props) => {
   // Business address to display on the map
 const businessAddress = "1995 Dews Pond Rd, Calhoun, GA 30701";
 
-console.log("🔍 GOOGLE_MAPS_API_KEY2 from constantapi:", GOOGLE_MAPS_API_KEY2);
+console.log("🔍 GOOGLE_MAPS_API_KEY from constantapi:", GOOGLE_MAPS_API_KEY);
   // Function to load the Google Maps script
   const loadGoogleMapsScript = () => {
     if (!window.google || !window.google.maps) {
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY2}&libraries=geometry,places`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=geometry,places`;
       script.async = true;
       script.onload = () => {
         setGeocoder(new window.google.maps.Geocoder()); // Initialize Geocoder only once the script is loaded
