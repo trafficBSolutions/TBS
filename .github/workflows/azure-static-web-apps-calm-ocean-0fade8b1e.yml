@@ -23,7 +23,7 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build app with env
+      - name: Build with Google Maps key
         run: npm run build
         env:
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
