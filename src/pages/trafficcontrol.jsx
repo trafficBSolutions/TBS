@@ -548,7 +548,7 @@ Barricades
 
 <label className="addr-control-label">Job Site Address *</label>
 <p className="address-note"><b>NOTE: </b>Enter a valid street address without punctuation (no commas, periods, slashes, or symbols). </p>
-<p className="example-note"><b>For Example: </b>(123 Main St SE) (123 N Main St) (10 US Hwy 41) or (4 Town And Country Dr)</p>
+<p className="example-note"><b>For Example: </b>(123 Main St SE) (123 N Main St) (10 US Hwy 41) or (4 Town and Country Dr)</p>
 <input
   name="address"
   type="text"
