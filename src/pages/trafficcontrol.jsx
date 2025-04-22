@@ -194,7 +194,10 @@ export default function TrafficControl() {
 
       setErrors({});
       setPhone('');
-      setSubmissionMessage('Got it! We will schedule your job!');
+      setSubmissionMessage(
+        '✅ Your job has been submitted! A confirmation email has been sent. You can cancel your job anytime using the cancellation link in that email. We’ll take it from here!'
+      );
+      
   };
     return (
         <div>
@@ -505,7 +508,7 @@ Barricades
 
 <label className="addr-control-label">Job Site Address *</label>
 <p className="address-note"><b>NOTE: </b>Enter a valid street address without punctuation (no commas, periods, slashes, or symbols). </p>
-<p className="example-note"><b>For Example: </b>(123 Main St SE) (123 N Main St) (10 US Hwy 41) or (4 Town and Country Dr)</p>
+<p className="example-note"><b>For Example: </b>(123 Main St SE) (123 N Main St) (10 US Hwy 41) or (4 Town And Country Dr)</p>
 <input
   name="address"
   type="text"
@@ -623,7 +626,7 @@ onChange={(e) => {
   </div>
   <button type="button" className="btn btn--full submit-control" onClick={handleSubmit}>SUBMIT TRAFFIC CONTROL JOB</button>
               {submissionMessage && (
-            <div className="submission-message">{submissionMessage}</div>
+            <div className="submission-control-message">{submissionMessage}</div>
           )}
   {submissionErrorMessage &&
             <div className="submission-error-message">{submissionErrorMessage}</div>
