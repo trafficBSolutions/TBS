@@ -25,7 +25,9 @@
   color: white !important;
   border-radius: 50% !important;
 }
-
+.address-note {
+  font-weight: bold;
+}
 .react-datepicker__day--highlighted-custom:hover {
   background-color: #f39c12 !important;
 }
