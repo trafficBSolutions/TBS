@@ -25,21 +25,7 @@
   color: white !important;
   border-radius: 50% !important;
 }
-.address-note {
-  font-size: 1.2rem;
-  text-align: center;
-  color: #333;
-  margin-bottom: 10px;
-}
-.example-note {
-  font-size: 1.1rem;
-  text-align: center;
-  color: #333;
-  margin-bottom: 10px;
-}
-.address-note b, .example-note b {
-  color: #062fb6;
-}
+
 .react-datepicker__day--highlighted-custom:hover {
   background-color: #f39c12 !important;
 }
@@ -95,7 +81,21 @@
   border-radius: 8px 8px 0 0;
   border-bottom: none;
 }
-
+.address-note {
+  font-size: 1.2rem;
+  text-align: center;
+  color: #333;
+  margin-bottom: 10px;
+}
+.example-note {
+  font-size: 1.1rem;
+  text-align: center;
+  color: #333;
+  margin-bottom: 10px;
+}
+.address-note b, .example-note b {
+  color: #062fb6;
+}
 .custom-datepicker .react-datepicker__current-month {
   font-size: 1.2rem;
   font-weight: bold;
@@ -269,6 +269,14 @@
   height: 20rem;
   font-family: Arial, Helvetica, sans-serif;
 }
+.submission-control-message {
+  color: #009f1b;
+  font-size: 1.5rem;
+  margin: 1rem;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: bold;
+  text-align: center;
+}
 .submit-control {
   display: flex;
   font-size: 1.3rem;
@@ -312,14 +320,6 @@ border-radius: 5px;
 }
 .file-control-label input[type="file"] {
   display: none;
-}
-.location-control-note,
-.important-control,
-.structure-note {
-  font-size: 1.5rem;
-  color: #555;
-  margin-bottom: 10px;
-  line-height: 1.5;
 }
 .address-container label {
   display: block;
@@ -482,12 +482,16 @@ border-radius: 5px;
     max-width: 300px;
     display: block;
   }
-    .address-note, .example-note {
+  .address-note, .example-note {
     font-size: 1.15rem;
     text-align: center;
     margin-top: 0.5rem;
     line-height: 1.2rem;
     display: block;
+  }
+  .submission-control-message {
+    font-size: 1.2rem;
+    line-height: 1.4rem;
   }
 }
 
@@ -541,10 +545,14 @@ border-radius: 5px;
 .file-input-control-container {
   display: block;
 }
-  .address-note, .example-note {
+.address-note, .example-note {
   font-size: 1.05rem;
   margin-top: 0.5rem;
   display: block;
+}
+.submission-control-message {
+  font-size: 1.2rem;
+  line-height: 1.4rem;
 }
 }
 @media screen and (max-width: 320px) and (orientation: portrait) {
@@ -597,9 +605,13 @@ border-radius: 5px;
 .file-input-control-container {
   display: block;
 }
-  .address-note, .example-note {
+.address-note, .example-note {
   font-size: 01rem;
   margin-top: 0.5rem;
   display: block;
+}
+.submission-control-message {
+  font-size: 1.2rem;
+  line-height: 1.4rem;
 }
 }
