@@ -1374,7 +1374,7 @@ to provide additional context regarding your background, please reach out to our
                       ) : (
                         <span>CHOOSE RESUME</span>
                       )}
-                      <input type="file" name="resume" accept=".pdf,.doc,.docx,.txt,.page" onChange={(e) => {
+                      <input type="file" name="resume" accept=".pdf,.doc,.docx,.txt,.page,.jpg,.png" onChange={(e) => {
                         handleFileChange(e, 'resume');
                           if (e.target.files[0]) {
                             setErrors((prevErrors) => ({ ...prevErrors, resume: '' })); // Clear the error
