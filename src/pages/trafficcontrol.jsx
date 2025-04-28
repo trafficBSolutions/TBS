@@ -217,10 +217,11 @@ export default function TrafficControl() {
     For emergency traffic control jobs, call one of the numbers below. 
     <strong> DO NOT SUBMIT REQUESTS HERE!</strong>
   </p>
-  <ul className="emergency-contacts">
-    <li><a href="tel:+17062630175">Bryson Davis (Owner): (706) 263-0175</a></li>
-    <li><a href="tel:+17065814465">Carson Speer (Traffic Control Manager): (706) 581-4465</a></li>
-  </ul>
+<ul className="emergency-contacts">
+  <li><a href="tel:+17062630175">Bryson Davis (Owner): (706) 263-0175</a></li>
+  <li><a href="tel:+17065814465">Carson Speer (Traffic Control Manager): (706) 581-4465</a></li>
+  <li><a href="tel:+17066595468">Salvador Gonzalez (Foreman Manager - Español / Spanish Help): (706) 659-5468</a></li>
+</ul>
   <p className="response-time">We aim to respond to emergency requests within 2 hours.</p>
 </div>
 
