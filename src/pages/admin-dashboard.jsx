@@ -11,7 +11,9 @@ const AdminDashboard = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [monthlyJobs, setMonthlyJobs] = useState({});
   const [monthlyKey, setMonthlyKey] = useState(0);
-  const [previewFile, setPreviewFile] = useState(null); // store file URL
+  const [selectedApplicantIndex, setSelectedApplicantIndex] = useState(null);
+const [previewFile, setPreviewFile] = useState(null);
+const [previewTitle, setPreviewTitle] = useState(''); // New state to track what we're previewing
   const [applicants, setApplicants] = useState([]);
 const [currentIndex, setCurrentIndex] = useState(0); // To control the visible slice
 const [jobs, setJobs] = useState([]);
@@ -227,23 +229,29 @@ useEffect(() => {
       <h5>Additional Information</h5>
           <p><strong>Message:</strong> {app.message}</p>
           {app.resume && (
-  <button
-    className="resume-link"
-    onClick={() => setPreviewFile(`/resumes/${app.resume}`)}
-  >
-    View Resume
-  </button>
+            <button
+  className="resume-link"
+  onClick={() => {
+    setSelectedApplicantIndex(currentIndex + i);
+    setPreviewFile(`/resumes/${app.resume}`);
+  }}
+>
+  View Resume
+</button>
 )}
 
 {app.first && app.last && (
   <button
-    className="pdf-link"
-    onClick={() => setPreviewFile(`/forms/${app.first}_${app.last}_JobApplication.pdf`.replace(/\s+/g, '_'))}
-  >
-    View Application PDF
-  </button>
+  className="pdf-link"
+  onClick={() => {
+    setSelectedApplicantIndex(currentIndex + i);
+    setPreviewFile(`/forms/${app.first}_${app.last}_JobApplication.pdf`.replace(/\s+/g, '_'));
+  }}
+>
+  View Application PDF
+</button>
 )}
-{previewFile && (
+{selectedApplicantIndex === currentIndex + i && previewFile && (
   <div className="file-preview-container">
     <h3>File Preview</h3>
     <iframe
