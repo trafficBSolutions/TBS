@@ -28,19 +28,20 @@ export default function Home() {
           </div>
         </section>
         <section className="section-featured">
-        <div className="container-photos">
-            <div className="gallery-container">
-              <HomePhotoGallery /> {/* Render the photo gallery here */}
-            </div>
-          </div>
           <div className="map-contain-home">
             <h1 className="schedule-title">Need to Schedule a Job?</h1>
             <img src={images['../assets/flaggers/Flagger SVG Symbol With Slow.svg'].default} alt="Map" className="flag-image" />
             <p className="schedule-text">Click here to schedule a job</p>
             <a href="/trafficcontrol" className="schedule-btn">Schedule a Job</a>
           </div>
+          <div className="plan-contain-home">
+            <h1 className="plan-title">Traffic Control Plans</h1>
+            <img src={images['../assets/flaggers/Traffic Plan (1).svg'].default} alt="Map" className="plan-image" />
+            <h3 className="plan-h3">Need to Plan a Job?</h3>
+            <a href="/trafficplanning" className="plan-btn">Plan a Job</a>
+          </div>
         </section>
-                      <section className="now-hiring">
+        <section className="now-hiring">
           <div className="now-hiring-container">
             <h1 className="now-hiring-title">APPLY NOW</h1>
             <p className="now-hiring-text">
@@ -51,6 +52,11 @@ export default function Home() {
                <a href="/applynow" className="careers-btn">CAREERS</a>
                </div>
                </section>
+               <div className="container-photos">
+            <div className="gallery-container">
+              <HomePhotoGallery /> {/* Render the photo gallery here */}
+            </div>
+          </div>
         <section className="section-jobs">
         <div className="jobs-container">
           <div className="job-year-content">
@@ -214,7 +220,7 @@ export default function Home() {
 </footer>
 <div className="footer-copyright">
       <p className="footer-copy-p">&copy; 2025 Traffic & Barrier Solutions, LLC - 
-        Website MERN Stack Coded & Deployed by <a className="footer-face"href="https://www.facebook.com/will.rowell.779" target="_blank" rel="noopener noreferrer">William Rowell</a> - All Rights Reserved.</p>
+        Website Created & Deployed by <a className="footer-face"href="https://www.facebook.com/will.rowell.779" target="_blank" rel="noopener noreferrer">William Rowell</a> - All Rights Reserved.</p>
     </div>
             </div>
 )}; 
