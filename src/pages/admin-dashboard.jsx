@@ -228,6 +228,7 @@ useEffect(() => {
 
       <h5>Additional Information</h5>
           <p><strong>Message:</strong> {app.message}</p>
+          <div className="applicant-actions">
           {app.resume && (
             <button
   className="resume-link"
@@ -250,7 +251,7 @@ useEffect(() => {
 >
   View Application PDF
 </button>
-)}
+)}</div>
 {selectedApplicantIndex === currentIndex + i && previewFile && (
   <div className="file-preview-container">
     <h3>File Preview</h3>
