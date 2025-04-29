@@ -5,6 +5,8 @@ import images  from '../utils/tbsImages';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import DatePicker from 'react-datepicker';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import 'react-datepicker/dist/react-datepicker.css';
 import Header from '../components/headerviews/HeaderDropControl'
 const states = [
@@ -200,6 +202,7 @@ export default function TrafficControl() {
       );}
       catch (err) {
         console.error(err);
+        toast.success('✅ Job submitted! Check your email for confirmation.');
         setSubmissionErrorMessage("Something went wrong.");
       } finally {
         setIsSubmitting(false);
@@ -631,23 +634,32 @@ onChange={(e) => {
   {errors.message && <span className="error-message">{errors.message}</span>}
   
   </div>
+  <div className="submit-button-wrapper">
   <button
-  type="submit"
-  className="btn btn--full submit-control"
-  disabled={isSubmitting}
->
-  {isSubmitting ? 'Submitting...' : 'SUBMIT TRAFFIC CONTROL JOB'}
-</button>
+    type="submit"
+    className="btn btn--full submit-control"
+    disabled={isSubmitting}
+  >
+    {isSubmitting ? (
+      <div className="spinner-button">
+        <span className="spinner"></span> Submitting...
+      </div>
+    ) : (
+      'SUBMIT TRAFFIC CONTROL JOB'
+    )}
+  </button>
 
-              {submissionMessage && (
-            <div className="submission-control-message">{submissionMessage}</div>
-          )}
-  {submissionErrorMessage &&
-            <div className="submission-error-message">{submissionErrorMessage}</div>
-          }
-          {errorMessage &&
-            <div className="submission-error-message">{errorMessage}</div>
-          }
+  {/* Toast-like message */}
+  {submissionMessage && (
+    <div className="custom-toast success">{submissionMessage}</div>
+  )}
+  {submissionErrorMessage && (
+    <div className="custom-toast error">{submissionErrorMessage}</div>
+  )}
+  {errorMessage && (
+    <div className="custom-toast error">{errorMessage}</div>
+  )}
+</div>
   </div>
   </div>
         </form>
