@@ -80,16 +80,36 @@ input[type=text], input[type=number], input[type=date], select, textarea {
     background-color: rgb(219, 219, 219);
     flex: 1;
 }
-.schedule-title {
+.plan-contain-home {
+  flex: 1;
+  width: 100%;
+    padding: 0 10px;
+    border: none;
+    text-align: center;
+}
+.schedule-title, .plan-title {
   font-size: 50px;
   padding: 10px;
   text-align: center;
   font-family: "Arial Black", Gadget, sans-serif;
 }
+.plan-h3 {
+  font-size: 30px;
+  padding: 10px;
+  text-align: center;
+  font-family: "Arial Black", Gadget, sans-serif;
+}
+.plan-image {
+  width: 100%;
+  height: auto;
+  max-width: 1000px;
+  margin: 0 auto;
+  object-fit: contain;
+}
 .flag-image {
   width: 100%;
   height: auto;
-  max-width: 850px;
+  max-width: 550px;
   max-height: 100%;
   object-fit: contain;
 }
@@ -99,7 +119,7 @@ input[type=text], input[type=number], input[type=date], select, textarea {
   font-family: "Arial Black", Gadget, sans-serif;
   text-align: center;
 }
-.schedule-btn {
+.schedule-btn, .plan-btn {
   display: inline-block;
   font-size: 1.7rem;
   font-weight: 600;
@@ -115,7 +135,7 @@ input[type=text], input[type=number], input[type=date], select, textarea {
   background-color: #e67e22;
   color: #fff;
 }
-.schedule-btn:hover {
+.schedule-btn:hover, .plan-btn:hover, .careers-btn:hover {
   background-color: #d35400;
 }
 /* Body styles */
@@ -737,7 +757,16 @@ body {
   height: 600px;
 }
 @media screen and (min-width: 1200px) and (max-width: 1800px) and (orientation: landscape) {
-  
+  .schedule-title, .plan-title {
+    font-size: 4.5rem;
+  }
+
+  .flag-image {
+    max-width: 390px;
+  }
+  .schedule-text, .plan-h3 {
+    font-size: 2rem 
+  }
   .tbs-container img {
     width: 100%;
     height: auto;
@@ -746,16 +775,16 @@ body {
   }
 
 @media screen and (max-width: 1200px) and (orientation: landscape) {
-  .schedule-title {
+  .schedule-title, .plan-title {
     font-size: 3.4rem;
   }
   .flag-image {
-    max-width: 390px;
+    max-width: 280px;
   }
-  .schedule-text {
+  .schedule-text, .plan-h3 {
     font-size: 1.3rem;
   }
-  .schedule-btn {
+  .schedule-btn, .plan-btn {
     font-size: 1.5rem;
     padding: 10px 20px;
   }
@@ -829,16 +858,22 @@ body {
 }
 }
 @media screen and (max-width: 1200px) and (orientation: portrait) {
-  .schedule-title {
+  .schedule-title  {
+    font-size: 2.8rem;
+  }
+  .plan-title {
     font-size: 2.8rem;
   }
   .flag-image {
-    max-width: 450px;
+    max-width: 200px;
   }
-  .schedule-text {
+  .plan-image {
+    max-width: 350px;
+  }
+  .schedule-text, .plan-h3 {
     font-size: 1.5rem;
   }
-  .schedule-btn {
+  .schedule-btn, .plan-btn {
     font-size: 1.5rem;
     padding: 10px 20px;
   }
@@ -906,18 +941,21 @@ body {
 }
 }
 @media screen and (min-width: 320px) and (max-width: 640px) and (orientation: portrait) {
-  .schedule-title {
+  .schedule-title, .plan-title {
     font-size: 2.2rem;
   }
   .flag-image {
     max-width: 300px;
   }
-  .schedule-text {
+  .schedule-text, .plan-h3 {
     font-size: 1.3rem;
   }
-  .schedule-btn {
+  .schedule-btn, .plan-btn {
     font-size: 1.5rem;
     padding: 10px 20px;
+  }
+  .plan-contain-home {
+    padding: 10px;
   }
   .page-banner {
     padding: 100px 0;
@@ -1012,16 +1050,16 @@ body {
 }
 }
 @media screen and (max-width: 320px) and (orientation: landscape){
-  .schedule-title {
+  .schedule-title, .plan-title {
     font-size: 2.2rem;
   }
   .flag-image {
     max-width: 200px;
   }
-  .schedule-text {
+  .schedule-text, .plan-h3 {
     font-size: 1.3rem;
   }
-  .schedule-btn {
+  .schedule-btn, .plan-btn {
     font-size: 1.5rem;
     padding: 10px 20px;
   }
@@ -1115,16 +1153,16 @@ body {
 }
 }
 @media screen and (max-width: 320px) and (orientation: portrait){
-  .schedule-title {
+  .schedule-title, .plan-title {
     font-size: 2.2rem;
   }
   .flag-image {
     max-width: 190px;
   }
-  .schedule-text {
+  .schedule-text, .plan-h3 {
     font-size: 1.3rem;
   }
-  .schedule-btn {
+  .schedule-btn, .plan-btn {
     font-size: 1.5rem;
     padding: 10px 20px;
   }
