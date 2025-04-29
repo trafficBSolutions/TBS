@@ -112,6 +112,60 @@
   max-width: 600px;
   margin: 0 auto;
 }
+.applicant-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+.admin-apps {
+  background-color: #f7d7bc;
+}
+.applicant-card {
+  background: #fff;
+  border-left: 5px solid #efad76;
+  padding: 1rem 1.5rem;
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+.applicant-card h4 {
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+.employment-info, .background-info, .ed-info-admin {
+  padding: 1rem;
+}
+.applicant-card p {
+  margin: 0.8rem 0;
+  font-size: 1.4rem;
+  line-height: 1.4;
+  color: #444;
+}
+.applicant-list h5 {
+  font-size: 1.7rem;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+.resume-link, .pdf-link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  background-color: #efad76;
+  color: #000;
+  font-weight: bold;
+  text-decoration: none;
+  border-radius: 4px;
+}
+.admin-applicant-controls {
+  text-align: center;
+}
+.resume-link:hover, .pdf-link:hover {
+  background-color: #e6943f;
+}
 .job-card {
   background: #fdfdfd;
   border-left: 4px solid #efad76;
@@ -138,11 +192,19 @@
   text-align: center;
   margin-bottom: 2rem;
 }
-.admin-job-calendar h2 {
+.admin-job-calendar h2{
   font-size: 2.5rem;
   color: #333;
   padding-top: 1rem;
   text-align: center;
+  margin-bottom: 2rem;
+}
+.admin-apps-title {
+  font-size: 5rem;
+  color: #333;
+  padding-top: 1rem;
+  text-align: center;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
   margin-bottom: 2rem;
 }
 .job-card p {
@@ -190,6 +252,9 @@
 @media screen and (min-width: 320px) and (max-width: 640px) and (orientation: portrait) {
   .admin-date-picker {
     font-size: 1.5rem;
+  }
+  .admin-apps-title  {
+    font-size: 3rem;
   }
   .admin-job-calendar h3 {
     font-size: 2rem;
