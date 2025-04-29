@@ -130,8 +130,9 @@ export default function TrafficControl() {
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const requiredFields = ['name', 'email', 'phone', 'jobDate',
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try { const requiredFields = ['name', 'email', 'phone', 'jobDate',
       'company', 'coordinator', 'time', 'project', 'flagger', 'address', 'city', 
     'state', 'zip', 'message'];
     const newErrors = {};
@@ -196,8 +197,13 @@ export default function TrafficControl() {
       setPhone('');
       setSubmissionMessage(
         '✅ Your job has been submitted! A confirmation email has been sent. You can cancel your job anytime using the cancellation link in that email. We’ll take it from here!'
-      );
-      
+      );}
+      catch (err) {
+        console.error(err);
+        setSubmissionErrorMessage("Something went wrong.");
+      } finally {
+        setIsSubmitting(false);
+      }
   };
     return (
         <div>
@@ -625,7 +631,14 @@ onChange={(e) => {
   {errors.message && <span className="error-message">{errors.message}</span>}
   
   </div>
-  <button type="button" className="btn btn--full submit-control" onClick={handleSubmit}>SUBMIT TRAFFIC CONTROL JOB</button>
+  <button
+  type="submit"
+  className="btn btn--full submit-control"
+  disabled={isSubmitting}
+>
+  {isSubmitting ? 'Submitting...' : 'SUBMIT TRAFFIC CONTROL JOB'}
+</button>
+
               {submissionMessage && (
             <div className="submission-control-message">{submissionMessage}</div>
           )}
