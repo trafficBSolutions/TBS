@@ -213,7 +213,7 @@ useEffect(() => {
     <div className="employment-info" key={i}>
       <p><strong>Employer:</strong> {emp.employerName}</p>
       <p><strong>Employer Address:</strong> {emp.address} {emp.city}, {emp.state} {emp.zip}</p>
-      <p><strong>Employer Phone:</strong> {emp.phone}</p>
+      <p><strong>Phone:</strong> <a href={`tel:${emp.phone}`}>{emp.phone}</a></p>
       <p><strong>Job Duties:</strong> {emp.duties}</p>
       <p><strong>Currently Employed:</strong> {emp.currentlyEmployed ? 'Yes' : 'No'}</p>
       {emp.reasonForLeaving && (
