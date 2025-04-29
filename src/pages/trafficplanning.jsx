@@ -8,118 +8,51 @@ import images from '../utils/tbsImages';
 import Header from '../components/headerviews/HeaderDropPlan'
 const states = [
   { abbreviation: 'AL', name: 'Alabama' },
-  { abbreviation: 'AK', name: 'Alaska' },
-  { abbreviation: 'AZ', name: 'Arizona' },
-  { abbreviation: 'AR', name: 'Arkansas' },
-  { abbreviation: 'CA', name: 'California' },
-  { abbreviation: 'CO', name: 'Colorado' },
-  { abbreviation: 'CT', name: 'Connecticut' },
-  { abbreviation: 'DE', name: 'Delaware' },
   { abbreviation: 'FL', name: 'Florida' },
   { abbreviation: 'GA', name: 'Georgia' },
-  { abbreviation: 'HI', name: 'Hawaii' },
-  { abbreviation: 'ID', name: 'Idaho' },
-  { abbreviation: 'IL', name: 'Illinois' },
-  { abbreviation: 'IN', name: 'Indiana' },
-  { abbreviation: 'IA', name: 'Iowa' },
-  { abbreviation: 'KS', name: 'Kansas' },
   { abbreviation: 'KY', name: 'Kentucky' },
-  { abbreviation: 'LA', name: 'Louisiana' },
-  { abbreviation: 'ME', name: 'Maine' },
-  { abbreviation: 'MD', name: 'Maryland' },
-  { abbreviation: 'MA', name: 'Massachusetts' },
-  { abbreviation: 'MI', name: 'Michigan' },
-  { abbreviation: 'MN', name: 'Minnesota' },
-  { abbreviation: 'MS', name: 'Mississippi' },
-  { abbreviation: 'MO', name: 'Missouri' },
-  { abbreviation: 'MT', name: 'Montana' },
-  { abbreviation: 'NE', name: 'Nebraska' },
-  { abbreviation: 'NV', name: 'Nevada' },
-  { abbreviation: 'NH', name: 'New Hampshire' },
-  { abbreviation: 'NJ', name: 'New Jersey' },
-  { abbreviation: 'NM', name: 'New Mexico' },
-  { abbreviation: 'NY', name: 'New York' },
   { abbreviation: 'NC', name: 'North Carolina' },
-  { abbreviation: 'ND', name: 'North Dakota' },
-  { abbreviation: 'OH', name: 'Ohio' },
-  { abbreviation: 'OK', name: 'Oklahoma' },
-  { abbreviation: 'OR', name: 'Oregon' },
-  { abbreviation: 'PA', name: 'Pennsylvania' },
-  { abbreviation: 'RI', name: 'Rhode Island' },
   { abbreviation: 'SC', name: 'South Carolina' },
-  { abbreviation: 'SD', name: 'South Dakota' },
-  { abbreviation: 'TN', name: 'Tennessee' },
-  { abbreviation: 'TX', name: 'Texas' },
-  { abbreviation: 'UT', name: 'Utah' },
-  { abbreviation: 'VT', name: 'Vermont' },
-  { abbreviation: 'VA', name: 'Virginia' },
-  { abbreviation: 'WA', name: 'Washington' },
-  { abbreviation: 'WV', name: 'West Virginia' },
-  { abbreviation: 'WI', name: 'Wisconsin' },
-  { abbreviation: 'WY', name: 'Wyoming' }
+  { abbreviation: 'TN', name: 'Tennessee' }
 ];
 
 export default function TrafficPlan() {
   const [phone, setPhone] = useState('');
-  const [marker, setMarker] = useState(null);
+    const [company, setCompany] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false); 
   const [errorMessage, setErrorMessage] = useState('');
   const [formData, setFormData] = useState({
-    first: '',
-    last: '',
-    company: '',
+    name: '',
     email: '',
     phone: '',
+    company: '',
+    project: '',
     address: '',
     city: '',
     state: '',
     zip: '',
-    location: marker,
-    structureFile: null,
-    structureimg: null,
+    structure: '',
     message: ''
   });
   const [errors, setErrors] = useState({});
   const [submissionMessage, setSubmissionMessage] = useState('');
   const [submissionErrorMessage, setSubmissionErrorMessage] = useState('');
 
-  const handleStateChange = (e) => {
-    setSelectedState(e.target.value);
-    setErrors({ ...errors, state: '' }); // Clear state error when state changes
-  };
-
   const handlePhoneChange = (event) => {
     const input = event.target.value;
-    const formatted = input.replace(/\D/g, '').replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+    const rawInput = input.replace(/\D/g, ''); // Remove non-digit characters
+    const formatted = rawInput.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+    
     setPhone(formatted);
     setFormData({ ...formData, phone: formatted });
-  };
-
-  const handleAddMarkerButtonClick = () => {
-    // Prevent form submission
-    setIsSubmitting(false);
-
-    if (!marker && map) {
-      const center = map.getCenter();
-      const newMarker = new window.google.maps.Marker({
-        position: center,
-        map: map,
-        draggable: true,
-        title: "Job Site"
-      });
-
-      newMarker.addListener('dragend', () => {
-        handleMarkerDrag(newMarker);
-      });
-
-      // Notify parent component about marker position
-      onMarkerAdd(center.lat(), center.lng());
-      setMarker(newMarker);
-
-      // Reset the isSubmitting state after adding the marker
+  
+    // Check if the input has 10 digits and clear the error if it does
+    if (rawInput.length === 10) {
+      setErrors((prevErrors) => ({ ...prevErrors, phone: '' }));
+    } else {
+      setErrors((prevErrors) => ({ ...prevErrors, phone: 'Please enter a valid 10-digit phone number.' }));
     }
   };
-
   const handleFileChange = (e, fileType) => {
   const file = e.target.files[0];
   setFormData({ ...formData, [fileType]: file });
@@ -132,31 +65,37 @@ const handleFileRemove = (fileType) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const requiredFields = ['first', 'last', 'company', 'email', 'phone', 'address', 'city', 
-    'state', 'zip', 'message'];
+    const requiredFields = ['name', 'email', 'phone', 'company', 'project', 'address', 'city', 
+    'state', 'zip', 'structure', 'message'];
     const newErrors = {};
 
     requiredFields.forEach(field => {
       if (!formData[field]) {
         let fieldLabel = field.charAt(0).toUpperCase() + field.slice(1);
-        if (field === 'first') fieldLabel = 'First Name';
-        if (field === 'last') fieldLabel = 'Last Name';
-        if (field === 'company') fieldLabel = 'Company Name';
+        if (field === 'name') fieldLabel = 'Coordinator Name';
+        if (field === 'email') fieldLabel = 'Email';
         if (field === 'phone') fieldLabel = 'Phone Number';
+        if (field === 'company') fieldLabel = 'Company Name';
+        if (field === 'project') fieldLabel = 'Job/Project Number';
         if (field ==='address') fieldLabel = 'Address';
         if (field === 'city') fieldLabel = 'City';
         if (field ==='state') fieldLabel = 'State';
         if (field === 'zip') fieldLabel = 'Zip Code';
+        if (field === 'structure') fieldLabel = 'Structure File';
         newErrors[field] = `${fieldLabel} is required!`;
       }
     });
-
+    let hasError = false;
     if (Object.keys(newErrors).length > 0) {
       setErrorMessage('Required fields are missing.'); // Set the general error message
       setErrors(newErrors);
       return;
     }
-
+   // ✅ Check if structure file is uploaded
+   if (!formData.structure) {
+    newErrors.structure = "Structure File is required.";
+    hasError = true;
+}
     try {
       const formDataToSend = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
@@ -173,17 +112,16 @@ const handleFileRemove = (fileType) => {
       console.log(response.data);
       setSubmissionErrorMessage(response.data.message);
       setFormData({
-        first: '',
-        last: '',
-        company: '',
+        name: '',
         email: '',
         phone: '',
+        company: '',
+        project: '',
         address: '',
         city: '',
         state: '',
         zip: '',
-        structureFile: null,
-        structureimg: null,
+        structure: '',
         message: ''
       });
 
@@ -220,58 +158,31 @@ Together, we can create safer roads, smoother traffic flow, and more resilient c
       <div className="plan-box">
             <h1 className="plan-app-box">Traffic Control Plan Form</h1>
             <h2 className="plan-fill">Please Fill Out the Form Below to Submit Your Plan!</h2>
-        <h3 className="control-fill-info">Fields marked with * are required.</h3>
+            <h3 className="control-fill-info">Fields marked with * are required.</h3>
           </div>
             <div className="first-plan-input">
               <div className="first-plan-name">
                 <div className="name-first-plan-input">
                 <div className="input-plan-first-container">
-          <label className="first-plan-label-name">First Name *</label>
+          <label className="first-plan-label-name">Coordinate Name *</label>
           <input
             name="first"
             type="text"
             className="first-plan-name-input"
             text="first-name--input"
-            placeholder="Enter First Name"
-            value={formData.first}
-            onChange={(e) => setFormData({ ...formData, first: e.target.value })}
+            placeholder="Enter First & Last Name"
+            value={formData.name}
+            onChange={(e) => { 
+              setFormData({ ...formData, name: e.target.value });
+            if (e.target.value) {
+              setErrors((prevErrors) => ({ ...prevErrors, name: '' })); // Clear the error
+            }
+            }}
           />
-          {errors.first && <div className="error-message">{errors.first}</div>}
+          {errors.name && <div className="error-message">{errors.name}</div>}
         </div>
                 </div>
               </div>
-              <div className="last-plan-name">
-                <div className="name-last-plan-input">
-                <div className="input-last-plan-container">
-          <label className="last-plan-label-name">Last Name *</label>
-          <input
-            name="last"
-            type="text"
-            className="last-plan-name-input"
-            text="last-name--input"
-            placeholder="Enter Last Name"
-            value={formData.last}
-            onChange={(e) => setFormData({ ...formData, last: e.target.value })}
-          />
-          {errors.last && <div className="error-message">{errors.last}</div>}
-        </div>
-                </div>
-              </div>
-            </div>
-            <div className="company-plan-input">
-              <div className="company-plan">
-                <div className="name-company-plan-input">
-                <div className="input-plan-company-container">
-                  <label className="company-plan-name">Company *</label>
-                  <input name="company-name-input" type="text" className="company-plan-name-input" text="company--input" placeholder="Enter Company Name"
-                    value={formData.company} onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                    />
-                    {errors.company && <span className="error-message">{errors.company}</span>}
-                    </div>
-                </div>
-              </div>
-              </div>
-            <div className="emailphone-plan-input">
               <div className="email-plan">
                 <div className="name-plan-email-input">
                 <div className="input-plan-email-container">
@@ -283,7 +194,12 @@ Together, we can create safer roads, smoother traffic flow, and more resilient c
             text="email--input"
             placeholder="Enter Email"
             value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            onChange={(e) => { 
+              setFormData({ ...formData, email: e.target.value });
+            if (e.target.value) {
+              setErrors((prevErrors) => ({ ...prevErrors, email: '' })); // Clear the error
+            }
+            }}
           />
           {errors.email && <div className="error-message">{errors.email}</div>}
         </div>
@@ -307,13 +223,57 @@ Together, we can create safer roads, smoother traffic flow, and more resilient c
         </div>
                 </div>
               </div>
-            </div>
-
+        </div>
             <div className="input-plan-address-container">
-  <label className="address-plan-label">Address of Job Site: </label>
+            <label className="address-plan-label">Plan Information: </label>
+            <div className="company-plan">
+                <div className="name-company-plan-input">
+                <div className="input-plan-company-container">
+                <label className="project-control-label">Company Name *</label>
+  <input
+    className="project-company-input"
+    type="text"
+    placeholder="Enter Company Name"
+    value={formData.company}
+    onChange={(e) => {
+      const  value = e.target.value;
+      const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1);
+      setCompany(capitalizedValue);
+      setFormData({ ...formData, company: capitalizedValue });
+      // Clear error if the input is no longer empty
+      if (value.trim() !== '') {
+        setErrors((prevErrors) => ({ ...prevErrors, company: '' }));
+      }
+    }
+    }
+  />
+{errors.company && <div className="error-message">{errors.company}</div>}
+                    </div>
+                </div>
+              </div>
+            <label className="project-number-label">Job/Project Number *</label>
+  <input
+  className="project-number-input"
+  type="text"
+  placeholder="Enter Job/Project Number"
+  value={formData.project}
+  onChange={(e) => {
+    const value = e.target.value;
+
+    // Remove all non-alphanumeric characters, then convert to uppercase
+    const sanitized = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+
+    setFormData({ ...formData, project: sanitized });
+
+    if (sanitized.trim() !== '') {
+      setErrors((prevErrors) => ({ ...prevErrors, project: '' }));
+    }
+  }}
+/>
+  {errors.project && <div className="error-message">{errors.project}</div>}
   <div className="address-plan-input">
     <div className="address-plan-container">
-      <label className="addr-plan-label">Address *</label>
+      <label className="addr-plan-label">Address of Job Site *</label>
       <input
         name="address-box"
         type="text"
@@ -321,7 +281,22 @@ Together, we can create safer roads, smoother traffic flow, and more resilient c
         text="address--input"
         placeholder="Enter Address"
         value={formData.address}
-        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+        onChange={(e) => {
+          const raw = e.target.value;
+          const cleaned = raw.replace(/[*,;/.']/g, ''); // Removes *, ; , / and .
+          setFormData({ ...formData, address: cleaned });
+        }}
+        onBlur={(e) => {
+          const addressRegex = /^\d{3,}\s+[\w\s]+(?:\s+(?:NE|NW|SE|SW))?$/i;
+          if (!addressRegex.test(e.target.value)) {
+            setErrors((prevErrors) => ({
+              ...prevErrors,
+              address: 'Enter a valid address (e.g., "123 Main St SE")',
+            }));
+          } else {
+            setErrors((prevErrors) => ({ ...prevErrors, address: '' }));
+          }
+        }}
       />
       {errors.address && <span className="error-message">{errors.address}</span>}
       <label className="city-plan-label">City *</label>
@@ -333,7 +308,30 @@ Together, we can create safer roads, smoother traffic flow, and more resilient c
         text="city--input"
         placeholder="City"
         value={formData.city}
-        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+        onChange={(e) => {
+          const rawValue = e.target.value;
+        
+          // Remove commas, asterisks, digits, or other unwanted characters
+          const cleaned = rawValue.replace(/[^a-zA-Z\s]/g, '');
+        
+          // Capitalize first letter of each word
+          const capitalized = cleaned.replace(/\b\w/g, (char) => char.toUpperCase());
+        
+          // Regex: only letters and spaces (already enforced, but double-checked)
+          const cityRegex = /^[a-zA-Z\s]+$/;
+        
+          if (!cityRegex.test(capitalized)) {
+            setErrors((prevErrors) => ({
+              ...prevErrors,
+              city: 'City must only contain letters and spaces',
+            }));
+          } else {
+            setErrors((prevErrors) => ({ ...prevErrors, city: '' }));
+          }
+        
+          // Update formData with cleaned value
+          setFormData((prev) => ({ ...prev, city: capitalized }));
+        }}
       />
       {errors.city && <span className="error-message">{errors.city}</span>}
       
@@ -358,7 +356,16 @@ Together, we can create safer roads, smoother traffic flow, and more resilient c
                     type="text"
                     className="zip-plan-box"
                     value={formData.zip}
-                    onChange={(e) => setFormData({ ...formData, zip: e.target.value })}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      let formattedValue = value;
+                      const rawDigits = value.replace(/\D/g, ""); // Remove non-numeric characters
+                      formattedValue = rawDigits.slice(0, 5); // Limit to 5 digits
+                      setFormData({ ...formData, zip: e.target.value })
+                      if (formattedValue.length === 5) {
+                        setErrors((prevErrors) => ({ ...prevErrors, zip: '' }));
+                    }
+                  }}
                     placeholder="Zip Code"
                     maxLength={5}
                     pattern="\d{5}"
@@ -369,34 +376,48 @@ Together, we can create safer roads, smoother traffic flow, and more resilient c
     </div>
   </div>
 </div>
+<div className="input-plan-container">
+  <label className="structure-plan-label">Structure of Plan *</label>
+  <h2 className="structure-plan-note">
+    Upload a PDF, or a Word Document for your plan's structure.
+  </h2>
+  <div className="structure-plan-input">
+    <div className="structure-plan-section">
+      <div className="name-plan-structure-input">
+        <div className="file-plan-input-container">
+          <label className="file-plan-label">
+            {formData.structure ? (
+              <span>{formData.structure.name}</span>
+            ) : (
+              <span>Choose Structure File</span>
+            )}
+            <input type="file" name="structure" accept=".pdf,.doc,.docx,.txt,.page" onChange={(e) => {
+                        handleFileChange(e, 'structure');
+                          if (e.target.files[0]) {
+                            setErrors((prevErrors) => ({ ...prevErrors, structure: '' })); // Clear the error
+                          }}}
+                          />
+          </label>
+          {formData.structure && (
+            <button 
+              type="button" 
+              className="remove-file-plan-button" 
+              onClick={() => handleFileRemove('structure')}
+            >
+              Remove
+            </button>
+          )}
+          
+        </div>
+        {errors.structure && <span className="error-message">{errors.structure}</span>}
+      </div>
+    </div>
+  </div>
+</div>
 
-
- <div className="input-plan-container">
-            <label className="structure-plan-label">Structure of Plan *</label>
-            <h1 className="structure-plan-note">Upload a PDF, or a Word Document for your plan's structure. </h1>
-            <div className="structure-plan-input">
-              <div className="structure-plan-section">
-                <div className="name-plan-structure-input">
-                  <div className="file-plan-input-container">
-                    <label className="file-plan-label">
-                      {formData.structurefile ? (
-                        <span>{formData.structurefile.name}</span>
-                      ) : (
-                        <span>Choose Structure File</span>
-                      )}
-                      <input type="file" name="structurefile" accept=".pdf,.doc,.docx,.txt,.page,.png,.jpeg,.jpg" onChange={(e) => handleFileChange(e, 'structurefile')} />            
-                    </label>
-                    {formData.structurefile && (
-                        <button type="button" className="remove-file-plan-button" onClick={() => handleFileRemove('structurefile')}>Remove</button>
-                      )}
-                  </div>
-                </div>
-              </div>
-            </div>
-   </div>
             <div className="input-message-plan-container">
             <label className="message-plan-label">Message *</label>
-            <h1 className="message-plan-note">Please include your Project Number or Job Number of your plan. Also, please explain how your plan needs to be designed and be descriptive! </h1>
+            <h1 className="message-plan-note">Please explain how your plan needs to be designed and be descriptive! </h1>
 
             <textarea className="message-plan-text" name="message" type="text" placeholder="Enter Message"
               value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })}
@@ -406,7 +427,7 @@ Together, we can create safer roads, smoother traffic flow, and more resilient c
             <div className="submission-message">{submissionMessage}</div>
           )}
               </div>
-              <button type="button" className="btn btn--full submit-plan" onClick={handleSubmit}>SUBMIT TRAFFIC PLAN</button>
+              <button type="button" className="btn btn--full submit-plan" onClick={handleSubmit}>SUBMIT TRAFFIC CONTROL PLAN</button>
               {submissionErrorMessage &&
             <div className="submission-error-message">{submissionErrorMessage}</div>
           }
@@ -474,4 +495,3 @@ Together, we can create safer roads, smoother traffic flow, and more resilient c
         </div>
     )
 };
-
