@@ -301,7 +301,7 @@ useEffect(() => {
   {PlanUser.length > 0 && PlanUser.map((plan, index) => (
   <div key={index} className="plan-card">
     <h4 className="job-company">{plan.company}</h4>
-    <p><strong>Coordinator:</strong> {plan.first} {plan.last}</p>
+    <p><strong>Coordinator:</strong> {plan.name}</p>
     <p><strong>Email:</strong> {plan.email}</p>
     {plan.phone && (
       <p><strong>Phone:</strong> <a href={`tel:${plan.phone}`}>{plan.phone}</a></p>
