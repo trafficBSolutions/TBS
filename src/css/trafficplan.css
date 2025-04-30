@@ -13,6 +13,14 @@
     color: #000000;
     font-family: "Moveo Sans W00 Bold";
 }
+.project-control-label, .project-number-label, .addr-plan-label, .structure-plan-label, .city-plan-label, 
+.state-plan-label, .zip-plan-label, .first-plan-label-name, .email-plan-name, .message-plan-label, .phone-plan-label {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-top: 1rem;
+  color: #333;
+}
 .plan-descript {
   font-size: 16px;
   margin-bottom: 20px;
@@ -37,12 +45,6 @@ font-size: 20px;
 color: #8b4c18;
 text-align: center;
 margin-bottom: 30px;
-}
-.location-control-note, .important-control, .structure-plan-note, .message-plan-note {
-    font-size: 1.5rem;
-    color: #555;
-    margin-bottom: 10px;
-    line-height: 1.5;
 }
 .first-plan-input,
 .company-plan-input,
@@ -72,10 +74,6 @@ margin-bottom: 30px;
 .add-plan-marker {
   font-size: 2rem;
 }
-.address-plan-label{
-text-align: center;
-    font-size: 2rem;
-}
 .file-plan-input-container {
 display: flex;
     align-items: center;
@@ -100,6 +98,14 @@ border-radius: 5px;
 }
 .file-plan-label input[type="file"] {
   display: none;
+}.location-control-note,
+.important-control,
+.structure-plan-note,
+.message-plan-note {
+  font-size: 1.5rem;
+    color: #555;
+    margin-bottom: 10px;
+    line-height: 1.5;
 }
 .message-plan-text {
   font-size: 1.5rem;
@@ -116,6 +122,12 @@ border-radius: 5px;
   font-size: 14px;
   text-align: center;
   margin-top: 5px;
+}
+.structure-plan-image  {
+  width: 100%;
+  height: 100%;
+  background-color: #ffffff;
+  object-fit: cover;
 }
 @media screen and (max-width: 1200px) and (orientation: portrait) {
   .plan-now {
