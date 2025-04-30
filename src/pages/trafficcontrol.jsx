@@ -36,6 +36,7 @@ export default function TrafficControl() {
   const [isSubmitting, setIsSubmitting] = useState(false); 
   const [company, setCompany] = useState('');
   const addressRegex = /^\d+\s+[A-Za-z0-9\s]+(?:\s+(?:NE|NW|SE|SW))?$/i;
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [coordinator, setCoordinator] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [fullDates, setFullDates] = useState([]);
@@ -50,6 +51,7 @@ export default function TrafficControl() {
     project: '',
     flagger: '',
     equipment: [],
+    terms: '',
     address: '',
     city: '',
     state: '',
@@ -136,7 +138,7 @@ export default function TrafficControl() {
     setIsSubmitting(true);
     try { const requiredFields = ['name', 'email', 'phone', 'jobDate',
       'company', 'coordinator', 'time', 'project', 'flagger', 'address', 'city', 
-    'state', 'zip', 'message'];
+    'state', 'zip', 'message', 'terms'];
     const newErrors = {};
 
     requiredFields.forEach(field => {
@@ -155,6 +157,7 @@ export default function TrafficControl() {
         if (field === 'city') fieldLabel = 'City';
         if (field ==='state') fieldLabel = 'State';
         if (field === 'zip') fieldLabel = 'Zip Code';
+        if (field === 'terms') fieldLabel = 'Terms & Conditions';
         newErrors[field] = `${fieldLabel} is required!`;
       }
     });
@@ -170,7 +173,15 @@ export default function TrafficControl() {
       setErrors(newErrors);
       return;
     }
-
+    if (!termsAccepted) {
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        terms: 'You must agree to pay upon job completion.'
+      }));
+      setErrorMessage('You must accept the terms and conditions.');
+      setIsSubmitting(false);
+      return;
+    }     
       const response = await axios.post('/trafficcontrol', formData, {
         headers: {
           'Content-Type': 'application/json'
@@ -188,6 +199,7 @@ export default function TrafficControl() {
         project: '',
         flagger: '',
         equipment: [],
+        terms: '',
         address: '',
         city: '',
         state: '',
@@ -515,7 +527,28 @@ Barricades
   </label>
   {errors.equipment && <div className="error-message">{errors.equipment}</div>}
 </div>
-
+<div className="terms-checkbox">
+  <label className="terms-label">Terms & Conditions *</label>
+  <input
+    type="checkbox"
+    id="terms"
+    checked={termsAccepted}
+    onChange={(e) => {
+      const checked = e.target.checked;
+      setTermsAccepted(checked);
+      setFormData((prev) => ({ ...prev, terms: checked }));
+      if (checked) {
+        setErrors((prevErrors) => ({ ...prevErrors, terms: '' }));
+      }
+    }}
+  />
+  <p className="terms-text">
+    <strong>PLEASE READ AND CHECK:</strong> I agree to pay Traffic & Barrier Solutions, LLC once the scheduled job is completed.
+    By scheduling this job, you agree to pay once job is complete. 
+  </p>
+  
+</div>
+{errors.terms && <div className="error-message">{errors.terms}</div>}
 <label className="addr-control-label">Job Site Address *</label>
 <p className="address-note"><b>NOTE: </b>Enter a valid street address without punctuation (no commas, periods, slashes, or symbols). </p>
 <p className="example-note"><b>For Example: </b>(123 Main St SE) (123 N Main St) (10 US Hwy 41) or (4 Town And Country Dr)</p>
