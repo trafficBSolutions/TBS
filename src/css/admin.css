@@ -112,7 +112,7 @@
   max-width: 600px;
   margin: 0 auto;
 }
-.applicant-list {
+.applicant-list, .plan-list {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -123,7 +123,7 @@
 .admin-apps {
   background-color: #f7d7bc;
 }
-.applicant-card {
+.applicant-card, .plan-card {
   background: #fff;
   border-left: 5px solid #efad76;
   padding: 1rem 1.5rem;
@@ -131,7 +131,7 @@
   box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
 
-.applicant-card h4 {
+.applicant-card h4, .plan-card h4 {
   font-size: 2.5rem;
   text-align: center;
   margin-bottom: 0.5rem;
@@ -139,7 +139,7 @@
 .employment-info, .background-info, .ed-info-admin {
   padding: 1rem;
 }
-.applicant-card p {
+.applicant-card p, .plan-card p {
   margin: 0.8rem 0;
   font-size: 1.4rem;
   line-height: 1.4;
@@ -199,7 +199,7 @@
   text-align: center;
   margin-bottom: 2rem;
 }
-.admin-apps-title {
+.admin-apps-title, .admin-plans-title {
   font-size: 5rem;
   color: #333;
   padding-top: 1rem;
@@ -252,11 +252,28 @@
 .applicant-actions {
   text-align: center;
 }
+.admin-plans {
+  background-color: #d5bbaf;
+}
+.admin-apps, .admin-plans {
+  flex: 1;
+  width: 100%;
+  padding: 0 10px;
+  border: none;
+  text-align: center;
+}
+.admin-apps-section {
+  display: flex;
+  width: 100%;
+  height: auto;
+  flex-wrap: wrap;
+  justify-content: center;
+}
 @media screen and (min-width: 320px) and (max-width: 640px) and (orientation: portrait) {
   .admin-date-picker {
     font-size: 1.5rem;
   }
-  .admin-apps-title  {
+  .admin-apps-title, .admin-plans-title  {
     font-size: 3rem;
   }
   .admin-job-calendar h3 {
@@ -268,14 +285,14 @@
   .admin-job-calendar h2 {
     font-size: 2rem;
   }
-  .job-card {
+  .job-card, .applicant-card, .plan-card {
     padding: 1rem;
   }
   .job-company {
     font-size: 1.8rem;
   }
-  .job-card p {
-    font-size: 1.2rem;
+  .job-card p, .applicant-card p, .plan-card p {
+    font-size: 1rem;
   }
   .calendar-day-kiss .day-number {
     font-size: 1.5rem;
