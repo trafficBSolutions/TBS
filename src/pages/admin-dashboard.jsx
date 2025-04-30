@@ -315,7 +315,7 @@ useEffect(() => {
         className="pdf-link"
         onClick={() => {
           setSelectedPlanIndex(index); // use current index here
-          setPreviewPlan(`/plans/${plan.company}_JobApplication.pdf`.replace(/\s+/g, '_'));
+          setPreviewPlan(`/plans/${plan.structure}`);
         }}
       >
         View Traffic Control Plan Structure
