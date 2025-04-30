@@ -543,7 +543,7 @@ Barricades
     }}
   />
   <p className="terms-text">
-    <strong>PLEASE READ AND CHECK:</strong> I agree to pay Traffic & Barrier Solutions, LLC once the scheduled job is completed.
+    <strong>PLEASE READ AND CHECK:</strong>
     By scheduling this job, you agree to pay once job is complete. 
   </p>
   
