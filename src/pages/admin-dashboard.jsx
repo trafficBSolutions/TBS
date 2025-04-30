@@ -12,9 +12,11 @@ const AdminDashboard = () => {
   const [monthlyJobs, setMonthlyJobs] = useState({});
   const [monthlyKey, setMonthlyKey] = useState(0);
   const [selectedApplicantIndex, setSelectedApplicantIndex] = useState(null);
+  const [selectedPlanIndex, setSelectedPlanIndex] = useState(null);
 const [previewFile, setPreviewFile] = useState(null);
-const [previewTitle, setPreviewTitle] = useState(''); // New state to track what we're previewing
+const [previewPlan, setPreviewPlan] = useState(null);
   const [applicants, setApplicants] = useState([]);
+  const [PlanUser, setPlanUser] = useState([]);
 const [currentIndex, setCurrentIndex] = useState(0); // To control the visible slice
 const [jobs, setJobs] = useState([]);
 const [calendarViewDate, setCalendarViewDate] = useState(new Date());
@@ -93,7 +95,17 @@ useEffect(() => {
     };
     fetchApplicants();
   }, []);
-  
+  useEffect(() => {
+    const fetchPlanUser = async () => {
+      try {
+        const res = await axios.get('/plan/all');
+        setPlanUser(res.data);
+      } catch (err) {
+        console.error("Error fetching plan user:", err);
+      }
+    };
+    fetchPlanUser();
+  }, []);
   return (
     <div>
       <Header />
@@ -172,6 +184,7 @@ useEffect(() => {
   </div>
 )}
 </div>
+<section className="admin-apps-section">
 <div className="admin-apps">
   <h2 className="admin-apps-title">Job Applicants</h2>
   {applicants.length > 0 && (
@@ -282,6 +295,50 @@ useEffect(() => {
   </div>
 )}
 </div>
+<div className="admin-plans">
+  <h2 className="admin-plans-title">Traffic Control Plans</h2>
+  <div className="plan-list">
+  {PlanUser.length > 0 && PlanUser.map((plan, index) => (
+  <div key={index} className="plan-card">
+    <h4 className="job-company">{plan.company}</h4>
+    <p><strong>Coordinator:</strong> {plan.first} {plan.last}</p>
+    <p><strong>Email:</strong> {plan.email}</p>
+    {plan.phone && (
+      <p><strong>Phone:</strong> <a href={`tel:${plan.phone}`}>{plan.phone}</a></p>
+    )}
+    <p><strong>Project:</strong> {plan.project}</p>
+    <p><strong>Address:</strong> {plan.address}, {plan.city}, {plan.state} {plan.zip}</p>
+    {plan.message && <p><strong>Message:</strong> {plan.message}</p>}
+
+    {plan.company && (
+      <button
+        className="pdf-link"
+        onClick={() => {
+          setSelectedPlanIndex(index); // use current index here
+          setPreviewPlan(`/plans/${plan.company}_JobApplication.pdf`.replace(/\s+/g, '_'));
+        }}
+      >
+        View Traffic Control Plan Structure
+      </button>
+    )}
+
+    {selectedPlanIndex === index && previewPlan && (
+      <div className="file-preview-container">
+        <h3>File Preview</h3>
+        <iframe
+          src={previewPlan}
+          width="100%"
+          height="600px"
+          style={{ border: '2px solid #ccc', borderRadius: '8px', marginTop: '1rem' }}
+          title="File Preview"
+        />
+      </div>
+    )}
+  </div>
+))}
+  </div>
+  </div>
+</section>
       <footer className="footer">
   <div className="site-footer__inner">
     <img className="tbs-logo" alt="TBS logo" src={images["../assets/tbs_companies/tbs white.svg"].default} />
