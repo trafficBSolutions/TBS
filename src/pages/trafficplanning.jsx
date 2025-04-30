@@ -21,6 +21,7 @@ export default function TrafficPlan() {
     const [company, setCompany] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false); 
   const [errorMessage, setErrorMessage] = useState('');
+  const [showImageModal, setShowImageModal] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -381,6 +382,14 @@ Together, we can create safer roads, smoother traffic flow, and more resilient c
   <h2 className="structure-plan-note">
     Upload a PDF, or a Word Document for your plan's structure.
   </h2>
+  <h2 className="structure-plan-example">Structure Example:</h2>
+  <img
+  className="structure-plan-image"
+  src={images["../assets/buffer and tapers/Structure Example.svg"].default}
+  alt="structure-plan"
+  onClick={() => setShowImageModal(true)}
+  style={{ cursor: 'zoom-in' }}
+/>
   <div className="structure-plan-input">
     <div className="structure-plan-section">
       <div className="name-plan-structure-input">
@@ -490,8 +499,8 @@ Together, we can create safer roads, smoother traffic flow, and more resilient c
 </footer>
 <div className="footer-copyright">
       <p className="footer-copy-p">&copy; 2025 Traffic & Barrier Solutions, LLC - 
-        Website Created & Deployed by <a className="footer-face"href="https://www.facebook.com/will.rowell.779" target="_blank" rel="noopener noreferrer">William Rowell</a> - All Rights Reserved.</p>
+        Website MERN Stack Coded & Deployed by <a className="footer-face"href="https://www.facebook.com/will.rowell.779" target="_blank" rel="noopener noreferrer">William Rowell</a> - All Rights Reserved.</p>
     </div>
-            </div>
+        </div>
     )
 };
