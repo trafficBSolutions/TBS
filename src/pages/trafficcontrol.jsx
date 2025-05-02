@@ -36,6 +36,8 @@ export default function TrafficControl() {
   const [isSubmitting, setIsSubmitting] = useState(false); 
   const [company, setCompany] = useState('');
   const addressRegex = /^\d+\s+[A-Za-z0-9\s]+(?:\s+(?:NE|NW|SE|SW))?$/i;
+  const [showEmergencyConfirm, setShowEmergencyConfirm] = useState(false);
+  const [isEmergencyJob, setIsEmergencyJob] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [coordinator, setCoordinator] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -182,6 +184,26 @@ export default function TrafficControl() {
       setIsSubmitting(false);
       return;
     }     
+  // Check emergency job logic
+  const now = new Date();
+  const isLateNight = now.getHours() >= 21; // 9:00 PM or later
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const isTomorrowSelected = jobDates.some(
+    (d) => d.toDateString() === tomorrow.toDateString()
+  );
+  const tomorrowFormatted = tomorrow.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric'
+  });  
+  if (
+    isLateNight &&
+    isTomorrowSelected &&
+    jobDates.length >= 1 &&
+    !isEmergencyJob
+  )
+  setIsSubmitting(true);
       const response = await axios.post('/trafficcontrol', formData, {
         headers: {
           'Content-Type': 'application/json'
@@ -681,7 +703,58 @@ onChange={(e) => {
       'SUBMIT TRAFFIC CONTROL JOB'
     )}
   </button>
-
+  {showEmergencyConfirm && (
+  <div className="emergency-warning-box">
+<p className="emergency-warning-text">
+  ⚠️ <strong>Heads Up:</strong> You’re submitting this job between <strong>9:00 PM and midnight</strong> and selected <strong>{tomorrowFormatted}</strong> as one of your job dates. This will be considered an <strong>emergency job</strong> and may require additional coordination and earlier deployment.<br /><br />
+  <strong>Are you sure you want to proceed?</strong>
+</p>
+    <div className="emergency-warning-buttons">
+      <button
+        type="button"
+        className="btn btn--warning"
+        onClick={() => {
+          setIsEmergencyJob(true);
+          handleSubmit(new Event('submit')); // fake submit event to rerun
+        }}
+      >
+        Yes, Proceed
+      </button>
+      <button
+        type="button"
+        className="btn btn--cancel"
+        onClick={() => {
+          setFormData({
+            name: '',
+            email: '',
+            phone: '',
+            jobDate: '',
+            company: '',
+            coordinator: '',
+            time: '',
+            project: '',
+            flagger: '',
+            equipment: [],
+            terms: '',
+            address: '',
+            city: '',
+            state: '',
+            zip: '',
+            message: ''
+          });
+          setJobDates([]);
+          setPhone('');
+          setErrors({});
+          setSubmissionMessage('');
+          setShowEmergencyConfirm(false);
+          setIsEmergencyJob(false);
+        }}
+      >
+        No, Clear Form
+      </button>
+    </div>
+  </div>
+)}
   {/* Toast-like message */}
   {submissionMessage && (
     <div className="custom-toast success">{submissionMessage}</div>
