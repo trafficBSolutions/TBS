@@ -419,7 +419,37 @@ border-radius: 5px;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
+.emergency-warning-box {
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  padding: 1rem;
+  margin-top: 1rem;
+  border-radius: 8px;
+  color: #856404;
+  font-size: 1.1rem;
+}
 
+.emergency-warning-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.btn--warning {
+  background-color: #ffc107;
+  color: black;
+  padding: 0.5rem 1rem;
+  border: none;
+  cursor: pointer;
+}
+
+.btn--cancel {
+  background-color: #f44336;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  cursor: pointer;
+}
 @keyframes spin {
   to {
     transform: rotate(360deg);
