@@ -134,6 +134,19 @@ export default function TrafficControl() {
       setErrors((prevErrors) => ({ ...prevErrors, phone: 'Please enter a valid 10-digit phone number.' }));
     }
   };
+    // Check emergency job logic
+    const now = new Date();
+    const isLateNight = now.getHours() >= 21; // 9:00 PM or later
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const isTomorrowSelected = jobDates.some(
+      (d) => d.toDateString() === tomorrow.toDateString()
+    );
+    const tomorrowFormatted = tomorrow.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric'
+    });  
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isSubmitting) return;
@@ -184,25 +197,17 @@ export default function TrafficControl() {
       setIsSubmitting(false);
       return;
     }     
-  // Check emergency job logic
-  const now = new Date();
-  const isLateNight = now.getHours() >= 21; // 9:00 PM or later
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const isTomorrowSelected = jobDates.some(
-    (d) => d.toDateString() === tomorrow.toDateString()
-  );
-  const tomorrowFormatted = tomorrow.toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric'
-  });  
+
   if (
     isLateNight &&
     isTomorrowSelected &&
     jobDates.length >= 1 &&
     !isEmergencyJob
-  )
+  ) {
+    setShowEmergencyConfirm(true);
+    setIsSubmitting(false); // rollback the submit lock
+    return; // ⛔ prevent submission
+  }  
   setIsSubmitting(true);
       const response = await axios.post('/trafficcontrol', formData, {
         headers: {
@@ -714,8 +719,12 @@ onChange={(e) => {
         type="button"
         className="btn btn--warning"
         onClick={() => {
-          setIsEmergencyJob(true);
-          handleSubmit(new Event('submit')); // fake submit event to rerun
+          setShowEmergencyConfirm(false);
+setIsEmergencyJob(true);
+setTimeout(() => {
+  document.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+}, 0);
+
         }}
       >
         Yes, Proceed
