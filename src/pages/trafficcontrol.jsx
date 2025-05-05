@@ -35,6 +35,8 @@ export default function TrafficControl() {
   const [time, setTime] = useState('7:00am');
   const [isSubmitting, setIsSubmitting] = useState(false); 
   const [company, setCompany] = useState('');
+  const [site, setSite] = useState('');
+  const [siteContact, setSiteContact] = useState('');
   const addressRegex = /^\d+\s+[A-Za-z0-9\s]+(?:\s+(?:NE|NW|SE|SW))?$/i;
   const [showEmergencyConfirm, setShowEmergencyConfirm] = useState(false);
   const [isEmergencyJob, setIsEmergencyJob] = useState(false);
@@ -49,6 +51,8 @@ export default function TrafficControl() {
     jobDate: '',
     company: '',
     coordinator: '',
+    site: '',
+    siteContact: '',
     time: '',
     project: '',
     flagger: '',
@@ -77,11 +81,6 @@ export default function TrafficControl() {
       })
       .catch(err => console.error("Error loading full dates", err));
   }, []);
-
-  const handleStateChange = (e) => {
-    setSelectedState(e.target.value);
-    setErrors({ ...errors, state: '' }); // Clear state error when state changes
-  };
   const handleCoordinatorChange = (e) => {
     const value = e.target.value;
   
@@ -117,8 +116,35 @@ export default function TrafficControl() {
       setErrors((prev) => ({ ...prev, equipment: '' }));
     }
   };
+  const handleContactChange = (e) => {
+    const value = e.target.value;
   
+    // Capitalize the first letter of each word
+    const capitalized = value.replace(/\b\w/g, (char) => char.toUpperCase());
   
+    setSiteContact(capitalized);
+    setFormData({ ...formData, siteContact: capitalized });
+  
+    // Clear error if the input is no longer empty
+    if (value.trim() !== '') {
+      setErrors((prevErrors) => ({ ...prevErrors, siteContact: '' }));
+    }
+  };
+  const handleSiteChange = (event) => {
+    const input = event.target.value;
+    const rawInput = input.replace(/\D/g, ''); // Remove non-digit characters
+    const formatted = rawInput.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+    
+    setSite(formatted);
+    setFormData({ ...formData, site: formatted });
+  
+    // Check if the input has 10 digits and clear the error if it does
+    if (rawInput.length === 10) {
+      setErrors((prevErrors) => ({ ...prevErrors, site: '' }));
+    } else {
+      setErrors((prevErrors) => ({ ...prevErrors, site: 'Please enter a valid 10-digit phone number.' }));
+    }
+  };
   const handlePhoneChange = (event) => {
     const input = event.target.value;
     const rawInput = input.replace(/\D/g, ''); // Remove non-digit characters
@@ -217,6 +243,7 @@ export default function TrafficControl() {
            
       setFormData({
         name: '',
+        site: '',
         email: '',
         phone: '',
         jobDate: '',
@@ -422,6 +449,26 @@ if (e.target.value) {
                     onChange={handlePhoneChange}
                   />
                 {errors.phone && <div className="error-message">{errors.phone}</div>}
+                <label className="phone">On-Site Contact</label>
+                  <input
+                    name="siteContact"
+                    type="text"
+                    className="phone-box"
+                    text="phone--input"
+                    placeholder="Enter On-Site First & Last Name"
+                    value={siteContact} // Bind to phone state
+                    onChange={handleContactChange}
+                  />
+                <label className="phone">On-Site Contact Phone Number</label>
+                  <input
+                    name="site"
+                    type="text"
+                    className="phone-box"
+                    text="phone--input"
+                    placeholder="Enter On-Site Phone Number"
+                    value={site} // Bind to phone state
+                    onChange={handleSiteChange}
+                  />
 <label className="project-time">Time of Arrival *</label>
 <p className="time-label">What time do you want the TBS crew to arrive?</p>
 <select
