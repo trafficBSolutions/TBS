@@ -249,6 +249,7 @@ export default function TrafficControl() {
         jobDate: '',
         company: '',
         coordinator: '',
+        siteContact: '',
         time: '',
         project: '',
         flagger: '',
