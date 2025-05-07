@@ -6,6 +6,7 @@ import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import images from '../utils/tbsImages';
+import Header from '../components/headerviews/HeaderApply'
 const states = [
   { abbreviation: 'AL', name: 'Alabama' },
   { abbreviation: 'AK', name: 'Alaska' },
