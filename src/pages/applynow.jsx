@@ -692,7 +692,6 @@ if (!data.background) {
     <a className="header-logo" href="/">
         <img alt="TBS logo" className="tbs-logo-img" src={images["../assets/tbs_companies/tbs white.svg"].default} />
     </a>
-
     <ul className="main-nav-list">
         <li><a className="main-nav-link" href="/about-us">About Us</a></li>
         <li>
