@@ -618,7 +618,7 @@ Barricades
     }}
   />
   <p className="terms-text">
-    <strong>PLEASE READ AND CHECK:</strong>
+    <strong>PLEASE READ AND CHECK: </strong>
     By scheduling this job, you agree to pay once job is complete. 
   </p>
   
