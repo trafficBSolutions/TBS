@@ -37,7 +37,6 @@ export default function TrafficControl() {
   const [company, setCompany] = useState('');
   const [site, setSite] = useState('');
   const [siteContact, setSiteContact] = useState('');
-  const addressRegex = /^\d+\s+[A-Za-z0-9\s]+(?:\s+(?:NE|NW|SE|SW))?$/i;
   const [showEmergencyConfirm, setShowEmergencyConfirm] = useState(false);
   const [isEmergencyJob, setIsEmergencyJob] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -204,9 +203,6 @@ export default function TrafficControl() {
     });
     if (formData.equipment.length === 0) {
       newErrors.equipment = 'Please select at least one piece of equipment.';
-    }
-    if (!addressRegex.test(formData.address)) {
-      newErrors.address = 'Enter an address.';
     }
     
     if (Object.keys(newErrors).length > 0) {
