@@ -434,7 +434,13 @@ border-radius: 5px;
   gap: 10px;
   margin-top: 10px;
 }
-
+.message-control-label, .phone, .first-control-label-name, .email-control-name {
+  display: block;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-top: 1.5rem;
+    color: #333;
+}
 .btn--warning {
   background-color: #ffc107;
   color: black;
@@ -442,7 +448,9 @@ border-radius: 5px;
   border: none;
   cursor: pointer;
 }
-
+.terms-text {
+  font-size: 1.5rem;
+}
 .btn--cancel {
   background-color: #f44336;
   color: white;
@@ -584,6 +592,9 @@ border-radius: 5px;
   .submission-control-message {
     font-size: 1.2rem;
     line-height: 1.4rem;
+  }
+  .terms-text {
+    font-size: 1.2rem;
   }
 }
 
