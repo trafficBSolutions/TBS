@@ -634,22 +634,9 @@ Barricades
   placeholder="Enter Address"
   value={formData.address}
   onChange={(e) => {
-    const value = e.target.value;
-    setFormData({ ...formData, address: value });
-
-    if (value.trim()) {
-      setErrors((prevErrors) => ({ ...prevErrors, address: '' }));
-    }
-  }}
-  onBlur={(e) => {
-    const hasNumber = /\d/.test(e.target.value);
-    if (!hasNumber) {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        address: 'Please enter a valid address (e.g., "123 Main St NE" or "1 US Hwy 41").',
-      }));
-    } else {
-      setErrors((prevErrors) => ({ ...prevErrors, address: '' }));
+    setFormData({ ...formData, address: e.target.value });
+    if (e.target.value) {
+      setErrors((prevErrors) => ({ ...prevErrors, address: '' })); // Clear the error
     }
   }}
 />
