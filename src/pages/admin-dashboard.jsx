@@ -170,8 +170,8 @@ useEffect(() => {
     {job.phone && (
       <p><strong>Phone:</strong> <a href={`tel:${job.phone}`}>{job.phone}</a></p>
     )}
-<p><strong>Job-Site Contact:</strong> {job.siteContact}</p>
-<p><strong>Job-Site Contact Phone Number:</strong> <a href={`tel:${job.site}`}>{job.site}</a></p>
+<p><strong>On-Site Contact:</strong> {job.siteContact}</p>
+<p><strong>On-Site Contact Phone Number:</strong> <a href={`tel:${job.site}`}>{job.site}</a></p>
     <p><strong>Time:</strong> {job.time}</p>
     <p><strong>Project:</strong> {job.project}</p>
     <p><strong>Flaggers:</strong> {job.flagger}</p>
