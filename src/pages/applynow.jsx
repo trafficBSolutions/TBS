@@ -1169,18 +1169,7 @@ to provide additional context regarding your background, please reach out to our
       setErrors((prevErrors) => ({ ...prevErrors, address: '' }));
     }
   }}
-  onBlur={(e) => {
-    const hasNumber = /\d/.test(e.target.value);
-    if (!hasNumber) {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        address: 'Please enter a valid address (e.g., "123 Main St NE" or "1 US Hwy 41").',
-      }));
-    } else {
-      setErrors((prevErrors) => ({ ...prevErrors, address: '' }));
-    }
-  }}
-/>
+  />
 <input
   className="city"
   placeholder="City"
