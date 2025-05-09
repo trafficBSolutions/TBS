@@ -808,9 +808,9 @@ if (!data.background) {
                 {errors.email && <div className="error-message">{errors.email}</div>}
               </div>
 
-              <div className="phone">
+              <div className="phone-apply">
                 <div className="phonename-input">
-                  <label className="phone">Phone Number *</label>
+                  <label className="phone-apply">Phone Number *</label>
                   <input
                     name="phone"
                     type="text"
