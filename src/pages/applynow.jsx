@@ -789,8 +789,6 @@ if (!data.background) {
                 {errors.last && <div className="error-message">{errors.last}</div>}
               </div>
             </div>
-            </div>
-            <div className="job-emailphone">
             <div className="emailphone-input">
               <div className="email">
                 <div className="emailname-input">
