@@ -86,7 +86,11 @@ const fetchFullDates = async () => {
 
     setJobDates(updated);
   };
-
+  const normalizeDate = (date) => {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
     const handleSiteChange = (event) => {
     const input = event.target.value;
     const rawInput = input.replace(/\D/g, ''); // Remove non-digit characters
@@ -214,17 +218,10 @@ const handleSave = async () => {
                   "react-datepicker__day--highlighted-custom": jobDates
                 }
               ]}
-
 excludeDates={fullDates.filter(fullDate => {
   const normalizedFull = normalizeDate(fullDate);
-  const normalizeDate = (date) => {
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  return d;
-};
   return !jobDates.some(userDate => normalizeDate(userDate).getTime() === normalizedFull.getTime());
 })}
-
               inline
               calendarClassName="custom-datepicker"
               minDate={new Date(new Date().setDate(new Date().getDate() + 1))}
