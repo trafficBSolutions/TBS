@@ -1,0 +1,87 @@
+.job-management-info {
+    padding: 20px;
+    border-radius: 5px;
+    text-align: center;
+    background-color: #f7f7f7;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.job-management-info h1 {
+    font-size: 7rem;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+.job-management-info p {
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+}
+.manage-main {
+    background-color: #bcc3bd;
+}
+.manage-container {
+        background-color: #fff;
+    padding: 20px;
+    box-shadow: 0 4px 10px #0000001a;
+    margin: 20px auto;
+    max-width: 900px;
+}
+.manage-container label {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-top: 1.5rem;
+    color: #333;
+}
+.manage-container textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-top: 5px;
+        font-size: 1.5rem;
+    height: 20rem;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.traffic-control-date {
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: center;
+    color: #333;
+    margin-bottom: 10px;
+}
+.edit {
+    font-size: 2rem;
+    color: #000000;
+    text-align: center;
+    text-decoration: none;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+.form-group .react-datepicker {
+    margin: 0 auto;
+    text-align: center;
+    display: flex
+;
+    align-items: center;
+    justify-content: center;
+}
+.btn--warning {
+    background-color: #ffc107;
+    color: black;
+    padding: 0.9rem 1.8rem;
+    border: none;
+    cursor: pointer;
+    font-size: 1.5rem;
+    margin-top: 10px;
+}
+.job-manage-buttons {
+    text-align: center;
+}
+.btn--cancel {
+  background-color: #f44336;
+  color: white;
+    padding: 0.9rem 1.8rem;
+    border: none;
+    cursor: pointer;
+    font-size: 1.5rem;
+    margin-top: 10px;
+}
