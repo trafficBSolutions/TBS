@@ -229,7 +229,12 @@ const handleSave = async () => {
                   "react-datepicker__day--highlighted-custom": jobDates
                 }
               ]}
-              excludeDates={fullDates}
+              excludeDates={fullDates.filter(fullDate => {
+  const isSelectedByUser = jobDates.some(
+    d => d.toDateString() === fullDate.toDateString()
+  );
+  return !isSelectedByUser;
+})}
               inline
               calendarClassName="custom-datepicker"
               minDate={new Date(new Date().setDate(new Date().getDate() + 1))}
