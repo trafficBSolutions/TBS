@@ -42,7 +42,7 @@ const ManageJob = () => {
  useEffect(() => {
     const fetchJob = async () => {
       try {
-        const response = await axios.get(`http://localhost:8000/trafficcontrol/${id}`);
+        const response = await axios.get(`https://tbs-server.onrender.com/trafficcontrol/${id}`);
         const fetchedJob = response.data;
         setJob(fetchedJob);
         
@@ -61,7 +61,7 @@ const ManageJob = () => {
     };
 const fetchFullDates = async () => {
       try {
-        const res = await axios.get('http://localhost:8000/jobs/full-dates');
+        const res = await axios.get('https://tbs-server.onrender.com/jobs/full-dates');
         const booked = res.data.map(dateStr => {
           const [year, month, day] = dateStr.split('-').map(Number);
           return new Date(year, month - 1, day);
@@ -88,7 +88,7 @@ const fetchFullDates = async () => {
   };
   // Load job by ID
   useEffect(() => {
-    axios.get(`http://localhost:8000/jobs?id=${id}`)
+    axios.get(`https://tbs-server.onrender.com/jobs?id=${id}`)
       .then(res => {
         const fetchedJob = res.data[0]; // assuming one match
         setJob(fetchedJob);
@@ -148,7 +148,7 @@ const handleSave = async () => {
       }))
     };
 
-    await axios.patch(`http://localhost:8000/manage-job/${id}`, { updatedJob });
+    await axios.patch(`https://tbs-server.onrender.com/manage-job/${id}`, { updatedJob });
 
     setMessage('✅ Job updated successfully!');
     setError('');
