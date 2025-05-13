@@ -14,4 +14,5 @@ import About from './about-us'
 import CancelJob from './cancel-job'
 import AdminDashboard from './admin-dashboard'
 import AdminLog from './admin-login'
-export { AdminDashboard, CancelJob, About, Contact, Apply, Home, AdminLog, TrafficControl, TrafficPlan, BollardsWheels, Signs, Rentals, PPE, Error, TService, Product };
+import ManageJob from './manage-job'
+export { AdminDashboard, CancelJob, About, Contact, Apply, Home, AdminLog, TrafficControl, TrafficPlan, BollardsWheels, Signs, Rentals, PPE, Error, TService, Product, ManageJob };
