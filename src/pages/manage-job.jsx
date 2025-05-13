@@ -42,7 +42,7 @@ const ManageJob = () => {
  useEffect(() => {
     const fetchJob = async () => {
       try {
-        const response = await axios.get(`https://tbs-server.onrender.com/trafficcontrol/${id}`);
+        const response = await axios.get(`http://localhost:8000/trafficcontrol/${id}`);
         const fetchedJob = response.data;
         setJob(fetchedJob);
         
@@ -61,7 +61,7 @@ const ManageJob = () => {
     };
 const fetchFullDates = async () => {
       try {
-        const res = await axios.get('https://tbs-server.onrender.com/jobs/full-dates');
+        const res = await axios.get('http://localhost:8000/jobs/full-dates');
         const booked = res.data.map(dateStr => {
           const [year, month, day] = dateStr.split('-').map(Number);
           return new Date(year, month - 1, day);
@@ -87,6 +87,21 @@ const fetchFullDates = async () => {
     setJobDates(updated);
   };
   // Load job by ID
+  useEffect(() => {
+    axios.get(`http://localhost:8000/jobs?id=${id}`)
+      .then(res => {
+        const fetchedJob = res.data[0]; // assuming one match
+        setJob(fetchedJob);
+        const dates = fetchedJob.jobDates.map(d => new Date(d.date));
+        setJobDates(dates);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to load job:', err);
+        setError('Unable to load job.');
+        setLoading(false);
+      });
+  }, [id]);
     const handleSiteChange = (event) => {
     const input = event.target.value;
     const rawInput = input.replace(/\D/g, ''); // Remove non-digit characters
@@ -133,7 +148,7 @@ const handleSave = async () => {
       }))
     };
 
-    await axios.patch(`https://tbs-server.onrender.com/manage-job/${id}`, { updatedJob });
+    await axios.patch(`http://localhost:8000/manage-job/${id}`, { updatedJob });
 
     setMessage('✅ Job updated successfully!');
     setError('');
@@ -214,12 +229,17 @@ const handleSave = async () => {
                   "react-datepicker__day--highlighted-custom": jobDates
                 }
               ]}
-              excludeDates={fullDates.filter(fullDate => {
-  const isSelectedByUser = jobDates.some(
-    d => d.toDateString() === fullDate.toDateString()
-  );
-  return !isSelectedByUser;
+
+excludeDates={fullDates.filter(fullDate => {
+  const normalizedFull = normalizeDate(fullDate);
+  const normalizeDate = (date) => {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
+  return !jobDates.some(userDate => normalizeDate(userDate).getTime() === normalizedFull.getTime());
 })}
+
               inline
               calendarClassName="custom-datepicker"
               minDate={new Date(new Date().setDate(new Date().getDate() + 1))}
