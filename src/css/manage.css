@@ -85,3 +85,123 @@
     font-size: 1.5rem;
     margin-top: 10px;
 }
+@media screen and (max-width: 1200px) and (orientation: portrait) {
+    .job-management-info h1 {
+        font-size: 5rem;
+    }
+    .job-management-info p {
+        font-size: 1.6rem;
+    }
+    .manage-container {
+        padding: 15px;
+    }
+    .manage-container label {
+        font-size: 1.4rem;
+    }
+    .manage-container textarea {
+        font-size: 1.3rem;
+    }
+    .traffic-control-date {
+        font-size: 1.3rem;
+    }
+    .edit {
+        font-size: 1.6rem;
+    }
+    .btn--warning, .btn--cancel {
+        font-size: 1.3rem;
+    }
+    .submit-control {
+        font-size: 1.3rem;
+    }
+    .manage-container {
+        padding: 10px;
+        max-width: 600px;
+    }
+}
+@media screen and (min-width: 320px) and (max-width: 640px) and (orientation: portrait) {
+    .job-management-info h1 {
+        font-size: 3.5rem;
+    }
+    .job-management-info p {
+        font-size: 1.5rem;
+    }
+    .manage-container {
+        padding: 10px;
+    }
+    .manage-container label {
+        font-size: 1.6rem;
+    }
+    .manage-container textarea {
+        font-size: 1.2rem;
+    }
+    .traffic-control-date {
+        font-size: 1.2rem;
+    }
+    .edit {
+        font-size: 1.5rem;
+    }
+    .btn--warning, .btn--cancel {
+        font-size: 1.2rem;
+    }
+    .submit-control {
+        font-size: 1.2rem;
+    }
+}
+@media screen and (max-width: 320px) and (orientation: landscape) {
+    .job-management-info h1 {
+        font-size: 2.6rem;
+    }
+    .job-management-info p {
+        font-size: 1.5rem;
+    }
+    .manage-container {
+        padding: 10px;
+    }
+    .manage-container label {
+        font-size: 1.6rem;
+    }
+    .manage-container textarea {
+        font-size: 1.2rem;
+    }
+    .traffic-control-date {
+        font-size: 1.2rem;
+    }
+    .edit {
+        font-size: 1.5rem;
+    }
+    .btn--warning, .btn--cancel {
+        font-size: 1.2rem;
+    }
+    .submit-control {
+        font-size: 1.2rem;
+    }
+}
+@media screen and (max-width: 320px) and (orientation: portrait) {
+    .job-management-info h1 {
+        font-size: 2.3rem;
+    }
+    .job-management-info p {
+        font-size: 1.5rem;
+    }
+    .manage-container {
+        padding: 10px;
+    }
+    .manage-container label {
+        font-size: 1.5rem;
+    }
+    .manage-container textarea {
+        font-size: 1.2rem;
+    }
+    .traffic-control-date {
+        font-size: 1.2rem;
+    }
+    .edit {
+        font-size: 1.5rem;
+    }
+    .btn--warning, .btn--cancel {
+        font-size: 1.2rem;
+    }
+    .submit-control {
+        font-size: 1.2rem;
+    }
+}
