@@ -219,7 +219,7 @@ const confirmSave = async () => {
       }))
     };
 
-    await axios.patch(`http://localhost:8000/manage-job/${id}`, { updatedJob });
+    await axios.patch(`https://tbs-server.onrender.com/manage-job/${id}`, { updatedJob });
     setMessage('✅ Job updated successfully!');
     setError('');
     setIsEditing(false);
