@@ -131,22 +131,6 @@ const handleDateChange = (date) => {
 
   setJobDates(updated);
 };
-
-  useEffect(() => {
-    axios.get(`https://tbs-server.onrender.com/jobs?id=${id}`)
-      .then(res => {
-        const fetchedJob = res.data[0]; // assuming one match
-        setJob(fetchedJob);
-        const dates = fetchedJob.jobDates.map(d => new Date(d.date));
-        setJobDates(dates);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Failed to load job:', err);
-        setError('Unable to load job.');
-        setLoading(false);
-      });
-  }, [id]);
   
   // Load job by ID
     const handleSiteChange = (event) => {
