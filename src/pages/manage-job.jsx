@@ -47,10 +47,8 @@ const ManageJob = () => {
         setJob(fetchedJob);
 const dates = fetchedJob.jobDates
   .filter(d => !d.cancelled)
-  .map(d => {
-    const dt = new Date(d.date);
-    return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate()); // Normalize to local midnight
-  });
+  .map(d => normalizeDate(d.date)); // ⬅️ Ensures date is interpreted in local time
+
 setJobDates(dates);
 
         setLoading(false);
@@ -63,10 +61,10 @@ setJobDates(dates);
 const fetchFullDates = async () => {
       try {
         const res = await axios.get('https://tbs-server.onrender.com/jobs/full-dates');
-        const booked = res.data.map(dateStr => {
-          const [year, month, day] = dateStr.split('-').map(Number);
-          return new Date(year, month - 1, day);
-        });
+       const booked = res.data.map(dateStr => {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  return new Date(year, month - 1, day); // Already local
+});
         setFullDates(booked);
       } catch (err) {
         console.error('Failed to load full dates:', err);
@@ -119,22 +117,22 @@ const handleDateChange = (date) => {
     }
   };
 
-  const normalizeDate = (date) => {
+const normalizeDate = (date) => {
   const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  return d;
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 };
+
 const shouldExcludeDate = (date) => {
   const normalizedDate = normalizeDate(date);
   const userHasThisDate = jobDates.some(
     (userDate) => normalizeDate(userDate).getTime() === normalizedDate.getTime()
   );
 
-  // Disable if the day is fully booked and not already in user's job
   return fullDates.some(
     (fullDate) => normalizeDate(fullDate).getTime() === normalizedDate.getTime()
   ) && !userHasThisDate;
 };
+
 
 const handleSave = async () => {
   if (jobDates.length === 0) {
