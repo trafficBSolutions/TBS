@@ -91,7 +91,7 @@ const handleDateChange = (date) => {
 
   // Load job by ID
   useEffect(() => {
-    axios.get(`https://tbs-server.onrender.com/jobs?id=${id}`)
+    axios.get(`https://tbs-server.onrender.com/jobs`)
       .then(res => {
         const fetchedJob = res.data[0]; // assuming one match
         setJob(fetchedJob);
