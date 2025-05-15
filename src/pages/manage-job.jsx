@@ -258,18 +258,24 @@ const handleSave = async () => {
           <div className="job-manage-buttons">
           <h1 className="edit">Click to edit your job</h1>
 <div className="form-group">
-  <h1 className="traffic-control-date">Submitted Job Dates</h1>
-  <div className="submitted-dates-container">
-    {jobDates.length > 0 ? (
-      <ul>
-        {jobDates.map((d, index) => (
-          <li key={index}>{d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</li>
-        ))}
-      </ul>
-    ) : (
-      <p>No dates submitted for this job.</p>
-    )}
-</div>
+          <h1 className="traffic-control-date">Manage Job Dates</h1>
+          <div className="datepicker-container">
+            <h3>Edit Job Dates</h3>
+            <p><b>Note:</b> You can toggle dates by clicking them. Booked dates are disabled.</p>
+              <DatePicker
+  onChange={handleDateChange}
+  inline
+  calendarClassName="custom-datepicker"
+  minDate={new Date(new Date().setDate(new Date().getDate() + 1))}
+  excludeDates={fullDates.filter(shouldExcludeDate)}
+  highlightDates={[{ "react-datepicker__day--highlighted-custom": jobDates }]}
+  selectsMultiple
+  selected={null}
+/>
+            <div className="selected-date-display">
+              <strong>Selected Dates:</strong> {jobDates.map(d => d.toLocaleDateString('en-US')).join(', ') || 'None'}
+            </div>
+          </div>
           </div>
           {message && <p className="custom-toast success">{message}</p>}
         </div>
