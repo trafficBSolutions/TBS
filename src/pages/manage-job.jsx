@@ -47,7 +47,10 @@ const ManageJob = () => {
         setJob(fetchedJob);
 const dates = fetchedJob.jobDates
   .filter(d => !d.cancelled)
-  .map(d => normalizeDate(d.date)); // ⬅️ Ensures date is interpreted in local time
+  .map(d => {
+    const utcDate = new Date(d.date);
+    return new Date(utcDate.getUTCFullYear(), utcDate.getUTCMonth(), utcDate.getUTCDate()); // Proper local midnight
+  });
 
 setJobDates(dates);
 
@@ -57,7 +60,7 @@ setJobDates(dates);
         setError('Unable to load job data.');
         setLoading(false);
       }
-    };
+ }});
 useEffect(() => {
   axios.get('https://tbs-server.onrender.com/jobs/full-dates')
     .then(res => {
@@ -246,28 +249,17 @@ const handleSave = async () => {
           <div className="datepicker-container">
             <h3>Edit Job Dates</h3>
             <p><b>Note:</b> You can toggle dates by clicking them. Booked dates are disabled.</p>
-             <DatePicker
-  selected={jobDate}
-  onChange={(date) => {
-    // Store the selected date for display
-    setJobDate(date);
-    
-    // For the backend, create a date at midnight in the user's timezone
-    // This ensures consistent date handling
-    const localMidnight = new Date(
-      date.getFullYear(),
-      date.getMonth(),
-      date.getDate()
-    );
-    
-    setFormData({ ...formData, jobDate: localMidnight });
-    setErrors((prevErrors) => ({ ...prevErrors, jobDate: '' }));
-  }}
-  minDate={new Date(new Date().setDate(new Date().getDate() + 1))}
-  excludeDates={fullDates}
+            <DatePicker
+  onChange={handleDateChange}
   inline
   calendarClassName="custom-datepicker"
+  minDate={new Date(new Date().setDate(new Date().getDate() + 1))}
+  excludeDates={fullDates.filter(shouldExcludeDate)}
+  highlightDates={[{ "react-datepicker__day--highlighted-custom": jobDates }]}
+  selectsMultiple
+  selected={null} // Don't use jobDate here
 />
+
             <div className="selected-date-display">
               <strong>Selected Dates:</strong> {jobDates.map(d => d.toLocaleDateString('en-US')).join(', ') || 'None'}
             </div>
