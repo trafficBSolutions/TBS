@@ -78,46 +78,6 @@ const fetchFullDates = async () => {
   
   // Load full dates (booked up)
   const [loadingDates, setLoadingDates] = useState(true);
-
-useEffect(() => {
-const fetchJob = async () => {
-  try {
-    setLoadingDates(true);
-    const response = await axios.get(`https://tbs-server.onrender.com/trafficcontrol/${id}`);
-    const fetchedJob = response.data;
-    setJob(fetchedJob);
-    
-    // Convert job dates to Date objects
-    const dates = fetchedJob.jobDates
-      .filter(d => !d.cancelled)
-      .map(d => new Date(d.date));
-    
-    setJobDates(dates);
-    setLoading(false);
-  } catch (err) {
-    console.error('Failed to load job:', err);
-    setError('Unable to load job data.');
-    setLoading(false);
-  } finally {
-    setLoadingDates(false);
-  }
-};
-const fetchFullDates = async () => {
-      try {
-        const res = await axios.get('https://tbs-server.onrender.com/jobs/full-dates');
-        const booked = res.data.map(dateStr => {
-          const [year, month, day] = dateStr.split('-').map(Number);
-          return new Date(year, month - 1, day);
-        });
-        setFullDates(booked);
-      } catch (err) {
-        console.error('Failed to load full dates:', err);
-      }
-    };
-
-    fetchJob();
-    fetchFullDates();
-  }, [id]);
   
 const handleDateChange = (date) => {
   const selected = new Date(date); // ✅ Ensure it's a Date object
