@@ -37,6 +37,45 @@ const ManageJob = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+
+   useEffect(() => {
+    const fetchJob = async () => {
+      try {
+        const response = await axios.get(`https://tbs-server.onrender.com/trafficcontrol/${id}`);
+        const fetchedJob = response.data;
+        setJob(fetchedJob);
+        
+        // Convert job dates to Date objects
+        const dates = fetchedJob.jobDates
+          .filter(d => !d.cancelled)
+          .map(d => new Date(d.date));
+        
+        setJobDates(dates);
+        setLoading(false);
+      } catch (err) {
+        console.error('Failed to load job:', err);
+        setError('Unable to load job data.');
+        setLoading(false);
+      }
+    };
+    
+const fetchFullDates = async () => {
+      try {
+        const res = await axios.get('https://tbs-server.onrender.com/jobs/full-dates');
+        const booked = res.data.map(dateStr => {
+          const [year, month, day] = dateStr.split('-').map(Number);
+          return new Date(year, month - 1, day);
+        });
+        setFullDates(booked);
+      } catch (err) {
+        console.error('Failed to load full dates:', err);
+      }
+    };
+
+    fetchJob();
+    fetchFullDates();
+  }, [id]); 
+  
   // Load full dates (booked up)
   const [loadingDates, setLoadingDates] = useState(true);
 
@@ -92,7 +131,6 @@ const handleDateChange = (date) => {
 
   setJobDates(updated);
 };
-  
     const handleSiteChange = (event) => {
     const input = event.target.value;
     const rawInput = input.replace(/\D/g, ''); // Remove non-digit characters
@@ -163,7 +201,7 @@ const confirmSave = async () => {
       }))
     };
 
-    await axios.patch(`https://tbs-server.onrender.com/manage-job/${id}`, { updatedJob });
+    await axios.patch(`http://localhost:8000/manage-job/${id}`, { updatedJob });
     setMessage('✅ Job updated successfully!');
     setError('');
     setIsEditing(false);
@@ -176,8 +214,31 @@ const confirmSave = async () => {
     setShowConfirmation(false);
   }
 };
-if (loading) {
-  return (
+
+// Then add this confirmation dialog in your JSX
+{showConfirmation && (
+  <div className="confirmation-overlay">
+    <div className="confirmation-dialog">
+      <h3>Confirm Date Changes</h3>
+      <p>You are updating your job to the following dates:</p>
+      <ul>
+        {jobDates.map((date, index) => (
+          <li key={index}>{date.toLocaleDateString('en-US')}</li>
+        ))}
+      </ul>
+      <p>Are you sure you want to save these changes?</p>
+      <div className="confirmation-buttons">
+        <button className="btn btn--cancel" onClick={() => setShowConfirmation(false)}>
+          Cancel
+        </button>
+        <button className="btn btn--full" onClick={confirmSave}>
+          Confirm Changes
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+  if (loading) return (
     <div className="manage-main">
       <Header />
       <div className="loading-container">
@@ -185,39 +246,7 @@ if (loading) {
       </div>
     </div>
   );
-}
 
-return (
-  <div>
-    <Header />
-    <main className="manage-main">
-      {/* your content */}
-      {showConfirmation && (
-        <div className="confirmation-overlay">
-          <div className="confirmation-dialog">
-            <h3>Confirm Date Changes</h3>
-            <p>You are updating your job to the following dates:</p>
-            <ul>
-              {jobDates.map((date, index) => (
-                <li key={index}>{date.toLocaleDateString('en-US')}</li>
-              ))}
-            </ul>
-            <p>Are you sure you want to save these changes?</p>
-            <div className="confirmation-buttons">
-              <button className="btn btn--cancel" onClick={() => setShowConfirmation(false)}>
-                Cancel
-              </button>
-              <button className="btn btn--full" onClick={confirmSave}>
-                Confirm Changes
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </main>
-    {/* footer */}
-  </div>
-);
   return (
     <div>
       <Header />
