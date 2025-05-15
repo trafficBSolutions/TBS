@@ -45,13 +45,14 @@ const ManageJob = () => {
         const response = await axios.get(`https://tbs-server.onrender.com/trafficcontrol/${id}`);
         const fetchedJob = response.data;
         setJob(fetchedJob);
-        
-        // Convert job dates to Date objects
-        const dates = fetchedJob.jobDates
-          .filter(d => !d.cancelled)
-          .map(d => new Date(d.date));
-        
-        setJobDates(dates);
+const dates = fetchedJob.jobDates
+  .filter(d => !d.cancelled)
+  .map(d => {
+    const dt = new Date(d.date);
+    return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate()); // Normalize to local midnight
+  });
+setJobDates(dates);
+
         setLoading(false);
       } catch (err) {
         console.error('Failed to load job:', err);
@@ -94,8 +95,11 @@ const handleDateChange = (date) => {
       .then(res => {
         const fetchedJob = res.data[0]; // assuming one match
         setJob(fetchedJob);
-        const dates = fetchedJob.jobDates.map(d => new Date(d.date));
-        setJobDates(dates);
+        const dates = fetchedJob.jobDates.map(d => {
+  const dt = new Date(d.date);
+  return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+});
+setJobDates(dates);
         setLoading(false);
       })
       .catch(err => {
