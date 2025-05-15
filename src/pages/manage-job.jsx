@@ -37,27 +37,32 @@ const ManageJob = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  // Load full dates (booked up)
+  const [loadingDates, setLoadingDates] = useState(true);
 
-   useEffect(() => {
-    const fetchJob = async () => {
-      try {
-        const response = await axios.get(`https://tbs-server.onrender.com/trafficcontrol/${id}`);
-        const fetchedJob = response.data;
-        setJob(fetchedJob);
-        
-        // Convert job dates to Date objects
-        const dates = fetchedJob.jobDates
-          .filter(d => !d.cancelled)
-          .map(d => new Date(d.date));
-        
-        setJobDates(dates);
-        setLoading(false);
-      } catch (err) {
-        console.error('Failed to load job:', err);
-        setError('Unable to load job data.');
-        setLoading(false);
-      }
-    };
+useEffect(() => {
+const fetchJob = async () => {
+  try {
+    setLoadingDates(true);
+    const response = await axios.get(`https://tbs-server.onrender.com/trafficcontrol/${id}`);
+    const fetchedJob = response.data;
+    setJob(fetchedJob);
+    
+    // Convert job dates to Date objects
+    const dates = fetchedJob.jobDates
+      .filter(d => !d.cancelled)
+      .map(d => new Date(d.date));
+    
+    setJobDates(dates);
+    setLoading(false);
+  } catch (err) {
+    console.error('Failed to load job:', err);
+    setError('Unable to load job data.');
+    setLoading(false);
+  } finally {
+    setLoadingDates(false);
+  }
+};
 const fetchFullDates = async () => {
       try {
         const res = await axios.get('https://tbs-server.onrender.com/jobs/full-dates');
@@ -74,45 +79,7 @@ const fetchFullDates = async () => {
     fetchJob();
     fetchFullDates();
   }, [id]);
-  /*
-  // Load full dates (booked up)
- useEffect(() => {
-    const fetchJob = async () => {
-      try {
-        const response = await axios.get(`http://localhost:8000/trafficcontrol/${id}`);
-        const fetchedJob = response.data;
-        setJob(fetchedJob);
-        
-        // Convert job dates to Date objects
-        const dates = fetchedJob.jobDates
-          .filter(d => !d.cancelled)
-          .map(d => new Date(d.date));
-        
-        setJobDates(dates);
-        setLoading(false);
-      } catch (err) {
-        console.error('Failed to load job:', err);
-        setError('Unable to load job data.');
-        setLoading(false);
-      }
-    };
-const fetchFullDates = async () => {
-      try {
-        const res = await axios.get('http://localhost:8000/jobs/full-dates');
-        const booked = res.data.map(dateStr => {
-          const [year, month, day] = dateStr.split('-').map(Number);
-          return new Date(year, month - 1, day);
-        });
-        setFullDates(booked);
-      } catch (err) {
-        console.error('Failed to load full dates:', err);
-      }
-    };
-
-    fetchJob();
-    fetchFullDates();
-  }, [id]);
-  */
+  
 const handleDateChange = (date) => {
   const selected = new Date(date); // ✅ Ensure it's a Date object
 
@@ -125,7 +92,8 @@ const handleDateChange = (date) => {
 
   setJobDates(updated);
 };
-
+  
+  // Load job by ID
   useEffect(() => {
     axios.get(`https://tbs-server.onrender.com/jobs?id=${id}`)
       .then(res => {
@@ -142,24 +110,6 @@ const handleDateChange = (date) => {
       });
   }, [id]);
   
-  /*
-  // Load job by ID
-  useEffect(() => {
-    axios.get(`http://localhost:8000/jobs?id=${id}`)
-      .then(res => {
-        const fetchedJob = res.data[0]; // assuming one match
-        setJob(fetchedJob);
-        const dates = fetchedJob.jobDates.map(d => new Date(d.date));
-        setJobDates(dates);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Failed to load job:', err);
-        setError('Unable to load job.');
-        setLoading(false);
-      });
-  }, [id]);
-  */
     const handleSiteChange = (event) => {
     const input = event.target.value;
     const rawInput = input.replace(/\D/g, ''); // Remove non-digit characters
@@ -207,13 +157,19 @@ const shouldExcludeDate = (date) => {
     (fullDate) => normalizeDate(fullDate).getTime() === normalizedDate.getTime()
   ) && !userHasThisDate;
 };
-
+const [showConfirmation, setShowConfirmation] = useState(false);
 const handleSave = async () => {
   if (jobDates.length === 0) {
     setError('Please select at least one date.');
     return;
   }
 
+  // Show confirmation instead of immediately saving
+  setShowConfirmation(true);
+};
+
+// Add a new function to actually save after confirmation
+const confirmSave = async () => {
   try {
     const updatedJob = {
       ...job,
@@ -225,18 +181,42 @@ const handleSave = async () => {
     };
 
     await axios.patch(`https://tbs-server.onrender.com/manage-job/${id}`, { updatedJob });
-    /*
- await axios.patch(`https://tbs-server.onrender.com/manage-job/${id}`, { updatedJob }); */
     setMessage('✅ Job updated successfully!');
     setError('');
     setIsEditing(false);
+    setShowConfirmation(false);
 
     setTimeout(() => navigate('/trafficcontrol'), 2000);
   } catch (err) {
     console.error('Error saving updates:', err);
     setError('Failed to update job.');
+    setShowConfirmation(false);
   }
 };
+
+// Then add this confirmation dialog in your JSX
+{showConfirmation && (
+  <div className="confirmation-overlay">
+    <div className="confirmation-dialog">
+      <h3>Confirm Date Changes</h3>
+      <p>You are updating your job to the following dates:</p>
+      <ul>
+        {jobDates.map((date, index) => (
+          <li key={index}>{date.toLocaleDateString('en-US')}</li>
+        ))}
+      </ul>
+      <p>Are you sure you want to save these changes?</p>
+      <div className="confirmation-buttons">
+        <button className="btn btn--cancel" onClick={() => setShowConfirmation(false)}>
+          Cancel
+        </button>
+        <button className="btn btn--full" onClick={confirmSave}>
+          Confirm Changes
+        </button>
+      </div>
+    </div>
+  </div>
+)}
   if (loading) return (
     <div className="manage-main">
       <Header />
@@ -259,23 +239,33 @@ const handleSave = async () => {
           <h1 className="edit">Click to edit your job</h1>
 <div className="form-group">
           <h1 className="traffic-control-date">Manage Job Dates</h1>
-          <div className="datepicker-container">
-            <h3>Edit Job Dates</h3>
-            <p><b>Note:</b> You can toggle dates by clicking them. Booked dates are disabled.</p>
-              <DatePicker
-  onChange={handleDateChange}
-  inline
-  calendarClassName="custom-datepicker"
-  minDate={new Date(new Date().setDate(new Date().getDate() + 1))}
-  excludeDates={fullDates.filter(shouldExcludeDate)}
-  highlightDates={[{ "react-datepicker__day--highlighted-custom": jobDates }]}
-  selectsMultiple
-  selected={null}
-/>
-            <div className="selected-date-display">
-              <strong>Selected Dates:</strong> {jobDates.map(d => d.toLocaleDateString('en-US')).join(', ') || 'None'}
-            </div>
-          </div>
+<div className="datepicker-container">
+  <h3>Edit Job Dates</h3>
+  <div className="date-reference-message">
+    <p><strong>Important:</strong> Please refer to your confirmation email for your currently scheduled dates.</p>
+    <p>You can toggle dates below to add or remove them from your job schedule.</p>
+    <p><b>Note:</b> Booked dates are disabled. Highlighted dates are your current selections.</p>
+  </div>
+  {loadingDates ? (
+  <div className="loading-dates">Loading your scheduled dates...</div>
+) : (
+  <DatePicker
+    onChange={handleDateChange}
+    inline
+    calendarClassName="custom-datepicker"
+    minDate={new Date(new Date().setDate(new Date().getDate() + 1))}
+    excludeDates={fullDates.filter(shouldExcludeDate)}
+    highlightDates={[{ "react-datepicker__day--highlighted-custom": jobDates }]}
+    selectsMultiple
+    selected={null}
+  />
+  )}
+  <div className="selected-date-display">
+    <strong>Selected Dates:</strong> {jobDates.length > 0 ? 
+      jobDates.map(d => d.toLocaleDateString('en-US')).join(', ') : 
+      'None selected. Please check your email for current dates.'}
+  </div>
+</div>
           </div>
           {message && <p className="custom-toast success">{message}</p>}
         </div>
