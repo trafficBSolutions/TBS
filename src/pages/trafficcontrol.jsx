@@ -92,6 +92,7 @@ export default function TrafficControl() {
     // Clear error if the input is no longer empty
     if (value.trim() !== '') {
       setErrors((prevErrors) => ({ ...prevErrors, coordinator: '' }));
+      setTimeout(checkAllFieldsFilled, 0);
     }
   };
   
@@ -114,6 +115,7 @@ export default function TrafficControl() {
     if (updatedEquipment.length > 0) {
       setErrors((prev) => ({ ...prev, equipment: '' }));
     }
+    setTimeout(checkAllFieldsFilled, 0);
   };
   const handleContactChange = (e) => {
     const value = e.target.value;
@@ -158,6 +160,7 @@ export default function TrafficControl() {
     } else {
       setErrors((prevErrors) => ({ ...prevErrors, phone: 'Please enter a valid 10-digit phone number.' }));
     }
+    setTimeout(checkAllFieldsFilled, 0);
   };
     // Check emergency job logic
     const now = new Date();
@@ -172,6 +175,28 @@ export default function TrafficControl() {
       month: 'long',
       day: 'numeric'
     });  
+    // Add this function after your state declarations
+const checkAllFieldsFilled = () => {
+  const requiredFields = ['name', 'email', 'phone', 'jobDate',
+    'company', 'coordinator', 'time', 'project', 'flagger', 'address', 'city', 
+    'state', 'zip', 'message', 'terms'];
+  
+  // Check if all required fields are filled
+  const allFilled = requiredFields.every(field => 
+    formData[field] && formData[field].toString().trim() !== ''
+  );
+  
+  // Also check equipment which is an array
+  const equipmentSelected = formData.equipment && formData.equipment.length > 0;
+  
+  // If all fields are filled, clear the error message
+  if (allFilled && equipmentSelected) {
+    setErrorMessage('');
+  }
+  
+  return allFilled && equipmentSelected;
+};
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isSubmitting) return;
@@ -204,12 +229,14 @@ export default function TrafficControl() {
     if (formData.equipment.length === 0) {
       newErrors.equipment = 'Please select at least one piece of equipment.';
     }
-    
-    if (Object.keys(newErrors).length > 0) {
-      setErrorMessage('Required fields are missing.'); // Set the general error message
-      setErrors(newErrors);
-      return;
-    }
+if (Object.keys(newErrors).length > 0) {
+  setErrorMessage('Required fields are missing.');
+  setErrors(newErrors);
+  return;
+} else {
+  setErrorMessage(''); // ✅ Clear general error if all fields are now valid
+}
+
     if (!termsAccepted) {
       setErrors((prevErrors) => ({
         ...prevErrors,
@@ -316,7 +343,7 @@ export default function TrafficControl() {
     <div className="first-name-control-container">
 <label className="first-control-label-name">Name *</label>
 <input
-name="namet"
+name="name"
 type="text"
 className="first-control-name-input"
 text="first-name--input"
@@ -327,6 +354,7 @@ onChange={(e) => {
 if (e.target.value) {
   setErrors((prevErrors) => ({ ...prevErrors, name: '' })); // Clear the error
 }
+setTimeout(checkAllFieldsFilled, 0);
 }}
 />
 {errors.name && <div className="error-message">{errors.name}</div>}
@@ -349,6 +377,7 @@ onChange={(e) => {
 if (e.target.value) {
   setErrors((prevErrors) => ({ ...prevErrors, email: '' })); // Clear the error
 }
+setTimeout(checkAllFieldsFilled, 0);
 }}
 />
 {errors.email && <div className="error-message">{errors.email}</div>}
@@ -384,6 +413,7 @@ if (e.target.value) {
     setJobDates(updatedDates);
     setFormData((prev) => ({ ...prev, jobDate: updatedDates }));
     setErrors((prevErrors) => ({ ...prevErrors, jobDate: '' }));
+    setTimeout(checkAllFieldsFilled, 0);
   }}
   highlightDates={[
     {
@@ -422,8 +452,8 @@ if (e.target.value) {
       if (value.trim() !== '') {
         setErrors((prevErrors) => ({ ...prevErrors, company: '' }));
       }
-    }
-    }
+      setTimeout(checkAllFieldsFilled, 0);
+    }}
   />
 {errors.company && <div className="error-message">{errors.company}</div>}
 <label className="cord-label">Coordinator *</label>
@@ -477,6 +507,7 @@ if (e.target.value) {
   if (e.target.value) {
     setErrors((prevErrors) => ({ ...prevErrors, time: '' })); // Clear the error
   }
+  setTimeout(checkAllFieldsFilled, 0);
 }
 }
 >
@@ -494,18 +525,13 @@ if (e.target.value) {
   type="text"
   placeholder="Enter Project/Task Number"
   value={formData.project}
-  onChange={(e) => {
-    const value = e.target.value;
-
-    // Remove all non-alphanumeric characters, then convert to uppercase
-    const sanitized = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-
-    setFormData({ ...formData, project: sanitized });
-
-    if (sanitized.trim() !== '') {
-      setErrors((prevErrors) => ({ ...prevErrors, project: '' }));
-    }
-  }}
+onChange={(e) => { 
+  setFormData({ ...formData, project: e.target.value });
+if (e.target.value) {
+  setErrors((prevErrors) => ({ ...prevErrors, project: '' })); // Clear the error
+}
+setTimeout(checkAllFieldsFilled, 0);
+}}
 />
   {errors.project && <div className="error-message">{errors.project}</div>}
 <label className="project-flagger-label">Flaggers *</label>
@@ -520,6 +546,7 @@ if (e.target.value) {
     if (value.trim() !== '') {
       setErrors((prevErrors) => ({ ...prevErrors, flagger: '' }));
     }
+    setTimeout(checkAllFieldsFilled, 0);
   }}
 >
   <option value="">Select How Many Flaggers</option>
@@ -611,6 +638,7 @@ Barricades
       if (checked) {
         setErrors((prevErrors) => ({ ...prevErrors, terms: '' }));
       }
+      setTimeout(checkAllFieldsFilled, 0);
     }}
   />
   <p className="terms-text">
@@ -634,6 +662,7 @@ Barricades
     if (e.target.value) {
       setErrors((prevErrors) => ({ ...prevErrors, address: '' })); // Clear the error
     }
+    setTimeout(checkAllFieldsFilled, 0);
   }}
 />
 {errors.address && <div className="error-message">{errors.address}</div>}
@@ -664,7 +693,7 @@ onChange={(e) => {
   } else {
     setErrors((prevErrors) => ({ ...prevErrors, city: '' }));
   }
-
+setTimeout(checkAllFieldsFilled, 0);
   // Update formData with cleaned value
   setFormData((prev) => ({ ...prev, city: capitalized }));
 }}
@@ -680,6 +709,7 @@ onChange={(e) => {
       if (e.target.value) {
         setErrors((prevErrors) => ({ ...prevErrors, state: '' })); // Clear the error
       }
+      setTimeout(checkAllFieldsFilled, 0);
       }}
     >
       <option value="">Select State</option>
@@ -702,6 +732,7 @@ onChange={(e) => {
           if (formattedValue.length === 5) {
             setErrors((prevErrors) => ({ ...prevErrors, zip: '' }));
         }
+        setTimeout(checkAllFieldsFilled, 0);
       }}
         placeholder="Zip Code"
         maxLength={5}
@@ -720,8 +751,15 @@ onChange={(e) => {
   please explain here. Otherwise, please describe to us about your job and how do we need to set up! </h2>
 
 <textarea className="message-control-text" name="message" type="text" placeholder="Enter Message"
-  value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-  />
+  onChange={(e) => { 
+  setFormData({ ...formData, message: e.target.value });
+if (e.target.value) {
+  setErrors((prevErrors) => ({ ...prevErrors, message: '' })); // Clear the error
+}
+setTimeout(checkAllFieldsFilled, 0);
+}}
+/>
+
   {errors.message && <span className="error-message">{errors.message}</span>}
   
   </div>
@@ -802,7 +840,8 @@ setTimeout(() => {
   {submissionErrorMessage && (
     <div className="custom-toast error">{submissionErrorMessage}</div>
   )}
-  {errorMessage && (
+  {
+  errorMessage && (
     <div className="custom-toast error">{errorMessage}</div>
   )}
 </div>
