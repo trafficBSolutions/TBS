@@ -62,7 +62,7 @@ setJobDates(dates);
     };
 const fetchFullDates = async () => {
       try {
-        const res = await axios.get('https://tbs-server.onrender.com/full-dates');
+        const res = await axios.get('https://tbs-server.onrender.com/jobs/full-dates');
         const booked = res.data.map(dateStr => {
           const [year, month, day] = dateStr.split('-').map(Number);
           return new Date(year, month - 1, day);
