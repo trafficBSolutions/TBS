@@ -37,7 +37,7 @@ const ManageJob = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-
+/*
    useEffect(() => {
     const fetchJob = async () => {
       try {
@@ -74,11 +74,34 @@ const fetchFullDates = async () => {
 
     fetchJob();
     fetchFullDates();
-  }, [id]); 
+  }, [id]); */
   
   // Load full dates (booked up)
   const [loadingDates, setLoadingDates] = useState(true);
 
+useEffect(() => {
+const fetchJob = async () => {
+  try {
+    setLoadingDates(true);
+    const response = await axios.get(`https://tbs-server.onrender.com/trafficcontrol/${id}`);
+    const fetchedJob = response.data;
+    setJob(fetchedJob);
+    
+    // Convert job dates to Date objects
+    const dates = fetchedJob.jobDates
+      .filter(d => !d.cancelled)
+      .map(d => new Date(d.date));
+    
+    setJobDates(dates);
+    setLoading(false);
+  } catch (err) {
+    console.error('Failed to load job:', err);
+    setError('Unable to load job data.');
+    setLoading(false);
+  } finally {
+    setLoadingDates(false);
+  }
+};
 const fetchFullDates = async () => {
       try {
         const res = await axios.get('https://tbs-server.onrender.com/jobs/full-dates');
@@ -108,6 +131,24 @@ const handleDateChange = (date) => {
 
   setJobDates(updated);
 };
+
+  useEffect(() => {
+    axios.get(`https://tbs-server.onrender.com/jobs?id=${id}`)
+      .then(res => {
+        const fetchedJob = res.data[0]; // assuming one match
+        setJob(fetchedJob);
+        const dates = fetchedJob.jobDates.map(d => new Date(d.date));
+        setJobDates(dates);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to load job:', err);
+        setError('Unable to load job.');
+        setLoading(false);
+      });
+  }, [id]);
+  
+  // Load job by ID
     const handleSiteChange = (event) => {
     const input = event.target.value;
     const rawInput = input.replace(/\D/g, ''); // Remove non-digit characters
@@ -178,7 +219,7 @@ const confirmSave = async () => {
       }))
     };
 
-    await axios.patch(`https://tbs-server.onrender.com/manage-job/${id}`, { updatedJob });
+    await axios.patch(`http://localhost:8000/manage-job/${id}`, { updatedJob });
     setMessage('✅ Job updated successfully!');
     setError('');
     setIsEditing(false);
