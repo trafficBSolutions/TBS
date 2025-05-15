@@ -58,22 +58,20 @@ setJobDates(dates);
         setLoading(false);
       }
     };
-const fetchFullDates = async () => {
-      try {
-        const res = await axios.get('https://tbs-server.onrender.com/jobs/full-dates');
-       const booked = res.data.map(dateStr => {
-  const [year, month, day] = dateStr.split('-').map(Number);
-  return new Date(year, month - 1, day); // Already local
-});
-        setFullDates(booked);
-      } catch (err) {
-        console.error('Failed to load full dates:', err);
-      }
-    };
-
-    fetchJob();
-    fetchFullDates();
-  }, [id]);
+useEffect(() => {
+  axios.get('https://tbs-server.onrender.com/jobs/full-dates')
+    .then(res => {
+      // Convert string dates (YYYY-MM-DD) to Date objects
+      const fullDateObjects = res.data.map(dateStr => {
+        const [year, month, day] = dateStr.split('-').map(Number);
+        // Create date objects (month is 0-indexed)
+        return new Date(year, month - 1, day);
+      });
+      
+      setFullDates(fullDateObjects);
+    })
+    .catch(err => console.error("Error loading full dates", err));
+}, []);
 const handleDateChange = (date) => {
   const selected = new Date(date); // ✅ Ensure it's a Date object
 
@@ -139,7 +137,31 @@ const handleSave = async () => {
     setError('Please select at least one date.');
     return;
   }
+ const submittedDate = new Date(jobDate);
+        
+        // Convert to EST timezone for consistent date comparison
+        const estOptions = { timeZone: 'America/New_York' };
+        const estDateStr = submittedDate.toLocaleDateString('en-US', estOptions);
+        const [month, day, year] = estDateStr.split('/').map(Number);
+        
+        // Create EST midnight for the job date
+        const estMidnight = new Date(Date.UTC(year, month - 1, day));
+        
+        // Count jobs for the same EST date
+        const startOfDay = new Date(estMidnight);
+        const endOfDay = new Date(estMidnight);
+        endOfDay.setUTCDate(endOfDay.getUTCDate() + 1);
+        
+        const jobCount = await ControlUser.countDocuments({
+            jobDate: { 
+                $gte: startOfDay,
+                $lt: endOfDay
+            }
+        });
 
+        if (jobCount >= 10) {
+            return res.status(400).json({ error: 'Job limit reached for the selected date' });
+        }
   try {
     const updatedJob = {
       ...job,
@@ -224,15 +246,27 @@ const handleSave = async () => {
           <div className="datepicker-container">
             <h3>Edit Job Dates</h3>
             <p><b>Note:</b> You can toggle dates by clicking them. Booked dates are disabled.</p>
-              <DatePicker
-  onChange={handleDateChange}
+             <DatePicker
+  selected={jobDate}
+  onChange={(date) => {
+    // Store the selected date for display
+    setJobDate(date);
+    
+    // For the backend, create a date at midnight in the user's timezone
+    // This ensures consistent date handling
+    const localMidnight = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate()
+    );
+    
+    setFormData({ ...formData, jobDate: localMidnight });
+    setErrors((prevErrors) => ({ ...prevErrors, jobDate: '' }));
+  }}
+  minDate={new Date(new Date().setDate(new Date().getDate() + 1))}
+  excludeDates={fullDates}
   inline
   calendarClassName="custom-datepicker"
-  minDate={new Date(new Date().setDate(new Date().getDate() + 1))}
-  excludeDates={fullDates.filter(shouldExcludeDate)}
-  highlightDates={[{ "react-datepicker__day--highlighted-custom": jobDates }]}
-  selectsMultiple
-  selected={null}
 />
             <div className="selected-date-display">
               <strong>Selected Dates:</strong> {jobDates.map(d => d.toLocaleDateString('en-US')).join(', ') || 'None'}
