@@ -38,43 +38,81 @@ const ManageJob = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  // Load full dates (booked up)
- useEffect(() => {
+   useEffect(() => {
     const fetchJob = async () => {
       try {
         const response = await axios.get(`https://tbs-server.onrender.com/trafficcontrol/${id}`);
         const fetchedJob = response.data;
         setJob(fetchedJob);
-const dates = fetchedJob.jobDates
-  .filter(d => !d.cancelled)
-  .map(d => {
-    const utcDate = new Date(d.date);
-    return new Date(utcDate.getUTCFullYear(), utcDate.getUTCMonth(), utcDate.getUTCDate()); // Proper local midnight
-  });
-
-setJobDates(dates);
-
+        
+        // Convert job dates to Date objects
+        const dates = fetchedJob.jobDates
+          .filter(d => !d.cancelled)
+          .map(d => new Date(d.date));
+        
+        setJobDates(dates);
         setLoading(false);
       } catch (err) {
         console.error('Failed to load job:', err);
         setError('Unable to load job data.');
         setLoading(false);
       }
- }});
-useEffect(() => {
-  axios.get('https://tbs-server.onrender.com/jobs/full-dates')
-    .then(res => {
-      // Convert string dates (YYYY-MM-DD) to Date objects
-      const fullDateObjects = res.data.map(dateStr => {
-        const [year, month, day] = dateStr.split('-').map(Number);
-        // Create date objects (month is 0-indexed)
-        return new Date(year, month - 1, day);
-      });
-      
-      setFullDates(fullDateObjects);
-    })
-    .catch(err => console.error("Error loading full dates", err));
-}, []);
+    };
+const fetchFullDates = async () => {
+      try {
+        const res = await axios.get('https://tbs-server.onrender.com/jobs/full-dates');
+        const booked = res.data.map(dateStr => {
+          const [year, month, day] = dateStr.split('-').map(Number);
+          return new Date(year, month - 1, day);
+        });
+        setFullDates(booked);
+      } catch (err) {
+        console.error('Failed to load full dates:', err);
+      }
+    };
+
+    fetchJob();
+    fetchFullDates();
+  }, [id]);
+  /*
+  // Load full dates (booked up)
+ useEffect(() => {
+    const fetchJob = async () => {
+      try {
+        const response = await axios.get(`http://localhost:8000/trafficcontrol/${id}`);
+        const fetchedJob = response.data;
+        setJob(fetchedJob);
+        
+        // Convert job dates to Date objects
+        const dates = fetchedJob.jobDates
+          .filter(d => !d.cancelled)
+          .map(d => new Date(d.date));
+        
+        setJobDates(dates);
+        setLoading(false);
+      } catch (err) {
+        console.error('Failed to load job:', err);
+        setError('Unable to load job data.');
+        setLoading(false);
+      }
+    };
+const fetchFullDates = async () => {
+      try {
+        const res = await axios.get('http://localhost:8000/jobs/full-dates');
+        const booked = res.data.map(dateStr => {
+          const [year, month, day] = dateStr.split('-').map(Number);
+          return new Date(year, month - 1, day);
+        });
+        setFullDates(booked);
+      } catch (err) {
+        console.error('Failed to load full dates:', err);
+      }
+    };
+
+    fetchJob();
+    fetchFullDates();
+  }, [id]);
+  */
 const handleDateChange = (date) => {
   const selected = new Date(date); // ✅ Ensure it's a Date object
 
@@ -87,6 +125,41 @@ const handleDateChange = (date) => {
 
   setJobDates(updated);
 };
+
+  useEffect(() => {
+    axios.get(`https://tbs-server.onrender.com/jobs?id=${id}`)
+      .then(res => {
+        const fetchedJob = res.data[0]; // assuming one match
+        setJob(fetchedJob);
+        const dates = fetchedJob.jobDates.map(d => new Date(d.date));
+        setJobDates(dates);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to load job:', err);
+        setError('Unable to load job.');
+        setLoading(false);
+      });
+  }, [id]);
+  
+  /*
+  // Load job by ID
+  useEffect(() => {
+    axios.get(`http://localhost:8000/jobs?id=${id}`)
+      .then(res => {
+        const fetchedJob = res.data[0]; // assuming one match
+        setJob(fetchedJob);
+        const dates = fetchedJob.jobDates.map(d => new Date(d.date));
+        setJobDates(dates);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to load job:', err);
+        setError('Unable to load job.');
+        setLoading(false);
+      });
+  }, [id]);
+  */
     const handleSiteChange = (event) => {
     const input = event.target.value;
     const rawInput = input.replace(/\D/g, ''); // Remove non-digit characters
@@ -118,53 +191,29 @@ const handleDateChange = (date) => {
     }
   };
 
-const normalizeDate = (date) => {
+  const normalizeDate = (date) => {
   const d = new Date(date);
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  d.setHours(0, 0, 0, 0);
+  return d;
 };
-
 const shouldExcludeDate = (date) => {
   const normalizedDate = normalizeDate(date);
   const userHasThisDate = jobDates.some(
     (userDate) => normalizeDate(userDate).getTime() === normalizedDate.getTime()
   );
 
+  // Disable if the day is fully booked and not already in user's job
   return fullDates.some(
     (fullDate) => normalizeDate(fullDate).getTime() === normalizedDate.getTime()
   ) && !userHasThisDate;
 };
-
 
 const handleSave = async () => {
   if (jobDates.length === 0) {
     setError('Please select at least one date.');
     return;
   }
- const submittedDate = new Date(jobDate);
-        
-        // Convert to EST timezone for consistent date comparison
-        const estOptions = { timeZone: 'America/New_York' };
-        const estDateStr = submittedDate.toLocaleDateString('en-US', estOptions);
-        const [month, day, year] = estDateStr.split('/').map(Number);
-        
-        // Create EST midnight for the job date
-        const estMidnight = new Date(Date.UTC(year, month - 1, day));
-        
-        // Count jobs for the same EST date
-        const startOfDay = new Date(estMidnight);
-        const endOfDay = new Date(estMidnight);
-        endOfDay.setUTCDate(endOfDay.getUTCDate() + 1);
-        
-        const jobCount = await ControlUser.countDocuments({
-            jobDate: { 
-                $gte: startOfDay,
-                $lt: endOfDay
-            }
-        });
 
-        if (jobCount >= 10) {
-            return res.status(400).json({ error: 'Job limit reached for the selected date' });
-        }
   try {
     const updatedJob = {
       ...job,
@@ -175,8 +224,9 @@ const handleSave = async () => {
       }))
     };
 
-    await axios.patch(`https://tbs-server.onrender.com/manage-job/${id}`, { updatedJob });
-
+    await axios.patch(`http://localhost:8000/manage-job/${id}`, { updatedJob });
+    /*
+ await axios.patch(`https://tbs-server.onrender.com/manage-job/${id}`, { updatedJob }); */
     setMessage('✅ Job updated successfully!');
     setError('');
     setIsEditing(false);
@@ -249,7 +299,7 @@ const handleSave = async () => {
           <div className="datepicker-container">
             <h3>Edit Job Dates</h3>
             <p><b>Note:</b> You can toggle dates by clicking them. Booked dates are disabled.</p>
-            <DatePicker
+              <DatePicker
   onChange={handleDateChange}
   inline
   calendarClassName="custom-datepicker"
@@ -257,9 +307,8 @@ const handleSave = async () => {
   excludeDates={fullDates.filter(shouldExcludeDate)}
   highlightDates={[{ "react-datepicker__day--highlighted-custom": jobDates }]}
   selectsMultiple
-  selected={null} // Don't use jobDate here
+  selected={null}
 />
-
             <div className="selected-date-display">
               <strong>Selected Dates:</strong> {jobDates.map(d => d.toLocaleDateString('en-US')).join(', ') || 'None'}
             </div>
