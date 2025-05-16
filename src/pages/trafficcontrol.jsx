@@ -37,8 +37,6 @@ export default function TrafficControl() {
   const [company, setCompany] = useState('');
   const [site, setSite] = useState('');
   const [siteContact, setSiteContact] = useState('');
-  const [showEmergencyConfirm, setShowEmergencyConfirm] = useState(false);
-  const [isEmergencyJob, setIsEmergencyJob] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [coordinator, setCoordinator] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -66,20 +64,51 @@ export default function TrafficControl() {
   const [errors, setErrors] = useState({});
   const [submissionMessage, setSubmissionMessage] = useState('');
   const [submissionErrorMessage, setSubmissionErrorMessage] = useState('');
-  useEffect(() => {
-    axios.get('https://tbs-server.onrender.com/jobs/full-dates')
-      .then(res => {
-        // Convert string dates (YYYY-MM-DD) to Date objects
-        const fullDateObjects = res.data.map(dateStr => {
-          const [year, month, day] = dateStr.split('-').map(Number);
-          // Create date objects (month is 0-indexed)
-          return new Date(year, month - 1, day);
-        });
-        
-        setFullDates(fullDateObjects);
-      })
-      .catch(err => console.error("Error loading full dates", err));
-  }, []);
+  const getNowInEST = () => {
+  return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
+};
+  const getDisabledDayClass = (date) => {
+  const nowEST = getNowInEST();
+  const tomorrow = new Date(nowEST);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0, 0, 0, 0);
+
+  const isLate = nowEST.getHours() >= 20;
+  const isTomorrow = date.toDateString() === tomorrow.toDateString();
+
+  if (isLate && isTomorrow) {
+    return 'disabled-tomorrow-tooltip';
+  }
+
+  return '';
+};
+useEffect(() => {
+  axios.get('https://tbs-server.onrender.com/jobs/full-dates')
+    .then(res => {
+      const fullDateObjects = res.data.map(dateStr => {
+        const [year, month, day] = dateStr.split('-').map(Number);
+        return new Date(year, month - 1, day);
+      });
+
+      const nowEST = getNowInEST();
+      const hour = nowEST.getHours();
+
+      if (hour >= 20) {
+        const tomorrow = new Date(nowEST);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(0, 0, 0, 0);
+
+        const alreadyFull = fullDateObjects.some(d => d.toDateString() === tomorrow.toDateString());
+        if (!alreadyFull) {
+          fullDateObjects.push(tomorrow);
+        }
+      }
+
+      setFullDates(fullDateObjects);
+    })
+    .catch(err => console.error("Error loading full dates", err));
+}, []);
+
   const handleCoordinatorChange = (e) => {
     const value = e.target.value;
   
@@ -246,17 +275,6 @@ if (Object.keys(newErrors).length > 0) {
       setIsSubmitting(false);
       return;
     }     
-
-  if (
-    isLateNight &&
-    isTomorrowSelected &&
-    jobDates.length >= 1 &&
-    !isEmergencyJob
-  ) {
-    setShowEmergencyConfirm(true);
-    setIsSubmitting(false); // rollback the submit lock
-    return; // ⛔ prevent submission
-  }  
   setIsSubmitting(true);
       const response = await axios.post('/trafficcontrol', formData, {
         headers: {
@@ -424,6 +442,7 @@ setTimeout(checkAllFieldsFilled, 0);
   excludeDates={fullDates}
   inline
   calendarClassName="custom-datepicker"
+  dayClassName={(date) => getDisabledDayClass(date)}
 />
   <div className="selected-date-display">
   {jobDates.length > 0 ? (
@@ -777,62 +796,6 @@ setTimeout(checkAllFieldsFilled, 0);
       'SUBMIT TRAFFIC CONTROL JOB'
     )}
   </button>
-  {showEmergencyConfirm && (
-  <div className="emergency-warning-box">
-<p className="emergency-warning-text">
-  ⚠️ <strong>Heads Up:</strong> You’re submitting this job between <strong>9:00 PM and midnight</strong> and selected <strong>{tomorrowFormatted}</strong> as one of your job dates. This will be considered an <strong>emergency job</strong> and may require additional coordination and earlier deployment.<br /><br />
-  <strong>Are you sure you want to proceed?</strong>
-</p>
-    <div className="emergency-warning-buttons">
-      <button
-        type="button"
-        className="btn btn--warning"
-        onClick={() => {
-          setShowEmergencyConfirm(false);
-setIsEmergencyJob(true);
-setTimeout(() => {
-  document.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-}, 0);
-
-        }}
-      >
-        Yes, Proceed
-      </button>
-      <button
-        type="button"
-        className="btn btn--cancel"
-        onClick={() => {
-          setFormData({
-            name: '',
-            email: '',
-            phone: '',
-            jobDate: '',
-            company: '',
-            coordinator: '',
-            time: '',
-            project: '',
-            flagger: '',
-            equipment: [],
-            terms: '',
-            address: '',
-            city: '',
-            state: '',
-            zip: '',
-            message: ''
-          });
-          setJobDates([]);
-          setPhone('');
-          setErrors({});
-          setSubmissionMessage('');
-          setShowEmergencyConfirm(false);
-          setIsEmergencyJob(false);
-        }}
-      >
-        No, Clear Form
-      </button>
-    </div>
-  </div>
-)}
   {/* Toast-like message */}
   {submissionMessage && (
     <div className="custom-toast success">{submissionMessage}</div>
