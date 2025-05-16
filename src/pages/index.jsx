@@ -17,4 +17,5 @@ import AdminLog from './admin-login'
 import ManageJob from './manage-job'
 import TrafficControlTest from './traffic-control-test-page'
 import ManageJobTest from './manage-job-test'
-export { AdminDashboard, CancelJob, About, Contact, Apply, Home, AdminLog, TrafficControl, TrafficPlan, BollardsWheels, Signs, Rentals, PPE, Error, TService, Product, ManageJob, TrafficControlTest, ManageJobTest };
+import CancelJobTest from './cancel-job-test'
+export { AdminDashboard, CancelJob, About, Contact, Apply, Home, AdminLog, TrafficControl, TrafficPlan, BollardsWheels, Signs, Rentals, PPE, Error, TService, Product, ManageJob, TrafficControlTest, ManageJobTest, CancelJobTest };
