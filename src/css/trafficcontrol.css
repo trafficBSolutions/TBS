@@ -81,6 +81,34 @@
   border-radius: 8px 8px 0 0;
   border-bottom: none;
 }
+/* Tooltip styling for disabled tomorrow after 8:00pm EST */
+.react-datepicker__day.disabled-tomorrow-tooltip {
+  position: relative;
+  pointer-events: none; /* disables clicking */
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.react-datepicker__day.disabled-tomorrow-tooltip::after {
+  content: "⛔ Unavailable after 8:00 PM EST";
+  position: absolute;
+  bottom: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #222;
+  color: #fff;
+  padding: 5px 8px;
+  border-radius: 5px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+  pointer-events: none;
+}
+.react-datepicker__day.disabled-tomorrow-tooltip:hover::after {
+  opacity: 1;
+}
 .address-note {
   font-size: 1.2rem;
   text-align: center;
