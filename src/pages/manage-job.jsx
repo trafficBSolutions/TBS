@@ -272,16 +272,16 @@ const confirmSave = async () => {
   {loadingDates ? (
   <div className="loading-dates">Loading your scheduled dates...</div>
 ) : (
-  <DatePicker
-    onChange={handleDateChange}
-    inline
-    calendarClassName="custom-datepicker"
-    minDate={new Date(new Date().setDate(new Date().getDate() + 1))}
-    excludeDates={fullDates.filter(shouldExcludeDate)}
-    highlightDates={[{ "react-datepicker__day--highlighted-custom": jobDates }]}
-    selectsMultiple
-    selected={null}
-  />
+<DatePicker
+  onChange={handleDateChange}
+  inline
+  calendarClassName="custom-datepicker"
+  minDate={new Date(new Date().setDate(new Date().getDate() + 1))}
+  excludeDates={fullDates.filter(shouldExcludeDate)}
+  highlightDates={[{ "react-datepicker__day--highlighted-custom": jobDates }]}
+  selectsMultiple
+  selected={null}
+/>
   )}
   <div className="selected-date-display">
     <strong>Selected Dates:</strong> {jobDates.length > 0 ? 
