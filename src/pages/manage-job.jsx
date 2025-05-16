@@ -287,15 +287,13 @@ const [showConfirmation, setShowConfirmation] = useState(false);
   </div>
 </div>
           </div>
-         {message && <p className="custom-toast success">{message}</p>}
-            {error && <p className="custom-toast error">{error}</p>}
           </div>
           <button className="btn btn--full submit-control" onClick={handleSave}>
             Save Changes
           </button>
-        </div>
-        
-        {/* Add the confirmation dialog inside the return statement */}
+          {message && <p className="custom-toast success">{message}</p>}
+            {error && <p className="custom-toast error">{error}</p>}
+                  {/* Add the confirmation dialog inside the return statement */}
         {showConfirmation && (
           <div className="confirmation-overlay">
             <div className="confirmation-dialog">
@@ -318,6 +316,7 @@ const [showConfirmation, setShowConfirmation] = useState(false);
             </div>
           </div>
         )}
+        </div>
       </main>
             <footer className="footer">
   <div className="site-footer__inner">
