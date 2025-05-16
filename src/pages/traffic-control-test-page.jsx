@@ -29,7 +29,7 @@ const timeOptions = [
 const flaggerCount = [
   "2 Flaggers", "3 Flaggers", "4 Flaggers", "5 Flaggers", "6 Flaggers"
 ]
-export default function TrafficControl() {
+export default function TrafficControlTest() {
   const [phone, setPhone] = useState('');
   const [jobDates, setJobDates] = useState([]);
   const [time, setTime] = useState('7:00am');
