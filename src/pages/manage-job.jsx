@@ -180,41 +180,39 @@ const shouldExcludeDate = (date) => {
   ) && !userHasThisDate;
 };
 const [showConfirmation, setShowConfirmation] = useState(false);
-const handleSave = async () => {
-  if (jobDates.length === 0) {
-    setError('Please select at least one date.');
-    return;
-  }
-
+  const [errors, setErrors] = useState({});
+  const handleSave = () => {
+    if (jobDates.length === 0) {
+      setError('Please select at least one date.');
+      return;
+    }
   // Show confirmation instead of immediately saving
   setShowConfirmation(true);
 };
-
 // Add a new function to actually save after confirmation
-const confirmSave = async () => {
-  try {
-    const updatedJob = {
-      ...job,
-      jobDates: jobDates.map(date => ({
-        date: date,
-        cancelled: false,
-        cancelledAt: null
-      }))
-    };
-
+  const confirmSave = async () => {
+    try {
+      const updatedJob = {
+        ...job,
+        jobDates: jobDates.map(date => ({
+          date: date,
+          cancelled: false,
+          cancelledAt: null
+        }))
+      };
     await axios.patch(`https://tbs-server.onrender.com/manage-job/${id}`, { updatedJob });
     setMessage('✅ Job updated successfully!');
-    setError('');
-    setIsEditing(false);
-    setShowConfirmation(false);
+      setError('');
+      setIsEditing(false);
+      setShowConfirmation(false);
 
     setTimeout(() => navigate('/trafficcontrol'), 2000);
-  } catch (err) {
-    console.error('Error saving updates:', err);
-    setError('Failed to update job.');
-    setShowConfirmation(false);
-  }
-};
+    } catch (err) {
+      console.error('Error saving updates:', err);
+      setError('Failed to update job.');
+      setShowConfirmation(false);
+    }
+  };
 
 // Then add this confirmation dialog in your JSX
 {showConfirmation && (
@@ -289,12 +287,37 @@ const confirmSave = async () => {
   </div>
 </div>
           </div>
-          {message && <p className="custom-toast success">{message}</p>}
-        </div>
+         {message && <p className="custom-toast success">{message}</p>}
+            {error && <p className="custom-toast error">{error}</p>}
+          </div>
           <button className="btn btn--full submit-control" onClick={handleSave}>
             Save Changes
           </button>
+        </div>
+        
+        {/* Add the confirmation dialog inside the return statement */}
+        {showConfirmation && (
+          <div className="confirmation-overlay">
+            <div className="confirmation-dialog">
+              <h3>Confirm Date Changes</h3>
+              <p>You are updating your job to the following dates:</p>
+              <ul>
+                {jobDates.map((date, index) => (
+                  <li key={index}>{date.toLocaleDateString('en-US')}</li>
+                ))}
+              </ul>
+              <p>Are you sure you want to save these changes?</p>
+              <div className="confirmation-buttons">
+                <button className="btn btn--cancel" onClick={() => setShowConfirmation(false)}>
+                  Cancel
+                </button>
+                <button className="btn btn--full" onClick={confirmSave}>
+                  Confirm Changes
+                </button>
+              </div>
+            </div>
           </div>
+        )}
       </main>
             <footer className="footer">
   <div className="site-footer__inner">
