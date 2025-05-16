@@ -99,7 +99,7 @@
 .confirmation-overlay {
     text-align: center;
 }
-.confirmation-overlay h1 {
+.confirmation-overlay h3 {
     font-size: 2.5rem;
     margin-bottom: 20px;
 }
