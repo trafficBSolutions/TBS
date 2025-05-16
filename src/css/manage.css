@@ -85,6 +85,32 @@
     font-size: 1.5rem;
     margin-top: 10px;
 }
+.date-reference-message {
+  background-color: #f8f9fa;
+  border-left: 4px solid #efad76;
+  padding: 10px 15px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+}
+
+.date-reference-message p {
+  margin: 5px 0;
+}
+.confirmation-overlay {
+    text-align: center;
+}
+.confirmation-overlay h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+}
+.confirmation-overlay p {
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+}
+.confirmation-overlay li {
+    list-style: none;
+    font-size: 1.5rem;
+}
 @media screen and (max-width: 1200px) and (orientation: portrait) {
     .job-management-info h1 {
         font-size: 5rem;
