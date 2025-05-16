@@ -258,7 +258,7 @@ if (Object.keys(newErrors).length > 0) {
     return; // ⛔ prevent submission
   }  
   setIsSubmitting(true);
-      const response = await axios.post('/trafficcontrol', formData, {
+      const response = await axios.post('/traffic-control-test-page', formData, {
         headers: {
           'Content-Type': 'application/json'
       }})
