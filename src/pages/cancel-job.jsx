@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useState } from 'react';
 
-const CancelJob = () => {
+const CancelJobTest = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [confirmed, setConfirmed] = useState(false);
@@ -95,4 +95,4 @@ const CancelJob = () => {
   );
 };
 
-export default CancelJob;
+export default CancelJobTest;
