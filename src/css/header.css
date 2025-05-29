@@ -196,7 +196,7 @@
   font-family: "Moveo Sans W00 Bold";
   font-size: 2rem;
   text-align: center;
-  color: #a6d8fa;
+  color: rgb(214,204,179);
   text-shadow: 3px 3px 0 #000000;
 }
 .header-worx-logo {
@@ -204,12 +204,12 @@
   align-items: center;
   justify-content: center;
   padding: 10px;
-  background-color: grey;
+  background-color: rgb(117, 112, 100);
   border-radius: 6px;
   transition: background-color 0.3s;
 }
 .header-worx-logo:hover {
-    background-color: #949494;
+    background-color: rgb(163, 156, 136);
 }
 .btn-main {
   background-color: #e67e22;
