@@ -53,7 +53,7 @@ function Header() {
                          {/* Phone and External Link */}
              <div className="phone-header">
                     <a className="header-worx-logo" target="_blank" rel="noopener noreferrer" href="https://www.material-worx.com">
-                        <img className="material-worx-img" alt="Material WorX logo" src={images["../assets/tbs_companies/Material WorX.svg"].default} />
+                         <img className="material-worx-img" alt="Material WorX logo" src={images["../assets/tbs_companies/Material WorX Tan White.svg"].default} />
                         <div className="material-worx">
                             <p className="material-worx-text">CUSTOM SHOP &#x1F80A;</p>
                             <p className="material-worx-web">www.material-worx.com</p>
