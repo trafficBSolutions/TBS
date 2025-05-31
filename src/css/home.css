@@ -205,6 +205,34 @@ body {
   color: #000000;
   font-family: Arial, Helvetica, sans-serif;
 }
+.section-will-featured {
+  background-color: #fad0ad;
+  text-align: center;
+  padding: 0.7rem;
+}
+ .contact-materialX {
+    font-size: 2rem;
+    font-family: "Moveo Sans W00 Bold";
+    margin: 1rem;
+ }
+ .contact-descript {
+    color: #333;
+    font-family: Arial, sans-serif;
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+ }
+ .contact-info {
+    margin-top: 10px;
+    font-size: 0;
+ }
+ .contact-info a {
+    color: #333;
+    display: block;
+    font-size: 1.4rem;
+    margin-bottom: 5px;
+    text-decoration: none;
+    transition: color .3s;
+}
 .careers-btn {
   display: inline-block;
   font-size: 1.7rem;
@@ -274,8 +302,25 @@ body {
     font-size: 1.2rem;
     cursor: pointer;
 }
-.btn:hover {
+    .home-web-button {
+    background-color: #e67e22;
+    border-radius: 5px;
+    color: #fff;
+    cursor: pointer;
+    display: inline-block;
+    font-size: 1.5rem;
+    margin: 1rem;
+    padding: 1rem 2rem;
+    text-align: center;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    text-decoration: none;
+    transition: background-color .3s ease;
+}
+.btn:hover, .home-web-button:hover {
   background-color: #d35400;
+}
+.contact-info a:hover {
+  color: #e67e22;
 }
 .btn--full {
   width: 100%;
@@ -995,6 +1040,9 @@ body {
 .background-how, .background-how-man {
   padding: 10px;
 }
+.home-web-button {
+  font-size: 1.4rem;
+}
 .traffic-services-description, .man-services-description {
   font-size: 1.4rem;
   margin-bottom: 10px;
@@ -1066,6 +1114,9 @@ body {
   .hero {
     padding: 0;
   }
+  .home-web-button {
+  font-size: 1.2rem;
+}
   .now-hiring-title {
     font-size: 3rem;
   }
@@ -1181,6 +1232,9 @@ body {
   }
   .page-banner {
     padding-top: 90px;
+}
+.home-web-button {
+  font-size: 1.2rem;
 }
 .background-how, .background-how-man {
   padding: 0;
