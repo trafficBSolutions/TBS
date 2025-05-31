@@ -211,24 +211,27 @@ body {
   padding: 0.7rem;
 }
  .contact-materialX {
-    font-size: 2rem;
+    font-size: 2.7rem;
     font-family: "Moveo Sans W00 Bold";
     margin: 1rem;
  }
  .contact-descript {
     color: #333;
     font-family: Arial, sans-serif;
-    font-size: 1.1rem;
+    font-size: 1.4rem;
     margin-bottom: 20px;
  }
+ .will-contact {
+  font-size: 2.2rem;
+ }
  .contact-info {
-    margin-top: 10px;
-    font-size: 0;
+    margin-top: 20px;
+    font-size: 3rem;
  }
  .contact-info a {
     color: #333;
     display: block;
-    font-size: 1.4rem;
+    font-size: 1.7rem;
     margin-bottom: 5px;
     text-decoration: none;
     transition: color .3s;
@@ -1040,9 +1043,18 @@ body {
 .background-how, .background-how-man {
   padding: 10px;
 }
+.contact-materialX {
+  font-size: 2rem;
+}
+.contact-descript {
+  font-size: 1.2rem;
+}
 .home-web-button {
   font-size: 1.4rem;
 }
+ .will-contact {
+  font-size: 1.7rem;
+ }
 .traffic-services-description, .man-services-description {
   font-size: 1.4rem;
   margin-bottom: 10px;
@@ -1114,9 +1126,18 @@ body {
   .hero {
     padding: 0;
   }
-  .home-web-button {
+.contact-materialX {
+  font-size: 2rem;
+}
+.contact-descript {
   font-size: 1.2rem;
 }
+.home-web-button {
+  font-size: 1.4rem;
+}
+ .will-contact {
+  font-size: 1.7rem;
+ }
   .now-hiring-title {
     font-size: 3rem;
   }
@@ -1233,9 +1254,18 @@ body {
   .page-banner {
     padding-top: 90px;
 }
-.home-web-button {
+.contact-materialX {
+  font-size: 2rem;
+}
+.contact-descript {
   font-size: 1.2rem;
 }
+.home-web-button {
+  font-size: 1.4rem;
+}
+ .will-contact {
+  font-size: 1.7rem;
+ }
 .background-how, .background-how-man {
   padding: 0;
 }
