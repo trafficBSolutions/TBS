@@ -41,6 +41,32 @@ export default function Home() {
             <a href="/trafficplanning" className="plan-btn">Plan a Job</a>
           </div>
         </section>
+        <section className="section-will-featured">
+        <div className="material-website-container">
+  <h1 className="contact-materialX">Need a Website That Works?</h1>
+  <p className="contact-descript">
+    Stop renting from Wix. Get a fast, custom website that’s fully yours with no limits, and no fluff. Request edits or updates anytime after publication.
+  </p>
+
+  <div className="will-contact-link">
+    <h2 className="will-contact">Talk to William Rowell</h2>
+    <p className="contact-info">
+      <a className="will-phone" href="tel:+17068790106">
+        📞 Call/Text: (706) 879-0106
+      </a>
+      <br />
+      <a className="will-email" href="mailto:tbsolutions9@gmail.com">
+        📧 Email: tbsolutions9@gmail.com
+      </a>
+    </p>
+
+    <a className="home-web-button" href="https://www.material-worx.com/new-website">Start Your Website</a>
+    <a className="home-web-button" href="https://william-rowell.netlify.app/" target="_blank" rel="noopener noreferrer">
+      View My Work
+    </a>
+  </div>
+</div>
+</section>
         <section className="now-hiring">
           <div className="now-hiring-container">
             <h1 className="now-hiring-title">APPLY NOW</h1>
