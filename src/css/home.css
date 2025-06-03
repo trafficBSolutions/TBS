@@ -224,11 +224,11 @@ body {
  .will-contact {
   font-size: 2.2rem;
  }
- .contact-info {
+ .contact-web-info {
     margin-top: 20px;
     font-size: 3rem;
  }
- .contact-info a {
+ .contact-web-info a {
     color: #333;
     display: block;
     font-size: 1.7rem;
@@ -322,7 +322,7 @@ body {
 .btn:hover, .home-web-button:hover {
   background-color: #d35400;
 }
-.contact-info a:hover {
+.contact-web-info a:hover {
   color: #e67e22;
 }
 .btn--full {
@@ -1220,7 +1220,7 @@ body {
 .statement, .trademark-warning {
   font-size: 1.2rem;
 }
-.contact-info a {
+.contact-web-info a {
   font-size: 1.3rem;
 }
 }
@@ -1335,7 +1335,7 @@ body {
 .statement, .trademark-warning {
   font-size: 1.2rem;
 }
-.contact-info a {
+.contact-web-info a {
   font-size: 1.3rem;
 }
 }
