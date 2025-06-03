@@ -50,7 +50,7 @@ export default function Home() {
 
   <div className="will-contact-link">
     <h2 className="will-contact">Talk to William Rowell</h2>
-    <p className="contact-info">
+    <p className="contact-web-info">
       <a className="will-phone" href="tel:+17068790106">
         📞 Call/Text: (706) 879-0106
       </a>
