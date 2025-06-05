@@ -123,6 +123,8 @@ const felonyCharges = [
   "Child Pornography",
   "Child Endangerment",
   "Extortion",
+  "Sexual Assault",
+  "Illegal Possession of Firearm",
   "Kidnapping",
   "Drug Trafficking",
   "Arson",
