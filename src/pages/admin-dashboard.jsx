@@ -11,6 +11,8 @@ const AdminDashboard = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [monthlyJobs, setMonthlyJobs] = useState({});
   const [monthlyKey, setMonthlyKey] = useState(0);
+  const [logos, setLogos] = useState([]);
+  const [cancelledJobs, setCancelledJobs] = useState([]);
   const [selectedApplicantIndex, setSelectedApplicantIndex] = useState(null);
   const [selectedPlanIndex, setSelectedPlanIndex] = useState(null);
 const [previewFile, setPreviewFile] = useState(null);
@@ -31,27 +33,36 @@ const fetchMonthlyJobs = async (date) => {
     const res = await axios.get(`/jobs/month?month=${month}&year=${year}`);
     console.log("Jobs received:", res.data);
 
-    // Group jobs by each date inside jobDates array
+    // Group jobs by date (active jobs only)
     const grouped = {};
+    const cancelled = [];
+
     res.data.forEach(job => {
       (job.jobDates || []).forEach(jobDateObj => {
+        const dateStr = new Date(jobDateObj.date).toISOString().split('T')[0];
+
         if (!jobDateObj.cancelled) {
-          const dateStr = new Date(jobDateObj.date).toISOString().split('T')[0];
           if (!grouped[dateStr]) {
             grouped[dateStr] = [];
           }
           grouped[dateStr].push(job);
+        } else {
+          cancelled.push({
+            ...job,
+            cancelledDate: jobDateObj.date
+          });
         }
       });
     });
 
-    console.log("Grouped jobs by date:", grouped);
     setMonthlyJobs(grouped);
+    setCancelledJobs(cancelled);
     setMonthlyKey(prev => prev + 1);
   } catch (err) {
     console.error("Failed to fetch monthly jobs:", err);
   }
 };
+
 useEffect(() => {
   fetchMonthlyJobs(new Date()); // 👈 Fetch initial calendar jobs on mount
 }, []);
@@ -106,6 +117,17 @@ useEffect(() => {
     };
     fetchPlanUser();
   }, []);
+  useEffect(() => {
+    const fetchLogos = async () => {
+      try {
+        const res = await axios.get('/logos');
+        setLogos(res.data);
+      } catch (err) {
+        console.error("Error fetching logos:", err);
+      }
+    };
+    fetchLogos();
+    }, []);
   return (
     <div>
       <Header />
@@ -166,6 +188,9 @@ useEffect(() => {
     {job.cancelled && (
   <p className="cancelled-label">❌ Cancelled on {new Date(job.cancelledAt).toLocaleDateString()}</p>
 )}
+{job.updatedAt && !job.cancelled && (
+  <p className="updated-label">✅ Updated on {new Date(job.updatedAt).toLocaleDateString()}</p>
+)}
     <p><strong>Coordinator:</strong> {job.coordinator}</p>
     {job.phone && (
       <p><strong>Phone:</strong> <a href={`tel:${job.phone}`}>{job.phone}</a></p>
@@ -180,11 +205,28 @@ useEffect(() => {
     {job.message && <p><strong>Message:</strong> {job.message}</p>}
   </div>
 ))}
+
 </div>
   </div>
   </div>
 )}
 </div>
+{cancelledJobs.length > 0 && (
+  <div className="cancelled-jobs-section">
+    <h2>❌ Cancelled Jobs for {calendarViewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</h2>
+    {cancelledJobs.map((job, index) => (
+      <div key={index} className="job-card cancelled-job">
+        <h4 className="job-company">{job.company}</h4>
+        <p><strong>Cancelled Job Date:</strong> {new Date(job.cancelledDate).toLocaleDateString()}</p>
+        <p><strong>Coordinator:</strong> {job.coordinator}</p>
+        <p><strong>Phone:</strong> <a href={`tel:${job.phone}`}>{job.phone}</a></p>
+        <p><strong>Project:</strong> {job.project}</p>
+        <p><strong>Address:</strong> {job.address}, {job.city}, {job.state} {job.zip}</p>
+      </div>
+    ))}
+  </div>
+)}
+
 <section className="admin-apps-section">
 <div className="admin-apps">
   <h2 className="admin-apps-title">Job Applicants</h2>
