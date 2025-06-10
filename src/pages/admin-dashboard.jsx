@@ -17,6 +17,7 @@ const AdminDashboard = () => {
   const [selectedPlanIndex, setSelectedPlanIndex] = useState(null);
 const [previewFile, setPreviewFile] = useState(null);
 const [previewPlan, setPreviewPlan] = useState(null);
+const [showCancelledJobs, setShowCancelledJobs] = useState(false);
   const [applicants, setApplicants] = useState([]);
   const [PlanUser, setPlanUser] = useState([]);
 const [currentIndex, setCurrentIndex] = useState(0); // To control the visible slice
@@ -211,7 +212,15 @@ useEffect(() => {
   </div>
 )}
 </div>
-{cancelledJobs.length > 0 && (
+<div className="cancelled-jobs">
+  <h2 className="admin-apps-title">Cancelled Jobs</h2> 
+    <button
+  className="btn view-cancelled-btn"
+  onClick={() => setShowCancelledJobs(prev => !prev)}
+>
+  {showCancelledJobs ? 'Hide 2025 Cancelled Jobs' : 'View 2025 Cancelled Jobs'}
+</button>
+{showCancelledJobs && cancelledJobs.length > 0 && (
   <div className="cancelled-jobs-section">
     <h2>❌ Cancelled Jobs for {calendarViewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</h2>
     {cancelledJobs.map((job, index) => (
@@ -226,6 +235,7 @@ useEffect(() => {
     ))}
   </div>
 )}
+</div>
 
 <section className="admin-apps-section">
 <div className="admin-apps">
