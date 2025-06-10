@@ -25,6 +25,22 @@ const [jobs, setJobs] = useState([]);
 const [calendarViewDate, setCalendarViewDate] = useState(new Date());
 const [isAdmin, setIsAdmin] = useState(false);
 // Modify your fetchMonthlyJobs function to include better logging
+// Add this useEffect to fetch cancelled jobs specifically
+useEffect(() => {
+  const fetchCancelledJobs = async () => {
+    try {
+      const res = await axios.get('/jobs/cancelled?year=2025');
+      console.log('Fetched cancelled jobs:', res.data);
+      setCancelledJobs(res.data);
+    } catch (err) {
+      console.error("Failed to fetch cancelled jobs:", err);
+    }
+  };
+
+  fetchCancelledJobs();
+}, []);
+
+// Update the fetchMonthlyJobs function to focus only on active jobs
 const fetchMonthlyJobs = async (date) => {
   try {
     const month = date.getMonth() + 1;
@@ -36,33 +52,39 @@ const fetchMonthlyJobs = async (date) => {
 
     // Group jobs by date (active jobs only)
     const grouped = {};
-    const cancelled = [];
 
     res.data.forEach(job => {
       (job.jobDates || []).forEach(jobDateObj => {
         const dateStr = new Date(jobDateObj.date).toISOString().split('T')[0];
 
-        if (!jobDateObj.cancelled) {
+        if (!jobDateObj.cancelled && !job.cancelled) {
           if (!grouped[dateStr]) {
             grouped[dateStr] = [];
           }
           grouped[dateStr].push(job);
-        } else {
-          cancelled.push({
-            ...job,
-            cancelledDate: jobDateObj.date
-          });
         }
       });
     });
 
     setMonthlyJobs(grouped);
-    setCancelledJobs(cancelled);
     setMonthlyKey(prev => prev + 1);
   } catch (err) {
     console.error("Failed to fetch monthly jobs:", err);
   }
 };
+
+useEffect(() => {
+  console.log('All cancelled jobs:', cancelledJobs);
+  console.log('Cancelled jobs count:', cancelledJobs.length);
+  
+  cancelledJobs.forEach((job, index) => {
+    console.log(`Job ${index}:`, {
+      company: job.company,
+      cancelledDate: job.cancelledDate,
+      year: new Date(job.cancelledDate).getFullYear()
+    });
+  });
+}, [cancelledJobs]);
 
 useEffect(() => {
   fetchMonthlyJobs(new Date()); // 👈 Fetch initial calendar jobs on mount
@@ -214,27 +236,77 @@ useEffect(() => {
 </div>
 <div className="cancelled-jobs">
   <h2 className="admin-apps-title">Cancelled Jobs</h2> 
-    <button
-  className="btn view-cancelled-btn"
-  onClick={() => setShowCancelledJobs(prev => !prev)}
->
-  {showCancelledJobs ? 'Hide 2025 Cancelled Jobs' : 'View 2025 Cancelled Jobs'}
-</button>
-{showCancelledJobs && cancelledJobs.length > 0 && (
+  <button
+    className="btn view-cancelled-btn"
+    onClick={() => setShowCancelledJobs(prev => !prev)}
+  >
+    {showCancelledJobs ? 'Hide 2025 Cancelled Jobs' : `View 2025 Cancelled Jobs (${cancelledJobs.length})`}
+  </button>
+
+{showCancelledJobs && (
   <div className="cancelled-jobs-section">
-    <h2>❌ Cancelled Jobs for {calendarViewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</h2>
-    {cancelledJobs.map((job, index) => (
-      <div key={index} className="job-card cancelled-job">
-        <h4 className="job-company">{job.company}</h4>
-        <p><strong>Cancelled Job Date:</strong> {new Date(job.cancelledDate).toLocaleDateString()}</p>
-        <p><strong>Coordinator:</strong> {job.coordinator}</p>
-        <p><strong>Phone:</strong> <a href={`tel:${job.phone}`}>{job.phone}</a></p>
-        <p><strong>Project:</strong> {job.project}</p>
-        <p><strong>Address:</strong> {job.address}, {job.city}, {job.state} {job.zip}</p>
+    <h2>❌ Cancelled Jobs in 2025</h2>
+    {cancelledJobs.length === 0 ? (
+      <p>No cancelled jobs found for 2025.</p>
+    ) : (
+      <div className="cancelled-jobs-list">
+        {(() => {
+          // Group cancelled jobs by month
+          const jobsByMonth = cancelledJobs.reduce((acc, job) => {
+            const cancelledDate = new Date(job.cancelledDate);
+            const monthYear = cancelledDate.toLocaleString('default', { 
+              month: 'long', 
+              year: 'numeric' 
+            });
+            
+            if (!acc[monthYear]) {
+              acc[monthYear] = [];
+            }
+            acc[monthYear].push(job);
+            return acc;
+          }, {});
+
+          // Sort months chronologically
+          const sortedMonths = Object.keys(jobsByMonth).sort((a, b) => {
+            const dateA = new Date(a + ' 1');
+            const dateB = new Date(b + ' 1');
+            return dateA - dateB;
+          });
+
+          return sortedMonths.map(monthYear => (
+            <div key={monthYear} className="month-group">
+              <h3 className="month-header">{monthYear}</h3>
+              <div className="month-jobs">
+                {jobsByMonth[monthYear].map((job, index) => (
+                  <div key={`cancelled-${monthYear}-${index}`} className="job-card cancelled-job">
+                    <h4 className="job-company">{job.company || 'Unknown Company'}</h4>
+                    <p className="cancellation-type">
+                      <strong>Cancellation Type:</strong> {job.cancelledType === 'entire_job' ? 'Entire Job Cancelled' : 'Single Date Cancelled'}
+                    </p>
+                    <p>
+                      <strong>Cancelled Date:</strong> {new Date(job.cancelledDate).toLocaleDateString()}
+                    </p>
+                    {job.originalJobDate && job.cancelledType === 'single_date' && (
+                      <p><strong>Original Job Date:</strong> {new Date(job.originalJobDate).toLocaleDateString()}</p>
+                    )}
+                    <p><strong>Coordinator:</strong> {job.coordinator || 'N/A'}</p>
+                    {job.phone && (
+                      <p><strong>Phone:</strong> <a href={`tel:${job.phone}`}>{job.phone}</a></p>
+                    )}
+                    <p><strong>Project:</strong> {job.project || 'N/A'}</p>
+                    <p><strong>Address:</strong> {job.address || 'N/A'}, {job.city || 'N/A'}, {job.state || 'N/A'} {job.zip || 'N/A'}</p>
+                    {job.message && <p><strong>Message:</strong> {job.message}</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ));
+        })()}
       </div>
-    ))}
+    )}
   </div>
 )}
+
 </div>
 
 <section className="admin-apps-section">
