@@ -221,7 +221,7 @@ useEffect(() => {
 <p><strong>On-Site Contact:</strong> {job.siteContact}</p>
 <p><strong>On-Site Contact Phone Number:</strong> <a href={`tel:${job.site}`}>{job.site}</a></p>
     <p><strong>Time:</strong> {job.time}</p>
-    <p><strong>Project:</strong> {job.project}</p>
+    <p><strong>Project/Task Number:</strong> {job.project}</p>
     <p><strong>Flaggers:</strong> {job.flagger}</p>
     <p><strong>Equipment:</strong> {job.equipment.join(', ')}</p>
     <p><strong>Address:</strong> {job.address}, {job.city}, {job.state} {job.zip}</p>
@@ -293,7 +293,7 @@ useEffect(() => {
                     {job.phone && (
                       <p><strong>Phone:</strong> <a href={`tel:${job.phone}`}>{job.phone}</a></p>
                     )}
-                    <p><strong>Project:</strong> {job.project || 'N/A'}</p>
+                    <p><strong>Project/Task Number:</strong> {job.project || 'N/A'}</p>
                     <p><strong>Address:</strong> {job.address || 'N/A'}, {job.city || 'N/A'}, {job.state || 'N/A'} {job.zip || 'N/A'}</p>
                     {job.message && <p><strong>Message:</strong> {job.message}</p>}
                   </div>
@@ -431,7 +431,7 @@ useEffect(() => {
     {plan.phone && (
       <p><strong>Phone:</strong> <a href={`tel:${plan.phone}`}>{plan.phone}</a></p>
     )}
-    <p><strong>Project:</strong> {plan.project}</p>
+    <p><strong>Project/Task Number:</strong> {plan.project}</p>
     <p><strong>Address:</strong> {plan.address}, {plan.city}, {plan.state} {plan.zip}</p>
     {plan.message && <p><strong>Message:</strong> {plan.message}</p>}
 
