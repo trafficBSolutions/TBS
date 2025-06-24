@@ -13,6 +13,14 @@
   color: #000000;
   font-family: "Moveo Sans W00 Bold";
 }
+.first-sign-label-name, .last-sign-label-name, .company-sign-name, .email-sign-name, .phone-sign-label, .addr-sign-label, .city-sign-label, 
+.state-sign-label, .zip-sign-label, .reflective-label, .size-label, .post-label, .bracket-image-label, .traffic-sign-image-label, .message-sign-label {
+      display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-top: 1.5rem;
+    color: #333;
+}
 .sign-form-container {
   background-color: #fff;
   padding: 20px;
