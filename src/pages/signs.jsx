@@ -449,7 +449,9 @@ const handleFileRemove = (fileType) => {
         <div className="sign-form-container container--narrow page-section">
         <div className="sign-form-group">
         <h1 className="sign-app-box">Traffic Sign Request Form</h1>
-<h2 className="sign-fill">Please Fill Out the Form Below to Submit Your Traffic Sign!</h2></div>
+<h2 className="sign-fill">Please Fill Out the Form Below to Submit Your Traffic Sign!</h2>
+          <h3 className="control-fill-info">Fields marked with * are required.</h3>
+        </div>
 <div className="first-name-sign-input">
   <div className="first-sign-name">
     <div className="firstname-sign-input">
