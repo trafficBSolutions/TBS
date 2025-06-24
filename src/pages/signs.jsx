@@ -454,8 +454,6 @@ onChange={(e) => setFormData({ ...formData, last: e.target.value })}
         </div>
     </div>
   </div>
-  </div>
-<div className="emailphone-sign-input">
   <div className="email-sign">
     <div className="email-sign-input">
     <div className="email-sign-input-container">
@@ -491,7 +489,6 @@ onChange={handlePhoneChange}
 </div>
     </div>
   </div>
-<label className="address-sign-label">Company Address: </label>
 <div className="address-sign-input">
 <div className="address-sign-container">
   <div className="address-sign-inputing">
