@@ -382,6 +382,7 @@ setTimeout(checkAllFieldsFilled, 0);
   <div className="email">
     <div className="email-control-input">
     <div className="email-control-container">
+      <p className="date-picker-note"><b>NOTE:</b> Make sure your email address is correct. Otherwise, you will not receive an email nor a cancel link.</p>
 <label className="email-control-name">Email *</label>
 <input
 name="email"
