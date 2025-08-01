@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@react-google-maps/api": "^2.19.2",
-    "axios": "^1.6.7",
+    "axios": "^1.8.2",
     "date-fns": "^4.1.0",
     "google-map-react": "^2.2.1",
     "ionicons": "^7.2.2",
@@ -42,6 +42,6 @@
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
-    "vite": "^5.0.8"
+    "vite": "^5.4.19"
   }
 }
