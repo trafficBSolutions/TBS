@@ -499,7 +499,9 @@ if (!data.background) {
     formDataObj.append("education", JSON.stringify(addedEd));
     formDataObj.append("background", JSON.stringify(convictions));
     formDataObj.append("workHistory", JSON.stringify(employmentEntries));
-  
+  for (let pair of formDataObj.entries()) {
+  console.log(pair[0]+ ':', pair[1]);
+}
     try {
       const response = await axios.post('/applynow', formDataObj, {
         headers: {
@@ -1308,7 +1310,9 @@ to provide additional context regarding your background, please reach out to our
                       ) : (
                         <span>CHOOSE RESUME</span>
                       )}
-                      <input type="file" name="resume" accept=".pdf,.doc,.docx,.txt,.page,.jpg,.png" onChange={(e) => {
+                      <input type="file" name="resume" accept=".pdf,.doc,.docx,.txt,.pages,.jpg,.jpeg,.png"  
+                        console.log("File selected:", e.target.files[0]);
+                        onChange={(e) => {
                         handleFileChange(e, 'resume');
                           if (e.target.files[0]) {
                             setErrors((prevErrors) => ({ ...prevErrors, resume: '' })); // Clear the error
@@ -1439,3 +1443,4 @@ to provide additional context regarding your background, please reach out to our
   );
 }
 export default Apply;
+
