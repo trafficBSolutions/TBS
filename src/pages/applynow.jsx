@@ -1311,7 +1311,6 @@ to provide additional context regarding your background, please reach out to our
                         <span>CHOOSE RESUME</span>
                       )}
                       <input type="file" name="resume" accept=".pdf,.doc,.docx,.txt,.pages,.jpg,.jpeg,.png"  
-                        console.log("File selected:", e.target.files[0]);
                         onChange={(e) => {
                         handleFileChange(e, 'resume');
                           if (e.target.files[0]) {
@@ -1443,4 +1442,5 @@ to provide additional context regarding your background, please reach out to our
   );
 }
 export default Apply;
+
 
