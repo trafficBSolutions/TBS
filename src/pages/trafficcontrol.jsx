@@ -34,7 +34,9 @@ const companyList = [
   "Hibbymo Properties-Cloudland, LLC",
   "Magnum Paving",
   "Pike Electric",
+  "Service Electric",
   "The Surface Masters",
+  "Tindall",
   "Other(Specific if new in message to add to this list)"
 ]
 const timeOptions = [
@@ -1059,3 +1061,4 @@ setFormData({
         </div>
     )
 };
+
