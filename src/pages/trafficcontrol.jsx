@@ -37,7 +37,7 @@ const companyList = [
   "Service Electric",
   "The Surface Masters",
   "Tindall",
-  "Other(Specific if new in message to add to this list)"
+  "Other(Specify if new in message to add to this list)"
 ]
 const timeOptions = [
   "7:00 AM", "7:15 AM", "7:30 AM", "7:45 AM",
@@ -1061,4 +1061,5 @@ setFormData({
         </div>
     )
 };
+
 
