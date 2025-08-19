@@ -18,6 +18,25 @@ const states = [
   { abbreviation: 'SC', name: 'South Carolina' },
   { abbreviation: 'TN', name: 'Tennessee' }
 ];
+const gaPower = [
+  "TA-10",
+  "TA-33",
+  "TA-37"
+]
+const companyList = [
+  "Atlanta Gas Light",
+  "Broadband Technical Resources",
+  "Broadband of Indiana",
+  "Car Michael",
+  "Fairway Electric",
+  "Georgia Power",
+  "H and H Paving and Concrete",
+  "Hibbymo Properties-Cloudland, LLC",
+  "Magnum Paving",
+  "Pike Electric",
+  "The Surface Masters",
+  "Other(Specific if new in message to add to this list)"
+]
 const timeOptions = [
   "7:00 AM", "7:15 AM", "7:30 AM", "7:45 AM",
   "8:00 AM", "8:15 AM", "8:30 AM", "8:45 AM",
@@ -36,11 +55,15 @@ export default function TrafficControl() {
   const [isSubmitting, setIsSubmitting] = useState(false); 
   const [company, setCompany] = useState('');
   const [site, setSite] = useState('');
+  const [showEmergencyConfirm, setShowEmergencyConfirm] = useState(false);
+const [isEmergencyJob, setIsEmergencyJob] = useState(false);
   const [siteContact, setSiteContact] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [coordinator, setCoordinator] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [fullDates, setFullDates] = useState([]);
+  const isGASelected = company === "Georgia Power";
+const isCompanySelected = company !== "";
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -68,19 +91,25 @@ export default function TrafficControl() {
   return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
 };
   const getDisabledDayClass = (date) => {
-  const nowEST = getNowInEST();
-  const tomorrow = new Date(nowEST);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  tomorrow.setHours(0, 0, 0, 0);
+// Inside handleSubmit, after validation success:
+const nowEST = getNowInEST(); // get EST
+const isAfter8pmEST = nowEST.getHours() >= 20;
+const tomorrowEST = new Date(nowEST);
+tomorrowEST.setDate(nowEST.getDate() + 1);
+tomorrowEST.setHours(0, 0, 0, 0);
 
-  const isLate = nowEST.getHours() >= 20;
-  const isTomorrow = date.toDateString() === tomorrow.toDateString();
+// Check if "tomorrow" is selected
+const isTomorrowSelected = jobDates.some(
+  (d) => d.toDateString() === tomorrowEST.toDateString()
+);
 
-  if (isLate && isTomorrow) {
-    return 'disabled-tomorrow-tooltip';
-  }
+// Trigger warning
+if (isAfter8pmEST && isTomorrowSelected && !isEmergencyJob) {
+  setShowEmergencyConfirm(true);
+  setIsSubmitting(false); // stop submit
+  return;
+}
 
-  return '';
 };
 useEffect(() => {
   axios.get('https://tbs-server.onrender.com/jobs/full-dates')
@@ -93,14 +122,22 @@ useEffect(() => {
       const nowEST = getNowInEST();
       const hour = nowEST.getHours();
 
-      if (hour >= 20) {
-        const tomorrow = new Date(nowEST);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(0, 0, 0, 0);
+      // Disable tomorrow if it's past midnight
+      const tomorrow = new Date(nowEST);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
 
-        const alreadyFull = fullDateObjects.some(d => d.toDateString() === tomorrow.toDateString());
-        if (!alreadyFull) {
-          fullDateObjects.push(tomorrow);
+      const isPastMidnight = hour === 0 && nowEST.getMinutes() < 59;
+
+      const alreadyFull = fullDateObjects.some(
+        (d) => d.toDateString() === tomorrow.toDateString()
+      );
+
+      if (nowEST.getHours() >= 0 && nowEST.getHours() < 24) {
+        const midnight = new Date(nowEST);
+        midnight.setHours(23, 59, 59, 999);
+        if (nowEST > midnight && !alreadyFull) {
+          fullDateObjects.push(tomorrow); // fully disable the date
         }
       }
 
@@ -108,6 +145,7 @@ useEffect(() => {
     })
     .catch(err => console.error("Error loading full dates", err));
 }, []);
+
 
   const handleCoordinatorChange = (e) => {
     const value = e.target.value;
@@ -146,6 +184,43 @@ useEffect(() => {
     }
     setTimeout(checkAllFieldsFilled, 0);
   };
+  const runSubmissionLogic = async () => {
+  try {
+    const res = await axios.post('https://tbs-server.onrender.com/jobs/submit', formData);
+    toast.success('Job submitted successfully!');
+    setSubmissionMessage('Success! Your job has been submitted.');
+    setFormData({
+  name: '',
+  email: '',
+  phone: '',
+  jobDate: '',
+  company: '',
+  coordinator: '',
+  site: '',
+  siteContact: '',
+  time: '',
+  project: '',
+  flagger: '',
+  equipment: [],
+  terms: '',
+  address: '',
+  city: '',
+  state: '',
+  zip: '',
+  message: ''
+});
+
+    setJobDates([]);
+    setPhone('');
+    setIsSubmitting(false);
+    setErrors({});
+    setIsEmergencyJob(false);
+  } catch (error) {
+    toast.error('Submission failed. Please try again.');
+    setIsSubmitting(false);
+  }
+};
+
   const handleContactChange = (e) => {
     const value = e.target.value;
   
@@ -230,6 +305,29 @@ const checkAllFieldsFilled = () => {
     e.preventDefault();
     if (isSubmitting) return;
     setIsSubmitting(true);
+    const nowEST = getNowInEST();
+  const isAfter8pmEST = nowEST.getHours() >= 20;
+
+  const tomorrowEST = new Date(nowEST);
+  tomorrowEST.setDate(nowEST.getDate() + 1);
+  tomorrowEST.setHours(0, 0, 0, 0);
+
+  const isTomorrowSelected = jobDates.some(
+    (d) => d.toDateString() === tomorrowEST.toDateString()
+  );
+
+  // Emergency confirmation
+  if (isAfter8pmEST && isTomorrowSelected && !isEmergencyJob) {
+    setShowEmergencyConfirm(true);
+    setIsSubmitting(false);
+    return;
+  }
+
+  formData.jobDates = jobDates;
+  formData.phone = phone;
+  formData.emergency = isEmergencyJob;
+
+  runSubmissionLogic();
     try { const requiredFields = ['name', 'email', 'phone', 'jobDate',
       'company', 'coordinator', 'time', 'project', 'flagger', 'address', 'city', 
     'state', 'zip', 'message', 'terms'];
@@ -457,24 +555,27 @@ setTimeout(checkAllFieldsFilled, 0);
   {errors.jobDate && <div className="error-message">{errors.jobDate}</div>}
 </div>
 
-  <label className="project-control-label">Company Name *</label>
-  <input
-    className="project-company-input"
-    type="text"
-    placeholder="Enter Company Name"
-    value={formData.company}
-    onChange={(e) => {
-      const  value = e.target.value;
-      const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1);
-      setCompany(capitalizedValue);
-      setFormData({ ...formData, company: capitalizedValue });
-      // Clear error if the input is no longer empty
-      if (value.trim() !== '') {
-        setErrors((prevErrors) => ({ ...prevErrors, company: '' }));
-      }
-      setTimeout(checkAllFieldsFilled, 0);
-    }}
-  />
+  <label className="project-control-label">Company *</label>
+  <select
+  className="project-company-input"
+  value={company}
+  onChange={(e) => {
+  setCompany(e.target.value)
+  setFormData({ ...formData, company: e.target.value });
+  if (e.target.value) {
+    setErrors((prevErrors) => ({ ...prevErrors, company: '' })); // Clear the error
+  }
+  setTimeout(checkAllFieldsFilled, 0);
+}
+}
+>
+  <option value="">Select your company</option>
+  {companyList.map((t) => (
+    <option key={t} value={t}>
+      {t}
+    </option>
+  ))}
+</select>
 {errors.company && <div className="error-message">{errors.company}</div>}
 <label className="cord-label">Coordinator *</label>
 <input
@@ -568,6 +669,7 @@ setTimeout(checkAllFieldsFilled, 0);
     }
     setTimeout(checkAllFieldsFilled, 0);
   }}
+  disabled={!isCompanySelected || isGASelected}
 >
   <option value="">Select How Many Flaggers</option>
   {flaggerCount.map((t) => (
@@ -576,6 +678,34 @@ setTimeout(checkAllFieldsFilled, 0);
     </option>
   ))}
 </select>
+<select
+  className="project-flagger-input"
+  value={isGASelected ? formData.flagger : ""}
+  onChange={(e) => {
+    const value = e.target.value;
+    setFormData({ ...formData, flagger: value });
+
+    if (value.trim() !== '') {
+      setErrors((prevErrors) => ({ ...prevErrors, flagger: '' }));
+    }
+    setTimeout(checkAllFieldsFilled, 0);
+  }}
+  disabled={!isGASelected}
+>
+
+  <option value="">Select Georgia Power Scheduling</option>
+  {gaPower.map((t) => (
+    <option key={t} value={t}>
+      {t}
+    </option>
+  ))}
+</select>
+{!isCompanySelected && (
+  <p className="helper-note">Please select a company to enable this section.</p>
+)}
+{isGASelected && (
+  <p className="helper-note">You’ve selected Georgia Power. Please choose the TA number instead of flaggers.</p>
+)}
 
   {errors.flagger && <div className="error-message">{errors.flagger}</div>}
   <label className="equipment-setup-label">
@@ -809,6 +939,65 @@ setTimeout(checkAllFieldsFilled, 0);
     <div className="custom-toast error">{errorMessage}</div>
   )}
 </div>
+{showEmergencyConfirm && (
+  <div className="emergency-warning-box">
+    <p className="emergency-warning-text">
+      ⚠️ <strong>Heads Up:</strong> You’re submitting this job after <strong>8:00 PM EST</strong> and selected <strong>{tomorrowFormatted}</strong> as one of your job dates.
+      This will be considered an <strong>emergency job</strong> and will cost more.<br /><br />
+      <strong>Are you sure you want to proceed?</strong>
+    </p>
+    <div className="emergency-warning-buttons">
+<button
+  type="button"
+  className="btn btn--warning"
+  onClick={() => {
+    setShowEmergencyConfirm(false);
+    setIsEmergencyJob(true);
+    runSubmissionLogic();
+  }}
+>
+  Yes, Proceed
+</button>
+
+      <button
+        type="button"
+        className="btn btn--cancel"
+        onClick={() => {
+setFormData({
+  name: '',
+  email: '',
+  phone: '',
+  jobDate: '',
+  company: '',
+  coordinator: '',
+  site: '',
+  siteContact: '',
+  time: '',
+  project: '',
+  flagger: '',
+  equipment: [],
+  terms: '',
+  address: '',
+  city: '',
+  state: '',
+  zip: '',
+  message: ''
+});
+
+          setJobDates([]);
+          setPhone('');
+          setErrors({});
+          setSubmissionMessage('');
+          setShowEmergencyConfirm(false);
+          setIsEmergencyJob(false);
+        }}
+      >
+        No, Clear Form
+      </button>
+    </div>
+  </div>
+)}
+
   </div>
   </div>
         </form>
