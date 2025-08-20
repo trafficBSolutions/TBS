@@ -6,7 +6,7 @@
   box-shadow: 0 0 15px rgba(0,0,0,0.1);
 }
 .emergency-label {
-  background-color: #ff3b3b;
+  background-color: #ff9292;
   color: white;
   padding: 4px 8px;
   font-weight: bold;
@@ -488,4 +488,5 @@
     font-size: 0.8rem;
   }
 }
+
 
