@@ -951,7 +951,7 @@ setTimeout(checkAllFieldsFilled, 0);
   
     <p className="emergency-warning-text">
       ⚠️ <strong>Heads Up:</strong> You’re submitting this job after <strong>8:00 PM EST</strong> and selected <strong>{tomorrowFormatted}</strong> as one of your job dates.
-      This will be considered an <strong>emergency job</strong> and will cost more.<br /><br />
+      This will be considered an <strong>emergency job</strong> and will charge more to your invoice.<br /><br />
       <strong>Are you sure you want to proceed?</strong>
     </p>
     <div className="emergency-warning-buttons">
@@ -1067,4 +1067,5 @@ setFormData({
         </div>
     )
 };
+
 
