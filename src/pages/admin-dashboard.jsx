@@ -20,6 +20,7 @@ const [previewPlan, setPreviewPlan] = useState(null);
 const [showCancelledJobs, setShowCancelledJobs] = useState(false);
   const [applicants, setApplicants] = useState([]);
   const [PlanUser, setPlanUser] = useState([]);
+  const [allowedForInvoices, setAllowedForInvoices] = useState([]);
 const [currentIndex, setCurrentIndex] = useState(0); // To control the visible slice
 const [jobs, setJobs] = useState([]);
 const [calendarViewDate, setCalendarViewDate] = useState(new Date());
@@ -38,6 +39,22 @@ useEffect(() => {
   };
 
   fetchCancelledJobs();
+}, []);
+const allowed = new Set([
+  'tbsolutions9@gmail.com',
+  'tbsolutions1999@gmail.com',
+  'trafficandbarriersolutions.ap@gmail.com'
+]);
+
+// after reading localStorage adminUser
+useEffect(() => {
+  const stored = localStorage.getItem('adminUser');
+  if (stored) {
+    const user = JSON.parse(stored);
+    setAdminName(user.firstName);
+    setIsAdmin(true);
+    setAllowedForInvoices(allowed.has(user.email));
+  }
 }, []);
 
 // Update the fetchMonthlyJobs function to focus only on active jobs
@@ -206,7 +223,12 @@ useEffect(() => {
 <h3>Jobs on {selectedDate?.toLocaleDateString()}</h3>
     <div className="job-info-list">
     {jobs.map((job, index) => (
-  <div key={index} className={`job-card ${job.cancelled ? 'cancelled-job' : ''}`}>
+  <div key={index} className={`job-card ${job.cancelled ? 'cancelled-job' : ''}`}
+  >
+    {job.emergency && (
+  <p className="emergency-label">🚨 Emergency Job Submitted After 8 PM for Next Day</p>
+)}
+
     <h4 className="job-company">{job.company}</h4>
     {job.cancelled && (
   <p className="cancelled-label">❌ Cancelled on {new Date(job.cancelledAt).toLocaleDateString()}</p>
@@ -234,6 +256,12 @@ useEffect(() => {
   </div>
 )}
 </div>
+{allowedForInvoices && (
+  <div className="admin-invoice">
+    <h1 className="invoice-h1">Invoicing</h1>
+    <a href="/billing/invoices" className="btn">Go to Invoicing</a>
+  </div>
+)}
 <div className="cancelled-jobs">
   <h2 className="admin-apps-title">Cancelled Jobs</h2> 
   <button
