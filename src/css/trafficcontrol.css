@@ -81,34 +81,6 @@
   border-radius: 8px 8px 0 0;
   border-bottom: none;
 }
-/* Tooltip styling for disabled tomorrow after 8:00pm EST */
-.react-datepicker__day.disabled-tomorrow-tooltip {
-  position: relative;
-  pointer-events: none; /* disables clicking */
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.react-datepicker__day.disabled-tomorrow-tooltip::after {
-  content: "⛔ Unavailable after 8:00 PM EST";
-  position: absolute;
-  bottom: -35px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #222;
-  color: #fff;
-  padding: 5px 8px;
-  border-radius: 5px;
-  font-size: 12px;
-  white-space: nowrap;
-  z-index: 10;
-  opacity: 0;
-  transition: opacity 0.2s ease-in-out;
-  pointer-events: none;
-}
-.react-datepicker__day.disabled-tomorrow-tooltip:hover::after {
-  opacity: 1;
-}
 .address-note {
   font-size: 1.2rem;
   text-align: center;
@@ -451,15 +423,16 @@ border-radius: 5px;
   background-color: #fff3cd;
   border: 1px solid #ffeeba;
   padding: 1rem;
-  margin-top: 1rem;
+  margin: 0 auto;
   border-radius: 8px;
   color: #856404;
-  font-size: 1.1rem;
 }
 
 .emergency-warning-buttons {
   display: flex;
   gap: 10px;
+  align-items: center;
+  justify-content: center;
   margin-top: 10px;
 }
 .message-control-label, .phone, .first-control-label-name, .email-control-name {
@@ -469,22 +442,8 @@ border-radius: 5px;
     margin-top: 1.5rem;
     color: #333;
 }
-.btn--warning {
-  background-color: #ffc107;
-  color: black;
-  padding: 0.5rem 1rem;
-  border: none;
-  cursor: pointer;
-}
 .terms-text {
   font-size: 1.3rem;
-}
-.btn--cancel {
-  background-color: #f44336;
-  color: white;
-  padding: 0.5rem 1rem;
-  border: none;
-  cursor: pointer;
 }
 @keyframes spin {
   to {
@@ -502,7 +461,20 @@ border-radius: 5px;
     transform: translateY(0);
   }
 }
-
+.emergency-submit-blocked-note {
+  text-align: center;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  font-size: 2rem;
+  margin: 0.7rem 0;
+}
+.emergency-warning-text {
+  font-size: 1.3rem;
+}
+.warning-text {
+  text-align: center;
+  font-size: 3rem;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
 @media screen and (max-width: 1200px) and (orientation: landscape) {
   .traffic-control-head {
     font-size: 6rem;
