@@ -5,6 +5,15 @@
   border-radius: 0px;
   box-shadow: 0 0 15px rgba(0,0,0,0.1);
 }
+.emergency-label {
+  background-color: #ff3b3b;
+  color: white;
+  padding: 4px 8px;
+  font-weight: bold;
+  border-radius: 4px;
+  display: inline-block;
+  margin: 5px 0;
+}
 
 .admin-date-picker .react-datepicker {
   width: 100%;
@@ -479,3 +488,4 @@
     font-size: 0.8rem;
   }
 }
+
