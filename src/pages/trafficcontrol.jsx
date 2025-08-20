@@ -917,10 +917,11 @@ setTimeout(checkAllFieldsFilled, 0);
   </div>
   <div className="submit-button-wrapper">
   <button
-    type="submit"
-    className="btn btn--full submit-control"
-    disabled={isSubmitting}
-  >
+  type="submit"
+  className="btn btn--full submit-control"
+  disabled={isSubmitting || showEmergencyConfirm}
+>
+
     {isSubmitting ? (
       <div className="spinner-button">
         <span className="spinner"></span> Submitting...
@@ -943,6 +944,11 @@ setTimeout(checkAllFieldsFilled, 0);
 </div>
 {showEmergencyConfirm && (
   <div className="emergency-warning-box">
+    <p className="warning-text">⚠️ WARNING</p>
+    <p className="emergency-submit-blocked-note">
+    Submission is paused until you confirm the emergency warning.
+  </p>
+  
     <p className="emergency-warning-text">
       ⚠️ <strong>Heads Up:</strong> You’re submitting this job after <strong>8:00 PM EST</strong> and selected <strong>{tomorrowFormatted}</strong> as one of your job dates.
       This will be considered an <strong>emergency job</strong> and will cost more.<br /><br />
@@ -1061,5 +1067,4 @@ setFormData({
         </div>
     )
 };
-
 
