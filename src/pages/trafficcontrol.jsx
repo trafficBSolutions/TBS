@@ -24,19 +24,23 @@ const gaPower = [
   "TA-37"
 ]
 const companyList = [
-  "Atlanta Gas Light",
+ "Atlanta Gas Light",
   "Broadband Technical Resources",
   "Broadband of Indiana",
   "Car Michael",
   "Fairway Electric",
   "Georgia Power",
+  "Global Infrastructure",
   "H and H Paving and Concrete",
-  "Hibbymo Properties-Cloudland, LLC",
+  "Hibbymo Properties-Cloudland",
   "Magnum Paving",
+  "Perman Construction",
   "Pike Electric",
   "Service Electric",
+  "Source One",
   "The Surface Masters",
   "Tindall",
+  "Wilson Boys Enterprises",
   "Other(Specify if new in message to add to this list)"
 ]
 const timeOptions = [
@@ -1067,5 +1071,6 @@ setFormData({
         </div>
     )
 };
+
 
 
