@@ -31,6 +31,7 @@ const companyList = [
   "Fairway Electric",
   "Georgia Power",
   "Global Infrastructure",
+  "HD Excavations & Utilities",
   "H and H Paving and Concrete",
   "Hibbymo Properties-Cloudland",
   "Magnum Paving",
@@ -1071,6 +1072,7 @@ setFormData({
         </div>
     )
 };
+
 
 
 
