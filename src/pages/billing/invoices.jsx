@@ -34,7 +34,7 @@ const COMPANY_TO_EMAIL = {
   'Perman Construction': 'accounting@permaneng.com',
   'Wilson Boys Enterprises': 'invoices@wb-enterprises.com',
 };
-const api = axios.create({ baseURL: 'http://localhost:8000' });
+const api = axios.create({ baseURL: 'https://tbs-server.onrender.com' });
 // helpers (keep above component to avoid TDZ issues)
 const fmtUSD = (n) => `$${Number(n || 0).toFixed(2)}`;
 function buildBreakdown(sel, rates) {
