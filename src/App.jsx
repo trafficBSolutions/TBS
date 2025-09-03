@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate} from 'react-router-dom'
-import { About, ManageJobTest, CancelJobTest, ManageJob, CancelJob, AdminLog, AdminDashboard, Contact, Apply, Home, TrafficControl, TrafficPlan, Rentals, PPE, Signs, BollardsWheels, Error, TService, Product, TrafficControlTest } from './pages';
+import { About, Invoice, ManageJobTest, CancelJobTest, ManageJob, CancelJob, AdminLog, AdminDashboard, Contact, Apply, Home, TrafficControl, TrafficPlan, Rentals, PPE, Signs, BollardsWheels, Error, TService, Product, TrafficControlTest } from './pages';
 import axios from 'axios';
 import Navbar from './components/Navbar';
 import { Toaster } from 'react-hot-toast'
@@ -9,7 +9,36 @@ import { isAdminAuthenticated } from './utils/auth';
 /* axios.defaults.baseURL = 'http://localhost:8000';*/
 axios.defaults.withCredentials = true
 
+// Add axios interceptor to include JWT token in requests
+axios.interceptors.request.use(
+  (config) => {
+    const adminUser = localStorage.getItem('adminUser');
+    if (adminUser) {
+      const { token } = JSON.parse(adminUser);
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
+// Add response interceptor to handle 401 responses
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('adminUser');
+      if (window.location.pathname !== '/admin-login') {
+        window.location.href = '/admin-login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 function App() {
   return (
     <>
@@ -33,6 +62,7 @@ function App() {
    <Route path="/traffic-control-test-page" element={<TrafficControlTest />} />
    <Route path="/manage-job-test/:id" element={<ManageJobTest/>} />
    <Route path="/cancel-job-test/:id" element={<CancelJobTest/>} />
+   <Route path="/billing/invoices" element={<Invoice />} />
     <Route path="/admin-dashboard"
         element={isAdminAuthenticated() ? <AdminDashboard /> : <Navigate to="/admin-login" />}
 />
