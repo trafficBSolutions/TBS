@@ -34,6 +34,7 @@ const companyList = [
   "HD Excavations & Utilities",
   "H and H Paving and Concrete",
   "Hibbymo Properties-Cloudland",
+  "J and A Grading",
   "Magnum Paving",
   "Perman Construction",
   "Pike Electric",
