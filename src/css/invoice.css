@@ -20,6 +20,12 @@
     text-align: center;
     color: #333;
 }
+.rates-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
 .billing-panel p{
     margin-bottom: 16px;
     color: #666;
