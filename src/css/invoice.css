@@ -94,6 +94,201 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+/* ===== Vertex42 invoice look ===== */
+.v42-invoice {
+  --blue: #415a8a;
+  --blue-dark: #32466b;
+  --line: #9fb0cf;
+  --muted: #6b7280;
+  --bg: #f5f7fb;
+  --cell-bg: #f8fafc;
+  --note-bg: #eef2f7;
+  font-family: Arial, Helvetica, sans-serif;
+  border: 1px solid var(--line);
+  padding: 16px 16px 24px;
+  background: white;
+}
+
+.v42-header {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 16px;
+  align-items: start;
+  margin-bottom: 12px;
+}
+
+.v42-logo-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.v42-title {
+  margin: 0;
+  font-size: 34px;
+  letter-spacing: 2px;
+  color: var(--blue-dark);
+  font-weight: 800;
+}
+
+.v42-company { font-size: 13px; line-height: 1.35; color: #222; margin-top: 6px; }
+.v42-company-name { font-weight: 800; font-size: 18px; color: var(--blue-dark); }
+
+.v42-meta {
+  border: 1px solid var(--line);
+  padding: 6px 8px;
+}
+.v42-meta-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  padding: 6px 0;
+}
+.v42-meta-row:last-child { border-bottom: 0; }
+.v42-meta-row > div { font-size: 12px; font-weight: 700; color: var(--blue-dark); }
+.v42-meta-input {
+  width: 100%;
+  border: 1px solid var(--line);
+  padding: 4px 6px;
+  font-size: 12px;
+  background: var(--cell-bg);
+}
+
+.v42-bar {
+  background: var(--blue);
+  color: white;
+  font-weight: 800;
+  padding: 6px 8px;
+  margin: 10px 0 0;
+  letter-spacing: .5px;
+}
+
+.v42-billto {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  border: 1px solid var(--line);
+  padding: 8px;
+  margin-bottom: 10px;
+}
+.v42-billto-left { display: grid; gap: 6px; }
+.v42-billto-line {
+  border: 1px solid var(--line);
+  background: var(--cell-bg);
+  padding: 6px 8px;
+  font-size: 12px;
+}
+.v42-billto-right { display: grid; gap: 6px; }
+.v42-billto-pair { display: grid; grid-template-columns: 92px 1fr; align-items: center; gap: 8px; }
+.v42-plain {
+  border: 1px solid var(--line);
+  background: var(--cell-bg);
+  padding: 4px 6px;
+  font-size: 12px;
+}
+
+.v42-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--line);
+  font-size: 13px;
+}
+.v42-table thead th {
+  background: var(--blue);
+  color: #fff;
+  font-weight: 700;
+  padding: 6px 8px;
+  border-right: 1px solid rgba(255,255,255,.25);
+}
+.v42-th-service { text-align: left; }
+.v42-th-taxed { width: 80px; text-align: center; }
+.v42-th-amount { width: 200px; text-align: right; }
+
+.v42-table tbody td {
+  border-top: 1px solid var(--line);
+}
+.v42-td-service { padding: 0; }
+.v42-td-taxed { text-align: center; }
+.v42-td-amount { padding: 0; }
+
+.v42-cell {
+  width: 100%;
+  background: #fff;
+  border: none;
+  padding: 8px 10px;
+  outline: none;
+  font-size: 13px;
+}
+.v42-cell:focus { background: #fffceb; }
+.v42-right { text-align: right; }
+
+.v42-x {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 34px;
+  position: relative;
+}
+.v42-x input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.v42-x span {
+  font-weight: 800;
+  color: var(--blue-dark);
+  opacity: 0;
+  transition: opacity .12s;
+}
+.v42-x input:checked + span { opacity: 1; }
+
+.v42-addrow { padding: 8px; }
+
+.v42-note td, .v42-note { background: var(--note-bg); color: #333; }
+.v42-note td { padding: 6px 8px; font-size: 12px; }
+
+.v42-totals {
+  margin-top: 10px;
+  width: 100%;
+  border: 1px solid var(--line);
+}
+.v42-total-row {
+  display: grid;
+  grid-template-columns: 1fr 200px;
+  border-top: 1px solid var(--line);
+  padding: 6px 8px;
+  align-items: center;
+}
+.v42-total-row:first-child { border-top: none; }
+.v42-total-row > div:last-child { text-align: right; font-weight: 600; }
+.v42-total-row.small { font-size: 12px; color: #222; }
+.v42-taxrate, .v42-other {
+  border: 1px solid var(--line);
+  background: var(--cell-bg);
+  padding: 3px 6px;
+  font-size: 12px;
+  width: 90px;
+}
+.v42-total-row.grand {
+  background: var(--bg);
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.v42-foot { margin-top: 12px; font-size: 12px; color: #222; }
+.v42-foot-title { font-weight: 800; margin-bottom: 4px; }
+.v42-foot-mt { margin-top: 6px; }
+.v42-makepay { margin: 10px 0; font-size: 13px; }
+.v42-questions { margin: 12px 0 4px; }
+.v42-thanks { font-weight: 800; text-align: center; margin-top: 6px; }
+.overlay {
+  max-width: 1400px;
+  margin: 0 auto;
+}
 @media screen and (min-width: 320px) and (max-width: 640px) and (orientation: portrait){
 .rates-grid {
   display: block;
