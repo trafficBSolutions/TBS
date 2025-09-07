@@ -37,6 +37,7 @@ const COMPANY_TO_EMAIL = {
 const api = axios.create({ baseURL: 'http://localhost:8000' });
 // helpers (keep above component to avoid TDZ issues)
 const fmtUSD = (n) => `$${Number(n || 0).toFixed(2)}`;
+
 function buildBreakdown(sel, rates) {
   if (!sel || !rates) return [];
   const rows = [];
@@ -102,6 +103,52 @@ const [planPhases, setPlanPhases] = useState(0);
 const [planRate, setPlanRate] = useState(0);
 const [planEmail, setPlanEmail] = useState('');
 const [planReadyToSend, setPlanReadyToSend] = useState(false);
+// ===== Spreadsheet editor state (replaces the fixed rates UI) =====
+const VERTEX42_STARTER_ROWS = [
+  { id: 1, service: 'Flagging Operation — 1/2 day', taxed: false, amount: 0 },
+  { id: 2, service: 'Flagging Operation — Full Day', taxed: false, amount: 0 },
+  { id: 3, service: 'Flagging Operation — Emergency', taxed: false, amount: 0 },
+  { id: 4, service: 'Fully loaded vehicle', taxed: false, amount: 0 },
+  { id: 5, service: 'Officer (hrs × $/hr)', taxed: false, amount: 0 },
+  { id: 6, service: 'Rolling road block (per crew)', taxed: false, amount: 0 },
+  { id: 7, service: 'Lights for night/emergency', taxed: false, amount: 0 },
+  { id: 8, service: 'Secondary intersections/closing signs', taxed: false, amount: 25 },
+  { id: 9, service: 'After-hours signs (qty × $/sign)', taxed: false, amount: 0 },
+  { id:10, service: 'Arrow Board (qty × $)', taxed: false, amount: 0 },
+  { id:11, service: 'Message Board (qty × $)', taxed: false, amount: 0 },
+  { id:12, service: 'Mobilization (miles × $/mile/vehicle)', taxed: false, amount: 0 },
+];
+
+const [sheetRows, setSheetRows] = useState(VERTEX42_STARTER_ROWS);
+const [sheetTaxRate, setSheetTaxRate] = useState(0); // percent
+const [sheetOther, setSheetOther] = useState(0);     // shipping/discount/etc. (can be negative)
+
+const sheetSubtotal = useMemo(
+  () => sheetRows.reduce((s, r) => s + (Number(r.amount) || 0), 0),
+  [sheetRows]
+);
+const sheetTaxable = useMemo(
+  () => sheetRows.reduce((s, r) => s + (r.taxed ? (Number(r.amount) || 0) : 0), 0),
+  [sheetRows]
+);
+const sheetTaxDue = useMemo(
+  () => Number(((sheetTaxable * (Number(sheetTaxRate) || 0)) / 100).toFixed(2)),
+  [sheetTaxable, sheetTaxRate]
+);
+const sheetTotal = useMemo(
+  () => Number((sheetSubtotal + sheetTaxDue + (Number(sheetOther) || 0)).toFixed(2)),
+  [sheetSubtotal, sheetTaxDue, sheetOther]
+);
+
+// tiny helpers
+const addRow = () =>
+  setSheetRows(rows => [...rows, { id: Date.now(), service: '', taxed: false, amount: 0 }]);
+
+const removeRow = (id) =>
+  setSheetRows(rows => rows.filter(r => r.id !== id));
+
+const updateRow = (id, patch) =>
+  setSheetRows(rows => rows.map(r => (r.id === id ? { ...r, ...patch } : r)));
 
 const planBreakdown = useMemo(() => {
   const rows = [];
@@ -640,285 +687,253 @@ onClick={() => {
         </div>
       </div>
 {billingOpen && billingJob && (
-  <div className="billing-panel">
-    <h3>Bill Job — {billingJob.company}</h3>
-    <p><b>Project:</b> {billingJob.project}</p>
-    <p><b>Address:</b> {billingJob.address}, {billingJob.city}, {billingJob.state} {billingJob.zip}</p>
-
-    {/* ---- Rates you type ---- */}
-    <div className="rates-grid">
-<label>Flagging — Half ($)
-  <input
-    type="number" step="0.01" value={rates.flagHalf}
-    onChange={e=>{
-      const v = Number(e.target.value || 0);
-      setRates(r=>({...r, flagHalf: v}));
-      setSel(s=>{
-        if (v > 0) return {...s, flagDay: 'HALF'};
-        // if you clear this price and it was selected, clear the selection
-        return s.flagDay === 'HALF' ? {...s, flagDay: ''} : s;
-      });
-    }}
-  />
-</label>
-<label>Flagging — Full ($)
-  <input
-    type="number" step="0.01" value={rates.flagFull}
-    onChange={e=>{
-      const v = Number(e.target.value || 0);
-      setRates(r=>({...r, flagFull: v}));
-      setSel(s=>{
-        if (v > 0) return {...s, flagDay: 'FULL'};
-        return s.flagDay === 'FULL' ? {...s, flagDay: ''} : s;
-      });
-    }}
-  />
-</label>
-<label>Flagging — Emergency ($)
-  <input
-    type="number" step="0.01" value={rates.flagEmerg}
-    onChange={e=>{
-      const v = Number(e.target.value || 0);
-      setRates(r=>({...r, flagEmerg: v}));
-      setSel(s=>{
-        if (v > 0) return {...s, flagDay: 'EMERG'};
-        return s.flagDay === 'EMERG' ? {...s, flagDay: ''} : s;
-      });
-    }}
-  />
-</label>
-
-     <label>Lane Closure — Half ($)
-  <input
-    type="number" step="0.01" value={rates.lcHalf}
-    onChange={e=>{
-      const v = Number(e.target.value || 0);
-      setRates(r=>({...r, lcHalf: v}));
-      setSel(s=>{
-        if (v > 0) return {...s, laneClosure: 'HALF'};
-        return s.laneClosure === 'HALF' ? {...s, laneClosure: 'NONE'} : s;
-      });
-    }}
-  />
-</label>
-
-<label>Lane Closure — Full ($)
-  <input
-    type="number" step="0.01" value={rates.lcFull}
-    onChange={e=>{
-      const v = Number(e.target.value || 0);
-      setRates(r=>({...r, lcFull: v}));
-      setSel(s=>{
-        if (v > 0) return {...s, laneClosure: 'FULL'};
-        return s.laneClosure === 'FULL' ? {...s, laneClosure: 'NONE'} : s;
-      });
-    }}
-  />
-</label>
-      <label>Secondary intersection sign — each ($)
-        <input type="number" step="0.01" value={rates.intSign}
-               onChange={e=>setRates(r=>({...r, intSign: Number(e.target.value||0)}))} />
-      </label>
-<label>After-hours (flat) ($)
-  <input
-    type="number" step="0.01" value={rates.afterHrsFlat}
-    onChange={e=>{
-      const v = Number(e.target.value || 0);
-      setRates(r=>({...r, afterHrsFlat: v}));
-      setSel(s=>({...s, afterHours: v > 0}));
-    }}
-  />
-</label>
-      <label>After-hours signs — each ($)
-        <input type="number" step="0.01" value={rates.afterHrsSign}
-               onChange={e=>setRates(r=>({...r, afterHrsSign: Number(e.target.value||0)}))} />
-      </label>
-      <label>After-hours cones — each ($)
-        <input type="number" step="0.01" value={rates.afterHrsCone}
-               onChange={e=>setRates(r=>({...r, afterHrsCone: Number(e.target.value||0)}))} />
-      </label>
-
-<label>Night/Weekend ($)
-  <input
-    type="number" step="0.01" value={rates.nightWeekend}
-    onChange={e=>{
-      const v = Number(e.target.value || 0);
-      setRates(r=>({...r, nightWeekend: v}));
-      setSel(s=>({...s, nightWeekend: v > 0}));
-    }}
-  />
-</label>
-
-<label>Rolling road block ($)
-  <input
-    type="number" step="0.01" value={rates.roadblock}
-    onChange={e=>{
-      const v = Number(e.target.value || 0);
-      setRates(r=>({...r, roadblock: v}));
-      setSel(s=>({...s, roadblock: v > 0}));
-    }}
-  />
-</label>
-<label>Extra 3rd worker ($)
-  <input
-    type="number" step="0.01" value={rates.extraWorker}
-    onChange={e=>{
-      const v = Number(e.target.value || 0);
-      setRates(r=>({...r, extraWorker: v}));
-      setSel(s=>({...s, extraWorker: v > 0}));
-    }}
-  />
-</label>
-<label>Arrow boards
-  <div style={{display:'flex', gap:8, alignItems:'center'}}>
-    <input
-      type="number" min="0" value={sel.arrowBoardsQty}
-      onChange={e=>setSel(s=>({...s, arrowBoardsQty: Number(e.target.value || 0)}))}
-      placeholder="Qty"
-      style={{width:110}}
-    />
-    <input
-      type="number" step="0.01" value={rates.arrowBoard}
-      onChange={e=>{
-        const v = Number(e.target.value || 0);
-        setRates(r=>({...r, arrowBoard: v}));
-        // optional: if they type a price and qty=0, you could auto-set qty=1
-        // setSel(s => s.arrowBoardsQty === 0 && v > 0 ? {...s, arrowBoardsQty: 1} : s);
-      }}
-      placeholder="Rate $"
-      style={{width:120}}
-    />
-    <small>each</small>
-  </div>
-</label>
-
-<label>Message boards
-  <div style={{display:'flex', gap:8, alignItems:'center'}}>
-    <input
-      type="number" min="0" value={sel.messageBoardsQty}
-      onChange={e=>setSel(s=>({...s, messageBoardsQty: Number(e.target.value || 0)}))}
-      placeholder="Qty"
-      style={{width:110}}
-    />
-    <input
-      type="number" step="0.01" value={rates.messageBoard}
-      onChange={e=>{
-        const v = Number(e.target.value || 0);
-        setRates(r=>({...r, messageBoard: v}));
-        // optional auto-qty as above
-      }}
-      placeholder="Rate $"
-      style={{width:120}}
-    />
-    <small>each</small>
-  </div>
-</label>
-
-      <label>Miles (qty)
-        <input type="number" min="0" value={sel.miles}
-               onChange={e=>setSel(s=>({...s, miles: Number(e.target.value||0)}))} />
-      </label>
-      <label>Rate per mile ($)
-        <input type="number" step="0.01" value={rates.mileRate}
-               onChange={e=>setRates(r=>({...r, mileRate: Number(e.target.value||0)}))} />
-      </label>
-    </div>
-  
-
-    {/* ---- Live breakdown ---- */}
-    <div className="breakdown" style={{marginTop: 16}}>
-      <h4>Selected items</h4>
-      {breakdown.length === 0 ? (
-        <p>No items selected yet.</p>
-      ) : (
-        <table className="table">
-          <thead>
-            <tr>
-              <th style={{textAlign:'left'}}>Item</th>
-              <th>Qty</th>
-              <th>Unit</th>
-              <th>Rate</th>
-              <th>Line total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {breakdown.map((r, i) => (
-              <tr key={i}>
-                <td style={{textAlign:'left'}}>{r.label}</td>
-                <td style={{textAlign:'center'}}>{r.qty}</td>
-                <td style={{textAlign:'center'}}>{r.unit}</td>
-                <td style={{textAlign:'right'}}>{fmtUSD(r.rate)}</td>
-                <td style={{textAlign:'right'}}>{fmtUSD(r.qty * r.rate)}</td>
-              </tr>
-            ))}
-            <tr>
-              <td colSpan={4} style={{textAlign:'right', fontWeight:700}}>Total</td>
-              <td style={{textAlign:'right', fontWeight:700}}>{fmtUSD(liveTotal)}</td>
-            </tr>
-          </tbody>
-        </table>
-      )}
-    </div>
-<div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-  <button className="btn" onClick={handleDownloadXLSXStyled}>
-    Download Styled Spreadsheet (XLSX)
-  </button>
-</div>
-    {/* Email to send to */}
-    <label style={{display:'block', marginTop:12}}>Send invoice to</label>
-    <input className="email-input"type="email" value={selectedEmail} onChange={e=>setSelectedEmail(e.target.value)} />
-{/* --- Send warning & confirmation --- */}
-<div className="send-warning" style={{ 
-  marginTop: 16, 
-  padding: 12, 
-  border: '1px solid #f59e0b', 
-  background: '#fffbeb', 
-  borderRadius: 8 
-}}>
-  <h4 className="warning-text">⚠️ WARNING</h4>
-  <p style={{ margin: 0, marginBottom: 8 }}>
-    
-    ⚠️ Please review your invoice carefully. <b>No cancelations after the invoice is sent.</b>
-  </p>
-  <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-    <input
-      type="checkbox"
-      checked={readyToSend}
-      onChange={(e) => setReadyToSend(e.target.checked)}
-    />
-    Yes, it is ready to send.
-  </label>
-</div>
-
-    {/* Submit */}
-    <div style={{ marginTop: 12 }}>
-<button
-  className="btn btn--primary"
-  disabled={!readyToSend}
-  onClick={async () => {
-    if (!readyToSend) return; // extra guard
-    await api.post('/billing/bill-job', {
-      jobId: billingJob._id,
-      manualAmount: Number(liveTotal.toFixed(2)),  // dollars; server multiplies by 100
-      emailOverride: selectedEmail
-    });
-    setJobsForDay(list => list.map(j => j._id === billingJob._id ? { ...j, billed: true } : j));
-    setReadyToSend(false);   // reset after sending
-    setBillingOpen(false);
-    setBillingJob(null);
-  }}
->
-  Send Invoice
-</button>
-
-      <button className="btn" onClick={()=>{ setReadyToSend(false);       // <— reset when closing
-    setBillingOpen(false);
-    setBillingJob(null);}}>
-        Cancel
+  <div className="overlay">
+    <div className="v42-modal">
+      <button
+        className="v42-close"
+        onClick={() => { setBillingOpen(false); setBillingJob(null); }}
+        aria-label="Close"
+      >
+        ×
       </button>
+{/* ===== Vertex42-styled invoice editor ===== */}
+<div className="v42-invoice">
+  {/* Header */}
+  <div className="v42-header">
+    <div className="v42-brand">
+      <div className="v42-logo-row">
+        {/* put your cone / logo here if you want */}
+        <img src={images["../assets/tbs cone.svg"].default} alt="" />
+        <h1 className="v42-title">INVOICE</h1>
+      </div>
+
+      <div className="v42-company">
+        <div className="v42-company-name">TBS</div>
+        <div>Traffic and Barrier Solutions, LLC</div>
+        <div>1999 Dews Pond Rd SE</div>
+        <div>Calhoun, GA&nbsp;30701</div>
+        <div>Cell: 706-263-0175</div>
+        <div>Email: tbsolutions3@gmail.com</div>
+        <div>Website: www.TrafficBarrierSolutions.com</div>
+      </div>
+    </div>
+
+    {/* Right meta box */}
+    <div className="v42-meta">
+      <div className="v42-meta-row">
+        <div>DATE</div>
+        <input type="date" className="v42-meta-input"
+               defaultValue={new Date().toISOString().slice(0,10)} />
+      </div>
+      <div className="v42-meta-row">
+        <div>INVOICE #</div>
+        <input type="text" className="v42-meta-input" placeholder="" />
+      </div>
+      <div className="v42-meta-row">
+        <div>WR#</div>
+        <input type="text" className="v42-meta-input" placeholder="" />
+      </div>
+      <div className="v42-meta-row">
+        <div>WR#</div>
+        <input type="text" className="v42-meta-input" placeholder="" />
+      </div>
+      <div className="v42-meta-row">
+        <div>DUE DATE</div>
+        <input type="date" className="v42-meta-input" />
+      </div>
+    </div>
+  </div>
+
+  {/* BILL TO bar */}
+  <div className="v42-bar">BILL TO</div>
+  <div className="v42-billto">
+    <div className="v42-billto-left">
+      <input
+        className="v42-billto-line"
+        value={billingJob?.company || ''}
+        onChange={()=>{}}
+        readOnly
+      />
+      <input
+        className="v42-billto-line"
+        value={[billingJob?.address, billingJob?.city, billingJob?.state, billingJob?.zip].filter(Boolean).join(', ')}
+        onChange={()=>{}}
+        readOnly
+      />
+    </div>
+    <div className="v42-billto-right">
+      <div className="v42-billto-pair">
+        <div>Work Type:</div>
+        <input className="v42-plain" placeholder="" />
+      </div>
+      <div className="v42-billto-pair">
+        <div>Foreman:</div>
+        <input className="v42-plain" placeholder="" />
+      </div>
+      <div className="v42-billto-pair">
+        <div>location:</div>
+        <input className="v42-plain" placeholder="" />
+      </div>
+    </div>
+  </div>
+
+  {/* SERVICE table */}
+  <table className="v42-table">
+    <thead>
+      <tr>
+        <th className="v42-th-service">SERVICE</th>
+        <th className="v42-th-taxed">TAXED</th>
+        <th className="v42-th-amount">AMOUNT</th>
+      </tr>
+    </thead>
+    <tbody>
+      {/* Starter/spec rows (editable) */}
+      {sheetRows.map((row) => (
+        <tr key={row.id}>
+          <td className="v42-td-service">
+            <input
+              type="text"
+              className="v42-cell"
+              value={row.service}
+              onChange={(e)=>updateRow(row.id, { service: e.target.value })}
+              placeholder=""
+            />
+          </td>
+          <td className="v42-td-taxed">
+            <label className="v42-x">
+              <input
+                type="checkbox"
+                checked={row.taxed}
+                onChange={(e)=>updateRow(row.id, { taxed: e.target.checked })}
+              />
+              <span aria-hidden="true">X</span>
+            </label>
+          </td>
+          <td className="v42-td-amount">
+            <input
+              type="number"
+              step="0.01"
+              className="v42-cell v42-right"
+              value={row.amount}
+              onChange={(e)=>updateRow(row.id, { amount: Number(e.target.value || 0) })}
+            />
+          </td>
+        </tr>
+      ))}
+
+      {/* Add row */}
+      <tr>
+        <td colSpan={3} className="v42-addrow">
+          <button className="btn" onClick={addRow}>+ Add line</button>
+        </td>
+      </tr>
+
+      {/* Grey note rows (exact text from template — edit freely) */}
+      <tr className="v42-note"><td colSpan={3}>Per Secondary Street Intersections/Closing signs: $25.00</td></tr>
+      <tr className="v42-note"><td colSpan={3}>Signs and additional equipment left after hours: $- per/sign</td></tr>
+      <tr className="v42-note"><td colSpan={3}>Arrow Board $- ( Used ) &nbsp; Message Board $- ( )</td></tr>
+      <tr className="v42-note"><td colSpan={3}>Mobilization: If applicable: 25 miles from TBS's building &nbsp; $0.82/mile/vehicle (-)</td></tr>
+      <tr className="v42-note"><td colSpan={3}>All quotes based off a "TBS HR" – hour day, anything over 8 hours will be billed at $-/hr. per crew member. CREWS OF ____ WORKED ____ HRS OT</td></tr>
+      <tr className="v42-note"><td colSpan={3}>TBS HOURS: ____ AM – ____ PM</td></tr>
+    </tbody>
+  </table>
+
+  {/* Totals block */}
+  <div className="v42-totals">
+    <div className="v42-total-row"><div>Subtotal</div><div>{fmtUSD(sheetSubtotal)}</div></div>
+    <div className="v42-total-row small">
+      <div>
+        Taxable {fmtUSD(sheetTaxable)} &nbsp; • &nbsp;
+        Tax rate&nbsp;
+        <input
+          type="number" step="0.01"
+          className="v42-taxrate"
+          value={sheetTaxRate}
+          onChange={(e)=>setSheetTaxRate(Number(e.target.value || 0))}
+        />%
+      </div>
+      <div>{fmtUSD(sheetTaxDue)}</div>
+    </div>
+    <div className="v42-total-row"><div>Other</div>
+      <div>
+        <input
+          type="number" step="0.01"
+          className="v42-other"
+          value={sheetOther}
+          onChange={(e)=>setSheetOther(Number(e.target.value || 0))}
+        />
+      </div>
+    </div>
+    <div className="v42-total-row grand"><div>TOTAL</div><div>{fmtUSD(sheetTotal)}</div></div>
+  </div>
+
+  {/* Foot block */}
+  <div className="v42-foot">
+    <div className="v42-foot-title">Fully Loaded Vehicle</div>
+    <div>• 8 to 10 signs for flagging and lane operations</div>
+    <div>• 2 STOP &amp; GO paddles &nbsp;&nbsp;• 2 Certified Flaggers &amp; Vehicle with Strobes</div>
+    <div>• 30 Cones &amp; 2 Barricades</div>
+    <div className="v42-foot-mt">** Arrow Board upon request: additional fees will be applied</div>
+    <div>Late payment fee will go into effect if payment is not received 30 days after receiving Invoice.</div>
+
+    <div className="v42-makepay">Make all checks payable to <strong>TBS</strong></div>
+
+    <div className="v42-questions">
+      If you have any questions about this invoice, please contact<br/>
+      [Bryson Davis, 706-263-0715, tbsoultions3@gmail.com]
+    </div>
+    <div className="v42-thanks">Thank You For Your Business!</div>
+  </div>
+</div>
+
+
+      {/* Email + confirm + send */}
+      <div className="v42-actions">
+        <label>Send invoice to</label>
+        <input
+          className="email-input"
+          type="email"
+          value={selectedEmail}
+          onChange={(e)=>setSelectedEmail(e.target.value)}
+        />
+        <label style={{display:'flex',alignItems:'center',gap:8, marginTop:8}}>
+          <input
+            type="checkbox"
+            checked={readyToSend}
+            onChange={(e)=>setReadyToSend(e.target.checked)}
+          />
+          Yes, it is ready to send.
+        </label>
+
+        <button
+          className="btn btn--primary"
+          disabled={!readyToSend}
+          onClick={async () => {
+            await api.post('/billing/bill-job', {
+              jobId: billingJob._id,
+              manualAmount: Number(sheetTotal.toFixed(2)), // 👈 use spreadsheet total
+              emailOverride: selectedEmail
+            });
+            setJobsForDay(list => list.map(j => j._id === billingJob._id ? { ...j, billed: true } : j));
+            setReadyToSend(false);
+            setBillingOpen(false);
+            setBillingJob(null);
+          }}
+        >
+          Send Invoice
+        </button>
+
+        <button
+          className="btn"
+          onClick={() => { setReadyToSend(false); setBillingOpen(false); setBillingJob(null); }}
+        >
+          Cancel
+        </button>
+      </div>
     </div>
   </div>
 )}
+
   <div className="admin-plans">
   <h2 className="admin-plans-title">Traffic Control Plans</h2>
   <div className="plan-list">
