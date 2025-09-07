@@ -36,7 +36,7 @@ const COMPANY_TO_EMAIL = {
 };
 // invoices.jsx (top)
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE || 'https://tbs-server.onrender.com',
+  baseURL: import.meta.env.VITE_API_BASE || '',
   withCredentials: true, // allow cookie auth too
 });
 api.interceptors.request.use((config) => {
@@ -655,7 +655,7 @@ onClick={() => {
     <div className="v42-brand">
       <div className="v42-logo-row">
         {/* put your cone / logo here if you want */}
-        <img src={images["../assets/tbs cone.svg"].default} alt="" />
+        <img src={images["../assets/ cone.svg"].default} alt="" />
         <h1 className="v42-title">INVOICE</h1>
       </div>
 
