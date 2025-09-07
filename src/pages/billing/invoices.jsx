@@ -655,7 +655,7 @@ onClick={() => {
     <div className="v42-brand">
       <div className="v42-logo-row">
         {/* put your cone / logo here if you want */}
-        {/* <img src={images["../assets/tbs_companies/cone.png"].default} alt="" /> */}
+        <img src={images["../assets/tbs cone.svg"].default} alt="" />
         <h1 className="v42-title">INVOICE</h1>
       </div>
 
