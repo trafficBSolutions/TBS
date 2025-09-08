@@ -958,7 +958,7 @@ onClick={() => {
           className="btn btn--primary"
           disabled={!readyToSend}
           onClick={async () => {
-            await api.post('/billing/bill-job', {
+            await api.post('/api/billing/bill-job', {
               jobId: billingJob._id,
               manualAmount: Number(sheetTotal.toFixed(2)), // 👈 use spreadsheet total
               emailOverride: selectedEmail
