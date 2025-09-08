@@ -7,6 +7,7 @@ import Header from '../../components/headerviews/HeaderAdminDash';
 import images from '../../utils/tbsImages';
 import '../../css/invoice.css';
 import ExcelJS from 'exceljs';
+import { toast } from 'react-toastify';
 // Keep this small and readable. Add more as you seed more price lists.
 // at top of invoices.jsx
 const COMPANY_TO_KEY = {
@@ -106,6 +107,12 @@ const [monthlyKey, setMonthlyKey] = useState(0);
 const [planEmail, setPlanEmail] = useState('');
 const [planReadyToSend, setPlanReadyToSend] = useState(false);
 // ===== Spreadsheet editor state (replaces the fixed rates UI) =====
+  const [isSending, setIsSending] = useState(false);
+const [sentInvoice, setSentInvoice] = useState(false); // show the “Paid?” panel
+const [paymentType, setPaymentType] = useState('card'); // 'card' | 'check'
+const [last4, setLast4] = useState('');
+const [checkNo, setCheckNo] = useState('');
+const [paidAmount, setPaidAmount] = useState(''); // optional
 const VERTEX42_STARTER_ROWS = [
   { id: 1, service: 'Flagging Operation — 1/2 day', taxed: false, amount: 0 },
   { id: 2, service: 'Flagging Operation — Full Day', taxed: false, amount: 0 },
@@ -954,24 +961,35 @@ onClick={() => {
           Yes, it is ready to send.
         </label>
 
-        <button
-          className="btn btn--primary"
-          disabled={!readyToSend}
-          onClick={async () => {
-            await api.post('/api/billing/bill-job', {
-              jobId: billingJob._id,
-              manualAmount: Number(sheetTotal.toFixed(2)), // 👈 use spreadsheet total
-              emailOverride: selectedEmail
-            });
-            setJobsForDay(list => list.map(j => j._id === billingJob._id ? { ...j, billed: true } : j));
-            setReadyToSend(false);
-            setBillingOpen(false);
-            setBillingJob(null);
-          }}
-        >
-          Send Invoice
-        </button>
+      <button
+  className="btn btn--primary"
+  disabled={!readyToSend || isSending}
+  onClick={async () => {
+    const t = toast.loading('Sending invoice...');
+    setIsSending(true);
+    try {
+      await api.post('/api/billing/bill-job', {
+        jobId: billingJob._id,
+        manualAmount: Number(sheetTotal.toFixed(2)),
+        emailOverride: selectedEmail
+      });
 
+      // mark it billed in the day list
+      setJobsForDay(list => list.map(j => j._id === billingJob._id ? { ...j, billed: true } : j));
+
+      setSentInvoice(true);           // 👈 stay in modal and show Paid? section
+      setReadyToSend(false);
+      toast.update(t, { render: 'Invoice sent!', type: 'success', isLoading: false, autoClose: 2500 });
+    } catch (err) {
+      toast.update(t, { render: 'Failed to send invoice', type: 'error', isLoading: false, autoClose: 3500 });
+      console.error(err);
+    } finally {
+      setIsSending(false);
+    }
+  }}
+>
+  {isSending ? 'Sending…' : 'Send Invoice'}
+</button>
         <button
           className="btn"
           onClick={() => { setReadyToSend(false); setBillingOpen(false); setBillingJob(null); }}
@@ -979,6 +997,97 @@ onClick={() => {
           Cancel
         </button>
       </div>
+    </div>
+  </div>
+)}
+{sentInvoice && billingJob && (
+  <div className="paid-panel" style={{ marginTop: 20, padding: 16, border: '1px solid #e5e7eb', borderRadius: 8 }}>
+    <h3 style={{ marginTop: 0 }}>Payment received?</h3>
+    <p>Record payment and email a receipt to the customer.</p>
+
+    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+      <label style={{ minWidth: 180 }}>
+        Payment Type
+        <select
+          className="v42-plain"
+          value={paymentType}
+          onChange={e => setPaymentType(e.target.value)}
+        >
+          <option value="card">Card</option>
+          <option value="check">Check</option>
+        </select>
+      </label>
+
+      {paymentType === 'card' ? (
+        <label style={{ minWidth: 180 }}>
+          Last 4 digits
+          <input
+            className="v42-plain"
+            inputMode="numeric"
+            maxLength={4}
+            value={last4}
+            onChange={e => setLast4(e.target.value.replace(/\D/g, '').slice(0,4))}
+            placeholder="1234"
+          />
+        </label>
+      ) : (
+        <label style={{ minWidth: 220 }}>
+          Check #
+          <input
+            className="v42-plain"
+            value={checkNo}
+            onChange={e => setCheckNo(e.target.value.trim())}
+            placeholder="e.g. 1057"
+          />
+        </label>
+      )}
+
+      <label style={{ minWidth: 160 }}>
+        Amount (optional)
+        <input
+          className="v42-plain"
+          type="number"
+          step="0.01"
+          value={paidAmount}
+          onChange={e => setPaidAmount(e.target.value)}
+          placeholder={sheetTotal.toFixed(2)}
+        />
+      </label>
+    </div>
+
+    <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
+      <button
+        className="btn btn--primary"
+        onClick={async () => {
+          const t = toast.loading('Recording payment & sending receipt...');
+          try {
+            await api.post('/api/billing/mark-paid', {
+              jobId: billingJob._id,
+              amount: Number((paidAmount || sheetTotal).toFixed ? (paidAmount) : sheetTotal).toFixed ? Number(paidAmount || sheetTotal) : Number(sheetTotal),
+              method: paymentType,
+              last4: paymentType === 'card' ? last4 : undefined,
+              checkNo: paymentType === 'check' ? checkNo : undefined,
+              receiptEmail: selectedEmail // where to send receipt
+            });
+            toast.update(t, { render: 'Receipt sent!', type: 'success', isLoading: false, autoClose: 2500 });
+            // Optionally close:
+            // setBillingOpen(false); setBillingJob(null);
+          } catch (err) {
+            console.error(err);
+            toast.update(t, { render: 'Failed to record payment / send receipt', type: 'error', isLoading: false, autoClose: 3500 });
+          }
+        }}
+      >
+        Mark Paid & Send Receipt
+      </button>
+
+      <button className="btn" onClick={() => {
+        // allow admin to leave the modal open or close it
+        setSentInvoice(false);
+        setLast4(''); setCheckNo(''); setPaidAmount('');
+      }}>
+        Not Paid Yet
+      </button>
     </div>
   </div>
 )}
