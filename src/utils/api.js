@@ -4,7 +4,7 @@ import axios from 'axios';
 const isDev = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 const baseURL =
   import.meta.env.VITE_API_BASE
-  || (isDev ? 'http://localhost:8000' : ''); // dev -> server, prod -> same-origin or env
+  || (isDev ? 'https://tbs-server.onrender.com' : ''); // dev -> server, prod -> same-origin or env
 
 const api = axios.create({
   baseURL,
