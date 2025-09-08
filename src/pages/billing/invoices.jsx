@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import api from '../../utils/api';
 import axios from 'axios';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -34,7 +35,7 @@ const COMPANY_TO_EMAIL = {
   'Perman Construction': 'accounting@permaneng.com',
   'Wilson Boys Enterprises': 'invoices@wb-enterprises.com',
 };
-const api = axios.create({ baseURL: 'https://tbs-server.onrender.com' });
+
 // helpers (keep above component to avoid TDZ issues)
 const fmtUSD = (n) => `$${Number(n || 0).toFixed(2)}`;
 
@@ -101,6 +102,7 @@ const [planBillingOpen, setPlanBillingOpen] = useState(false);
 const [planJob, setPlanJob] = useState(null);
 const [planPhases, setPlanPhases] = useState(0);
 const [planRate, setPlanRate] = useState(0);
+const [monthlyKey, setMonthlyKey] = useState(0);
 const [planEmail, setPlanEmail] = useState('');
 const [planReadyToSend, setPlanReadyToSend] = useState(false);
 // ===== Spreadsheet editor state (replaces the fixed rates UI) =====
@@ -241,17 +243,6 @@ const handleDownloadXLSXStyled = async () => {
   metaHeader.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF3F4F6' } };
   metaHeader.alignment = { vertical: 'middle' };
   metaHeader.height = 18;
-  useEffect(() => {
-    const fetchPlanUser = async () => {
-      try {
-        const res = await axios.get('/plan/all');
-        setPlanUser(res.data);
-      } catch (err) {
-        console.error("Error fetching plan user:", err);
-      }
-    };
-    fetchPlanUser();
-  }, []);
   metaRows.forEach(([k, v]) => {
     const r = ws.addRow([k, v]);
     r.getCell(1).font = { bold: true };
@@ -448,17 +439,6 @@ const handleDownloadPlanXLSXStyled = async () => {
   URL.revokeObjectURL(a.href);
 };
 
-// Load Traffic Control Plans to bill
-useEffect(() => {
-  (async () => {
-    try {
-      const res = await axios.get('/plan/all'); // you already use this in AdminDashboard
-      setPlans(res.data || []);
-    } catch (e) {
-      console.error('Failed to load plans', e);
-    }
-  })();
-}, []);
 
 // === what the job needs (quantities/toggles) ===
 const [sel, setSel] = useState({
@@ -478,6 +458,27 @@ const [sel, setSel] = useState({
   miles: 0                // qty
 });
 
+// returns an object keyed by 'YYYY-MM-DD' -> [jobs...] or null
+const pickByDate = (payload) => {
+  const p = payload?.byDate ?? payload?.jobsByDate ?? payload;
+  if (!p || typeof p !== 'object' || Array.isArray(p)) return null;
+  const vals = Object.values(p);
+  return vals.length && vals.every(v => Array.isArray(v)) ? p : null;
+};
+
+// returns a flat array of jobs (or [])
+const pickList = (payload) => {
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.jobs)) return payload.jobs;
+  if (Array.isArray(payload?.results)) return payload.results;
+  if (Array.isArray(payload?.data)) return payload.data;
+  // sometimes servers nest once more: { data: { results:[...] } } or { data: { byDate: {...} } }
+  const d = payload?.data;
+  if (Array.isArray(d?.jobs)) return d.jobs;
+  if (Array.isArray(d?.results)) return d.results;
+  if (Array.isArray(d)) return d;
+  return [];
+};
 
 // === live breakdown & total (DOLLARS) ===
 const breakdown = useMemo(() => buildBreakdown(sel, rates), [sel, rates]);
@@ -503,40 +504,69 @@ const [manualAmount, setManualAmount] = useState('');
     }
   }, []);
 
-
-
-  // Calendar: fetch jobs for month (optionally filtered by company)
-  const fetchMonthlyJobs = async (date, companyName) => {
-    const month = (date.getMonth() + 1);
+// Calendar: fetch jobs for month (optionally filtered by company)
+// Calendar: fetch jobs for month (optionally filtered by company)
+const fetchMonthlyJobs = async (date) => {
+  try {
+    const month = date.getMonth() + 1;
     const year = date.getFullYear();
-    const params = { month, year };
-    if (companyName) params.company = companyName; // omit param = all companies
+    console.log(`Fetching jobs for ${month}/${year}`);
 
-    const res = await axios.get('/jobs/month', { params }); // you already have this endpoint
-    // Group active (non-cancelled) jobs by day
+    const res = await axios.get(`/jobs/month?month=${month}&year=${year}`);
+    console.log("Jobs received:", res.data);
+
+    // Group jobs by date (active jobs only)
     const grouped = {};
-    (res.data || []).forEach(job => {
-      (job.jobDates || []).forEach(d => {
-        if (d?.cancelled || job?.cancelled) return;
-        const dateStr = new Date(d.date).toISOString().split('T')[0];
-        if (!grouped[dateStr]) grouped[dateStr] = [];
-        grouped[dateStr].push(job);
+
+    res.data.forEach(job => {
+      (job.jobDates || []).forEach(jobDateObj => {
+        const dateStr = new Date(jobDateObj.date).toISOString().split('T')[0];
+
+        if (!jobDateObj.cancelled && !job.cancelled) {
+          if (!grouped[dateStr]) {
+            grouped[dateStr] = [];
+          }
+          grouped[dateStr].push(job);
+        }
       });
     });
-    setMonthlyJobs(grouped);
-  };
 
-  // Calendar: fetch jobs for a single selected day (optionally filtered by company)
-  const fetchJobsForDay = async (date, companyName) => {
+    setMonthlyJobs(grouped);
+    setMonthlyKey(prev => prev + 1);
+  } catch (err) {
+    console.error("Failed to fetch monthly jobs:", err);
+  }
+};
+useEffect(() => {
+  fetchMonthlyJobs(new Date()); // 👈 Fetch initial calendar jobs on mount
+}, []);
+
+useEffect(() => {
+  if (selectedDate) {
+    fetchMonthlyJobs(selectedDate);
+  }
+}, [selectedDate]);
+// Calendar: fetch jobs for a single selected day (optionally filtered by company)
+const fetchJobsForDay = async (date, companyName) => {
+  try {
     if (!date) return setJobsForDay([]);
     const dateStr = date.toISOString().split('T')[0];
     const params = { date: dateStr };
     if (companyName) params.company = companyName;
 
-    const res = await axios.get('/jobs', { params }); // you already have this endpoint
-    // (Assumes server already excludes cancelled jobs; if not, filter below)
-    setJobsForDay((res.data || []).filter(j => !j.cancelled));
-  };
+    const res = await axios.get('/jobs', { params });
+    const list = pickList(res?.data);
+    if (!Array.isArray(list)) {
+      console.warn('Unexpected /jobs payload; skipping render', res?.data);
+      setJobsForDay([]);
+      return;
+    }
+    setJobsForDay(list.filter(j => !j?.cancelled));
+  } catch (err) {
+    console.error('fetchJobsForDay failed:', err);
+    setJobsForDay([]);
+  }
+};
 
   // Initial calendar load: ALL companies
   useEffect(() => {
@@ -565,6 +595,25 @@ const [manualAmount, setManualAmount] = useState('');
     setSelectedDate(date);
     await fetchJobsForDay(date, companyKey || '');
   };
+
+  // Fetch plans
+  const fetchPlans = async () => {
+    try {
+      const res = await api.get('/plans');
+      const plansList = Array.isArray(res?.data) ? res.data : 
+                       Array.isArray(res?.data?.plans) ? res.data.plans :
+                       Array.isArray(res?.data?.data) ? res.data.data : [];
+      setPlans(plansList);
+    } catch (err) {
+      console.error('fetchPlans failed:', err);
+      setPlans([]);
+    }
+  };
+
+  // Fetch plans on component mount
+  useEffect(() => {
+    fetchPlans();
+  }, []);
   return (
     <div>
       <Header />
@@ -909,7 +958,7 @@ onClick={() => {
           className="btn btn--primary"
           disabled={!readyToSend}
           onClick={async () => {
-            await api.post('/billing/bill-job', {
+            await api.post('/api/billing/bill-job', {
               jobId: billingJob._id,
               manualAmount: Number(sheetTotal.toFixed(2)), // 👈 use spreadsheet total
               emailOverride: selectedEmail
