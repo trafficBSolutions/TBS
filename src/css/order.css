@@ -1,0 +1,30 @@
+
+    .work-h1 {
+        font-size: 6rem;
+        font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        text-align: center;
+    }
+    .image-work-section {
+        margin: 0 auto;
+        text-align: center;
+            padding: 20px;
+    background-color: #f7d7bc;
+    }
+    .tbs-img {
+        max-width: 330px;
+    }
+    .main-work-section {
+            padding-bottom: 3.5rem;
+    width: auto;
+    height: auto;
+    background-color: #fff;
+    padding: 20px;
+    box-shadow: 0 4px 10px #0000001a;
+    margin: 20px auto;
+    max-width: 900px;
+    }
+    .comp-section {
+        font-size: 3rem;
+        font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        text-align: center;
+    }
