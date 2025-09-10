@@ -19,5 +19,8 @@ import TrafficControlTest from './traffic-control-test-page'
 import ManageJobTest from './manage-job-test'
 import CancelJobTest from './cancel-job-test'
 import Invoice from './billing/invoices'
-export { AdminDashboard, Invoice, CancelJob, About, Contact, Apply, Home, AdminLog, TrafficControl, TrafficPlan, BollardsWheels, Signs, Rentals, PPE, Error, TService, Product, ManageJob, TrafficControlTest, ManageJobTest, CancelJobTest };
+import Work from './work-order'
+import EmployeeLogin from './employee-login'
+export { AdminDashboard, EmployeeLogin, Work,, Invoice, CancelJob, About, Contact, Apply, Home, AdminLog, TrafficControl, TrafficPlan, BollardsWheels, Signs, Rentals, PPE, Error, TService, Product, ManageJob, TrafficControlTest, ManageJobTest, CancelJobTest };
+
 
