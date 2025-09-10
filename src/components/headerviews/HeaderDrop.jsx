@@ -6,6 +6,32 @@ function Header() {
     const [isNavOpen, setIsNavOpen] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
     const navigate = useNavigate();
+// in your Header component
+const [isEmployee, setIsEmployee] = useState(false);
+
+useEffect(() => {
+  const storedAdmin = localStorage.getItem('adminUser');
+  const storedEmployee = localStorage.getItem('employeeUser');
+  setIsAdmin(!!storedAdmin);
+  setIsEmployee(!!storedEmployee);
+}, []);
+
+const handleEmployeeClick = async () => {
+  if (isEmployee) {
+    // logout
+    try {
+      await fetch((import.meta.env.VITE_API_URL || 'http://localhost:8000') + '/api/employee/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } catch {}
+    localStorage.removeItem('employeeUser');
+    setIsEmployee(false);
+    navigate('/employee-login');
+  } else {
+    navigate('/employee-login');
+  }
+};
 
     useEffect(() => {
         const storedAdmin = localStorage.getItem('adminUser');
@@ -64,21 +90,31 @@ function Header() {
 
         {/* Admin options inside mobile menu */}
         <li className="admin-options">
-            {isAdmin && (
-                <a className="btn-main main-nav-link-view" href="/admin-dashboard">
-                    Admin Dashboard
-                </a>
-            )}
-            <button className="btn-main main-nav-link" onClick={handleAdminClick}>
-                {isAdmin ? 'Log Out' : 'Admin Login'}
-            </button>
-        </li>
+  {/* Admin bits (as you already have) */}
+  {isAdmin && (
+    <a className="btn-main main-nav-link-view" href="/admin-dashboard">
+      Admin Dashboard
+    </a>
+  )}
+  <button className="btn-main main-nav-link" onClick={handleAdminClick}>
+    {isAdmin ? 'Log Out (Admin)' : 'Admin Login'}
+  </button>
+
+  {/* Employee bits */}
+  <a className="btn-main main-nav-link-view" href="/work" style={{ display: isEmployee ? 'inline-block' : 'none' }}>
+    Employee Portal
+  </a>
+  <button className="btn-main main-nav-link" onClick={handleEmployeeClick}>
+    {isEmployee ? 'Log Out (Employee)' : 'Employee Login'}
+  </button>
+</li>
+
     </ul>
 </nav>
             {/* Material WorX Logo Link */}
             <div className="phone-header">
                 <a className="header-worx-logo" target="_blank" rel="noopener noreferrer" href="https://www.material-worx.com">
-                     <img className="material-worx-img" alt="Material WorX logo" src={images["../assets/tbs_companies/Material WorX Tan White.svg"].default} />
+                    <img className="material-worx-img" alt="Material WorX logo" src={images["../assets/tbs_companies/Material WorX Tan White.svg"].default} />
                     <div className="material-worx">
                         <p className="material-worx-text">CUSTOM SHOP &#x1F80A;</p>
                         <p className="material-worx-web">www.material-worx.com</p>
