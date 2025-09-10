@@ -38,11 +38,12 @@
         font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
         text-align: center;
     }
-    .morning-checklist h4 {
+    .morning-checklist h4, .jobsite-checklist h4  {
         font-size: 2.7rem;
         font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        margin: 1rem 0;
     }
-    .signature-h4, .jobsite-checklist h4 {
+    .signature-h4{
         font-size: 2rem;
         font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
         margin: 1rem;
@@ -55,4 +56,8 @@
         font-size: 2rem;
         font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
         margin: 1rem;
+    }
+    .trucks {
+        font-size: 1.3rem;
+        font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
     }
