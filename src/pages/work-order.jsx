@@ -43,7 +43,7 @@ const toTitleCase = (s) =>
 
   const [basic, setBasic] = useState({
     dateOfJob: '',
-    client: '',
+    company: '',
     coordinator: '',
     project: '',
     address: '',
@@ -96,7 +96,7 @@ const toTitleCase = (s) =>
   }, [tbs.morning]);
 
   const isBasicReady = () => {
-    const required = ['dateOfJob','client','coordinator','project','address','city','state','zip','startTime','endTime'];
+    const required = ['dateOfJob','company','coordinator','project','address','city','state','zip','startTime','endTime'];
     const haveAll = required.every(k => String(basic[k] || '').trim() !== '');
     return haveAll && !!foremanSig; // foreman signature required before enabling TBS section
   };
@@ -118,7 +118,7 @@ useEffect(() => {
       setBasic(prev => ({
         ...prev,
         dateOfJob: chosenISO,
-        client: data.company || '',
+        company: data.company || '',
         coordinator: data.coordinator || '',
         project: data.project || '',
         address: data.address || '',
@@ -253,7 +253,7 @@ useEffect(() => {
 
   const basicField = (name, label, type='text', props={}) => (
     <div className="field">
-      <label>{label}{['dateOfJob','client','coordinator','project','address','city','state','zip','startTime','endTime'].includes(name) ? ' *' : ''}</label>
+      <label>{label}{['dateOfJob','company','coordinator','project','address','city','state','zip','startTime','endTime'].includes(name) ? ' *' : ''}</label>
       <input type={type} value={basic[name]} onChange={e => setBasicField(name, e.target.value)} {...props} />
     </div>
   );
@@ -281,7 +281,7 @@ useEffect(() => {
 
               <div className="address-of-job">
                 {basicField('dateOfJob', 'Date of Job', 'date')}
-                {basicField('client', 'Client')}
+                {basicField('company', 'Company')}
                 {basicField('address', 'Address')}
                 {basicField('city', 'City')}
                 {basicField('state', 'State')}
@@ -364,13 +364,16 @@ useEffect(() => {
 
                   <label>Flagger #5</label>
                   <input type="text" placeholder="TBS Flagger First & Last Name" value={tbs.flagger5} onChange={e => setTbs(s => ({...s, flagger5: e.target.value}))} />
+                  
+                  <label>Flagger #6</label>
+                  <input type="text" placeholder="TBS Flagger First & Last Name" value={tbs.flagger5} onChange={e => setTbs(s => ({...s, flagger5: e.target.value}))} />
                 </div>
 
                 <div className="morning-checklist">
                   <h4>Morning Check List *</h4>
 
                   <label>TBS Truck Number(s):</label>
-                  <p>Please select all trucks taken for this job.</p>
+                  <p className="trucks">Please select all trucks taken for this job.</p>
                   <select multiple value={tbs.trucks} onChange={e => setTbs(s => ({...s, trucks: Array.from(e.target.selectedOptions).map(o => o.value)}))}>
                     {TRUCKS.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
@@ -382,8 +385,8 @@ useEffect(() => {
 
                   {numberInput('cones','Cones')}
                   {numberInput('barrels','Barrels')}
-                  {numberInput('signStands','Sign Stands')}
                   {numberInput('signs','Signs')}
+                  {numberInput('signStands','Sign Stands')}
 
                   {hasMismatch && (
                     <div className="emergency-warning-box">
