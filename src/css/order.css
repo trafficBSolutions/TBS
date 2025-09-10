@@ -61,3 +61,23 @@
         font-size: 1.3rem;
         font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
     }
+    .truck-chooser {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+}
+.truck-tag {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px; border: 1px solid #ccc; border-radius: 8px;
+}
+.truck-tag.selected { border-color: #333; font-weight: 600; }
+.sig-canvas { /* canvas on page */
+  width: 100%;
+  max-width: 600px;
+  height: 160px;
+  background: #fff;
+  border: 2px dashed #bbb;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px #0000001a;
+}
+.sig-clear { background:#e67e22; color:#fff; }
