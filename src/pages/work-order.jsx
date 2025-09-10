@@ -7,7 +7,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
-import SignatureCanvas from 'react-signature-canvas';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Header from '../components/headerviews/HeaderDrop';
@@ -20,7 +19,7 @@ const TRUCKS = [
   'TBS Truck 11','TBS Truck 12','TBS Truck 13','TBS Truck 14','TBS Truck 15',
   'TBS Truck 16','TBS Truck 17','TBS Truck 18','TBS Truck 19','TBS Truck 20',
 ];
-export default function WorkOrder() {
+export default function Work() {
   const { id: jobId } = useParams();
   const [searchParams] = useSearchParams();
   const dateParam = searchParams.get('date'); // YYYY-MM-DD (optional)
@@ -103,32 +102,39 @@ const toTitleCase = (s) =>
   };
 
   useEffect(() => { setTbsEnabled(isBasicReady()); }, [basic, foremanSig]);
+useEffect(() => {
+  const loadJob = async () => {
+    if (!jobId) {
+      toast.error('Missing job id in URL');
+      setLoading(false);
+      return;
+    }
+    try {
+      const { data } = await api.get(`/trafficcontrol/${jobId}`);
+      const firstISO = data?.jobDates?.[0]?.date
+        ? new Date(data.jobDates[0].date).toISOString().slice(0, 10)
+        : '';
+      const chosenISO = dateParam || firstISO;
+      setBasic(prev => ({
+        ...prev,
+        dateOfJob: chosenISO,
+        client: data.company || '',
+        coordinator: data.coordinator || '',
+        project: data.project || '',
+        address: data.address || '',
+        city: data.city || '',
+        state: data.state || '',
+        zip: data.zip || ''
+      }));
+    } catch (e) {
+      toast.error('Failed to load job details');
+    } finally {
+      setLoading(false);
+    }
+  };
+  loadJob();
+}, [jobId, dateParam]);
 
-  useEffect(() => {
-    const loadJob = async () => {
-      try {
-        const { data } = await api.get(`/trafficcontrol/${jobId}`);
-        const firstISO = data?.jobDates?.[0]?.date ? new Date(data.jobDates[0].date).toISOString().slice(0,10) : '';
-        const chosenISO = dateParam || firstISO;
-        setBasic(prev => ({
-          ...prev,
-          dateOfJob: chosenISO,
-          client: data.company || '',
-          coordinator: data.coordinator || '',
-          project: data.project || '',
-          address: data.address || '',
-          city: data.city || '',
-          state: data.state || '',
-          zip: data.zip || ''
-        }));
-      } catch (e) {
-        toast.error('Failed to load job details');
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadJob();
-  }, [jobId, dateParam]);
 
   const setBasicField = (k, v) => setBasic(prev => ({ ...prev, [k]: v }));
   const setMorning = (key, sub, val) => setTbs(prev => ({ ...prev, morning: { ...prev.morning, [key]: { ...prev.morning[key], [sub]: val } } }));
@@ -258,14 +264,18 @@ const toTitleCase = (s) =>
     <div>
       <Header />
       <div className="work-order">
-        
-        <section className="image-work-section">
-          <h1 className="work-h1">Work Order</h1>
-          <img className="cone-img" src={images["../assets/tbs cone.svg"].default} alt="" />
-          <img className="tbs-img" src={images["../assets/tbs_companies/TBSPDF7.svg"].default} alt="" />
-        </section>
         <section className="main-work-section">
           <form onSubmit={onSubmit} className="form-center">
+            <div className="workorder">
+            <div className="work-order-div">
+            <img className="cone-img" src={images["../assets/tbs cone.svg"].default} alt="" />
+          <img className="tbs-img" src={images["../assets/tbs_companies/TBSPDF7.svg"].default} alt="" />
+          </div>
+          <div className="work-order-div">
+            <h1 className="work-h1">Work Order</h1>
+            <h3 className="control-fill-info">Fields marked with * are required.</h3>
+            </div>
+            </div>
             <h3 className="comp-section">Company Section:</h3>
             <div className="job-actual">
 
@@ -311,10 +321,15 @@ const toTitleCase = (s) =>
               </div>
 
               <div className="signature">
-                <h4>Job Site Foreman Signature *</h4>
+                <h4 className="signature-h4">Job Site Foreman Signature *</h4>
                 <div className="sig-pad">
                   <div className="signature">
-  <h4>Job Site Foreman *</h4>
+   <div className="emergency-warning-box">
+                      <p className="warning-text">⚠️ WARNING</p>
+                      <p className="emergency-warning-text">Please check your section carefully and make sure it is correct before sending to TBS Employees</p>
+                      
+                    </div>
+                    <p className="sign-here">Please Sign Your First & Last Name to Approve Foreman Work Order</p>
   <input
     type="text"
     placeholder="First & Last Name"
@@ -326,34 +341,29 @@ const toTitleCase = (s) =>
 </div>
 
                 </div>
-                <div className="sig-actions">
-                  <button type="button" onClick={captureSignature}>Save Signature</button>
-                  <button type="button" onClick={clearSignature}>Clear</button>
-                  {foremanSig ? <span className="ok">Signature captured ✓</span> : <span className="hint">Sign and click "Save Signature"</span>}
-                </div>
               </div>
 
               <div className={`tbs-employee-form ${!tbsEnabled ? 'disabled' : ''}`}>
                 {!tbsEnabled && lockMask}
                 <div className="employee-names">
                   <h3 className="comp-section">TBS Employee Section:</h3>
-                  <p>Please give device to TBS Employees to fill out</p>
+                  <p className="employeep">Please give device to TBS Employees to fill out</p>
                   <label>Flagger #1 *</label>
-                  <input type="text" placeholder="TBS Employee First & Last Name" value={tbs.flagger1} onChange={e => setTbs(s => ({...s, flagger1: e.target.value}))} />
+                  <input type="text" placeholder="TBS Flagger First & Last Name" value={tbs.flagger1} onChange={e => setTbs(s => ({...s, flagger1: e.target.value}))} />
                   {errors.flagger1 && <div className="error">{errors.flagger1}</div>}
 
                   <label>Flagger #2 *</label>
-                  <input type="text" placeholder="TBS Employee First & Last Name" value={tbs.flagger2} onChange={e => setTbs(s => ({...s, flagger2: e.target.value}))} />
+                  <input type="text" placeholder="TBS Flagger First & Last Name" value={tbs.flagger2} onChange={e => setTbs(s => ({...s, flagger2: e.target.value}))} />
                   {errors.flagger2 && <div className="error">{errors.flagger2}</div>}
 
                   <label>Flagger #3</label>
-                  <input type="text" placeholder="TBS Employee First & Last Name" value={tbs.flagger3} onChange={e => setTbs(s => ({...s, flagger3: e.target.value}))} />
+                  <input type="text" placeholder="TBS Flagger First & Last Name" value={tbs.flagger3} onChange={e => setTbs(s => ({...s, flagger3: e.target.value}))} />
 
                   <label>Flagger #4</label>
-                  <input type="text" placeholder="TBS Employee First & Last Name" value={tbs.flagger4} onChange={e => setTbs(s => ({...s, flagger4: e.target.value}))} />
+                  <input type="text" placeholder="TBS Flagger First & Last Name" value={tbs.flagger4} onChange={e => setTbs(s => ({...s, flagger4: e.target.value}))} />
 
                   <label>Flagger #5</label>
-                  <input type="text" placeholder="TBS Employee First & Last Name" value={tbs.flagger5} onChange={e => setTbs(s => ({...s, flagger5: e.target.value}))} />
+                  <input type="text" placeholder="TBS Flagger First & Last Name" value={tbs.flagger5} onChange={e => setTbs(s => ({...s, flagger5: e.target.value}))} />
                 </div>
 
                 <div className="morning-checklist">
@@ -409,7 +419,10 @@ const toTitleCase = (s) =>
               {errors.tbsEnabled && <div className="error big">{errors.tbsEnabled}</div>}
 
               <div className="actions">
-                <button className="btn"type="submit" disabled={!isSubmitReady}>Submit Work Order</button>
+               <button className="btn" type="submit" disabled={!isSubmitReady || !jobId}>
+  Submit Work Order
+</button>
+
               </div>
             </div>
           </form>
