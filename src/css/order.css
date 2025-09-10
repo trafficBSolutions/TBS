@@ -4,14 +4,24 @@
         font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
         text-align: center;
     }
-    .image-work-section {
+    .work-order-div {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
         margin: 0 auto;
+        gap: 10px;
         text-align: center;
             padding: 20px;
-    background-color: #f7d7bc;
+    }
+    .workorder {
+        display: flex;
     }
     .tbs-img {
         max-width: 330px;
+    }
+    .cone-img {
+        max-width: 130px;
     }
     .main-work-section {
             padding-bottom: 3.5rem;
@@ -27,4 +37,22 @@
         font-size: 3rem;
         font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
         text-align: center;
+    }
+    .morning-checklist h4 {
+        font-size: 2.7rem;
+        font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    }
+    .signature-h4, .jobsite-checklist h4 {
+        font-size: 2rem;
+        font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        margin: 1rem;
+    }
+    .sign-here {
+        font-size: 1.2rem;
+        margin: 1rem;
+    }
+    .employeep {
+        font-size: 2rem;
+        font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        margin: 1rem;
     }
