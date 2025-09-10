@@ -12,6 +12,12 @@ import 'react-toastify/dist/ReactToastify.css';
 import Header from '../components/headerviews/HeaderDrop';
 import images from '../utils/tbsImages';
 import '../css/order.css'
+import api from '../utils/api';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import '../css/trafficcontrol.css';
+import { useNavigate } from 'react-router-dom';
+import SignatureCanvas from 'react-signature-canvas';
 const RATE = ["Excellent", "Good", "Fair", "Poor"];
 const TRUCKS = [
   'TBS Truck 1','TBS Truck 2','TBS Truck 3','TBS Truck 4','TBS Truck 5',
@@ -19,23 +25,156 @@ const TRUCKS = [
   'TBS Truck 11','TBS Truck 12','TBS Truck 13','TBS Truck 14','TBS Truck 15',
   'TBS Truck 16','TBS Truck 17','TBS Truck 18','TBS Truck 19','TBS Truck 20',
 ];
+const companyList = [
+ "Atlanta Gas Light",
+  "Broadband Technical Resources",
+  "Broadband of Indiana",
+  "Car Michael",
+  "Fairway Electric",
+  "Georgia Power",
+  "Global Infrastructure",
+  "HD Excavations & Utilities",
+  "H and H Paving and Concrete",
+  "Hibbymo Properties-Cloudland",
+  "Magnum Paving",
+  "Perman Construction",
+  "Pike Electric",
+  "Service Electric",
+  "Source One",
+  "The Surface Masters",
+  "Tindall",
+  "Wilson Boys Enterprises",
+  "Other(Specify Company in Additional Notes)"
+]
+const states = [
+  { abbreviation: 'AL', name: 'Alabama' },
+  { abbreviation: 'FL', name: 'Florida' },
+  { abbreviation: 'GA', name: 'Georgia' },
+  { abbreviation: 'KY', name: 'Kentucky' },
+  { abbreviation: 'NC', name: 'North Carolina' },
+  { abbreviation: 'SC', name: 'South Carolina' },
+  { abbreviation: 'TN', name: 'Tennessee' }
+];
 export default function Work() {
   const { id: jobId } = useParams();
   const [searchParams] = useSearchParams();
+  const handleSigEnd = () => {
+  if (!sigRef.current) return;
+  // Trim whitespace, export as PNG, and strip the dataURL prefix
+  const dataUrl = sigRef.current.getTrimmedCanvas().toDataURL('image/png');
+  setForemanSig(dataUrl.split(',')[1]); // store only the base64 payload
+};
+
+const clearSignature = () => {
+  sigRef.current?.clear();
+  setForemanSig('');
+};
   const dateParam = searchParams.get('date'); // YYYY-MM-DD (optional)
   const [foremanName, setForemanName] = useState('');
+  const [cityName, setCityName] = useState('')
+  const [allowedDates, setAllowedDates] = useState([]);
+  const [company, setCompany] = useState('');
+  // Build allowed date list from jobDates (array of { date, ... })
+// Pretty label for the selected date (e.g., Monday, February 3, 2025)
+const prettyDate = (ymd) =>
+  ymd ? ymdToDate(ymd).toLocaleDateString('en-US', {
+    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+  }) : '';
 
+  const navigate = useNavigate();
+  // Parse "YYYY-MM-DD" to a Date (avoids TZ shift)
+const ymdToDate = (s) => {
+  if (!s) return null;
+  const [y, m, d] = s.slice(0, 10).split('-').map(Number);
+  return new Date(y, m - 1, d);
+};
+
+// Format Date -> "YYYY-MM-DD"
+const dateToYmd = (d) => {
+  if (!d) return '';
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+// helper (top of file)
+const startOfLocalDay = (d = new Date()) => {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+};
+
+useEffect(() => {
+  const loadJob = async () => {
+    if (!jobId) {
+      toast.error('Missing job id in URL');
+      setLoading(false);
+      return;
+    }
+    try {
+      const { data } = await api.get(`/trafficcontrol/${jobId}`);
+
+      const today = startOfLocalDay();
+
+      // Build & filter allowed dates (only today or later)
+      const allowed = (data?.jobDates || [])
+        .map(jd => ymdToDate(String(jd?.date).slice(0, 10)))
+        .filter(Boolean)
+        .filter(d => startOfLocalDay(d) >= today);
+
+      setAllowedDates(allowed);
+
+      // Choose a valid default date:
+      const fromQuery = dateParam && allowed.some(d => dateToYmd(d) === dateParam) ? dateParam : '';
+      const firstFuture = allowed[0] ? dateToYmd(allowed[0]) : '';
+      const chosenISO = fromQuery || firstFuture;
+
+      setBasic(prev => ({
+        ...prev,
+        dateOfJob: chosenISO,
+        company: data.company || '',
+        coordinator: data.coordinator || '',
+        project: data.project || '',
+        address: data.address || '',
+        city: data.city || '',
+        state: data.state || '',
+        zip: data.zip || ''
+      }));
+    } catch (e) {
+      toast.error('Failed to load job details');
+    } finally {
+      setLoading(false);
+    }
+  };
+  loadJob();
+}, [jobId, dateParam]);
+
+useEffect(() => {
+  let mounted = true;
+  (async () => {
+    try {
+      const { data } = await api.get('/employee/me');
+      if (!data?.authenticated) navigate('/employee-login', { replace: true });
+    } catch {
+      navigate('/employee-login', { replace: true });
+    }
+  })();
+  return () => { mounted = false; };
+}, [navigate]);
 // simple title-case (handles spaces, hyphens, slashes, apostrophes)
+const toggleTruck = (truck) =>
+  setTbs(s => {
+    const chosen = new Set(s.trucks);
+    chosen.has(truck) ? chosen.delete(truck) : chosen.add(truck);
+    // keep original TRUCKS order in state
+    return { ...s, trucks: TRUCKS.filter(t => chosen.has(t)) };
+  });
 
 const toTitleCase = (s) =>
   s
     .toLowerCase()
     .replace(/(^|\s|[-/'])(\S)/g, (_, p1, p2) => p1 + p2.toUpperCase());
 
- const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
-  withCredentials: true
- });
   const sigRef = useRef(null);
 
   const [loading, setLoading] = useState(true);
@@ -95,13 +234,21 @@ const toTitleCase = (s) =>
     return items.some(p => p.start !== '' && p.end !== '' && Number(p.start) !== Number(p.end));
   }, [tbs.morning]);
 
-  const isBasicReady = () => {
-    const required = ['dateOfJob','company','coordinator','project','address','city','state','zip','startTime','endTime'];
-    const haveAll = required.every(k => String(basic[k] || '').trim() !== '');
-    return haveAll && !!foremanSig; // foreman signature required before enabling TBS section
-  };
+const isBasicReady = () => {
+  const required = [
+    'dateOfJob','company','coordinator','project',
+    'address','city','state','zip','startTime','endTime'
+  ];
+  const haveAll = required.every(k => String(basic[k] || '').trim() !== '');
+  return haveAll && foremanName.trim() !== '' && !!foremanSig;
+};
 
-  useEffect(() => { setTbsEnabled(isBasicReady()); }, [basic, foremanSig]);
+
+
+  useEffect(() => {
+  setTbsEnabled(isBasicReady());
+}, [basic, foremanName]); // <- use foremanName, not foremanSig
+
 useEffect(() => {
   const loadJob = async () => {
     if (!jobId) {
@@ -111,10 +258,18 @@ useEffect(() => {
     }
     try {
       const { data } = await api.get(`/trafficcontrol/${jobId}`);
+
+      // Allowed date list from jobDates
+      const allowed = (data?.jobDates || [])
+        .map(jd => ymdToDate(String(jd?.date).slice(0, 10)))
+        .filter(Boolean);
+      setAllowedDates(allowed);
+
       const firstISO = data?.jobDates?.[0]?.date
-        ? new Date(data.jobDates[0].date).toISOString().slice(0, 10)
+        ? String(data.jobDates[0].date).slice(0, 10)
         : '';
       const chosenISO = dateParam || firstISO;
+
       setBasic(prev => ({
         ...prev,
         dateOfJob: chosenISO,
@@ -134,6 +289,7 @@ useEffect(() => {
   };
   loadJob();
 }, [jobId, dateParam]);
+
 
 
   const setBasicField = (k, v) => setBasic(prev => ({ ...prev, [k]: v }));
@@ -171,48 +327,46 @@ useEffect(() => {
     return Object.keys(errs).length === 0;
   };
 
-  const captureSignature = () => {
-    if (sigRef.current && !sigRef.current.isEmpty()) {
-      const dataUrl = sigRef.current.getTrimmedCanvas().toDataURL('image/png');
-      setForemanSig(dataUrl.split(',')[1]); // store base64 only
-    }
-  };
+const onSubmit = async (e) => {
+  e.preventDefault();
+  if (!validateAll()) { toast.error('Please fix the highlighted issues.'); return; }
 
-  const clearSignature = () => {
-    sigRef.current?.clear();
-    setForemanSig('');
-  };
+  try {
+    const payload = {
+      jobId,
+      scheduledDate: basic.dateOfJob,
+      basic: {
+        ...basic,
+        foremanName: foremanName.trim(),           // <-- add this
+        client: basic.client || basic.company      // (optional) normalize if you like
+      },
+      tbs,
+      mismatch: hasMismatch
+    };
 
-  const onSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateAll()) { toast.error('Please fix the highlighted issues.'); return; }
+    await api.post('/work-order', payload);
+    toast.success('Work order submitted. Thank you!');
+  } catch (err) {
+    toast.error(err?.response?.data?.error || 'Failed to submit work order');
+  }
+};
 
-    try {
-      const payload = {
-        jobId,
-        scheduledDate: basic.dateOfJob,
-        basic,
-        foremanSignature: foremanSig, // base64 PNG string (no prefix)
-        tbs,
-        mismatch: hasMismatch
-      };
-      await api.post('/work-order', payload);
-      toast.success('Work order submitted. Thank you!');
-      // Optionally: navigate to a confirmation page
-    } catch (err) {
-      toast.error(err?.response?.data?.error || 'Failed to submit work order');
-    }
-  };
- const isSubmitReady = useMemo(() => {
+const isSubmitReady = useMemo(() => {
   const basicOk = isBasicReady();
   const flagsOk = tbs.flagger1.trim() && tbs.flagger2.trim();
+
   const m = tbs.morning;
   const keys = ['hardHats','vests','walkies','arrowBoards','cones','barrels','signStands','signs'];
- const morningOk = keys.every(k => m[k].start !== '' && m[k].end !== '');
+  const morningOk = keys.every(k => m[k].start !== '' && m[k].end !== '');
+
   const js = tbs.jobsite;
-  const jobsiteOk = js.visibility && js.communication && js.siteForeman && js.signsAndStands && js.conesAndTaper && (!hasMismatch || js.equipmentLeft);
+  const jobsiteOk = js.visibility && js.communication && js.siteForeman &&
+                    js.signsAndStands && js.conesAndTaper &&
+                    (!hasMismatch || js.equipmentLeft);
+
   return basicOk && flagsOk && morningOk && jobsiteOk;
- }, [basic, foremanSig, tbs, hasMismatch]);
+}, [basic, foremanName, tbs, hasMismatch]); // <- foremanName here too
+
  if (loading) return <div style={{ padding: 24 }}>Loading…</div>;
 
   const numberInput = (key, label) => (
@@ -279,13 +433,93 @@ useEffect(() => {
             <h3 className="comp-section">Company Section:</h3>
             <div className="job-actual">
 
-              <div className="address-of-job">
-                {basicField('dateOfJob', 'Date of Job', 'date')}
-                {basicField('company', 'Company')}
+              <div className="address-container">
+<div className="datepicker-container">
+  <label className="job-control-label">Date of Job *</label>
+  <p className="date-picker-note">
+    <b>NOTE:</b> Please select the date of the job.
+  </p>
+
+  <DatePicker
+    selected={ymdToDate(basic.dateOfJob)}
+    onChange={(d) => setBasicField('dateOfJob', dateToYmd(d))}
+    inline
+    calendarClassName="custom-datepicker"
+    wrapperClassName="custom-datepicker-wrapper"
+    dateFormat="yyyy-MM-dd"
+    includeDates={allowedDates.length ? allowedDates : undefined}
+    minDate={startOfLocalDay(new Date())}
+  />
+
+  <div className="selected-date-display" aria-live="polite">
+    {basic.dateOfJob
+      ? <>Selected date: <b>{prettyDate(basic.dateOfJob)}</b></>
+      : 'Please select the date of the job'}
+  </div>
+</div>
+
+
+
+<label>Company *</label>
+                  <select
+  className="project-company-input"
+  value={company}
+  onChange={(e) => {
+  setCompany(e.target.value)
+  setFormData({ ...formData, company: e.target.value });
+  if (e.target.value) {
+    setErrors((prevErrors) => ({ ...prevErrors, company: '' })); // Clear the error
+  }
+  setTimeout(checkAllFieldsFilled, 0);
+}
+}
+>
+  <option value="">Select your company</option>
+  {companyList.map((t) => (
+    <option key={t} value={t}>
+      {t}
+    </option>
+  ))}
+</select>
                 {basicField('address', 'Address')}
-                {basicField('city', 'City')}
-                {basicField('state', 'State')}
-                {basicField('zip', 'Zip')}
+                <label>City *</label>
+                <input
+name="city-input"
+type="text"
+className="city-control-box"
+text="city--input"
+value={cityName}
+onChange={(e) => setCityName(toTitleCase(e.target.value))}
+    onBlur={(e) => setCityName(toTitleCase(e.target.value))}
+/>
+                <label>State *</label>
+                <select
+      name="state"
+      className="state-control-box"
+      value={basic.state}
+      onChange={(e) => { 
+        setBasicField('state', e.target.value)
+      }}
+    >
+      <option value="">Select State</option>
+      {states.map(state => (
+        <option key={state.abbreviation} value={state.abbreviation}>{state.name}</option>
+      ))}
+    </select>
+    <label>Zip *</label>
+                <input 
+                name="zip"
+                type="text"
+                maxLength={5}
+                pattern="\d{5}"
+                onChange={(e) => { 
+                  const value = e.target.value;
+          let formattedValue = value;
+          const rawDigits = value.replace(/\D/g, ""); // Remove non-numeric characters
+          formattedValue = rawDigits.slice(0, 5); // Limit to 5 digits
+        setBasicField('zip', e.target.value)
+      }}
+                />
               </div>
 
               <div className="work-information">
@@ -319,30 +553,6 @@ useEffect(() => {
                 <label>Additional Notes (optional)</label>
                 <textarea className="additional-note-text" value={basic.notes} onChange={e => setBasicField('notes', e.target.value)} />
               </div>
-
-              <div className="signature">
-                <h4 className="signature-h4">Job Site Foreman Signature *</h4>
-                <div className="sig-pad">
-                  <div className="signature">
-   <div className="emergency-warning-box">
-                      <p className="warning-text">⚠️ WARNING</p>
-                      <p className="emergency-warning-text">Please check your section carefully and make sure it is correct before sending to TBS Employees</p>
-                      
-                    </div>
-                    <p className="sign-here">Please Sign Your First & Last Name to Approve Foreman Work Order</p>
-  <input
-    type="text"
-    placeholder="First & Last Name"
-    className="sig-input"
-    value={foremanName}
-    onChange={(e) => setForemanName(toTitleCase(e.target.value))}
-    onBlur={(e) => setForemanName(toTitleCase(e.target.value))}
-  />
-</div>
-
-                </div>
-              </div>
-
               <div className={`tbs-employee-form ${!tbsEnabled ? 'disabled' : ''}`}>
                 {!tbsEnabled && lockMask}
                 <div className="employee-names">
@@ -373,15 +583,24 @@ useEffect(() => {
                   <h4>Morning Check List *</h4>
 
                   <label>TBS Truck Number(s):</label>
-                  <p className="trucks">Please select all trucks taken for this job.</p>
-                  <select multiple value={tbs.trucks} onChange={e => setTbs(s => ({...s, trucks: Array.from(e.target.selectedOptions).map(o => o.value)}))}>
-                    {TRUCKS.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
+<p className="trucks">Please select all trucks taken for this job.</p>
 
+<div className="truck-chooser">
+  {TRUCKS.map(t => (
+    <label key={t} className={`truck-tag ${tbs.trucks.includes(t) ? 'selected' : ''}`}>
+      <input
+        type="checkbox"
+        checked={tbs.trucks.includes(t)}
+        onChange={() => toggleTruck(t)}
+      />
+      {t}
+    </label>
+  ))}
+</div>
                   {selectPair('hardHats','Hard Hats',[2,3,4,5,6])}
                   {selectPair('vests','Vests',[2,3,4,5,6])}
                   {selectPair('walkies','Walkie Talkies',[2,3,4,5,6])}
-                  {selectPair('arrowBoards','Arrow Board',[1,2])}
+                  {selectPair('arrowBoards','Arrow Board',[0,1,2])}
 
                   {numberInput('cones','Cones')}
                   {numberInput('barrels','Barrels')}
@@ -420,7 +639,46 @@ useEffect(() => {
 
               {errors.basic && <div className="error big">{errors.basic}</div>}
               {errors.tbsEnabled && <div className="error big">{errors.tbsEnabled}</div>}
+<div className="signature">
+  <h4 className="signature-h4">Job Site Foreman Signature *</h4>
+  <div className="sig-pad">
+    <div className="signature">
+      <div className="emergency-warning-box">
+        <p className="warning-text">⚠️ WARNING</p>
+        <p className="emergency-warning-text">
+          Please double check the form and make sure your info is correct
+        </p>
+      </div>
+<label>Foreman Signature *</label>
+      <p className="sign-here">Please Sign Your First & Last Name to Approve Work Order</p>
+      {/* Signature canvas */}
+      <div className="sig-canvas-wrap">
+        <SignatureCanvas
+          ref={sigRef}
+          penColor="#000"
+          onEnd={handleSigEnd}
+          canvasProps={{ className: 'sig-canvas', 'aria-label': 'Foreman signature' }}
+        />
+        <div className="sig-actions">
+          <button type="button" className="btn sig-clear" onClick={clearSignature}>
+            Clear Signature
+          </button>
+        </div>
+      </div>
 
+      {/* Optional tiny preview if signed */}
+      {foremanSig && (
+        <div className="sig-preview">
+          <span>Captured:</span>
+          <img
+            alt="Signature preview"
+            src={`data:image/png;base64,${foremanSig}`}
+          />
+        </div>
+      )}
+    </div>
+  </div>
+</div>
               <div className="actions">
                <button className="btn" type="submit" disabled={!isSubmitReady || !jobId}>
   Submit Work Order
