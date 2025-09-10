@@ -1,10 +1,11 @@
 import { Routes, Route, Navigate} from 'react-router-dom'
-import { About, Invoice, ManageJobTest, CancelJobTest, ManageJob, CancelJob, AdminLog, AdminDashboard, Contact, Apply, Home, TrafficControl, TrafficPlan, Rentals, PPE, Signs, BollardsWheels, Error, TService, Product, TrafficControlTest } from './pages';
+import { About, Invoice, Work, ManageJobTest, CancelJobTest, ManageJob, CancelJob, AdminLog, AdminDashboard, Contact, Apply, Home, TrafficControl, TrafficPlan, Rentals, PPE, Signs, BollardsWheels, Error, TService, Product, TrafficControlTest } from './pages';
 import axios from 'axios';
 import Navbar from './components/Navbar';
 import { Toaster } from 'react-hot-toast'
 import { isAdminAuthenticated } from './utils/auth';
-
+import EmployeeLogin from './pages/employee-login';
+import RequireEmployee from './components/RequireEmployee';
  axios.defaults.baseURL = 'https://tbs-server.onrender.com'; 
 /* axios.defaults.baseURL = 'http://localhost:8000';*/
 axios.defaults.withCredentials = true
@@ -47,6 +48,21 @@ function App() {
   <Routes>
     <Route path="/applynow" element={<Apply/>}/>
     <Route path="/" element={<Home/>}/>
+       <Route path="/employee-login" element={<EmployeeLogin />} />
+     <Route path="/work/:id" element={
+            <RequireEmployee>
+              <Work />
+            </RequireEmployee>
+          }
+        />
+         <Route
+          path="/work"
+          element={
+            <RequireEmployee>
+              <Work />
+            </RequireEmployee>
+          }
+        />
     <Route path="/trafficcontrol" element={<TrafficControl/>}/>
     <Route path="/trafficplanning" element={<TrafficPlan/>}/>
     <Route path="/rentals" element={<Rentals/>}/>
@@ -67,6 +83,7 @@ function App() {
         element={isAdminAuthenticated() ? <AdminDashboard /> : <Navigate to="/admin-login" />}
 />
     <Route path="/cancel-job/:id" element={<CancelJob />} />
+    <Route path="/work-order/:id" element={<Work />} />
    <Route path="/manage-job/:id" element={<ManageJob />} />
   </Routes>
 </>
