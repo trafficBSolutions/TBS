@@ -3,9 +3,31 @@ import axios from 'axios';
 const isBrowser = typeof window !== 'undefined';
 const isDev = isBrowser && (location.hostname === 'localhost' || location.hostname === '127.0.0.1');
 
-const baseURL =
-  import.meta.env.VITE_API_BASE
-  || (isDev ? 'https://tbs-server.onrender.com' : ''); // dev -> local server, prod -> same-origin
+// Get the current host for API calls
+const getApiBaseURL = () => {
+  if (import.meta.env.VITE_API_BASE) {
+    return import.meta.env.VITE_API_BASE;
+  }
+  
+  if (!isBrowser) return '';
+  
+  // For development, use the same host but port 8000
+  if (isDev) {
+    return 'https://tbs-server.onrender.com';
+  }
+  
+  // For other devices on network, use current host with port 8000
+  const currentHost = location.hostname;
+  if (currentHost.match(/^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)/) || 
+      currentHost.match(/^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/)) {
+    return `http://${currentHost}:8000`;
+  }
+  
+  // Production - same origin
+  return '';
+};
+
+const baseURL = getApiBaseURL();
 
 const api = axios.create({
   baseURL,
@@ -66,4 +88,3 @@ api.interceptors.response.use(
 );
 
 export default api;
-
