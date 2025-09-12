@@ -5,7 +5,7 @@ const isDev = isBrowser && (location.hostname === 'localhost' || location.hostna
 
 const baseURL =
   import.meta.env.VITE_API_BASE
-  || (isDev ? 'https://tbs-server.onrender.com' : ''); // dev -> server, prod -> same-origin
+  || (isDev ? 'https://tbs-server.onrender.com' : ''); // dev -> local server, prod -> same-origin
 
 const api = axios.create({
   baseURL,
@@ -66,3 +66,4 @@ api.interceptors.response.use(
 );
 
 export default api;
+
