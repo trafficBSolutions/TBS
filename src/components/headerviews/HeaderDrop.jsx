@@ -18,15 +18,17 @@ useEffect(() => {
 
 const handleEmployeeClick = async () => {
   if (isEmployee) {
-    // logout
+    // logout employee
     try {
-      await fetch((import.meta.env.VITE_API_URL || 'http://localhost:8000') + '/api/employee/logout', {
+      await fetch((import.meta.env.VITE_API_URL || 'http://localhost:8000') + '/employee/logout', {
         method: 'POST',
         credentials: 'include'
       });
     } catch {}
     localStorage.removeItem('employeeUser');
+    localStorage.removeItem('adminUser'); // Clear admin data too
     setIsEmployee(false);
+    setIsAdmin(false);
     navigate('/employee-login');
   } else {
     navigate('/employee-login');
@@ -44,12 +46,14 @@ const handleEmployeeClick = async () => {
 
     const handleAdminClick = () => {
         if (isAdmin) {
-            // Logging out
+            // Logging out admin
             localStorage.removeItem('adminUser');
+            localStorage.removeItem('employeeUser'); // Clear employee data too
             setIsAdmin(false);
+            setIsEmployee(false);
             navigate('/admin-login');
         } else {
-            // Navigate to login
+            // Navigate to admin login
             navigate('/admin-login');
         }
     };
@@ -88,26 +92,40 @@ const handleEmployeeClick = async () => {
         <li><a className="main-nav-link" href="/contact-us">Contact Us</a></li>
         <li><a className="main-nav-link" href="/applynow">Careers</a></li>
 
-        {/* Admin options inside mobile menu */}
+        {/* Login/Logout options */}
         <li className="admin-options">
-  {/* Admin bits (as you already have) */}
-  {isAdmin && (
-    <a className="btn-main main-nav-link-view" href="/admin-dashboard">
-      Admin Dashboard
-    </a>
-  )}
-  <button className="btn-main main-nav-link" onClick={handleAdminClick}>
-    {isAdmin ? 'Log Out (Admin)' : 'Admin Login'}
-  </button>
-
-  {/* Employee bits */}
-  <a className="btn-main main-nav-link-view" href="/work" style={{ display: isEmployee ? 'inline-block' : 'none' }}>
-    Employee Portal
-  </a>
-  <button className="btn-main main-nav-link" onClick={handleEmployeeClick}>
-    {isEmployee ? 'Log Out (Employee)' : 'Employee Login'}
-  </button>
-</li>
+          {isAdmin ? (
+            // Admin is logged in - show admin dashboard and logout
+            <>
+              <a className="btn-main main-nav-link-view" href="/admin-dashboard">
+                Admin Dashboard
+              </a>
+              <button className="btn-main main-nav-link" onClick={handleAdminClick}>
+                Log Out (Admin)
+              </button>
+            </>
+          ) : isEmployee ? (
+            // Employee is logged in - show employee portal and logout
+            <>
+              <a className="btn-main main-nav-link-view" href="/work-order">
+                Employee Portal
+              </a>
+              <button className="btn-main main-nav-link" onClick={handleEmployeeClick}>
+                Log Out (Employee)
+              </button>
+            </>
+          ) : (
+            // No one is logged in - show both login options
+            <>
+              <button className="btn-main main-nav-link" onClick={handleAdminClick}>
+                Admin Login
+              </button>
+              <button className="btn-main main-nav-link" onClick={handleEmployeeClick}>
+                Employee Login
+              </button>
+            </>
+          )}
+        </li>
 
     </ul>
 </nav>
