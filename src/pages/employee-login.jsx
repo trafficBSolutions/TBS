@@ -16,11 +16,20 @@ export default function EmployeeLogin() {
     e.preventDefault();
     try {
       const { data } = await api.post('/employee/login', { email, password });
-      // keep only display-safe info in localStorage
+      
+      // Store user info
       localStorage.setItem('employeeUser', JSON.stringify(data.user));
+      
+      // In development, also store the token for API calls
+      if (data.token) {
+        localStorage.setItem('empToken', data.token);
+        console.log('Employee token stored for development mode');
+      }
+      
       toast.success('Welcome!');
       nav(redirectTo, { replace: true });
     } catch (err) {
+      console.error('Employee login error:', err);
       toast.error(err?.response?.data?.message || 'Login failed');
     }
   };
