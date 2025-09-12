@@ -3,17 +3,14 @@ import axios from 'axios';
 const isBrowser = typeof window !== 'undefined';
 const isDev = isBrowser && (location.hostname === 'localhost' || location.hostname === '127.0.0.1');
 
-// Simple API base URL - always use your local server
+// Use remote server for all requests
 const getApiBaseURL = () => {
   if (import.meta.env.VITE_API_BASE) {
     return import.meta.env.VITE_API_BASE;
   }
   
-  if (!isBrowser) return '';
-  
-  // Always use current host with port 8000 for local development
-  const currentHost = location.hostname;
-  return `http://${currentHost}:8000`;
+  // Always use remote server
+  return 'https://tbs-server.onrender.com';
 };
 
 const baseURL = getApiBaseURL();
