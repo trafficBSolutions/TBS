@@ -7,7 +7,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Header from '../components/headerviews/HeaderDrop';
 import images from '../utils/tbsImages';
@@ -56,24 +56,49 @@ const states = [
   { abbreviation: 'TN', name: 'Tennessee' }
 ];
 export default function Work() {
-  const { id: jobId } = useParams();
   const [searchParams] = useSearchParams();
-  const handleSigEnd = () => {
-  if (!sigRef.current) return;
-  // Trim whitespace, export as PNG, and strip the dataURL prefix
-  const dataUrl = sigRef.current.getTrimmedCanvas().toDataURL('image/png');
-  setForemanSig(dataUrl.split(',')[1]); // store only the base64 payload
+  const jobId = searchParams.get('jobId');     // 👈 now from query
+  const dateParam = searchParams.get('date');  // optional "YYYY-MM-DD"
+  const [isSubmitting, setIsSubmitting] = useState(false); 
+  const [errorMessage, setErrorMessage] = useState('');
+    const [submissionMessage, setSubmissionMessage] = useState('');
+    const [submissionErrorMessage, setSubmissionErrorMessage] = useState('');
+const handleSigEnd = () => {
+  const pad = sigRef.current;
+  if (!pad) return;
+
+  // if the pad exposes isEmpty() and it’s actually empty, treat as no signature
+  if (typeof pad.isEmpty === 'function' && pad.isEmpty()) {
+    setForemanSig('');
+    setErrors(prev => ({ ...prev, foremanSignature: 'Signature required' }));
+    return;
+  }
+
+  let dataUrl;
+  try {
+    // some builds of trim-canvas fail; guard the call
+    if (typeof pad.getTrimmedCanvas === 'function') {
+      dataUrl = pad.getTrimmedCanvas().toDataURL('image/png');
+    } else {
+      throw new Error('getTrimmedCanvas not available');
+    }
+  } catch {
+    // fallback to the raw canvas
+    dataUrl = pad.getCanvas().toDataURL('image/png');
+  }
+
+  // store only the base64 payload (no prefix)
+  setForemanSig(dataUrl.split(',')[1]);
+  setErrors(prev => ({ ...prev, foremanSignature: '' }));
 };
+
 
 const clearSignature = () => {
   sigRef.current?.clear();
   setForemanSig('');
 };
-  const dateParam = searchParams.get('date'); // YYYY-MM-DD (optional)
   const [foremanName, setForemanName] = useState('');
-  const [cityName, setCityName] = useState('')
   const [allowedDates, setAllowedDates] = useState([]);
-  const [company, setCompany] = useState('');
   // Build allowed date list from jobDates (array of { date, ... })
 // Pretty label for the selected date (e.g., Monday, February 3, 2025)
 const prettyDate = (ymd) =>
@@ -106,17 +131,23 @@ const startOfLocalDay = (d = new Date()) => {
 
 useEffect(() => {
   const loadJob = async () => {
-    if (!jobId) {
-      toast.error('Missing job id in URL');
-      setLoading(false);
-      return;
-    }
     try {
+      if (!jobId) {
+        // No jobId: free entry mode
+        const todayISO = dateToYmd(startOfLocalDay(new Date()));
+        setBasic(prev => ({
+          ...prev,
+          dateOfJob: dateParam || todayISO
+        }));
+        setAllowedDates([]); // not restricting to any jobDates
+        setLoading(false);
+        return;
+      }
+
+      // With jobId: behave as you already do
       const { data } = await api.get(`/trafficcontrol/${jobId}`);
 
       const today = startOfLocalDay();
-
-      // Build & filter allowed dates (only today or later)
       const allowed = (data?.jobDates || [])
         .map(jd => ymdToDate(String(jd?.date).slice(0, 10)))
         .filter(Boolean)
@@ -124,9 +155,8 @@ useEffect(() => {
 
       setAllowedDates(allowed);
 
-      // Choose a valid default date:
       const fromQuery = dateParam && allowed.some(d => dateToYmd(d) === dateParam) ? dateParam : '';
-      const firstFuture = allowed[0] ? dateToYmd(allowed[0]) : '';
+      const firstFuture = allowed[0] ? dateToYmd(allowed[0]) : dateToYmd(today);
       const chosenISO = fromQuery || firstFuture;
 
       setBasic(prev => ({
@@ -141,7 +171,7 @@ useEffect(() => {
         zip: data.zip || ''
       }));
     } catch (e) {
-      toast.error('Failed to load job details');
+      setSubmissionErrorMessage('Failed to load job details.');
     } finally {
       setLoading(false);
     }
@@ -149,31 +179,53 @@ useEffect(() => {
   loadJob();
 }, [jobId, dateParam]);
 
+const clearError = (key) => setErrors(prev => {
+  const next = { ...prev };
+  delete next[key];
+  return next;
+});
+
 useEffect(() => {
-  let mounted = true;
   (async () => {
     try {
+      // If an admin is logged in, allow access
+      const admin = localStorage.getItem('adminUser');
+      if (admin) return;
+
+      // Otherwise require employee auth as before
       const { data } = await api.get('/employee/me');
       if (!data?.authenticated) navigate('/employee-login', { replace: true });
     } catch {
-      navigate('/employee-login', { replace: true });
+      // If employee check fails AND no admin, send to employee login
+      const admin = localStorage.getItem('adminUser');
+      if (!admin) navigate('/employee-login', { replace: true });
     }
   })();
-  return () => { mounted = false; };
 }, [navigate]);
+
 // simple title-case (handles spaces, hyphens, slashes, apostrophes)
 const toggleTruck = (truck) =>
   setTbs(s => {
     const chosen = new Set(s.trucks);
     chosen.has(truck) ? chosen.delete(truck) : chosen.add(truck);
-    // keep original TRUCKS order in state
-    return { ...s, trucks: TRUCKS.filter(t => chosen.has(t)) };
+    const next = TRUCKS.filter(t => chosen.has(t));
+
+    // clear error once there’s at least one selection
+    if (next.length > 0) {
+      setErrors(prev => (prev.trucks ? { ...prev, trucks: '' } : prev));
+    }
+    return { ...s, trucks: next };
   });
+
 
 const toTitleCase = (s) =>
   s
     .toLowerCase()
     .replace(/(^|\s|[-/'])(\S)/g, (_, p1, p2) => p1 + p2.toUpperCase());
+
+const formatName = (name) => {
+  return name ? name.replace(/\b\w/g, l => l.toUpperCase()) : '';
+};
 
   const sigRef = useRef(null);
 
@@ -224,6 +276,7 @@ const toTitleCase = (s) =>
       signsAndStands: false,
       conesAndTaper: false,
       equipmentLeft: false, // conditionally required
+      equipmentLeftReason: '', // reason for leaving equipment
     }
   });
 
@@ -233,7 +286,63 @@ const toTitleCase = (s) =>
     const items = [m.hardHats, m.vests, m.walkies, m.arrowBoards, m.cones, m.barrels, m.signStands, m.signs];
     return items.some(p => p.start !== '' && p.end !== '' && Number(p.start) !== Number(p.end));
   }, [tbs.morning]);
+  useEffect(() => {
+  setErrors(prev => {
+    // If mismatch and not checked, surface error immediately
+    if (hasMismatch && !tbs.jobsite.equipmentLeft) {
+      return {
+        ...prev,
+        equipmentLeft: `${LABELS.equipmentLeft} is required due to equipment mismatch`,
+      };
+    }
+    // Otherwise clear the error
+    if (!hasMismatch || tbs.jobsite.equipmentLeft) {
+      const next = { ...prev };
+      delete next.equipmentLeft;
+      return next;
+    }
+    return prev;
+  });
+}, [hasMismatch, tbs.jobsite.equipmentLeft]);
+const REQUIRED = [
+  'dateOfJob','company','coordinator','project',
+  'address','city','state','zip','startTime','endTime'
+];
+const LABELS = {
+  dateOfJob: 'Date of Job',
+  company: 'Company',
+  coordinator: 'Coordinator',
+  project: 'Project/Task',
+  address: 'Address',
+  city: 'City',
+  state: 'State',
+  zip: 'Zip',
+  startTime: 'Start Time',
+  endTime: 'End Time',
+  foremanName: 'Job Site Foreman Name',
+  foremanSignature: 'Job Site Foreman Signature',
+  flagger1: 'Flagger #1',
+  flagger2: 'Flagger #2',
+  visibility: 'Visibility',
+  communication: 'Communication with Job',
+  siteForeman: 'Site Foreman',
+  signsAndStands: 'Signs and Stands Put Out',
+  conesAndTaper: 'Cones/Barrels and Taper',
+  equipmentLeft: 'Equipment Left After Hours',
+  trucks: 'TBS Truck Number(s)',            // 👈 add this
+};
 
+// Pretty names for the morning checklist
+const ITEM_LABELS = {
+  hardHats: 'Hard Hats',
+  vests: 'Vests',
+  walkies: 'Walkie Talkies',
+  arrowBoards: 'Arrow Board',
+  cones: 'Cones',
+  barrels: 'Barrels',
+  signStands: 'Sign Stands',
+  signs: 'Signs',
+};
 const isBasicReady = () => {
   const required = [
     'dateOfJob','company','coordinator','project',
@@ -244,10 +353,10 @@ const isBasicReady = () => {
 };
 
 
-
-  useEffect(() => {
+useEffect(() => {
   setTbsEnabled(isBasicReady());
-}, [basic, foremanName]); // <- use foremanName, not foremanSig
+}, [basic, foremanName, foremanSig]);
+
 
 useEffect(() => {
   const loadJob = async () => {
@@ -292,64 +401,196 @@ useEffect(() => {
 
 
 
-  const setBasicField = (k, v) => setBasic(prev => ({ ...prev, [k]: v }));
-  const setMorning = (key, sub, val) => setTbs(prev => ({ ...prev, morning: { ...prev.morning, [key]: { ...prev.morning[key], [sub]: val } } }));
+  const setBasicField = (k, v) => {
+  setBasic(prev => ({ ...prev, [k]: v }));
+  setErrors(prev => (prev[k] ? { ...prev, [k]: '' } : prev)); // clear this field's error
+};
+const setMorning = (key, sub, val) => {
+  // update the morning value
+  setTbs(prev => ({
+    ...prev,
+    morning: {
+      ...prev.morning,
+      [key]: { ...prev.morning[key], [sub]: val }
+    }
+  }));
 
-  const validateAll = () => {
-    const errs = {};
-    if (!isBasicReady()) errs.basic = 'Fill all required fields and add the Job Site Foreman signature.';
-    if (!tbsEnabled) errs.tbsEnabled = 'TBS section is locked until company fields are complete.';
+  // if user provided something ('' means empty), clear that field's error
+  if (val !== '') {
+    clearError(`${key}${sub === 'start' ? 'Start' : 'End'}`);
+  }
+};
+const setJobsite = (key, val) => {
+  setTbs(s => ({ ...s, jobsite: { ...s.jobsite, [key]: val } }));
 
-    // Required: first 2 flaggers
-    if (!tbs.flagger1?.trim()) errs.flagger1 = 'Flagger #1 is required';
-    if (!tbs.flagger2?.trim()) errs.flagger2 = 'Flagger #2 is required';
+  // clear that field's error as soon as it's checked
+  if (val) clearError(key);
 
-    // Morning checklist: all required
-    const m = tbs.morning;
-    const keys = ['hardHats','vests','walkies','arrowBoards','cones','barrels','signStands','signs'];
-    keys.forEach(k => {
-      if (m[k].start === '') errs[`${k}Start`] = 'Required';
-      if (m[k].end === '') errs[`${k}End`] = 'Required';
-    });
+  // special handling: if there's a mismatch and user unchecks, re-raise the error
+  if (key === 'equipmentLeft') {
+    if (val) clearError('equipmentLeft');
+    else if (hasMismatch) {
+      setErrors(prev => ({
+        ...prev,
+        equipmentLeft: `${LABELS.equipmentLeft} is required due to equipment mismatch`,
+      }));
+    }
+  }
+};
 
-    // Jobsite checklist first 5 required
-    const js = tbs.jobsite;
-    if (!js.visibility) errs.visibility = 'Required';
-    if (!js.communication) errs.communication = 'Required';
-    if (!js.siteForeman) errs.siteForeman = 'Required';
-    if (!js.signsAndStands) errs.signsAndStands = 'Required';
-    if (!js.conesAndTaper) errs.conesAndTaper = 'Required';
 
-    // If counts mismatch, equipmentLeft is required
-    if (hasMismatch && !js.equipmentLeft) errs.equipmentLeft = 'Required due to equipment mismatch.';
+const validateAll = () => {
+  const errs = {};
 
-    setErrors(errs);
-    return Object.keys(errs).length === 0;
-  };
+  // Basic requireds
+  REQUIRED.forEach((k) => {
+    if (!String(basic[k] || '').trim()) {
+      errs[k] = `${LABELS[k] || k} is required`;
+    }
+  });
+
+  // Zip format
+  if (basic.zip && !/^\d{5}$/.test(basic.zip)) {
+    errs.zip = 'Zip must be 5 digits';
+  }
+// Trucks required
+if (!Array.isArray(tbs.trucks) || tbs.trucks.length === 0) {
+  errs.trucks = `${LABELS.trucks} is required`;
+}
+
+  // Foreman name & signature
+  if (!foremanName.trim()) errs.foremanName = `${LABELS.foremanName} is required`;
+  if (!foremanSig) errs.foremanSignature = `${LABELS.foremanSignature} is required`;
+
+  // Flagger names
+  if (!tbs.flagger1?.trim()) errs.flagger1 = `${LABELS.flagger1} is required`;
+  if (!tbs.flagger2?.trim()) errs.flagger2 = `${LABELS.flagger2} is required`;
+
+  // Morning checklist
+  const m = tbs.morning;
+  const keys = ['hardHats','vests','walkies','arrowBoards','cones','barrels','signStands','signs'];
+  keys.forEach((k) => {
+    if (m[k].start === '') errs[`${k}Start`] = `${ITEM_LABELS[k]} (Started With) is required`;
+    if (m[k].end === '') errs[`${k}End`]   = `${ITEM_LABELS[k]} (Ended With) is required`;
+  });
+
+  // Jobsite checklist
+  const js = tbs.jobsite;
+  if (!js.visibility)      errs.visibility      = `${LABELS.visibility} is required`;
+  if (!js.communication)   errs.communication   = `${LABELS.communication} is required`;
+  if (!js.siteForeman)     errs.siteForeman     = `${LABELS.siteForeman} is required`;
+  if (!js.signsAndStands)  errs.signsAndStands  = `${LABELS.signsAndStands} is required`;
+  if (!js.conesAndTaper)   errs.conesAndTaper   = `${LABELS.conesAndTaper} is required`;
+
+  // Mismatch rule
+  const mismatchNow = keys.some(k => Number(m[k].start) !== Number(m[k].end));
+  if (mismatchNow && !js.equipmentLeft) {
+    errs.equipmentLeft = `${LABELS.equipmentLeft} is required due to equipment mismatch`;
+  }
+
+  setErrors(errs);
+  return Object.keys(errs).length === 0;
+};
+
 
 const onSubmit = async (e) => {
   e.preventDefault();
-  if (!validateAll()) { toast.error('Please fix the highlighted issues.'); return; }
 
+  // clear any prior bottom messages
+  setSubmissionMessage('');
+  setSubmissionErrorMessage('');
+  setErrorMessage('');
+
+  // 1) Validate first (NO spinner yet)
+  const valid = validateAll();
+  if (!valid) {
+    setErrorMessage('Required fields are missing.');
+    return;
+  }
+
+  // 2) Guard signature canvas emptiness
+  if (sigRef.current?.isEmpty && sigRef.current.isEmpty()) {
+    setErrors(prev => ({ ...prev, foremanSignature: `${LABELS.foremanSignature} is required` }));
+    setErrorMessage('Required fields are missing.');
+    return;
+  }
+
+  // 3) Build payload
+  const payload = {
+    jobId,
+    scheduledDate: basic.dateOfJob,
+    basic: {
+      ...basic,
+      foremanName: foremanName.trim(),
+      client: basic.client || basic.company,
+    },
+    tbs,
+    mismatch: hasMismatch,
+    foremanSignature: foremanSig,
+  };
+
+  // 4) We’re actually submitting now → show spinner
+  setIsSubmitting(true);
   try {
-    const payload = {
-      jobId,
-      scheduledDate: basic.dateOfJob,
-      basic: {
-        ...basic,
-        foremanName: foremanName.trim(),           // <-- add this
-        client: basic.client || basic.company      // (optional) normalize if you like
-      },
-      tbs,
-      mismatch: hasMismatch
-    };
-
     await api.post('/work-order', payload);
-    toast.success('Work order submitted. Thank you!');
+    setSubmissionMessage('✅ Work order has been successfully submitted! Thank you!');
+
+    // reset form
+    setBasic({
+      dateOfJob: '',
+      company: '',
+      coordinator: '',
+      project: '',
+      address: '',
+      city: '',
+      state: '',
+      zip: '',
+      startTime: '',
+      endTime: '',
+      rating: '',
+      notice24: '',
+      callBack: '',
+      notes: ''
+    });
+    setForemanName('');
+    setForemanSig('');
+    sigRef.current?.clear();
+    setTbs({
+      flagger1: '',
+      flagger2: '',
+      flagger3: '',
+      flagger4: '',
+      flagger5: '',
+      trucks: [],
+      morning: {
+        hardHats: { start: '', end: '' },
+        vests: { start: '', end: '' },
+        walkies: { start: '', end: '' },
+        arrowBoards: { start: '', end: '' },
+        cones: { start: '', end: '' },
+        barrels: { start: '', end: '' },
+        signStands: { start: '', end: '' },
+        signs: { start: '', end: '' },
+      },
+      jobsite: {
+        visibility: false,
+        communication: false,
+        siteForeman: false,
+        signsAndStands: false,
+        conesAndTaper: false,
+        equipmentLeft: false,
+        equipmentLeftReason: '',
+      }
+    });
+    setErrors({});
   } catch (err) {
-    toast.error(err?.response?.data?.error || 'Failed to submit work order');
+    console.error(err);
+    setSubmissionErrorMessage('Something went wrong.');
+  } finally {
+    setIsSubmitting(false);
   }
 };
+
 
 const isSubmitReady = useMemo(() => {
   const basicOk = isBasicReady();
@@ -375,12 +616,12 @@ const isSubmitReady = useMemo(() => {
       <div className="pair">
         <input type="number" min={0} placeholder="Started With?" value={tbs.morning[key].start}
                onChange={e => setMorning(key,'start', e.target.value)} />
-        {errors[`${key}Start`] && <span className="error">{errors[`${key}Start`]}</span>}
+        {errors[`${key}Start`] && <div className="error-message">{errors[`${key}Start`]}</div>}
       </div>
       <div className="pair">
         <input type="number" min={0} placeholder="Ended With?" value={tbs.morning[key].end}
                onChange={e => setMorning(key,'end', e.target.value)} />
-        {errors[`${key}End`] && <span className="error">{errors[`${key}End`]}</span>}
+        {errors[`${key}End`] && <div className="error-message">{errors[`${key}End`]}</div>}
       </div>
     </div>
   );
@@ -393,22 +634,28 @@ const isSubmitReady = useMemo(() => {
           <option value="">Started With?</option>
           {options.map(o => <option key={`s-${label}-${o}`} value={o}>{o}</option>)}
         </select>
-        {errors[`${key}Start`] && <span className="error">{errors[`${key}Start`]}</span>}
+        {errors[`${key}Start`] && <div className="error-message">{errors[`${key}Start`]}</div>}
       </div>
       <div className="pair">
         <select value={tbs.morning[key].end} onChange={e => setMorning(key,'end', e.target.value)}>
           <option value="">Ended With?</option>
           {options.map(o => <option key={`e-${label}-${o}`} value={o}>{o}</option>)}
         </select>
-        {errors[`${key}End`] && <span className="error">{errors[`${key}End`]}</span>}
+        {errors[`${key}End`] && <div className="error-message">{errors[`${key}End`]}</div>}
       </div>
     </div>
   );
 
   const basicField = (name, label, type='text', props={}) => (
-    <div className="field">
+  <div className={`field ${errors[name] ? 'has-error' : ''}`}>
       <label>{label}{['dateOfJob','company','coordinator','project','address','city','state','zip','startTime','endTime'].includes(name) ? ' *' : ''}</label>
-      <input type={type} value={basic[name]} onChange={e => setBasicField(name, e.target.value)} {...props} />
+           <input
+       type={type}
+       value={basic[name]}
+      onChange={e => setBasicField(name, e.target.value)}
+      {...props}
+    />
+    {errors[name] && <div className="error-message">{errors[name]}</div>}
     </div>
   );
   const lockMask = !tbsEnabled ? <div className="lock-mask">Complete the top section (including signature) to unlock.</div> : null;
@@ -433,7 +680,7 @@ const isSubmitReady = useMemo(() => {
             <h3 className="comp-section">Company Section:</h3>
             <div className="job-actual">
 
-              <div className="address-container">
+              <div className="contain">
 <div className="datepicker-container">
   <label className="job-control-label">Date of Job *</label>
   <p className="date-picker-note">
@@ -463,16 +710,10 @@ const isSubmitReady = useMemo(() => {
 <label>Company *</label>
                   <select
   className="project-company-input"
-  value={company}
+value={basic.company}
   onChange={(e) => {
-  setCompany(e.target.value)
-  setFormData({ ...formData, company: e.target.value });
-  if (e.target.value) {
-    setErrors((prevErrors) => ({ ...prevErrors, company: '' })); // Clear the error
-  }
-  setTimeout(checkAllFieldsFilled, 0);
-}
-}
+    setBasicField('company', e.target.value)
+  }}
 >
   <option value="">Select your company</option>
   {companyList.map((t) => (
@@ -481,17 +722,21 @@ const isSubmitReady = useMemo(() => {
     </option>
   ))}
 </select>
+{errors.company && <div className="error-message">{errors.company}</div>}
                 {basicField('address', 'Address')}
-                <label>City *</label>
-                <input
-name="city-input"
-type="text"
-className="city-control-box"
-text="city--input"
-value={cityName}
-onChange={(e) => setCityName(toTitleCase(e.target.value))}
-    onBlur={(e) => setCityName(toTitleCase(e.target.value))}
+                 <label>City *</label>
+ <input
+   name="city-input"
+  type="text"
+  className="city-control-box"
+  value={basic.city}
+  onChange={(e) => {
+    const val = toTitleCase(e.target.value);
+    setBasicField('city', val);
+  }}
+  onBlur={(e) => setBasicField('city', toTitleCase(e.target.value))}
 />
+{errors.city && <div className="error-message">{errors.city}</div>}
                 <label>State *</label>
                 <select
       name="state"
@@ -506,24 +751,37 @@ onChange={(e) => setCityName(toTitleCase(e.target.value))}
         <option key={state.abbreviation} value={state.abbreviation}>{state.name}</option>
       ))}
     </select>
-    <label>Zip *</label>
-                <input 
-                name="zip"
-                type="text"
-                maxLength={5}
-                pattern="\d{5}"
-                onChange={(e) => { 
-                  const value = e.target.value;
-          let formattedValue = value;
-          const rawDigits = value.replace(/\D/g, ""); // Remove non-numeric characters
-          formattedValue = rawDigits.slice(0, 5); // Limit to 5 digits
-        setBasicField('zip', e.target.value)
-      }}
-                />
+<label>Zip *</label>
+<input
+  name="zip"
+  type="text"
+  maxLength={5}
+  pattern="\d{5}"
+  onChange={(e) => {
+    const raw = e.target.value.replace(/\D/g, '').slice(0, 5);
+    setBasicField('zip', raw);
+    if (raw.length === 5) {
+      setErrors(prev => ({ ...prev, zip: '' }));
+    }
+  }}
+  value={basic.zip}
+/>
+{errors.zip && <div className="error-message">{errors.zip}</div>}
+
               </div>
 
               <div className="work-information">
-                {basicField('coordinator','Coordinator')}
+                <label>Coordinator *</label>
+                <input
+                  type="text"
+                  value={basic.coordinator}
+                  onChange={(e) => {
+                    const val = formatName(e.target.value);
+                    setBasicField('coordinator', val);
+                  }}
+                  onBlur={(e) => setBasicField('coordinator', formatName(e.target.value))}
+                />
+                {errors.coordinator && <div className="error-message">{errors.coordinator}</div>}
                 {basicField('project','Project/Task')}
                 {basicField('startTime','Start Time','time')}
                 {basicField('endTime','End Time','time')}
@@ -551,7 +809,7 @@ onChange={(e) => setCityName(toTitleCase(e.target.value))}
 
               <div className="additional-notes">
                 <label>Additional Notes (optional)</label>
-                <textarea className="additional-note-text" value={basic.notes} onChange={e => setBasicField('notes', e.target.value)} />
+                <textarea className="additional-note-text" value={basic.notes} onChange={e => setBasicField('notes', e.target.value)} style={{fontFamily: 'Arial, sans-serif'}} />
               </div>
               <div className={`tbs-employee-form ${!tbsEnabled ? 'disabled' : ''}`}>
                 {!tbsEnabled && lockMask}
@@ -559,33 +817,51 @@ onChange={(e) => setCityName(toTitleCase(e.target.value))}
                   <h3 className="comp-section">TBS Employee Section:</h3>
                   <p className="employeep">Please give device to TBS Employees to fill out</p>
                   <label>Flagger #1 *</label>
-                  <input type="text" placeholder="TBS Flagger First & Last Name" value={tbs.flagger1} onChange={e => setTbs(s => ({...s, flagger1: e.target.value}))} />
-                  {errors.flagger1 && <div className="error">{errors.flagger1}</div>}
+<input
+  type="text"
+  placeholder="TBS Flagger First & Last Name"
+  value={tbs.flagger1}
+  onChange={(e) => {
+    const v = formatName(e.target.value);
+    setTbs(s => ({ ...s, flagger1: v }));
+    if (v.trim()) setErrors(prev => ({ ...prev, flagger1: '' }));
+  }}
+/>
+{errors.flagger1 && <div className="error-message">{errors.flagger1}</div>}
 
-                  <label>Flagger #2 *</label>
-                  <input type="text" placeholder="TBS Flagger First & Last Name" value={tbs.flagger2} onChange={e => setTbs(s => ({...s, flagger2: e.target.value}))} />
-                  {errors.flagger2 && <div className="error">{errors.flagger2}</div>}
+<label>Flagger #2 *</label>
+<input
+  type="text"
+  placeholder="TBS Flagger First & Last Name"
+  value={tbs.flagger2}
+  onChange={(e) => {
+    const v = formatName(e.target.value);
+    setTbs(s => ({ ...s, flagger2: v }));
+    if (v.trim()) setErrors(prev => ({ ...prev, flagger2: '' }));
+  }}
+/>
+{errors.flagger2 && <div className="error-message">{errors.flagger2}</div>}
 
                   <label>Flagger #3</label>
-                  <input type="text" placeholder="TBS Flagger First & Last Name" value={tbs.flagger3} onChange={e => setTbs(s => ({...s, flagger3: e.target.value}))} />
+                  <input type="text" placeholder="TBS Flagger First & Last Name" value={tbs.flagger3} onChange={e => setTbs(s => ({...s, flagger3: formatName(e.target.value)}))} />
 
                   <label>Flagger #4</label>
-                  <input type="text" placeholder="TBS Flagger First & Last Name" value={tbs.flagger4} onChange={e => setTbs(s => ({...s, flagger4: e.target.value}))} />
+                  <input type="text" placeholder="TBS Flagger First & Last Name" value={tbs.flagger4} onChange={e => setTbs(s => ({...s, flagger4: formatName(e.target.value)}))} />
 
                   <label>Flagger #5</label>
-                  <input type="text" placeholder="TBS Flagger First & Last Name" value={tbs.flagger5} onChange={e => setTbs(s => ({...s, flagger5: e.target.value}))} />
+                  <input type="text" placeholder="TBS Flagger First & Last Name" value={tbs.flagger5} onChange={e => setTbs(s => ({...s, flagger5: formatName(e.target.value)}))} />
                   
                   <label>Flagger #6</label>
-                  <input type="text" placeholder="TBS Flagger First & Last Name" value={tbs.flagger5} onChange={e => setTbs(s => ({...s, flagger5: e.target.value}))} />
+                  <input type="text" placeholder="TBS Flagger First & Last Name" value={tbs.flagger6} onChange={e => setTbs(s => ({...s, flagger6: formatName(e.target.value)}))} />
                 </div>
 
                 <div className="morning-checklist">
                   <h4>Morning Check List *</h4>
 
-                  <label>TBS Truck Number(s):</label>
+<label>TBS Truck Number(s):</label>
 <p className="trucks">Please select all trucks taken for this job.</p>
 
-<div className="truck-chooser">
+<div className={`truck-chooser ${errors.trucks ? 'has-error' : ''}`}>
   {TRUCKS.map(t => (
     <label key={t} className={`truck-tag ${tbs.trucks.includes(t) ? 'selected' : ''}`}>
       <input
@@ -597,7 +873,8 @@ onChange={(e) => setCityName(toTitleCase(e.target.value))}
     </label>
   ))}
 </div>
-                  {selectPair('hardHats','Hard Hats',[2,3,4,5,6])}
+{errors.trucks && <div className="error-message">{errors.trucks}</div>}
+        {selectPair('hardHats','Hard Hats',[2,3,4,5,6])}
                   {selectPair('vests','Vests',[2,3,4,5,6])}
                   {selectPair('walkies','Walkie Talkies',[2,3,4,5,6])}
                   {selectPair('arrowBoards','Arrow Board',[0,1,2])}
@@ -610,31 +887,83 @@ onChange={(e) => setCityName(toTitleCase(e.target.value))}
                   {hasMismatch && (
                     <div className="emergency-warning-box">
                       <p className="warning-text">⚠️ WARNING</p>
-                      <p className="emergency-warning-text">Equipment counts do not match. If equipment was left after hours, you must check that box below.</p>
+                      <p className="emergency-warning-text">Equipment counts do not match. If you are leaving equipment after hours, you must check that box below. Otherwise, please grab your equipment 
+                        and change the end numbers to verify everything is cleaned up. Equipment being left poses a risk of theft of TBS 
+                        property and you're responsible for any damage to TBS property. Please explain the reason for leaving equipment after checking.
+                      </p>
                     </div>
                   )}
                 </div>
+<div className="jobsite-checklist">
+  <h4>Jobsite Check List *</h4>
 
-                <div className="jobsite-checklist">
-                  <h4>Jobsite Check List *</h4>
-                  <label><input type="checkbox" checked={tbs.jobsite.visibility} onChange={e => setTbs(s => ({...s, jobsite: {...s.jobsite, visibility: e.target.checked}}))} /> Visibility</label>
-                  {errors.visibility && <span className="error">{errors.visibility}</span>}
+  <label>
+    <input
+      type="checkbox"
+      checked={tbs.jobsite.visibility}
+      onChange={e => setJobsite('visibility', e.target.checked)}
+    /> Visibility
+  </label>
+  {errors.visibility && <div className="error-message">{errors.visibility}</div>}
 
-                  <label><input type="checkbox" checked={tbs.jobsite.communication} onChange={e => setTbs(s => ({...s, jobsite: {...s.jobsite, communication: e.target.checked}}))} /> Communication with Job</label>
-                  {errors.communication && <span className="error">{errors.communication}</span>}
+  <label>
+    <input
+      type="checkbox"
+      checked={tbs.jobsite.communication}
+      onChange={e => setJobsite('communication', e.target.checked)}
+    /> Communication with Job
+  </label>
+  {errors.communication && <div className="error-message">{errors.communication}</div>}
 
-                  <label><input type="checkbox" checked={tbs.jobsite.siteForeman} onChange={e => setTbs(s => ({...s, jobsite: {...s.jobsite, siteForeman: e.target.checked}}))} /> Site Foreman</label>
-                  {errors.siteForeman && <span className="error">{errors.siteForeman}</span>}
+  <label>
+    <input
+      type="checkbox"
+      checked={tbs.jobsite.siteForeman}
+      onChange={e => setJobsite('siteForeman', e.target.checked)}
+    /> Site Foreman
+  </label>
+  {errors.siteForeman && <div className="error-message">{errors.siteForeman}</div>}
 
-                  <label><input type="checkbox" checked={tbs.jobsite.signsAndStands} onChange={e => setTbs(s => ({...s, jobsite: {...s.jobsite, signsAndStands: e.target.checked}}))} /> Signs and Stands Put Out</label>
-                  {errors.signsAndStands && <span className="error">{errors.signsAndStands}</span>}
+  <label>
+    <input
+      type="checkbox"
+      checked={tbs.jobsite.signsAndStands}
+      onChange={e => setJobsite('signsAndStands', e.target.checked)}
+    /> Signs and Stands Put Out
+  </label>
+  {errors.signsAndStands && <div className="error-message">{errors.signsAndStands}</div>}
 
-                  <label><input type="checkbox" checked={tbs.jobsite.conesAndTaper} onChange={e => setTbs(s => ({...s, jobsite: {...s.jobsite, conesAndTaper: e.target.checked}}))} /> Cones/Barrels and Taper</label>
-                  {errors.conesAndTaper && <span className="error">{errors.conesAndTaper}</span>}
+  <label>
+    <input
+      type="checkbox"
+      checked={tbs.jobsite.conesAndTaper}
+      onChange={e => setJobsite('conesAndTaper', e.target.checked)}
+    /> Cones/Barrels and Taper
+  </label>
+  {errors.conesAndTaper && <div className="error-message">{errors.conesAndTaper}</div>}
 
-                  <label><input type="checkbox" checked={tbs.jobsite.equipmentLeft} onChange={e => setTbs(s => ({...s, jobsite: {...s.jobsite, equipmentLeft: e.target.checked}}))} /> Equipment Left After Hours</label>
-                  {errors.equipmentLeft && <span className="error">{errors.equipmentLeft}</span>}
-                </div>
+  <label>
+    <input
+      type="checkbox"
+      checked={tbs.jobsite.equipmentLeft}
+      onChange={e => setJobsite('equipmentLeft', e.target.checked)}
+    /> Equipment Left After Hours
+  </label>
+  {errors.equipmentLeft && <div className="error-message">{errors.equipmentLeft}</div>}
+  
+  {tbs.jobsite.equipmentLeft && (
+    <div style={{marginTop: '10px'}}>
+      <label>Reason for leaving equipment:</label>
+      <textarea
+        value={tbs.jobsite.equipmentLeftReason}
+        onChange={e => setTbs(s => ({...s, jobsite: {...s.jobsite, equipmentLeftReason: e.target.value}}))}
+        placeholder="Please explain why you're leaving equipment behind..."
+        style={{width: '100%', minHeight: '60px', marginTop: '5px', fontFamily: 'Arial, sans-serif'}}
+      />
+    </div>
+  )}
+</div>
+
               </div>
 
               {errors.basic && <div className="error big">{errors.basic}</div>}
@@ -643,16 +972,26 @@ onChange={(e) => setCityName(toTitleCase(e.target.value))}
   <h4 className="signature-h4">Job Site Foreman Signature *</h4>
   <div className="sig-pad">
     <div className="signature">
-      <div className="emergency-warning-box">
-        <p className="warning-text">⚠️ WARNING</p>
-        <p className="emergency-warning-text">
-          Please double check the form and make sure your info is correct
-        </p>
-      </div>
+    
+              <label>Job Site Foreman Name *</label>
+<input
+  type="text"
+  value={foremanName}
+  onChange={(e) => {
+    const val = formatName(e.target.value);
+    setForemanName(val);
+    if (val.trim()) {
+      setErrors(prev => ({ ...prev, foremanName: '' }));
+    }
+  }}
+/>
+{errors.foremanName && <div className="error-message">{errors.foremanName}</div>}
 <label>Foreman Signature *</label>
       <p className="sign-here">Please Sign Your First & Last Name to Approve Work Order</p>
       {/* Signature canvas */}
       <div className="sig-canvas-wrap">
+
+
         <SignatureCanvas
           ref={sigRef}
           penColor="#000"
@@ -665,7 +1004,7 @@ onChange={(e) => setCityName(toTitleCase(e.target.value))}
           </button>
         </div>
       </div>
-
+{errors.foremanSignature && <div className="error-message">{errors.foremanSignature}</div>}
       {/* Optional tiny preview if signed */}
       {foremanSig && (
         <div className="sig-preview">
@@ -680,16 +1019,39 @@ onChange={(e) => setCityName(toTitleCase(e.target.value))}
   </div>
 </div>
               <div className="actions">
-               <button className="btn" type="submit" disabled={!isSubmitReady || !jobId}>
-  Submit Work Order
-</button>
+                 <div className="submit-button-wrapper">
+  <button
+  type="submit"
+  className="btn btn--full submit-control"
+  disabled={isSubmitting}
+>
+
+    {isSubmitting ? (
+      <div className="spinner-button">
+        <span className="spinner"></span> Submitting...
+      </div>
+    ) : (
+      'SUBMIT WORK ORDER'
+    )}
+  </button>
+  {/* Toast-like message */}
+  {submissionMessage && (
+    <div className="custom-toast success">{submissionMessage}</div>
+  )}
+  {submissionErrorMessage && (
+    <div className="custom-toast error">{submissionErrorMessage}</div>
+  )}
+  {
+  errorMessage && (
+    <div className="custom-toast error">{errorMessage}</div>
+  )}
+</div>
 
               </div>
             </div>
           </form>
         </section>
       </div>
-      <ToastContainer position="top-center" />
     </div>
   );
 }
