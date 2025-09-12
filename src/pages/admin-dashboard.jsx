@@ -5,13 +5,35 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import '../css/admin.css';
 import Header from '../components/headerviews/HeaderAdminDash';
+const formatTime = (timeStr) => {
+  if (!timeStr) return '';
+  const [hours, minutes] = timeStr.split(':');
+  const hour = parseInt(hours);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  return `${displayHour}:${minutes}${ampm}`;
+};
+
+const formatEquipmentName = (key) => {
+  const names = {
+    hardHats: 'Hard Hats',
+    vests: 'Vests', 
+    walkies: 'Walkie Talkies',
+    arrowBoards: 'Arrow Boards',
+    cones: 'Cones',
+    barrels: 'Barrels',
+    signStands: 'Sign Stands',
+    signs: 'Signs'
+  };
+  return names[key] || key;
+};
+
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [adminName, setAdminName] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
   const [monthlyJobs, setMonthlyJobs] = useState({});
   const [monthlyKey, setMonthlyKey] = useState(0);
-  const [logos, setLogos] = useState([]);
   const [cancelledJobs, setCancelledJobs] = useState([]);
   const [selectedApplicantIndex, setSelectedApplicantIndex] = useState(null);
   const [selectedPlanIndex, setSelectedPlanIndex] = useState(null);
@@ -25,6 +47,11 @@ const [currentIndex, setCurrentIndex] = useState(0); // To control the visible s
 const [jobs, setJobs] = useState([]);
 const [calendarViewDate, setCalendarViewDate] = useState(new Date());
 const [isAdmin, setIsAdmin] = useState(false);
+const [woSelectedDate, setWoSelectedDate] = useState(null);
+const [woMonthly, setWoMonthly] = useState({});
+const [woList, setWoList] = useState([]);
+const [viewMode, setViewMode] = useState('traffic'); // 'traffic' or 'workorders'
+const [selectedPdfId, setSelectedPdfId] = useState(null);
 // Modify your fetchMonthlyJobs function to include better logging
 // Add this useEffect to fetch cancelled jobs specifically
 useEffect(() => {
@@ -56,6 +83,48 @@ useEffect(() => {
     setAllowedForInvoices(allowed.has(user.email));
   }
 }, []);
+const fetchMonthlyWorkOrders = async (date) => {
+  try {
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+    const res = await axios.get(`/work-orders/month?month=${month}&year=${year}`);
+    // group by YYYY-MM-DD
+    const grouped = {};
+    res.data.forEach(wo => {
+      const dateStr = new Date(wo.scheduledDate).toISOString().split('T')[0];
+      (grouped[dateStr] ||= []).push(wo);
+    });
+    setWoMonthly(grouped);
+  } catch (e) {
+    console.error('Failed to fetch monthly work orders:', e);
+  }
+};
+
+const fetchWorkOrdersForDay = async (date) => {
+  if (!date) return;
+  try {
+    const dateStr = date.toISOString().split('T')[0];
+    const res = await axios.get(`/work-orders?date=${dateStr}`);
+    setWoList(res.data);
+  } catch (e) {
+    console.error('Failed to fetch daily work orders:', e);
+  }
+};
+useEffect(() => {
+  if (isAdmin) {
+    const d = new Date();
+    setWoSelectedDate(d);
+    fetchMonthlyWorkOrders(d);
+    fetchWorkOrdersForDay(d);
+  }
+}, [isAdmin]);
+
+useEffect(() => {
+  if (woSelectedDate) {
+    fetchMonthlyWorkOrders(woSelectedDate);
+    fetchWorkOrdersForDay(woSelectedDate);
+  }
+}, [woSelectedDate]);
 
 // Update the fetchMonthlyJobs function to focus only on active jobs
 const fetchMonthlyJobs = async (date) => {
@@ -157,17 +226,6 @@ useEffect(() => {
     };
     fetchPlanUser();
   }, []);
-  useEffect(() => {
-    const fetchLogos = async () => {
-      try {
-        const res = await axios.get('/logos');
-        setLogos(res.data);
-      } catch (err) {
-        console.error("Error fetching logos:", err);
-      }
-    };
-    fetchLogos();
-    }, []);
   return (
     <div>
       <Header />
@@ -175,19 +233,42 @@ useEffect(() => {
       <h1 className="welcome">Welcome, {adminName}</h1>
       {isAdmin && (
   <div className="admin-job-calendar">
-    <h2>View Submitted Traffic Control Jobs by Date</h2>
+    <div className="view-toggle">
+      <h2>View Traffic Control Jobs and Work Orders by Date</h2>
+      <button 
+        className={`btn ${viewMode === 'traffic' ? 'active' : ''}`}
+        onClick={() => setViewMode('traffic')}
+      >
+        Switch to Traffic Control Jobs
+      </button>
+      <button 
+        className={`btn ${viewMode === 'workorders' ? 'active' : ''}`}
+        onClick={() => setViewMode('workorders')}
+      >
+        Switch to Work Orders
+      </button>
+    </div>
     <DatePicker
-  selected={selectedDate}
-  onChange={(date) => setSelectedDate(date)}
+  selected={viewMode === 'traffic' ? selectedDate : woSelectedDate}
+  onChange={(date) => {
+    if (viewMode === 'traffic') {
+      setSelectedDate(date);
+    } else {
+      setWoSelectedDate(date);
+    }
+  }}
   onMonthChange={(date) => {
     setCalendarViewDate(date);
-    fetchMonthlyJobs(date); // 👈 Force fetch here
+    if (viewMode === 'traffic') {
+      fetchMonthlyJobs(date);
+    } else {
+      fetchMonthlyWorkOrders(date);
+    }
   }}  
   calendarClassName="admin-date-picker"
   dateFormat="MMMM d, yyyy"
   inline
   formatWeekDay={(nameOfDay) => {
-    // Convert short day (e.g. Su) to full day
     const map = {
       Su: 'Sunday',
       Mo: 'Monday',
@@ -201,61 +282,184 @@ useEffect(() => {
   }}
   dayClassName={(date) => {
     const dateStr = date.toISOString().split('T')[0];
-    const hasJobs = monthlyJobs[dateStr] && monthlyJobs[dateStr].length > 0;
-    return hasJobs ? 'has-jobs' : '';
+    const dataSource = viewMode === 'traffic' ? monthlyJobs : woMonthly;
+    const hasItems = dataSource[dateStr] && dataSource[dateStr].length > 0;
+    return hasItems ? 'has-jobs' : '';
   }}
   renderDayContents={(day, date) => {
     const dateStr = date.toISOString().split('T')[0];
-    const jobsOnDate = monthlyJobs[dateStr];
-    const jobCount = jobsOnDate ? jobsOnDate.length : 0;
+    const dataSource = viewMode === 'traffic' ? monthlyJobs : woMonthly;
+    const itemsOnDate = dataSource[dateStr];
+    const itemCount = itemsOnDate ? itemsOnDate.length : 0;
 
     return (
       <div className="calendar-day-kiss">
         <div className="day-number">{day}</div>
-        {jobCount > 0 && (
-          <div className="job-count">Jobs: {jobCount}</div>
+        {itemCount > 0 && (
+          <div className="job-count">{viewMode === 'traffic' ? 'Jobs' : 'Work Orders'}: {itemCount}</div>
         )}
       </div>
     );
   }}
 />
 <div className="job-main-info-list">
-<h3>Jobs on {selectedDate?.toLocaleDateString()}</h3>
+{viewMode === 'traffic' ? (
+  <>
+    <h3>Traffic Control Jobs on {selectedDate?.toLocaleDateString()}</h3>
     <div className="job-info-list">
-    {jobs.map((job, index) => (
-  <div key={index} className={`job-card ${job.cancelled ? 'cancelled-job' : ''}`}
-  >
-    {job.emergency && (
-  <p className="emergency-label">🚨 Emergency Job Submitted After 8 PM for Next Day</p>
+      {jobs.map((job, index) => {
+        const dateStr = selectedDate ? selectedDate.toISOString().split('T')[0] : '';
+        return (
+          <div key={index} className={`job-card ${job.cancelled ? 'cancelled-job' : ''}`}>
+            {job.emergency && (
+              <p className="emergency-label">🚨 Emergency Job Submitted After 8 PM for Next Day</p>
+            )}
+            <h4 className="job-company">{job.company}</h4>
+            {job.cancelled && (
+              <p className="cancelled-label">❌ Cancelled on {new Date(job.cancelledAt).toLocaleDateString()}</p>
+            )}
+            {job.updatedAt && !job.cancelled && (
+              <p className="updated-label">✅ Updated on {new Date(job.updatedAt).toLocaleDateString()}</p>
+            )}
+            <p><strong>Coordinator:</strong> {job.coordinator}</p>
+            {job.phone && <p><strong>Phone:</strong> <a href={`tel:${job.phone}`}>{job.phone}</a></p>}
+            <p><strong>On-Site Contact:</strong> {job.siteContact}</p>
+            <p><strong>On-Site Contact Phone Number:</strong> <a href={`tel:${job.site}`}>{job.site}</a></p>
+            <p><strong>Time:</strong> {job.time}</p>
+            <p><strong>Project/Task Number:</strong> {job.project}</p>
+            <p><strong>Flaggers:</strong> {job.flagger}</p>
+            <p><strong>Equipment:</strong> {job.equipment.join(', ')}</p>
+            <p><strong>Address:</strong> {job.address}, {job.city}, {job.state} {job.zip}</p>
+            {job.message && <p><strong>Message:</strong> {job.message}</p>}
+            <div className="job-actions">
+              <button
+                className="btn workorder-btn"
+                disabled={job.cancelled}
+                onClick={() => navigate(`/work-order/${job._id}${dateStr ? `?date=${dateStr}` : ''}`)}
+              >
+                Open Work Order
+              </button>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </>
+) : (
+  <>
+    <h3>Work Orders on {woSelectedDate?.toLocaleDateString()}</h3>
+    <div className="job-info-list">
+      {woList.map((wo, index) => (
+        <div key={index} className="job-card">
+          <h4 className="job-company">{wo.basic?.client || 'Unknown Client'}</h4>
+          <p><strong>Coordinator:</strong> {wo.basic?.coordinator}</p>
+          <p><strong>Project:</strong> {wo.basic?.project}</p>
+          <p><strong>Time:</strong> {wo.basic?.startTime ? formatTime(wo.basic.startTime) : ''} - {wo.basic?.endTime ? formatTime(wo.basic.endTime) : ''}</p>
+          <p><strong>Address:</strong> {wo.basic?.address}, {wo.basic?.city}, {wo.basic?.state} {wo.basic?.zip}</p>
+          {wo.basic?.rating && <p><strong>Rating:</strong> {wo.basic.rating}</p>}
+          {wo.basic?.notice24 && <p><strong>24hr Notice:</strong> {wo.basic.notice24}</p>}
+          {wo.basic?.callBack && <p><strong>Call Back:</strong> {wo.basic.callBack}</p>}
+          {wo.basic?.notes && <p><strong>Additional Notes:</strong> {wo.basic.notes}</p>}
+          <p><strong>Foreman:</strong> {wo.basic?.foremanName}</p>
+          <p><strong>Flaggers:</strong> {[wo.tbs?.flagger1, wo.tbs?.flagger2, wo.tbs?.flagger3, wo.tbs?.flagger4, wo.tbs?.flagger5].filter(Boolean).join(', ')}</p>
+          {wo.tbs?.trucks?.length > 0 && <p><strong>Trucks:</strong> {wo.tbs.trucks.join(', ')}</p>}
+          
+          <div style={{marginTop: '10px'}}>
+            <strong>Equipment Summary:</strong>
+            <table style={{width: '100%', borderCollapse: 'collapse', marginTop: '5px', fontSize: '12px'}}>
+              <thead>
+                <tr style={{backgroundColor: '#f2f2f2'}}>
+                  <th style={{border: '1px solid #ddd', padding: '4px'}}>Item</th>
+                  <th style={{border: '1px solid #ddd', padding: '4px'}}>Started</th>
+                  <th style={{border: '1px solid #ddd', padding: '4px'}}>Ended</th>
+                </tr>
+              </thead>
+              <tbody>
+                {['hardHats','vests','walkies','arrowBoards','cones','barrels','signStands','signs'].map(key => {
+                  const morning = wo.tbs?.morning || {};
+                  return (
+                    <tr key={key}>
+                      <td style={{border: '1px solid #ddd', padding: '4px'}}>{formatEquipmentName(key)}</td>
+                      <td style={{border: '1px solid #ddd', padding: '4px'}}>{morning[key]?.start ?? ''}</td>
+                      <td style={{border: '1px solid #ddd', padding: '4px'}}>{morning[key]?.end ?? ''}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          
+          <div style={{marginTop: '10px'}}>
+            <strong>Jobsite Checklist:</strong>
+            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px', marginTop: '5px', fontSize: '12px'}}>
+              <div>✓ Visibility: {wo.tbs?.jobsite?.visibility ? 'Yes' : 'No'}</div>
+              <div>✓ Communication: {wo.tbs?.jobsite?.communication ? 'Yes' : 'No'}</div>
+              <div>✓ Site Foreman: {wo.tbs?.jobsite?.siteForeman ? 'Yes' : 'No'}</div>
+              <div>✓ Signs/Stands: {wo.tbs?.jobsite?.signsAndStands ? 'Yes' : 'No'}</div>
+              <div>✓ Cones/Taper: {wo.tbs?.jobsite?.conesAndTaper ? 'Yes' : 'No'}</div>
+              <div>✓ Equipment Left: {wo.tbs?.jobsite?.equipmentLeft ? 'Yes' : 'No'}</div>
+            </div>
+          </div>
+          
+          {wo.tbs?.jobsite?.equipmentLeft && wo.tbs?.jobsite?.equipmentLeftReason && (
+            <p><strong>Equipment Left Reason:</strong> {wo.tbs.jobsite.equipmentLeftReason}</p>
+          )}
+          
+          {wo.foremanSignature && (
+            <div style={{textAlign: 'center', margin: '10px 0'}}>
+              <strong>Foreman Signature:</strong>
+              <div style={{marginTop: '5px'}}>
+                <img 
+                  src={`data:image/png;base64,${wo.foremanSignature}`} 
+                  alt="Foreman Signature" 
+                  style={{maxHeight: '60px', border: '1px solid #ddd', padding: '5px', backgroundColor: '#fff'}}
+                />
+              </div>
+            </div>
+          )}
+          
+          <p><strong>Completed:</strong> {new Date(wo.createdAt).toLocaleDateString()} at {new Date(wo.createdAt).toLocaleTimeString()}</p>
+          <div className="job-actions">
+            <button
+              className="btn workorder-btn"
+              onClick={() => setSelectedPdfId(selectedPdfId === wo._id ? null : wo._id)}
+            >
+              {selectedPdfId === wo._id ? 'Hide PDF' : 'View PDF'}
+            </button>
+          </div>
+          
+          {selectedPdfId === wo._id && (
+            <div style={{marginTop: '10px'}}>
+              <iframe
+                src={`/pdfs/${wo._id}`}
+                width="100%"
+                height="600px"
+                style={{border: '2px solid #efad76', borderRadius: '8px'}}
+                title={`Work Order PDF - ${wo.basic?.client}`}
+              />
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  </>
 )}
-
-    <h4 className="job-company">{job.company}</h4>
-    {job.cancelled && (
-  <p className="cancelled-label">❌ Cancelled on {new Date(job.cancelledAt).toLocaleDateString()}</p>
-)}
-{job.updatedAt && !job.cancelled && (
-  <p className="updated-label">✅ Updated on {new Date(job.updatedAt).toLocaleDateString()}</p>
-)}
-    <p><strong>Coordinator:</strong> {job.coordinator}</p>
-    {job.phone && (
-      <p><strong>Phone:</strong> <a href={`tel:${job.phone}`}>{job.phone}</a></p>
-    )}
-<p><strong>On-Site Contact:</strong> {job.siteContact}</p>
-<p><strong>On-Site Contact Phone Number:</strong> <a href={`tel:${job.site}`}>{job.site}</a></p>
-    <p><strong>Time:</strong> {job.time}</p>
-    <p><strong>Project/Task Number:</strong> {job.project}</p>
-    <p><strong>Flaggers:</strong> {job.flagger}</p>
-    <p><strong>Equipment:</strong> {job.equipment.join(', ')}</p>
-    <p><strong>Address:</strong> {job.address}, {job.city}, {job.state} {job.zip}</p>
-    {job.message && <p><strong>Message:</strong> {job.message}</p>}
-  </div>
-))}
-
 </div>
   </div>
-  </div>
 )}
 </div>
+      <div className="job-actions">
+        <h2 className="admin-apps-title">Need To Fill Out a Work Order?</h2>
+        <button
+          className="btn workorder-btn"
+          onClick={() => {
+            // Open the employee Work Order page for this job/date
+            navigate(`/work-order`);
+          }}
+        >
+          Open Work Order
+        </button>
+      </div>
 {allowedForInvoices && (
   <div className="admin-invoice">
     <h1 className="invoice-h1">Invoicing</h1>
