@@ -658,12 +658,12 @@ const isSubmitReady = useMemo(() => {
     {errors[name] && <div className="error-message">{errors[name]}</div>}
     </div>
   );
-  const lockMask = !tbsEnabled ? <div className="lock-mask">Complete the top section (including signature) to unlock.</div> : null;
 // near your other useState calls
 
   return (
     <div>
       <Header />
+      <main className="control-main">
       <div className="work-order">
         <section className="main-work-section">
           <form onSubmit={onSubmit} className="form-center">
@@ -751,6 +751,7 @@ value={basic.company}
         <option key={state.abbreviation} value={state.abbreviation}>{state.name}</option>
       ))}
     </select>
+{errors.state && <div className="error-message">{errors.state}</div>}
 <label>Zip *</label>
 <input
   name="zip"
@@ -812,7 +813,7 @@ value={basic.company}
                 <textarea className="additional-note-text" value={basic.notes} onChange={e => setBasicField('notes', e.target.value)} style={{fontFamily: 'Arial, sans-serif'}} />
               </div>
               <div className={`tbs-employee-form ${!tbsEnabled ? 'disabled' : ''}`}>
-                {!tbsEnabled && lockMask}
+                {!tbsEnabled}
                 <div className="employee-names">
                   <h3 className="comp-section">TBS Employee Section:</h3>
                   <p className="employeep">Please give device to TBS Employees to fill out</p>
@@ -1052,6 +1053,7 @@ value={basic.company}
           </form>
         </section>
       </div>
+      </main>
     </div>
   );
 }
