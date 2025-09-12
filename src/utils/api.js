@@ -11,12 +11,16 @@ const api = axios.create({
   withCredentials: true,
 });
 
-api.interceptors.request.use((config) => {
-  const ls = localStorage.getItem('adminUser');
-  const fromUser = ls ? (() => { try { return JSON.parse(ls)?.token; } catch { return null; } })() : null;
-  const token = fromUser || localStorage.getItem('adminToken') || localStorage.getItem('token') || localStorage.getItem('empToken');
-  if (token) (config.headers ||= {}).Authorization = `Bearer ${token}`;
-  return config;
-});
-
+  const hasEmpCookie = typeof document !== 'undefined' && document.cookie.includes('empToken=');
+  if (!hasEmpCookie) {
+    const ls = localStorage.getItem('adminUser');
+    const fromUser = ls ? (() => { try { return JSON.parse(ls)?.token; } catch { return null; } })() : null;
+    const token = fromUser || localStorage.getItem('adminToken') || localStorage.getItem('token') || localStorage.getItem('empToken');
+    if (token) (config.headers ||= {}).Authorization = `Bearer ${token}`;
+  } else {
+    // rely on cookie auth; avoid sending a possibly-bad header
+    if (config.headers && 'Authorization' in config.headers) {
+      delete config.headers.Authorization;
+   }
+  }
 export default api;
