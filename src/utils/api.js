@@ -12,21 +12,26 @@ const api = axios.create({
   withCredentials: true, // send cookies (empToken) to server
 });
 
-// Only attach Authorization header if we DON'T already have the emp cookie.
-// This avoids sending a stale/bad admin token that causes 403s.
+// Always try to send authentication - either via cookie or header
 api.interceptors.request.use((config) => {
   const hasEmpCookie = isBrowser && document.cookie.includes('empToken=');
-
+  
+  // If no employee cookie, try to get token from localStorage
   if (!hasEmpCookie) {
     let token;
     try {
-      const ls = localStorage.getItem('adminUser');
-      const parsed = ls ? JSON.parse(ls) : null;
-      token =
-        parsed?.token ||
-        localStorage.getItem('adminToken') ||
-        localStorage.getItem('token') ||
-        localStorage.getItem('empToken');
+      // Check for employee token first
+      token = localStorage.getItem('empToken');
+      
+      // If no employee token, check for admin tokens
+      if (!token) {
+        const ls = localStorage.getItem('adminUser');
+        const parsed = ls ? JSON.parse(ls) : null;
+        token =
+          parsed?.token ||
+          localStorage.getItem('adminToken') ||
+          localStorage.getItem('token');
+      }
     } catch {
       // ignore JSON parse errors
     }
@@ -34,13 +39,30 @@ api.interceptors.request.use((config) => {
     if (token) {
       config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
+      console.log('API: Sending auth header with token:', token.slice(0, 20) + '...');
+    } else {
+      console.log('API: No token found in localStorage');
     }
-  } else if (config.headers?.Authorization) {
-    // rely on cookie auth; strip possibly-bad header
-    delete config.headers.Authorization;
+  } else {
+    console.log('API: Using empToken cookie for authentication');
   }
 
   return config;
 });
+
+// Add response interceptor to handle auth errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      console.log('401 Unauthorized - clearing stored tokens');
+      localStorage.removeItem('adminUser');
+      localStorage.removeItem('adminToken');
+      localStorage.removeItem('token');
+      localStorage.removeItem('empToken');
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default api;
