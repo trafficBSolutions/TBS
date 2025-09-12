@@ -6,8 +6,8 @@ import { Toaster } from 'react-hot-toast'
 import { isAdminAuthenticated } from './utils/auth';
 import EmployeeLogin from './pages/employee-login';
 import RequireStaff from './components/requireStaff';
- axios.defaults.baseURL = 'https://tbs-server.onrender.com'; 
-/* axios.defaults.baseURL = 'http://localhost:8000';*/
+/* axios.defaults.baseURL = 'https://tbs-server.onrender.com'; */
+ axios.defaults.baseURL = `http://${window.location.hostname}:8000`;
 axios.defaults.withCredentials = true
 
 // Add axios interceptor to include JWT token in requests
