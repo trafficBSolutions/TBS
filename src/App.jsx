@@ -48,21 +48,15 @@ function App() {
   <Routes>
     <Route path="/applynow" element={<Apply/>}/>
     <Route path="/" element={<Home/>}/>
-       <Route path="/employee-login" element={<EmployeeLogin />} />
-     <Route path="/work/:id" element={
-            <RequireEmployee>
-              <Work />
-            </RequireEmployee>
-          }
-        />
-         <Route
-          path="/work"
-          element={
-            <RequireEmployee>
-              <Work />
-            </RequireEmployee>
-          }
-        />
+<Route path="/work-order/:legacyId" element={<Navigate to="/work-order" replace />} />
+     <Route
+    path="/work-order"
+    element={
+      <RequireStaff>
+        <Work />
+      </RequireStaff>
+    }
+  />
     <Route path="/trafficcontrol" element={<TrafficControl/>}/>
     <Route path="/trafficplanning" element={<TrafficPlan/>}/>
     <Route path="/rentals" element={<Rentals/>}/>
