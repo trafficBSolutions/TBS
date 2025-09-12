@@ -10,7 +10,7 @@ export default function EmployeeLogin() {
   const nav = useNavigate();
   const loc = useLocation();
   const [error, setError] = useState('');
-  const redirectTo = loc.state?.from || '/work'; // where to go after login
+  const redirectTo = loc.state?.from || '/work-order'; // where to go after login
 
   const submit = async (e) => {
     e.preventDefault();
