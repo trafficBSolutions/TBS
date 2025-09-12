@@ -419,14 +419,6 @@ useEffect(() => {
           )}
           
           <p><strong>Completed:</strong> {new Date(wo.createdAt).toLocaleDateString()} at {new Date(wo.createdAt).toLocaleTimeString()}</p>
-          <div className="job-actions">
-            <button
-              className="btn workorder-btn"
-              onClick={() => setSelectedPdfId(selectedPdfId === wo._id ? null : wo._id)}
-            >
-              {selectedPdfId === wo._id ? 'Hide PDF' : 'View PDF'}
-            </button>
-          </div>
           
           {selectedPdfId === wo._id && (
             <div style={{marginTop: '10px'}}>
@@ -755,3 +747,4 @@ useEffect(() => {
 };
 
 export default AdminDashboard;
+
