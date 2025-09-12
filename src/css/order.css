@@ -73,11 +73,79 @@
 .truck-tag.selected { border-color: #333; font-weight: 600; }
 .sig-canvas { /* canvas on page */
   width: 100%;
-  max-width: 600px;
+
   height: 160px;
   background: #fff;
   border: 2px dashed #bbb;
   border-radius: 8px;
   box-shadow: 0 2px 8px #0000001a;
 }
+.datepicker-container .custom-datepicker {
+        margin: 0 auto;
+    text-align: center;
+    display: flex
+;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    }
 .sig-clear { background:#e67e22; color:#fff; }
+@media screen and (max-width: 1200px) and (orientation: portrait) {
+    .cone-img {
+max-width: 75px;
+    }
+    .tbs-img {
+        max-width: 200px;
+    }
+    .work-h1 {
+        font-size: 4rem;
+    }
+}
+@media screen and (min-width: 320px) and (max-width: 640px) and (orientation: portrait) {
+    .workorder {
+        display: block;
+    }
+    .main-work-section {
+        margin: 0 auto;
+    }
+}
+@media screen and (max-width: 320px) and (orientation: landscape) {
+    .workorder {
+        display: block;
+    }
+    .tbs-img {
+        max-width: 150px;
+    }
+    .cone-img {
+        max-width: 55px;
+    }
+    .work-h1 {
+        font-size: 3rem;
+    }
+    .control-fill-info {
+        font-size: 1.2rem;
+    }
+    .comp-section {
+        font-size: 2rem;
+    }
+}
+@media screen and (max-width: 320px) and (orientation: portrait) {
+    .workorder {
+        display: block;
+    }
+    .tbs-img {
+        max-width: 150px;
+    }
+    .cone-img {
+        max-width: 55px;
+    }
+    .work-h1 {
+        font-size: 3rem;
+    }
+    .control-fill-info {
+        font-size: 1.2rem;
+    }
+    .comp-section {
+        font-size: 2rem;
+    }
+}
