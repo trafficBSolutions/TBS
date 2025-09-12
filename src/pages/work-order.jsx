@@ -192,13 +192,31 @@ useEffect(() => {
       const admin = localStorage.getItem('adminUser');
       if (admin) return;
 
-      // Otherwise require employee auth as before
+      // Check for employee user in localStorage first
+      const employeeUser = localStorage.getItem('employeeUser');
+      if (employeeUser) {
+        try {
+          JSON.parse(employeeUser); // validate it's valid JSON
+          return; // allow access if employee user exists
+        } catch {
+          // invalid JSON, continue to server check
+        }
+      }
+
+      // Otherwise require employee auth from server
       const { data } = await api.get('/employee/me');
-      if (!data?.authenticated) navigate('/employee-login', { replace: true });
-    } catch {
+      if (!data?.authenticated) {
+        console.log('Employee not authenticated, redirecting to login');
+        navigate('/employee-login', { replace: true });
+      }
+    } catch (err) {
+      console.log('Auth check failed:', err.message);
       // If employee check fails AND no admin, send to employee login
       const admin = localStorage.getItem('adminUser');
-      if (!admin) navigate('/employee-login', { replace: true });
+      const employeeUser = localStorage.getItem('employeeUser');
+      if (!admin && !employeeUser) {
+        navigate('/employee-login', { replace: true });
+      }
     }
   })();
 }, [navigate]);
@@ -658,12 +676,12 @@ const isSubmitReady = useMemo(() => {
     {errors[name] && <div className="error-message">{errors[name]}</div>}
     </div>
   );
+  const lockMask = !tbsEnabled ? <div className="lock-mask">Complete the top section (including signature) to unlock.</div> : null;
 // near your other useState calls
 
   return (
     <div>
       <Header />
-      <main className="control-main">
       <div className="work-order">
         <section className="main-work-section">
           <form onSubmit={onSubmit} className="form-center">
@@ -751,7 +769,7 @@ value={basic.company}
         <option key={state.abbreviation} value={state.abbreviation}>{state.name}</option>
       ))}
     </select>
-{errors.state && <div className="error-message">{errors.state}</div>}
+    {errors.state && <div className="error-message">{errors.state}</div>}
 <label>Zip *</label>
 <input
   name="zip"
@@ -813,7 +831,7 @@ value={basic.company}
                 <textarea className="additional-note-text" value={basic.notes} onChange={e => setBasicField('notes', e.target.value)} style={{fontFamily: 'Arial, sans-serif'}} />
               </div>
               <div className={`tbs-employee-form ${!tbsEnabled ? 'disabled' : ''}`}>
-                {!tbsEnabled}
+                {!tbsEnabled && lockMask}
                 <div className="employee-names">
                   <h3 className="comp-section">TBS Employee Section:</h3>
                   <p className="employeep">Please give device to TBS Employees to fill out</p>
@@ -1053,7 +1071,6 @@ value={basic.company}
           </form>
         </section>
       </div>
-      </main>
     </div>
   );
 }
