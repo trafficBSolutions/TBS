@@ -13,13 +13,36 @@ axios.defaults.withCredentials = true
 // Add axios interceptor to include JWT token in requests
 axios.interceptors.request.use(
   (config) => {
-    const adminUser = localStorage.getItem('adminUser');
-    if (adminUser) {
-      const { token } = JSON.parse(adminUser);
+    // Check for employee cookie first
+    const hasEmpCookie = document.cookie.includes('empToken=');
+    
+    if (!hasEmpCookie) {
+      // Check for employee token in localStorage first
+      let token = localStorage.getItem('empToken');
+      
+      // If no employee token, check for admin token
+      if (!token) {
+        const adminUser = localStorage.getItem('adminUser');
+        if (adminUser) {
+          try {
+            const parsed = JSON.parse(adminUser);
+            token = parsed.token;
+          } catch (e) {
+            console.error('Error parsing adminUser from localStorage:', e);
+          }
+        }
+      }
+      
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+        console.log('App.jsx: Sending auth header with token');
+      } else {
+        console.log('App.jsx: No token found in localStorage');
       }
+    } else {
+      console.log('App.jsx: Using empToken cookie');
     }
+    
     return config;
   },
   (error) => {
@@ -32,10 +55,16 @@ axios.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      console.log('App.jsx: 401 Unauthorized - clearing tokens');
       localStorage.removeItem('adminUser');
-      if (window.location.pathname !== '/admin-login') {
+      localStorage.removeItem('adminToken');
+      localStorage.removeItem('token');
+      localStorage.removeItem('empToken');
+      if (window.location.pathname !== '/admin-login' && window.location.pathname !== '/employee-login') {
         window.location.href = '/admin-login';
       }
+    } else if (error.response?.status === 403) {
+      console.log('App.jsx: 403 Forbidden - user role not allowed');
     }
     return Promise.reject(error);
   }
@@ -69,6 +98,7 @@ function App() {
     <Route path="/contact-us" element={<Contact/>}/>
     <Route path="/about-us" element={<About/>}/>
     <Route path="/admin-login" element={<AdminLog />} />
+    <Route path="/employee-login" element={<EmployeeLogin />} />
    <Route path="/traffic-control-test-page" element={<TrafficControlTest />} />
    <Route path="/manage-job-test/:id" element={<ManageJobTest/>} />
    <Route path="/cancel-job-test/:id" element={<CancelJobTest/>} />
