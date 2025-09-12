@@ -12,39 +12,39 @@ const api = axios.create({
   withCredentials: true, // send cookies (empToken) to server
 });
 
-// Always try to send authentication - either via cookie or header
+// Send authentication via cookie (preferred) or header (fallback)
 api.interceptors.request.use((config) => {
   const hasEmpCookie = isBrowser && document.cookie.includes('empToken=');
   
-  // If no employee cookie, try to get token from localStorage
-  if (!hasEmpCookie) {
-    let token;
-    try {
-      // Check for employee token first
-      token = localStorage.getItem('empToken');
-      
-      // If no employee token, check for admin tokens
-      if (!token) {
-        const ls = localStorage.getItem('adminUser');
-        const parsed = ls ? JSON.parse(ls) : null;
-        token =
-          parsed?.token ||
-          localStorage.getItem('adminToken') ||
-          localStorage.getItem('token');
-      }
-    } catch {
-      // ignore JSON parse errors
-    }
-
-    if (token) {
-      config.headers = config.headers || {};
-      config.headers.Authorization = `Bearer ${token}`;
-      console.log('API: Sending auth header with token:', token.slice(0, 20) + '...');
-    } else {
-      console.log('API: No token found in localStorage');
-    }
-  } else {
+  if (hasEmpCookie) {
     console.log('API: Using empToken cookie for authentication');
+    // Don't send Authorization header when cookie is available
+    return config;
+  }
+  
+  // Fallback to Authorization header if no cookie
+  let token;
+  try {
+    token = localStorage.getItem('empToken');
+    
+    if (!token) {
+      const ls = localStorage.getItem('adminUser');
+      const parsed = ls ? JSON.parse(ls) : null;
+      token =
+        parsed?.token ||
+        localStorage.getItem('adminToken') ||
+        localStorage.getItem('token');
+    }
+  } catch {
+    // ignore JSON parse errors
+  }
+
+  if (token) {
+    config.headers = config.headers || {};
+    config.headers.Authorization = `Bearer ${token}`;
+    console.log('API: Sending auth header with token:', token.slice(0, 20) + '...');
+  } else {
+    console.log('API: No token found in localStorage');
   }
 
   return config;
