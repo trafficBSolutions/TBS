@@ -5,7 +5,7 @@ import Navbar from './components/Navbar';
 import { Toaster } from 'react-hot-toast'
 import { isAdminAuthenticated } from './utils/auth';
 import EmployeeLogin from './pages/employee-login';
-import RequireEmployee from './components/requireEmployee';
+import RequireStaff from './components/requireStaff';
  axios.defaults.baseURL = 'https://tbs-server.onrender.com'; 
 /* axios.defaults.baseURL = 'http://localhost:8000';*/
 axios.defaults.withCredentials = true
