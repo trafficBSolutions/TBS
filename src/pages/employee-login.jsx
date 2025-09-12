@@ -29,20 +29,8 @@ export default function EmployeeLogin() {
       toast.success('Welcome!');
       nav(redirectTo, { replace: true });
     } catch (err) {
-      console.log('Server login failed, using offline mode');
-      
-      // Fallback: create fake user for development
-      const fakeUser = {
-        email: email,
-        name: 'Employee User',
-        role: 'employee'
-      };
-      
-      localStorage.setItem('employeeUser', JSON.stringify(fakeUser));
-      localStorage.setItem('empToken', 'fake-token-for-dev');
-      
-      toast.success('Welcome! (Offline Mode)');
-      nav(redirectTo, { replace: true });
+      console.error('Employee login failed:', err);
+      toast.error('Login failed. Please check your credentials and try again.');
     }
   };
 
