@@ -87,13 +87,17 @@ const fetchMonthlyWorkOrders = async (date) => {
   try {
     const month = date.getMonth() + 1;
     const year = date.getFullYear();
+    console.log(`Fetching work orders for ${month}/${year}`);
     const res = await axios.get(`/work-orders/month?month=${month}&year=${year}`);
+    console.log('Work orders received:', res.data);
     // group by YYYY-MM-DD
     const grouped = {};
     res.data.forEach(wo => {
       const dateStr = new Date(wo.scheduledDate).toISOString().split('T')[0];
+      console.log(`Grouping work order for date: ${dateStr}`);
       (grouped[dateStr] ||= []).push(wo);
     });
+    console.log('Grouped work orders:', grouped);
     setWoMonthly(grouped);
   } catch (e) {
     console.error('Failed to fetch monthly work orders:', e);
@@ -104,7 +108,10 @@ const fetchWorkOrdersForDay = async (date) => {
   if (!date) return;
   try {
     const dateStr = date.toISOString().split('T')[0];
+    console.log(`Fetching work orders for specific date: ${dateStr}`);
     const res = await axios.get(`/work-orders?date=${dateStr}`);
+    console.log(`Work orders for ${dateStr}:`, res.data);
+    console.log(`Found ${res.data.length} work orders for this date`);
     setWoList(res.data);
   } catch (e) {
     console.error('Failed to fetch daily work orders:', e);
