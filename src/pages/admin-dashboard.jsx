@@ -93,13 +93,30 @@ const fetchMonthlyWorkOrders = async (date) => {
     // group by YYYY-MM-DD
     const grouped = {};
     res.data.forEach(wo => {
+      // Handle both UTC and local dates properly
       const woDate = new Date(wo.scheduledDate);
-      const year = woDate.getFullYear();
-      const month = String(woDate.getMonth() + 1).padStart(2, '0');
-      const day = String(woDate.getDate()).padStart(2, '0');
-      const dateStr = `${year}-${month}-${day}`;
-      console.log(`Grouping work order for date: ${dateStr}`);
-      (grouped[dateStr] ||= []).push(wo);
+      // If it's a UTC date at midnight, convert to local date
+      const utcHours = woDate.getUTCHours();
+      const utcMinutes = woDate.getUTCMinutes();
+      const utcSeconds = woDate.getUTCSeconds();
+      
+      let finalDate;
+      if (utcHours === 0 && utcMinutes === 0 && utcSeconds === 0) {
+        // This is likely a date stored as UTC midnight, use UTC date components
+        const year = woDate.getUTCFullYear();
+        const month = String(woDate.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(woDate.getUTCDate()).padStart(2, '0');
+        finalDate = `${year}-${month}-${day}`;
+      } else {
+        // Use local date components
+        const year = woDate.getFullYear();
+        const month = String(woDate.getMonth() + 1).padStart(2, '0');
+        const day = String(woDate.getDate()).padStart(2, '0');
+        finalDate = `${year}-${month}-${day}`;
+      }
+      
+      console.log(`Grouping work order for date: ${finalDate}`);
+      (grouped[finalDate] ||= []).push(wo);
     });
     console.log('Grouped work orders:', grouped);
     setWoMonthly(grouped);
