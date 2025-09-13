@@ -295,13 +295,19 @@ useEffect(() => {
     return map[nameOfDay] || nameOfDay;
   }}
   dayClassName={(date) => {
-    const dateStr = date.toISOString().split('T')[0];
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
     const dataSource = viewMode === 'traffic' ? monthlyJobs : woMonthly;
     const hasItems = dataSource[dateStr] && dataSource[dateStr].length > 0;
     return hasItems ? 'has-jobs' : '';
   }}
   renderDayContents={(day, date) => {
-    const dateStr = date.toISOString().split('T')[0];
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const dayStr = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${dayStr}`;
     const dataSource = viewMode === 'traffic' ? monthlyJobs : woMonthly;
     const itemsOnDate = dataSource[dateStr];
     const itemCount = itemsOnDate ? itemsOnDate.length : 0;
