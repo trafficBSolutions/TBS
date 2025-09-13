@@ -93,7 +93,11 @@ const fetchMonthlyWorkOrders = async (date) => {
     // group by YYYY-MM-DD
     const grouped = {};
     res.data.forEach(wo => {
-      const dateStr = new Date(wo.scheduledDate).toISOString().split('T')[0];
+      const woDate = new Date(wo.scheduledDate);
+      const year = woDate.getFullYear();
+      const month = String(woDate.getMonth() + 1).padStart(2, '0');
+      const day = String(woDate.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
       console.log(`Grouping work order for date: ${dateStr}`);
       (grouped[dateStr] ||= []).push(wo);
     });
@@ -107,7 +111,10 @@ const fetchMonthlyWorkOrders = async (date) => {
 const fetchWorkOrdersForDay = async (date) => {
   if (!date) return;
   try {
-    const dateStr = date.toISOString().split('T')[0];
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
     console.log(`Fetching work orders for specific date: ${dateStr}`);
     const res = await axios.get(`/work-orders?date=${dateStr}`);
     console.log(`Work orders for ${dateStr}:`, res.data);
