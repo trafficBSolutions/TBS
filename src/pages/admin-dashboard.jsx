@@ -419,26 +419,6 @@ useEffect(() => {
           )}
           
           <p><strong>Completed:</strong> {new Date(wo.createdAt).toLocaleDateString()} at {new Date(wo.createdAt).toLocaleTimeString()}</p>
-          <div className="job-actions">
-            <button
-              className="btn workorder-btn"
-              onClick={() => setSelectedPdfId(selectedPdfId === wo._id ? null : wo._id)}
-            >
-              {selectedPdfId === wo._id ? 'Hide PDF' : 'View PDF'}
-            </button>
-          </div>
-          
-          {selectedPdfId === wo._id && (
-            <div style={{marginTop: '10px'}}>
-              <iframe
-                src={`/pdfs/${wo._id}`}
-                width="100%"
-                height="600px"
-                style={{border: '2px solid #efad76', borderRadius: '8px'}}
-                title={`Work Order PDF - ${wo.basic?.client}`}
-              />
-            </div>
-          )}
         </div>
       ))}
     </div>
