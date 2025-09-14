@@ -436,11 +436,14 @@
     font-size: 1.5rem;
   }
   .calendar-day-kiss .job-count {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.2rem;
     font-size: 1rem;
+    padding: 1px 2px;
+    width: 90%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+    display: block;
+    line-height: 1.1;
     background-color: rgba(241, 166, 97, 0.3);
   }
   .react-datepicker__day-name {
