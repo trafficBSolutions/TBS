@@ -186,39 +186,13 @@ const clearError = (key) => setErrors(prev => {
 });
 
 useEffect(() => {
-  (async () => {
-    try {
-      // If an admin is logged in, allow access
-      const admin = localStorage.getItem('adminUser');
-      if (admin) return;
-
-      // Check for employee user in localStorage first
-      const employeeUser = localStorage.getItem('employeeUser');
-      if (employeeUser) {
-        try {
-          JSON.parse(employeeUser); // validate it's valid JSON
-          return; // allow access if employee user exists
-        } catch {
-          // invalid JSON, continue to server check
-        }
-      }
-
-      // Otherwise require employee auth from server
-      const { data } = await api.get('/employee/me');
-      if (!data?.authenticated) {
-        console.log('Employee not authenticated, redirecting to login');
-        navigate('/employee-login', { replace: true });
-      }
-    } catch (err) {
-      console.log('Auth check failed:', err.message);
-      // If employee check fails AND no admin, send to employee login
-      const admin = localStorage.getItem('adminUser');
-      const employeeUser = localStorage.getItem('employeeUser');
-      if (!admin && !employeeUser) {
-        navigate('/employee-login', { replace: true });
-      }
-    }
-  })();
+  // Simple localStorage-only authentication
+  const admin = localStorage.getItem('adminUser');
+  const employeeUser = localStorage.getItem('employeeUser');
+  
+  if (!admin && !employeeUser) {
+    navigate('/employee-login', { replace: true });
+  }
 }, [navigate]);
 
 // simple title-case (handles spaces, hyphens, slashes, apostrophes)
@@ -269,6 +243,8 @@ const formatName = (name) => {
 
   const [foremanSig, setForemanSig] = useState(''); // base64 (no prefix)
   const [tbsEnabled, setTbsEnabled] = useState(false);
+  const [photos, setPhotos] = useState([]);
+  const [requiresPhotos, setRequiresPhotos] = useState(false);
 
   const [tbs, setTbs] = useState({
     flagger1: '',
@@ -534,23 +510,29 @@ const onSubmit = async (e) => {
   }
 
   // 3) Build payload
-  const payload = {
-    jobId,
-    scheduledDate: basic.dateOfJob,
-    basic: {
-      ...basic,
-      foremanName: foremanName.trim(),
-      client: basic.client || basic.company,
-    },
-    tbs,
-    mismatch: hasMismatch,
-    foremanSignature: foremanSig,
-  };
+  const formData = new FormData();
+  formData.append('jobId', jobId || '');
+  formData.append('scheduledDate', basic.dateOfJob);
+  formData.append('basic', JSON.stringify({
+    ...basic,
+    foremanName: foremanName.trim(),
+    client: basic.client || basic.company,
+    requiresPhotos
+  }));
+  formData.append('tbs', JSON.stringify(tbs));
+  formData.append('mismatch', hasMismatch);
+  formData.append('foremanSignature', foremanSig);
+  
+  photos.forEach(photo => {
+    formData.append('photos', photo);
+  });
 
   // 4) We’re actually submitting now → show spinner
   setIsSubmitting(true);
   try {
-    await api.post('/work-order', payload);
+    await api.post('/work-order', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
     setSubmissionMessage('✅ Work order has been successfully submitted! Thank you!');
 
     // reset form
@@ -572,6 +554,8 @@ const onSubmit = async (e) => {
     });
     setForemanName('');
     setForemanSig('');
+    setPhotos([]);
+    setRequiresPhotos(false);
     sigRef.current?.clear();
     setTbs({
       flagger1: '',
@@ -676,6 +660,7 @@ const isSubmitReady = useMemo(() => {
     {errors[name] && <div className="error-message">{errors[name]}</div>}
     </div>
   );
+  const lockMask = !tbsEnabled ? <div className="lock-mask">Complete the top section (including signature) to unlock.</div> : null;
 // near your other useState calls
 
   return (
@@ -829,8 +814,42 @@ value={basic.company}
                 <label>Additional Notes (optional)</label>
                 <textarea className="additional-note-text" value={basic.notes} onChange={e => setBasicField('notes', e.target.value)} style={{fontFamily: 'Arial, sans-serif'}} />
               </div>
+              
+              <div className="photo-section">
+                <label>
+                  <input 
+                    type="checkbox" 
+                    checked={requiresPhotos}
+                    onChange={(e) => setRequiresPhotos(e.target.checked)}
+                  />
+                  This company requires photos
+                </label>
+                
+                {requiresPhotos && (
+                  <div className="photo-upload">
+                    <label>Work Order Photos (Optional):</label>
+                    <input 
+                      type="file" 
+                      multiple 
+                      accept="image/*"
+                      onChange={(e) => setPhotos(Array.from(e.target.files))}
+                    />
+                    <small>Up to 5 photos, 10MB each</small>
+                    {photos.length > 0 && (
+                      <div className="photo-preview">
+                        <p>{photos.length} photo(s) selected:</p>
+                        {photos.map((photo, index) => (
+                          <div key={index} className="photo-item">
+                            {photo.name} ({(photo.size / 1024 / 1024).toFixed(2)} MB)
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
               <div className={`tbs-employee-form ${!tbsEnabled ? 'disabled' : ''}`}>
-                {!tbsEnabled}
+                {!tbsEnabled && lockMask}
                 <div className="employee-names">
                   <h3 className="comp-section">TBS Employee Section:</h3>
                   <p className="employeep">Please give device to TBS Employees to fill out</p>
