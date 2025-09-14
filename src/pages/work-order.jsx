@@ -832,6 +832,7 @@ value={basic.company}
                       type="file" 
                       multiple 
                       accept="image/*"
+                      className="btn"
                       onChange={(e) => setPhotos(Array.from(e.target.files))}
                     />
                     <small>Up to 5 photos, 10MB each</small>
