@@ -245,6 +245,19 @@ const formatName = (name) => {
   const [tbsEnabled, setTbsEnabled] = useState(false);
   const [photos, setPhotos] = useState([]);
   const [requiresPhotos, setRequiresPhotos] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handlePhotoAdd = (e) => {
+    const newFiles = Array.from(e.target.files);
+    const remainingSlots = 5 - photos.length;
+    const filesToAdd = newFiles.slice(0, remainingSlots);
+    setPhotos(prev => [...prev, ...filesToAdd]);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const removePhoto = (index) => {
+    setPhotos(prev => prev.filter((_, i) => i !== index));
+  };
 
   const [tbs, setTbs] = useState({
     flagger1: '',
@@ -829,19 +842,34 @@ value={basic.company}
                   <div className="photo-upload">
                     <label>Work Order Photos (Optional):</label>
                     <input 
+                      ref={fileInputRef}
                       type="file" 
                       multiple 
                       accept="image/*"
-                      className="btn"
-                      onChange={(e) => setPhotos(Array.from(e.target.files))}
+                      onChange={handlePhotoAdd}
+                      style={{ display: 'none' }}
                     />
+                    <button 
+                      type="button" 
+                      className="btn" 
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={photos.length >= 5}
+                    >
+                      Choose Photos ({photos.length}/5)
+                    </button>
                     <small>Up to 5 photos, 10MB each</small>
                     {photos.length > 0 && (
                       <div className="photo-preview">
-                        <p>{photos.length} photo(s) selected:</p>
                         {photos.map((photo, index) => (
                           <div key={index} className="photo-item">
-                            {photo.name} ({(photo.size / 1024 / 1024).toFixed(2)} MB)
+                            <span>{photo.name} ({(photo.size / 1024 / 1024).toFixed(2)} MB)</span>
+                            <button 
+                              type="button" 
+                              className="btn" 
+                              onClick={() => removePhoto(index)}
+                            >
+                              Remove
+                            </button>
                           </div>
                         ))}
                       </div>
