@@ -87,38 +87,13 @@ const fetchMonthlyWorkOrders = async (date) => {
   try {
     const month = date.getMonth() + 1;
     const year = date.getFullYear();
-    console.log(`Fetching work orders for ${month}/${year}`);
     const res = await axios.get(`/work-orders/month?month=${month}&year=${year}`);
-    console.log('Work orders received:', res.data);
     // group by YYYY-MM-DD
     const grouped = {};
     res.data.forEach(wo => {
-      // Handle both UTC and local dates properly
-      const woDate = new Date(wo.scheduledDate);
-      // If it's a UTC date at midnight, convert to local date
-      const utcHours = woDate.getUTCHours();
-      const utcMinutes = woDate.getUTCMinutes();
-      const utcSeconds = woDate.getUTCSeconds();
-      
-      let finalDate;
-      if (utcHours === 0 && utcMinutes === 0 && utcSeconds === 0) {
-        // This is likely a date stored as UTC midnight, use UTC date components
-        const year = woDate.getUTCFullYear();
-        const month = String(woDate.getUTCMonth() + 1).padStart(2, '0');
-        const day = String(woDate.getUTCDate()).padStart(2, '0');
-        finalDate = `${year}-${month}-${day}`;
-      } else {
-        // Use local date components
-        const year = woDate.getFullYear();
-        const month = String(woDate.getMonth() + 1).padStart(2, '0');
-        const day = String(woDate.getDate()).padStart(2, '0');
-        finalDate = `${year}-${month}-${day}`;
-      }
-      
-      console.log(`Grouping work order for date: ${finalDate}`);
-      (grouped[finalDate] ||= []).push(wo);
+      const dateStr = new Date(wo.scheduledDate).toISOString().split('T')[0];
+      (grouped[dateStr] ||= []).push(wo);
     });
-    console.log('Grouped work orders:', grouped);
     setWoMonthly(grouped);
   } catch (e) {
     console.error('Failed to fetch monthly work orders:', e);
@@ -128,14 +103,8 @@ const fetchMonthlyWorkOrders = async (date) => {
 const fetchWorkOrdersForDay = async (date) => {
   if (!date) return;
   try {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const dateStr = `${year}-${month}-${day}`;
-    console.log(`Fetching work orders for specific date: ${dateStr}`);
+    const dateStr = date.toISOString().split('T')[0];
     const res = await axios.get(`/work-orders?date=${dateStr}`);
-    console.log(`Work orders for ${dateStr}:`, res.data);
-    console.log(`Found ${res.data.length} work orders for this date`);
     setWoList(res.data);
   } catch (e) {
     console.error('Failed to fetch daily work orders:', e);
@@ -312,19 +281,13 @@ useEffect(() => {
     return map[nameOfDay] || nameOfDay;
   }}
   dayClassName={(date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const dateStr = `${year}-${month}-${day}`;
+    const dateStr = date.toISOString().split('T')[0];
     const dataSource = viewMode === 'traffic' ? monthlyJobs : woMonthly;
     const hasItems = dataSource[dateStr] && dataSource[dateStr].length > 0;
     return hasItems ? 'has-jobs' : '';
   }}
   renderDayContents={(day, date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const dayStr = String(date.getDate()).padStart(2, '0');
-    const dateStr = `${year}-${month}-${dayStr}`;
+    const dateStr = date.toISOString().split('T')[0];
     const dataSource = viewMode === 'traffic' ? monthlyJobs : woMonthly;
     const itemsOnDate = dataSource[dateStr];
     const itemCount = itemsOnDate ? itemsOnDate.length : 0;
@@ -333,7 +296,7 @@ useEffect(() => {
       <div className="calendar-day-kiss">
         <div className="day-number">{day}</div>
         {itemCount > 0 && (
-          <div className="job-count">{viewMode === 'traffic' ? 'Jobs' : 'Work Orders'}: {itemCount}</div>
+          <div className="job-count">{viewMode === 'traffic' ? 'Jobs' : 'Work Orders'} {itemCount}</div>
         )}
       </div>
     );
@@ -456,6 +419,14 @@ useEffect(() => {
           )}
           
           <p><strong>Completed:</strong> {new Date(wo.createdAt).toLocaleDateString()} at {new Date(wo.createdAt).toLocaleTimeString()}</p>
+          <div className="job-actions">
+            <button
+              className="btn workorder-btn"
+              onClick={() => setSelectedPdfId(selectedPdfId === wo._id ? null : wo._id)}
+            >
+              {selectedPdfId === wo._id ? 'Hide PDF' : 'View PDF'}
+            </button>
+          </div>
           
           {selectedPdfId === wo._id && (
             <div style={{marginTop: '10px'}}>
@@ -784,4 +755,3 @@ useEffect(() => {
 };
 
 export default AdminDashboard;
-
