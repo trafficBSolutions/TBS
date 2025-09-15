@@ -7,7 +7,6 @@ import Header from '../../components/headerviews/HeaderAdminDash';
 import images from '../../utils/tbsImages';
 import '../../css/invoice.css';
 import ExcelJS from 'exceljs';
-import { toast } from 'react-toastify';
 // Keep this small and readable. Add more as you seed more price lists.
 // at top of invoices.jsx
 const COMPANY_TO_KEY = {
@@ -107,12 +106,6 @@ const [monthlyKey, setMonthlyKey] = useState(0);
 const [planEmail, setPlanEmail] = useState('');
 const [planReadyToSend, setPlanReadyToSend] = useState(false);
 // ===== Spreadsheet editor state (replaces the fixed rates UI) =====
-  const [isSending, setIsSending] = useState(false);
-const [sentInvoice, setSentInvoice] = useState(false); // show the “Paid?” panel
-const [paymentType, setPaymentType] = useState('card'); // 'card' | 'check'
-const [last4, setLast4] = useState('');
-const [checkNo, setCheckNo] = useState('');
-const [paidAmount, setPaidAmount] = useState(''); // optional
 const VERTEX42_STARTER_ROWS = [
   { id: 1, service: 'Flagging Operation — 1/2 day', taxed: false, amount: 0 },
   { id: 2, service: 'Flagging Operation — Full Day', taxed: false, amount: 0 },
@@ -517,31 +510,26 @@ const fetchMonthlyJobs = async (date) => {
   try {
     const month = date.getMonth() + 1;
     const year = date.getFullYear();
-    console.log(`Fetching jobs for ${month}/${year}`);
+    console.log(`Fetching work orders for ${month}/${year}`);
 
-    const res = await axios.get(`/jobs/month?month=${month}&year=${year}`);
-    console.log("Jobs received:", res.data);
+    const res = await axios.get(`/work-orders/month?month=${month}&year=${year}`);
+    console.log("Work orders received:", res.data);
 
-    // Group jobs by date (active jobs only)
+    // Group work orders by scheduled date
     const grouped = {};
 
-    res.data.forEach(job => {
-      (job.jobDates || []).forEach(jobDateObj => {
-        const dateStr = new Date(jobDateObj.date).toISOString().split('T')[0];
-
-        if (!jobDateObj.cancelled && !job.cancelled) {
-          if (!grouped[dateStr]) {
-            grouped[dateStr] = [];
-          }
-          grouped[dateStr].push(job);
-        }
-      });
+    res.data.forEach(workOrder => {
+      const dateStr = new Date(workOrder.scheduledDate).toISOString().split('T')[0];
+      if (!grouped[dateStr]) {
+        grouped[dateStr] = [];
+      }
+      grouped[dateStr].push(workOrder);
     });
 
     setMonthlyJobs(grouped);
     setMonthlyKey(prev => prev + 1);
   } catch (err) {
-    console.error("Failed to fetch monthly jobs:", err);
+    console.error("Failed to fetch monthly work orders:", err);
   }
 };
 useEffect(() => {
@@ -561,14 +549,14 @@ const fetchJobsForDay = async (date, companyName) => {
     const params = { date: dateStr };
     if (companyName) params.company = companyName;
 
-    const res = await axios.get('/jobs', { params });
+    const res = await axios.get('/work-orders', { params });
     const list = pickList(res?.data);
     if (!Array.isArray(list)) {
-      console.warn('Unexpected /jobs payload; skipping render', res?.data);
+      console.warn('Unexpected /work-orders payload; skipping render', res?.data);
       setJobsForDay([]);
       return;
     }
-    setJobsForDay(list.filter(j => !j?.cancelled));
+    setJobsForDay(list);
   } catch (err) {
     console.error('fetchJobsForDay failed:', err);
     setJobsForDay([]);
@@ -629,7 +617,7 @@ const fetchJobsForDay = async (date, companyName) => {
         {/* Jobs Calendar – shows ALL jobs until a selection is made, then filters */}
         <div className="admin-job-calendar" style={{ marginTop: 20 }}>
           <h2>
-            {companyKey ? `${companyKey} jobs` : 'All submitted jobs'} — calendar
+            {companyKey ? `${companyKey} work orders` : 'All completed work orders'} — calendar
           </h2>
           <DatePicker
             selected={selectedDate}
@@ -662,48 +650,35 @@ const fetchJobsForDay = async (date, companyName) => {
 
           {/* Jobs list for the selected day */}
           <div className="job-main-info-list">
-            <h2>Please select a job that hasn't been billed.</h2>
+            <h2>Please select a work order that hasn't been billed.</h2>
             <h3>
-              Jobs on {selectedDate?.toLocaleDateString()}
+              Work Orders on {selectedDate?.toLocaleDateString()}
             </h3>
 <div className="job-info-list">
-  {jobsForDay.map((job) => (
-    <div key={job._id} className={`job-card ${job.cancelled ? 'cancelled-job' : ''}`}>
-      <h4 className="job-company">{job.company}</h4>
+  {jobsForDay.map((workOrder) => (
+    <div key={workOrder._id} className="job-card">
+      <h4 className="job-company">{workOrder.basic?.client || 'Unknown Client'}</h4>
 
-      {job.cancelled && (
-        <p className="cancelled-label">
-          ❌ Cancelled on {new Date(job.cancelledAt).toLocaleDateString()}
-        </p>
-      )}
-      {job.updatedAt && !job.cancelled && (
-        <p className="updated-label">
-          ✅ Updated on {new Date(job.updatedAt).toLocaleDateString()}
-        </p>
-      )}
+      <p className="updated-label">
+        ✅ Completed on {new Date(workOrder.createdAt).toLocaleDateString()}
+      </p>
 
-      <p><strong>Coordinator:</strong> {job.coordinator}</p>
-      {job.phone && (
-        <p><strong>Phone:</strong> <a href={`tel:${job.phone}`}>{job.phone}</a></p>
-      )}
-      <p><strong>On-Site Contact:</strong> {job.siteContact}</p>
-      {job.site && (
-        <p><strong>On-Site Contact Phone Number:</strong> <a href={`tel:${job.site}`}>{job.site}</a></p>
-      )}
-      <p><strong>Time:</strong> {job.time}</p>
-      <p><strong>Project/Task Number:</strong> {job.project}</p>
-      <p><strong>Flaggers:</strong> {job.flagger}</p>
-      <p><strong>Equipment:</strong> {(job.equipment || []).join(', ')}</p>
-      <p><strong>Address:</strong> {job.address}, {job.city}, {job.state} {job.zip}</p>
-      {job.message && <p><strong>Message:</strong> {job.message}</p>}
+      <p><strong>Coordinator:</strong> {workOrder.basic?.coordinator}</p>
+      <p><strong>Project/Task Number:</strong> {workOrder.basic?.project}</p>
+      <p><strong>Time:</strong> {workOrder.basic?.startTime} - {workOrder.basic?.endTime}</p>
+      <p><strong>Address:</strong> {workOrder.basic?.address}, {workOrder.basic?.city}, {workOrder.basic?.state} {workOrder.basic?.zip}</p>
+      <p><strong>Foreman:</strong> {workOrder.basic?.foremanName}</p>
+      <p><strong>Flaggers:</strong> {[workOrder.tbs?.flagger1, workOrder.tbs?.flagger2, workOrder.tbs?.flagger3, workOrder.tbs?.flagger4, workOrder.tbs?.flagger5].filter(Boolean).join(', ')}</p>
+      {workOrder.tbs?.trucks?.length > 0 && <p><strong>Trucks:</strong> {workOrder.tbs.trucks.join(', ')}</p>}
+      {workOrder.basic?.notes && <p><strong>Notes:</strong> {workOrder.basic.notes}</p>}
 
       {/* Bill Job controls belong INSIDE the map/card */}
-      {!job.billed && job.company !== 'Georgia Power' ? (
+      {!workOrder.billed && workOrder.basic?.client !== 'Georgia Power' ? (
         <button
           className="btn"
 onClick={() => {
-  setBillingJob(job);
-  setSelectedEmail(COMPANY_TO_EMAIL[job.company] || job.email || '');
+  setBillingJob(workOrder);
+  setSelectedEmail(COMPANY_TO_EMAIL[workOrder.basic?.client] || workOrder.basic?.email || '');
   setSel({
     flagDay: '',
     laneClosure: 'NONE',
@@ -724,8 +699,8 @@ onClick={() => {
             setQuote(null);
 
             // If you want the pricing panel to match this job’s company:
-            const resolvedKey = job.companyKey || COMPANY_TO_KEY[job.company] || '';
-            if (resolvedKey) setCompanyKey(job.company);
+            const resolvedKey = workOrder.companyKey || COMPANY_TO_KEY[workOrder.basic?.client] || '';
+            if (resolvedKey) setCompanyKey(workOrder.basic?.client);
           }}
         >
           Bill Job
@@ -961,35 +936,24 @@ onClick={() => {
           Yes, it is ready to send.
         </label>
 
-      <button
-  className="btn btn--primary"
-  disabled={!readyToSend || isSending}
-  onClick={async () => {
-    const t = toast.loading('Sending invoice...');
-    setIsSending(true);
-    try {
-      await api.post('/api/billing/bill-job', {
-        jobId: billingJob._id,
-        manualAmount: Number(sheetTotal.toFixed(2)),
-        emailOverride: selectedEmail
-      });
+        <button
+          className="btn btn--primary"
+          disabled={!readyToSend}
+          onClick={async () => {
+            await api.post('/api/billing/bill-workorder', {
+              workOrderId: billingJob._id,
+              manualAmount: Number(sheetTotal.toFixed(2)),
+              emailOverride: selectedEmail
+            });
+            setJobsForDay(list => list.map(j => j._id === billingJob._id ? { ...j, billed: true } : j));
+            setReadyToSend(false);
+            setBillingOpen(false);
+            setBillingJob(null);
+          }}
+        >
+          Send Invoice
+        </button>
 
-      // mark it billed in the day list
-      setJobsForDay(list => list.map(j => j._id === billingJob._id ? { ...j, billed: true } : j));
-
-      setSentInvoice(true);           // 👈 stay in modal and show Paid? section
-      setReadyToSend(false);
-      toast.update(t, { render: 'Invoice sent!', type: 'success', isLoading: false, autoClose: 2500 });
-    } catch (err) {
-      toast.update(t, { render: 'Failed to send invoice', type: 'error', isLoading: false, autoClose: 3500 });
-      console.error(err);
-    } finally {
-      setIsSending(false);
-    }
-  }}
->
-  {isSending ? 'Sending…' : 'Send Invoice'}
-</button>
         <button
           className="btn"
           onClick={() => { setReadyToSend(false); setBillingOpen(false); setBillingJob(null); }}
@@ -997,97 +961,6 @@ onClick={() => {
           Cancel
         </button>
       </div>
-    </div>
-  </div>
-)}
-{sentInvoice && billingJob && (
-  <div className="paid-panel" style={{ marginTop: 20, padding: 16, border: '1px solid #e5e7eb', borderRadius: 8 }}>
-    <h3 style={{ marginTop: 0 }}>Payment received?</h3>
-    <p>Record payment and email a receipt to the customer.</p>
-
-    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-      <label style={{ minWidth: 180 }}>
-        Payment Type
-        <select
-          className="v42-plain"
-          value={paymentType}
-          onChange={e => setPaymentType(e.target.value)}
-        >
-          <option value="card">Card</option>
-          <option value="check">Check</option>
-        </select>
-      </label>
-
-      {paymentType === 'card' ? (
-        <label style={{ minWidth: 180 }}>
-          Last 4 digits
-          <input
-            className="v42-plain"
-            inputMode="numeric"
-            maxLength={4}
-            value={last4}
-            onChange={e => setLast4(e.target.value.replace(/\D/g, '').slice(0,4))}
-            placeholder="1234"
-          />
-        </label>
-      ) : (
-        <label style={{ minWidth: 220 }}>
-          Check #
-          <input
-            className="v42-plain"
-            value={checkNo}
-            onChange={e => setCheckNo(e.target.value.trim())}
-            placeholder="e.g. 1057"
-          />
-        </label>
-      )}
-
-      <label style={{ minWidth: 160 }}>
-        Amount (optional)
-        <input
-          className="v42-plain"
-          type="number"
-          step="0.01"
-          value={paidAmount}
-          onChange={e => setPaidAmount(e.target.value)}
-          placeholder={sheetTotal.toFixed(2)}
-        />
-      </label>
-    </div>
-
-    <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
-      <button
-        className="btn btn--primary"
-        onClick={async () => {
-          const t = toast.loading('Recording payment & sending receipt...');
-          try {
-            await api.post('/api/billing/mark-paid', {
-              jobId: billingJob._id,
-              amount: Number((paidAmount || sheetTotal).toFixed ? (paidAmount) : sheetTotal).toFixed ? Number(paidAmount || sheetTotal) : Number(sheetTotal),
-              method: paymentType,
-              last4: paymentType === 'card' ? last4 : undefined,
-              checkNo: paymentType === 'check' ? checkNo : undefined,
-              receiptEmail: selectedEmail // where to send receipt
-            });
-            toast.update(t, { render: 'Receipt sent!', type: 'success', isLoading: false, autoClose: 2500 });
-            // Optionally close:
-            // setBillingOpen(false); setBillingJob(null);
-          } catch (err) {
-            console.error(err);
-            toast.update(t, { render: 'Failed to record payment / send receipt', type: 'error', isLoading: false, autoClose: 3500 });
-          }
-        }}
-      >
-        Mark Paid & Send Receipt
-      </button>
-
-      <button className="btn" onClick={() => {
-        // allow admin to leave the modal open or close it
-        setSentInvoice(false);
-        setLast4(''); setCheckNo(''); setPaidAmount('');
-      }}>
-        Not Paid Yet
-      </button>
     </div>
   </div>
 )}
