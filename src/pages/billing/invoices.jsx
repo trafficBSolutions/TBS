@@ -120,6 +120,13 @@ const [location, setLocation] = useState('');
 
 // Email validation helper
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+// Invoice header fields
+const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().slice(0,10));
+const [invoiceNumber, setInvoiceNumber] = useState('');
+const [workRequestNumber1, setWorkRequestNumber1] = useState('');
+const [workRequestNumber2, setWorkRequestNumber2] = useState('');
+const [dueDate, setDueDate] = useState('');
 // ===== Spreadsheet editor state (replaces the fixed rates UI) =====
 const VERTEX42_STARTER_ROWS = [
   { id: 1, service: 'Flagging Operation — 1/2 day', taxed: false, amount: 0 },
@@ -833,24 +840,51 @@ onClick={() => {
     <div className="v42-meta">
       <div className="v42-meta-row">
         <div>DATE</div>
-        <input type="date" className="v42-meta-input"
-               defaultValue={new Date().toISOString().slice(0,10)} />
+        <input 
+          type="date" 
+          className="v42-meta-input"
+          value={invoiceDate}
+          onChange={(e) => setInvoiceDate(e.target.value)}
+        />
       </div>
       <div className="v42-meta-row">
         <div>INVOICE #</div>
-        <input type="text" className="v42-meta-input" placeholder="" />
+        <input 
+          type="text" 
+          className="v42-meta-input" 
+          value={invoiceNumber}
+          onChange={(e) => setInvoiceNumber(e.target.value)}
+          placeholder="" 
+        />
       </div>
       <div className="v42-meta-row">
         <div>WR#</div>
-        <input type="text" className="v42-meta-input" placeholder="" />
+        <input 
+          type="text" 
+          className="v42-meta-input" 
+          value={workRequestNumber1}
+          onChange={(e) => setWorkRequestNumber1(e.target.value)}
+          placeholder="" 
+        />
       </div>
       <div className="v42-meta-row">
         <div>WR#</div>
-        <input type="text" className="v42-meta-input" placeholder="" />
+        <input 
+          type="text" 
+          className="v42-meta-input" 
+          value={workRequestNumber2}
+          onChange={(e) => setWorkRequestNumber2(e.target.value)}
+          placeholder="" 
+        />
       </div>
       <div className="v42-meta-row">
         <div>DUE DATE</div>
-        <input type="date" className="v42-meta-input" />
+        <input 
+          type="date" 
+          className="v42-meta-input" 
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
+        />
       </div>
     </div>
   </div>
