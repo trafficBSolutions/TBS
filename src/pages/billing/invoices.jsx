@@ -39,7 +39,7 @@ const COMPANY_TO_EMAIL = {
 };
 
 // helpers (keep above component to avoid TDZ issues)
-const fmtUSD = (n) => `$${Number(n || 0).toFixed(2)}`;
+const fmtUSD = (n) => `$${Number(n || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
 
 const formatTime = (timeStr) => {
   if (!timeStr) return '';
