@@ -24,6 +24,26 @@ const COMPANY_TO_KEY = {
   'Tindall': 'tindall',
   'Atlanta Gas Light': 'agl',
 };
+const BILLING_ADDRESSES = {
+  'Atlanta Gas Light': '600 Townpark Ln, Kennesaw, GA 30144',
+  'Broadband of Indiana': '145 Peppers Dr, Paris, TN 38242',
+  'Broadband Technical Resources': '6 Francis St, Chattanooga, TN 37419',
+  'Carmichael Development LLC': '246 River Park N Dr, Woodstock, GA 30188',
+  'Fairway Electric': '7138 Keegan Ct, Covington GA 30014',
+  'Global Infrastructure': 'PO Box 22756, Chattanooga, TN 37422',
+  'HD Excavations & Utilities LLC': '516 Cole Creek Rd, Dallas, GA 30157',
+  'Hibbymo Properties-Cloudland': '443 Elm St, Calhoun, GA, 30701',
+  'H and H Paving and Concrete': '8473 Earl D Lee Blvd Suite 300 Douglasville, GA 30134',
+  'J and A Grading': '341 Liberty Dr, Dalton, GA 30721',
+  'Magnum Paving LLC': '140 Baker Industrial Court, Villa Rica, GA 30180',
+  'Perman Construction': '2425 Lumbley Rd, Rainbow City, AL 35906',
+  'Pike Electric Corporation': '905 White Cir Ct NW, Marietta, GA 30060',
+  'Service Electric': '1631 E 25th St, Chattanooga, TN 37404',
+  'Source One': '5067 Bristol Industrial Way Suite D, Buford, GA 30518',
+  'The Surface Masters': '1393 Cobb Industrial Way, Marietta, GA 30066',
+  'Tindall Corporation': '3361 Grant Rd, Conley, GA 30288',
+  'Wilson Boys Enterprises, LLC': '8373 Earl D Lee Blvd STE 300, Douglasville, GA 30134'
+};
 const COMPANY_TO_EMAIL = {
   'Atlanta Gas Light': 'aglinvoices@southernco.com',
   'Tindall': 'timhenson@tindallcorp.com',
