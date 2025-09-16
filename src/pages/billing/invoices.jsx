@@ -151,6 +151,8 @@ const [workRequestNumber1, setWorkRequestNumber1] = useState('');
 const [workRequestNumber2, setWorkRequestNumber2] = useState('');
 const [dueDate, setDueDate] = useState('');
 const [savedInvoices, setSavedInvoices] = useState({});
+const [paymentModal, setPaymentModal] = useState(null);
+const [paymentMethod, setPaymentMethod] = useState('check');
 // ===== Spreadsheet editor state (replaces the fixed rates UI) =====
 const VERTEX42_STARTER_ROWS = [
   { id: 1, service: 'Flagging Operation — 1/2 day', taxed: false, amount: 0 },
@@ -585,6 +587,31 @@ const [manualAmount, setManualAmount] = useState('');
     setSelectedEmail(saved.selectedEmail || '');
   };
 
+  const markAsPaid = (workOrder) => {
+    setPaymentModal(workOrder);
+    setPaymentMethod('check');
+  };
+
+  const handlePaymentSubmit = async () => {
+    if (!paymentModal) return;
+    try {
+      await api.post('/api/billing/mark-paid', {
+        workOrderId: paymentModal._id,
+        paymentMethod,
+        emailOverride: COMPANY_TO_EMAIL[paymentModal.basic?.client] || paymentModal.basic?.email
+      });
+      
+      setJobsForDay(list =>
+        list.map(j => (j._id === paymentModal._id ? { ...j, paid: true, paymentMethod, paidAt: new Date() } : j))
+      );
+      
+      toast.success('Payment recorded and receipt sent!');
+      setPaymentModal(null);
+    } catch (err) {
+      toast.error('Failed to record payment');
+    }
+  };
+
 // Calendar: fetch jobs for month (optionally filtered by company)
 // Calendar: fetch jobs for month (optionally filtered by company)
 const fetchMonthlyJobs = async (date) => {
@@ -940,6 +967,22 @@ onClick={() => {
         >
           Bill Job
         </button>
+      ) : workOrder.paid ? (
+        <span className="pill" style={{backgroundColor: '#28a745'}}>Paid ({workOrder.paymentMethod})</span>
+      ) : workOrder.billed ? (
+        <div style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
+          <span className="pill" style={{backgroundColor: '#ffc107', color: '#000'}}>
+            Billed {fmtUSD(workOrder.currentAmount || workOrder.billedAmount)}
+            {workOrder.lateFees > 0 && ` (+${fmtUSD(workOrder.lateFees)} late fees)`}
+          </span>
+          <button
+            className="btn btn-small"
+            onClick={() => markAsPaid(workOrder)}
+            style={{padding: '4px 8px', fontSize: '12px'}}
+          >
+            Mark Paid
+          </button>
+        </div>
       ) : (
         <span className="pill">Billed</span>
       )}
@@ -1267,6 +1310,33 @@ onClick={() => {
 </div>
 </div>
 )}
+
+{/* Payment Modal */}
+{paymentModal && (
+  <div className="overlay">
+    <div className="v42-modal" style={{maxWidth: '400px'}}>
+      <h3>Mark Invoice as Paid</h3>
+      <p><strong>Company:</strong> {paymentModal.basic?.client}</p>
+      <p><strong>Amount:</strong> {fmtUSD(paymentModal.currentAmount || paymentModal.billedAmount)}</p>
+      
+      <div style={{margin: '16px 0'}}>
+        <label>Payment Method:</label>
+        <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} style={{width: '100%', padding: '8px', marginTop: '4px'}}>
+          <option value="check">Check</option>
+          <option value="card">Credit Card</option>
+          <option value="cash">Cash</option>
+          <option value="ach">ACH Transfer</option>
+        </select>
+      </div>
+      
+      <div style={{display: 'flex', gap: '8px', justifyContent: 'flex-end'}}>
+        <button className="btn" onClick={() => setPaymentModal(null)}>Cancel</button>
+        <button className="btn btn--primary" onClick={handlePaymentSubmit}>Record Payment & Send Receipt</button>
+      </div>
+    </div>
+  </div>
+)}
+
   <div className="admin-plans">
   <h2 className="admin-plans-title">Traffic Control Plans</h2>
   <div className="plan-list">
