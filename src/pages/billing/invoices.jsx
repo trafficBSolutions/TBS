@@ -637,13 +637,8 @@ const [manualAmount, setManualAmount] = useState('');
       
       await api.post('/api/billing/mark-paid', paymentDetails);
       
-      const paymentInfo = paymentMethod === 'card' ? `${cardType} ****${cardLast4}` :
-                         paymentMethod === 'check' ? `Check #${checkNumber}` :
-                         paymentMethod;
-      
-      setJobsForDay(list =>
-        list.map(j => (j._id === paymentModal._id ? { ...j, paid: true, paymentMethod: paymentInfo, paidAt: new Date() } : j))
-      );
+      // Refetch work orders to get updated payment status from server
+      await fetchWorkOrdersForDay(selectedDate);
       
       toast.success('Payment recorded and receipt sent!');
       setPaymentModal(null);
@@ -710,6 +705,8 @@ const fetchJobsForDay = async (date, companyName) => {
     setJobsForDay([]);
   }
 };
+
+const fetchWorkOrdersForDay = fetchJobsForDay;
 
   // Initial calendar load: ALL companies
   useEffect(() => {
