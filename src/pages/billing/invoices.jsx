@@ -880,8 +880,8 @@ onClick={() => {
     loadSavedInvoice(workOrder._id);
   } else {
     setSelectedEmail(COMPANY_TO_EMAIL[workOrder.basic?.client] || workOrder.basic?.email || '');
-    setBillToCompany(workOrder.basic?.client || '');
-    setBillToAddress([workOrder.basic?.address, workOrder.basic?.city, workOrder.basic?.state, workOrder.basic?.zip].filter(Boolean).join(', '));
+    setBillToCompany('');
+    setBillToAddress('');
     setWorkType('');
     setForeman(workOrder.basic?.foremanName || '');
     setLocation([workOrder.basic?.address, workOrder.basic?.city, workOrder.basic?.state, workOrder.basic?.zip].filter(Boolean).join(', '));
@@ -1069,7 +1069,7 @@ onClick={() => {
         />
       </div>
       <div className="v42-billto-pair">
-        <div>location:</div>
+        <div>Job Site Location:</div>
         <input 
           className="v42-plain" 
           value={location}
