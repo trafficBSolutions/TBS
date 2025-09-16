@@ -720,7 +720,26 @@ const fetchJobsForDay = async (date, companyName) => {
     const payload = {
       workOrderId: billingJob._id,
       manualAmount: Number(sheetTotal.toFixed(2)),
-      emailOverride: selectedEmail
+      emailOverride: selectedEmail,
+      invoiceData: {
+        invoiceDate,
+        invoiceNumber,
+        workRequestNumber1,
+        workRequestNumber2,
+        dueDate,
+        billToCompany,
+        billToAddress,
+        workType,
+        foreman,
+        location,
+        sheetRows: sheetRows.filter(row => row.service && row.amount > 0),
+        sheetTaxRate,
+        sheetOther,
+        sheetSubtotal,
+        sheetTaxable,
+        sheetTaxDue,
+        sheetTotal
+      }
     };
     await api.post('/api/billing/bill-workorder', payload);
 
@@ -1046,7 +1065,7 @@ onClick={() => {
         className="v42-billto-line"
         value={billToAddress}
         onChange={(e) => setBillToAddress(e.target.value)}
-        placeholder="Address"
+        placeholder="Billing Address"
       />
     </div>
     <div className="v42-billto-right">
