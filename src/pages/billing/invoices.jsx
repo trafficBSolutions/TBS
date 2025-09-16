@@ -153,6 +153,9 @@ const [dueDate, setDueDate] = useState('');
 const [savedInvoices, setSavedInvoices] = useState({});
 const [paymentModal, setPaymentModal] = useState(null);
 const [paymentMethod, setPaymentMethod] = useState('check');
+const [cardLast4, setCardLast4] = useState('');
+const [cardType, setCardType] = useState('');
+const [checkNumber, setCheckNumber] = useState('');
 // ===== Spreadsheet editor state (replaces the fixed rates UI) =====
 const VERTEX42_STARTER_ROWS = [
   { id: 1, service: 'Flagging Operation — 1/2 day', taxed: false, amount: 0 },
@@ -590,19 +593,56 @@ const [manualAmount, setManualAmount] = useState('');
   const markAsPaid = (workOrder) => {
     setPaymentModal(workOrder);
     setPaymentMethod('check');
+    setCardLast4('');
+    setCardType('');
+    setCheckNumber('');
+  };
+
+  const getCardType = (number) => {
+    const num = number.replace(/\D/g, '');
+    if (/^4/.test(num)) return 'Visa';
+    if (/^5[1-5]/.test(num)) return 'MasterCard';
+    if (/^3[47]/.test(num)) return 'American Express';
+    if (/^6(?:011|5)/.test(num)) return 'Discover';
+    if (/^35/.test(num)) return 'JCB';
+    return 'Other';
+  };
+
+  const handleCardNumberChange = (e) => {
+    const value = e.target.value.replace(/\D/g, '');
+    if (value.length >= 4) {
+      setCardLast4(value.slice(-4));
+      setCardType(getCardType(value));
+    } else {
+      setCardLast4('');
+      setCardType('');
+    }
   };
 
   const handlePaymentSubmit = async () => {
     if (!paymentModal) return;
     try {
-      await api.post('/api/billing/mark-paid', {
+      const paymentDetails = {
         workOrderId: paymentModal._id,
         paymentMethod,
         emailOverride: COMPANY_TO_EMAIL[paymentModal.basic?.client] || paymentModal.basic?.email
-      });
+      };
+      
+      if (paymentMethod === 'card') {
+        paymentDetails.cardLast4 = cardLast4;
+        paymentDetails.cardType = cardType;
+      } else if (paymentMethod === 'check') {
+        paymentDetails.checkNumber = checkNumber;
+      }
+      
+      await api.post('/api/billing/mark-paid', paymentDetails);
+      
+      const paymentInfo = paymentMethod === 'card' ? `${cardType} ****${cardLast4}` :
+                         paymentMethod === 'check' ? `Check #${checkNumber}` :
+                         paymentMethod;
       
       setJobsForDay(list =>
-        list.map(j => (j._id === paymentModal._id ? { ...j, paid: true, paymentMethod, paidAt: new Date() } : j))
+        list.map(j => (j._id === paymentModal._id ? { ...j, paid: true, paymentMethod: paymentInfo, paidAt: new Date() } : j))
       );
       
       toast.success('Payment recorded and receipt sent!');
@@ -1328,6 +1368,36 @@ onClick={() => {
           <option value="ach">ACH Transfer</option>
         </select>
       </div>
+      
+      {paymentMethod === 'card' && (
+        <div style={{margin: '16px 0'}}>
+          <label>Card Number (for last 4 digits):</label>
+          <input
+            type="text"
+            placeholder="Enter full card number"
+            onChange={handleCardNumberChange}
+            style={{width: '100%', padding: '8px', marginTop: '4px'}}
+          />
+          {cardLast4 && (
+            <div style={{marginTop: '8px', fontSize: '14px', color: '#666'}}>
+              {cardType} ending in {cardLast4}
+            </div>
+          )}
+        </div>
+      )}
+      
+      {paymentMethod === 'check' && (
+        <div style={{margin: '16px 0'}}>
+          <label>Check Number:</label>
+          <input
+            type="text"
+            value={checkNumber}
+            onChange={(e) => setCheckNumber(e.target.value)}
+            placeholder="Enter check number"
+            style={{width: '100%', padding: '8px', marginTop: '4px'}}
+          />
+        </div>
+      )}
       
       <div style={{display: 'flex', gap: '8px', justifyContent: 'flex-end'}}>
         <button className="btn" onClick={() => setPaymentModal(null)}>Cancel</button>
