@@ -127,6 +127,7 @@ const [invoiceNumber, setInvoiceNumber] = useState('');
 const [workRequestNumber1, setWorkRequestNumber1] = useState('');
 const [workRequestNumber2, setWorkRequestNumber2] = useState('');
 const [dueDate, setDueDate] = useState('');
+const [savedInvoices, setSavedInvoices] = useState({});
 // ===== Spreadsheet editor state (replaces the fixed rates UI) =====
 const VERTEX42_STARTER_ROWS = [
   { id: 1, service: 'Flagging Operation — 1/2 day', taxed: false, amount: 0 },
@@ -524,7 +525,42 @@ const [manualAmount, setManualAmount] = useState('');
       ]);
       if (!allowed.has(user.email)) window.location.href = '/admin';
     }
+    const saved = localStorage.getItem('savedInvoices');
+    if (saved) setSavedInvoices(JSON.parse(saved));
   }, []);
+
+  const saveInvoiceData = () => {
+    if (!billingJob) return;
+    const invoiceData = {
+      invoiceDate, invoiceNumber, workRequestNumber1, workRequestNumber2, dueDate,
+      billToCompany, billToAddress, workType, foreman, location,
+      sheetRows, sheetTaxRate, sheetOther, selectedEmail,
+      savedAt: new Date().toISOString()
+    };
+    const updated = { ...savedInvoices, [billingJob._id]: invoiceData };
+    setSavedInvoices(updated);
+    localStorage.setItem('savedInvoices', JSON.stringify(updated));
+    alert('Invoice saved successfully!');
+  };
+
+  const loadSavedInvoice = (jobId) => {
+    const saved = savedInvoices[jobId];
+    if (!saved) return;
+    setInvoiceDate(saved.invoiceDate || new Date().toISOString().slice(0,10));
+    setInvoiceNumber(saved.invoiceNumber || '');
+    setWorkRequestNumber1(saved.workRequestNumber1 || '');
+    setWorkRequestNumber2(saved.workRequestNumber2 || '');
+    setDueDate(saved.dueDate || '');
+    setBillToCompany(saved.billToCompany || '');
+    setBillToAddress(saved.billToAddress || '');
+    setWorkType(saved.workType || '');
+    setForeman(saved.foreman || '');
+    setLocation(saved.location || '');
+    setSheetRows(saved.sheetRows || VERTEX42_STARTER_ROWS);
+    setSheetTaxRate(saved.sheetTaxRate || 0);
+    setSheetOther(saved.sheetOther || 0);
+    setSelectedEmail(saved.selectedEmail || '');
+  };
 
 // Calendar: fetch jobs for month (optionally filtered by company)
 // Calendar: fetch jobs for month (optionally filtered by company)
@@ -757,14 +793,25 @@ const fetchJobsForDay = async (date, companyName) => {
           className="btn"
 onClick={() => {
   setBillingJob(workOrder);
-  setSelectedEmail(COMPANY_TO_EMAIL[workOrder.basic?.client] || workOrder.basic?.email || '');
   
-  // Initialize Bill To form
-  setBillToCompany(workOrder.basic?.client || '');
-  setBillToAddress([workOrder.basic?.address, workOrder.basic?.city, workOrder.basic?.state, workOrder.basic?.zip].filter(Boolean).join(', '));
-  setWorkType('');
-  setForeman(workOrder.basic?.foremanName || '');
-  setLocation('');
+  if (savedInvoices[workOrder._id]) {
+    loadSavedInvoice(workOrder._id);
+  } else {
+    setSelectedEmail(COMPANY_TO_EMAIL[workOrder.basic?.client] || workOrder.basic?.email || '');
+    setBillToCompany(workOrder.basic?.client || '');
+    setBillToAddress([workOrder.basic?.address, workOrder.basic?.city, workOrder.basic?.state, workOrder.basic?.zip].filter(Boolean).join(', '));
+    setWorkType('');
+    setForeman(workOrder.basic?.foremanName || '');
+    setLocation('');
+    setInvoiceDate(new Date().toISOString().slice(0,10));
+    setInvoiceNumber('');
+    setWorkRequestNumber1('');
+    setWorkRequestNumber2('');
+    setDueDate('');
+    setSheetRows(VERTEX42_STARTER_ROWS);
+    setSheetTaxRate(0);
+    setSheetOther(0);
+  }
   
   setSel({
     flagDay: '',
@@ -795,6 +842,12 @@ onClick={() => {
       ) : (
         <span className="pill">Billed</span>
       )}
+      
+      {savedInvoices[workOrder._id] && (
+        <span className="pill" style={{backgroundColor: '#28a745', marginLeft: '8px'}}>
+          Saved ({new Date(savedInvoices[workOrder._id].savedAt).toLocaleDateString()})
+        </span>
+      )}
     </div>
   ))}
 
@@ -807,13 +860,21 @@ onClick={() => {
 {billingOpen && billingJob && (
   <div className="overlay">
     <div className="v42-modal">
-      <button
-        className="v42-close"
-        onClick={() => { setBillingOpen(false); setBillingJob(null); }}
-        aria-label="Close"
-      >
-        ×
-      </button>
+      <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+        <button
+          onClick={saveInvoiceData}
+          style={{backgroundColor: '#28a745', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px'}}
+        >
+          Save Draft
+        </button>
+        <button
+          className="v42-close"
+          onClick={() => { setBillingOpen(false); setBillingJob(null); }}
+          aria-label="Close"
+        >
+          ×
+        </button>
+      </div>
 {/* ===== Vertex42-styled invoice editor ===== */}
 <div className="v42-invoice">
   {/* Header */}
