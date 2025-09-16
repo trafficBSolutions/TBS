@@ -39,7 +39,7 @@ const COMPANY_TO_EMAIL = {
 };
 
 // helpers (keep above component to avoid TDZ issues)
-const fmtUSD = (n) => `$${Number(n || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+const fmtUSD = (n) => `$${Number(n || 0).toFixed(2)}`;
 
 const formatTime = (timeStr) => {
   if (!timeStr) return '';
@@ -151,11 +151,6 @@ const [workRequestNumber1, setWorkRequestNumber1] = useState('');
 const [workRequestNumber2, setWorkRequestNumber2] = useState('');
 const [dueDate, setDueDate] = useState('');
 const [savedInvoices, setSavedInvoices] = useState({});
-const [paymentModal, setPaymentModal] = useState(null);
-const [paymentMethod, setPaymentMethod] = useState('check');
-const [cardLast4, setCardLast4] = useState('');
-const [cardType, setCardType] = useState('');
-const [checkNumber, setCheckNumber] = useState('');
 // ===== Spreadsheet editor state (replaces the fixed rates UI) =====
 const VERTEX42_STARTER_ROWS = [
   { id: 1, service: 'Flagging Operation — 1/2 day', taxed: false, amount: 0 },
@@ -590,63 +585,6 @@ const [manualAmount, setManualAmount] = useState('');
     setSelectedEmail(saved.selectedEmail || '');
   };
 
-  const markAsPaid = (workOrder) => {
-    setPaymentModal(workOrder);
-    setPaymentMethod('check');
-    setCardLast4('');
-    setCardType('');
-    setCheckNumber('');
-  };
-
-  const getCardType = (number) => {
-    const num = number.replace(/\D/g, '');
-    if (/^4/.test(num)) return 'Visa';
-    if (/^5[1-5]/.test(num)) return 'MasterCard';
-    if (/^3[47]/.test(num)) return 'American Express';
-    if (/^6(?:011|5)/.test(num)) return 'Discover';
-    if (/^35/.test(num)) return 'JCB';
-    return 'Other';
-  };
-
-  const handleCardNumberChange = (e) => {
-    const value = e.target.value.replace(/\D/g, '');
-    if (value.length >= 4) {
-      setCardLast4(value.slice(-4));
-      setCardType(getCardType(value));
-    } else {
-      setCardLast4('');
-      setCardType('');
-    }
-  };
-
-  const handlePaymentSubmit = async () => {
-    if (!paymentModal) return;
-    try {
-      const paymentDetails = {
-        workOrderId: paymentModal._id,
-        paymentMethod,
-        emailOverride: COMPANY_TO_EMAIL[paymentModal.basic?.client] || paymentModal.basic?.email
-      };
-      
-      if (paymentMethod === 'card') {
-        paymentDetails.cardLast4 = cardLast4;
-        paymentDetails.cardType = cardType;
-      } else if (paymentMethod === 'check') {
-        paymentDetails.checkNumber = checkNumber;
-      }
-      
-      await api.post('/api/billing/mark-paid', paymentDetails);
-      
-      // Refetch work orders to get updated payment status from server
-      await fetchWorkOrdersForDay(selectedDate);
-      
-      toast.success('Payment recorded and receipt sent!');
-      setPaymentModal(null);
-    } catch (err) {
-      toast.error('Failed to record payment');
-    }
-  };
-
 // Calendar: fetch jobs for month (optionally filtered by company)
 // Calendar: fetch jobs for month (optionally filtered by company)
 const fetchMonthlyJobs = async (date) => {
@@ -705,8 +643,6 @@ const fetchJobsForDay = async (date, companyName) => {
     setJobsForDay([]);
   }
 };
-
-const fetchWorkOrdersForDay = fetchJobsForDay;
 
   // Initial calendar load: ALL companies
   useEffect(() => {
@@ -784,26 +720,7 @@ const fetchWorkOrdersForDay = fetchJobsForDay;
     const payload = {
       workOrderId: billingJob._id,
       manualAmount: Number(sheetTotal.toFixed(2)),
-      emailOverride: selectedEmail,
-      invoiceData: {
-        invoiceDate,
-        invoiceNumber,
-        workRequestNumber1,
-        workRequestNumber2,
-        dueDate,
-        billToCompany,
-        billToAddress,
-        workType,
-        foreman,
-        location,
-        sheetRows: sheetRows.filter(row => row.service && row.amount > 0),
-        sheetTaxRate,
-        sheetOther,
-        sheetSubtotal,
-        sheetTaxable,
-        sheetTaxDue,
-        sheetTotal
-      }
+      emailOverride: selectedEmail
     };
     await api.post('/api/billing/bill-workorder', payload);
 
@@ -1004,22 +921,6 @@ onClick={() => {
         >
           Bill Job
         </button>
-      ) : workOrder.paid ? (
-        <span className="pill" style={{backgroundColor: '#28a745'}}>Paid ({workOrder.paymentMethod})</span>
-      ) : workOrder.billed ? (
-        <div style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
-          <span className="pill" style={{backgroundColor: '#ffc107', color: '#000'}}>
-            Billed {fmtUSD(workOrder.currentAmount || workOrder.billedAmount)}
-            {workOrder.lateFees > 0 && ` (+${fmtUSD(workOrder.lateFees)} late fees)`}
-          </span>
-          <button
-            className="btn btn-small"
-            onClick={() => markAsPaid(workOrder)}
-            style={{padding: '4px 8px', fontSize: '12px'}}
-          >
-            Mark Paid
-          </button>
-        </div>
       ) : (
         <span className="pill">Billed</span>
       )}
@@ -1347,63 +1248,6 @@ onClick={() => {
 </div>
 </div>
 )}
-
-{/* Payment Modal */}
-{paymentModal && (
-  <div className="overlay">
-    <div className="v42-modal" style={{maxWidth: '400px'}}>
-      <h3>Mark Invoice as Paid</h3>
-      <p><strong>Company:</strong> {paymentModal.basic?.client}</p>
-      <p><strong>Amount:</strong> {fmtUSD(paymentModal.currentAmount || paymentModal.billedAmount)}</p>
-      
-      <div style={{margin: '16px 0'}}>
-        <label>Payment Method:</label>
-        <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} style={{width: '100%', padding: '8px', marginTop: '4px'}}>
-          <option value="check">Check</option>
-          <option value="card">Credit Card</option>
-          <option value="cash">Cash</option>
-          <option value="ach">ACH Transfer</option>
-        </select>
-      </div>
-      
-      {paymentMethod === 'card' && (
-        <div style={{margin: '16px 0'}}>
-          <label>Card Number (for last 4 digits):</label>
-          <input
-            type="text"
-            placeholder="Enter full card number"
-            onChange={handleCardNumberChange}
-            style={{width: '100%', padding: '8px', marginTop: '4px'}}
-          />
-          {cardLast4 && (
-            <div style={{marginTop: '8px', fontSize: '14px', color: '#666'}}>
-              {cardType} ending in {cardLast4}
-            </div>
-          )}
-        </div>
-      )}
-      
-      {paymentMethod === 'check' && (
-        <div style={{margin: '16px 0'}}>
-          <label>Check Number:</label>
-          <input
-            type="text"
-            value={checkNumber}
-            onChange={(e) => setCheckNumber(e.target.value)}
-            placeholder="Enter check number"
-            style={{width: '100%', padding: '8px', marginTop: '4px'}}
-          />
-        </div>
-      )}
-      
-      <div style={{display: 'flex', gap: '8px', justifyContent: 'flex-end'}}>
-        <button className="btn" onClick={() => setPaymentModal(null)}>Cancel</button>
-        <button className="btn btn--primary" onClick={handlePaymentSubmit}>Record Payment & Send Receipt</button>
-      </div>
-    </div>
-  </div>
-)}
-
   <div className="admin-plans">
   <h2 className="admin-plans-title">Traffic Control Plans</h2>
   <div className="plan-list">
