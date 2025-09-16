@@ -111,6 +111,15 @@ const [planRate, setPlanRate] = useState(0);
 const [monthlyKey, setMonthlyKey] = useState(0);
 const [planEmail, setPlanEmail] = useState('');
 const [planReadyToSend, setPlanReadyToSend] = useState(false);
+// Bill To form state
+const [billToCompany, setBillToCompany] = useState('');
+const [billToAddress, setBillToAddress] = useState('');
+const [workType, setWorkType] = useState('');
+const [foreman, setForeman] = useState('');
+const [location, setLocation] = useState('');
+
+// Email validation helper
+const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 // ===== Spreadsheet editor state (replaces the fixed rates UI) =====
 const VERTEX42_STARTER_ROWS = [
   { id: 1, service: 'Flagging Operation — 1/2 day', taxed: false, amount: 0 },
@@ -742,6 +751,14 @@ const fetchJobsForDay = async (date, companyName) => {
 onClick={() => {
   setBillingJob(workOrder);
   setSelectedEmail(COMPANY_TO_EMAIL[workOrder.basic?.client] || workOrder.basic?.email || '');
+  
+  // Initialize Bill To form
+  setBillToCompany(workOrder.basic?.client || '');
+  setBillToAddress([workOrder.basic?.address, workOrder.basic?.city, workOrder.basic?.state, workOrder.basic?.zip].filter(Boolean).join(', '));
+  setWorkType('');
+  setForeman(workOrder.basic?.foremanName || '');
+  setLocation('');
+  
   setSel({
     flagDay: '',
     laneClosure: 'NONE',
@@ -844,29 +861,44 @@ onClick={() => {
     <div className="v42-billto-left">
       <input
         className="v42-billto-line"
-        value={billingJob?.company || ''}
-        onChange={()=>{}}
-        readOnly
+        value={billToCompany}
+        onChange={(e) => setBillToCompany(e.target.value)}
+        placeholder="Company name"
       />
       <input
         className="v42-billto-line"
-        value={[billingJob?.address, billingJob?.city, billingJob?.state, billingJob?.zip].filter(Boolean).join(', ')}
-        onChange={()=>{}}
-        readOnly
+        value={billToAddress}
+        onChange={(e) => setBillToAddress(e.target.value)}
+        placeholder="Address"
       />
     </div>
     <div className="v42-billto-right">
       <div className="v42-billto-pair">
         <div>Work Type:</div>
-        <input className="v42-plain" placeholder="" />
+        <input 
+          className="v42-plain" 
+          value={workType}
+          onChange={(e) => setWorkType(e.target.value)}
+          placeholder="" 
+        />
       </div>
       <div className="v42-billto-pair">
         <div>Foreman:</div>
-        <input className="v42-plain" placeholder="" />
+        <input 
+          className="v42-plain" 
+          value={foreman}
+          onChange={(e) => setForeman(e.target.value)}
+          placeholder="" 
+        />
       </div>
       <div className="v42-billto-pair">
         <div>location:</div>
-        <input className="v42-plain" placeholder="" />
+        <input 
+          className="v42-plain" 
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          placeholder="" 
+        />
       </div>
     </div>
   </div>
