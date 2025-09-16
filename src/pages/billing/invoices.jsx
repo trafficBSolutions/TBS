@@ -41,6 +41,29 @@ const COMPANY_TO_EMAIL = {
 // helpers (keep above component to avoid TDZ issues)
 const fmtUSD = (n) => `$${Number(n || 0).toFixed(2)}`;
 
+const formatTime = (timeStr) => {
+  if (!timeStr) return '';
+  const [hours, minutes] = timeStr.split(':');
+  const hour = parseInt(hours);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  return `${displayHour}:${minutes}${ampm}`;
+};
+
+const formatEquipmentName = (key) => {
+  const names = {
+    hardHats: 'Hard Hats',
+    vests: 'Vests', 
+    walkies: 'Walkie Talkies',
+    arrowBoards: 'Arrow Boards',
+    cones: 'Cones',
+    barrels: 'Barrels',
+    signStands: 'Sign Stands',
+    signs: 'Signs'
+  };
+  return names[key] || key;
+};
+
 function buildBreakdown(sel, rates) {
   if (!sel || !rates) return [];
   const rows = [];
@@ -775,17 +798,76 @@ const fetchJobsForDay = async (date, companyName) => {
       <h4 className="job-company">{workOrder.basic?.client || 'Unknown Client'}</h4>
 
       <p className="updated-label">
-        ✅ Completed on {new Date(workOrder.createdAt).toLocaleDateString()}
+        ✅ Completed on {new Date(workOrder.createdAt).toLocaleDateString()} at {new Date(workOrder.createdAt).toLocaleTimeString()}
       </p>
 
       <p><strong>Coordinator:</strong> {workOrder.basic?.coordinator}</p>
-      <p><strong>Project/Task Number:</strong> {workOrder.basic?.project}</p>
-      <p><strong>Time:</strong> {workOrder.basic?.startTime} - {workOrder.basic?.endTime}</p>
+      <p><strong>Project:</strong> {workOrder.basic?.project}</p>
+      <p><strong>Time:</strong> {workOrder.basic?.startTime ? formatTime(workOrder.basic.startTime) : ''} - {workOrder.basic?.endTime ? formatTime(workOrder.basic.endTime) : ''}</p>
       <p><strong>Address:</strong> {workOrder.basic?.address}, {workOrder.basic?.city}, {workOrder.basic?.state} {workOrder.basic?.zip}</p>
+      {workOrder.basic?.rating && <p><strong>Rating:</strong> {workOrder.basic.rating}</p>}
+      {workOrder.basic?.notice24 && <p><strong>24hr Notice:</strong> {workOrder.basic.notice24}</p>}
+      {workOrder.basic?.callBack && <p><strong>Call Back:</strong> {workOrder.basic.callBack}</p>}
+      {workOrder.basic?.notes && <p><strong>Additional Notes:</strong> {workOrder.basic.notes}</p>}
       <p><strong>Foreman:</strong> {workOrder.basic?.foremanName}</p>
       <p><strong>Flaggers:</strong> {[workOrder.tbs?.flagger1, workOrder.tbs?.flagger2, workOrder.tbs?.flagger3, workOrder.tbs?.flagger4, workOrder.tbs?.flagger5].filter(Boolean).join(', ')}</p>
       {workOrder.tbs?.trucks?.length > 0 && <p><strong>Trucks:</strong> {workOrder.tbs.trucks.join(', ')}</p>}
-      {workOrder.basic?.notes && <p><strong>Notes:</strong> {workOrder.basic.notes}</p>}
+      
+      <div style={{marginTop: '10px'}}>
+        <strong>Equipment Summary:</strong>
+        <table style={{width: '100%', borderCollapse: 'collapse', marginTop: '5px', fontSize: '12px'}}>
+          <thead>
+            <tr style={{backgroundColor: '#f2f2f2'}}>
+              <th style={{border: '1px solid #ddd', padding: '4px'}}>Item</th>
+              <th style={{border: '1px solid #ddd', padding: '4px'}}>Started</th>
+              <th style={{border: '1px solid #ddd', padding: '4px'}}>Ended</th>
+            </tr>
+          </thead>
+          <tbody>
+            {['hardHats','vests','walkies','arrowBoards','cones','barrels','signStands','signs'].map(key => {
+              const morning = workOrder.tbs?.morning || {};
+              return (
+                <tr key={key}>
+                  <td style={{border: '1px solid #ddd', padding: '4px'}}>{formatEquipmentName(key)}</td>
+                  <td style={{border: '1px solid #ddd', padding: '4px'}}>{morning[key]?.start ?? ''}</td>
+                  <td style={{border: '1px solid #ddd', padding: '4px'}}>{morning[key]?.end ?? ''}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      
+      <div style={{marginTop: '10px'}}>
+        <strong>Jobsite Checklist:</strong>
+        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px', marginTop: '5px', fontSize: '12px'}}>
+          <div>✓ Visibility: {workOrder.tbs?.jobsite?.visibility ? 'Yes' : 'No'}</div>
+          <div>✓ Communication: {workOrder.tbs?.jobsite?.communication ? 'Yes' : 'No'}</div>
+          <div>✓ Site Foreman: {workOrder.tbs?.jobsite?.siteForeman ? 'Yes' : 'No'}</div>
+          <div>✓ Signs/Stands: {workOrder.tbs?.jobsite?.signsAndStands ? 'Yes' : 'No'}</div>
+          <div>✓ Cones/Taper: {workOrder.tbs?.jobsite?.conesAndTaper ? 'Yes' : 'No'}</div>
+          <div>✓ Equipment Left: {workOrder.tbs?.jobsite?.equipmentLeft ? 'Yes' : 'No'}</div>
+        </div>
+      </div>
+      
+      {workOrder.tbs?.jobsite?.equipmentLeft && workOrder.tbs?.jobsite?.equipmentLeftReason && (
+        <p><strong>Equipment Left Reason:</strong> {workOrder.tbs.jobsite.equipmentLeftReason}</p>
+      )}
+      
+      {workOrder.foremanSignature && (
+        <div style={{textAlign: 'center', margin: '10px 0'}}>
+          <strong>Foreman Signature:</strong>
+          <div style={{marginTop: '5px'}}>
+            <img 
+              src={`data:image/png;base64,${workOrder.foremanSignature}`} 
+              alt="Foreman Signature" 
+              style={{maxHeight: '60px', border: '1px solid #ddd', padding: '5px', backgroundColor: '#fff'}}
+            />
+          </div>
+        </div>
+      )}
+      
+      <p><strong>Completed:</strong> {new Date(workOrder.createdAt).toLocaleDateString()} at {new Date(workOrder.createdAt).toLocaleTimeString()}</p>
 
       {/* Bill Job controls belong INSIDE the map/card */}
       {!workOrder.billed && workOrder.basic?.client !== 'Georgia Power' ? (
@@ -844,7 +926,7 @@ onClick={() => {
       )}
       
       {savedInvoices[workOrder._id] && (
-        <span className="pill" style={{backgroundColor: '#28a745', marginLeft: '8px'}}>
+        <span className="pill" style={{backgroundColor: '#28a745', color: '#fff', marginLeft: '8px'}}>
           Saved ({new Date(savedInvoices[workOrder._id].savedAt).toLocaleDateString()})
         </span>
       )}
