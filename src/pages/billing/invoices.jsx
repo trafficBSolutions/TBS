@@ -724,10 +724,8 @@ const fetchJobsForDay = async (date, companyName) => {
     };
     await api.post('/api/billing/bill-workorder', payload);
 
-    // reflect UI changes
-    setJobsForDay(list =>
-      list.map(j => (j._id === billingJob._id ? { ...j, billed: true } : j))
-    );
+    // Refetch work orders to get updated billing status from server
+    await fetchWorkOrdersForDay(selectedDate);
 
     setSubmissionMessage('Invoice sent!');
     toast.success('Invoice sent with PDF attachment.');
