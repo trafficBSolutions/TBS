@@ -977,6 +977,11 @@ onClick={() => {
           value={sheetTaxRate}
           onChange={(e)=>setSheetTaxRate(Number(e.target.value || 0))}
         />%
+        <div style={{marginTop: 4, fontSize: '12px'}}>
+          <button type="button" className="btn-small" onClick={() => setSheetTaxRate(7)}>7%</button>
+          <button type="button" className="btn-small" onClick={() => setSheetTaxRate(8.25)}>8.25%</button>
+          <button type="button" className="btn-small" onClick={() => setSheetTaxRate(0)}>0%</button>
+        </div>
       </div>
       <div>{fmtUSD(sheetTaxDue)}</div>
     </div>
