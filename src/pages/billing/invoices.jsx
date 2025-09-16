@@ -6,6 +6,8 @@ import 'react-datepicker/dist/react-datepicker.css';
 import Header from '../../components/headerviews/HeaderAdminDash';
 import images from '../../utils/tbsImages';
 import '../../css/invoice.css';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import ExcelJS from 'exceljs';
 // Keep this small and readable. Add more as you seed more price lists.
 // at top of invoices.jsx
@@ -98,6 +100,10 @@ const [billingJob, setBillingJob] = useState(null);
 const [plans, setPlans] = useState([]);
 const [selectedPlanIndex, setSelectedPlanIndex] = useState(null);
 const [previewPlan, setPreviewPlan] = useState(null);
+const [isSubmitting, setIsSubmitting] = useState(false); 
+const [errorMessage, setErrorMessage] = useState('');
+const [submissionMessage, setSubmissionMessage] = useState('');
+  const [submissionErrorMessage, setSubmissionErrorMessage] = useState('');
 const [planBillingOpen, setPlanBillingOpen] = useState(false);
 const [planJob, setPlanJob] = useState(null);
 const [planPhases, setPlanPhases] = useState(0);
@@ -609,6 +615,63 @@ const fetchJobsForDay = async (date, companyName) => {
   useEffect(() => {
     fetchPlans();
   }, []);
+  const handleSendInvoice = async () => {
+  // reset any old messages
+  setSubmissionMessage('');
+  setSubmissionErrorMessage('');
+  setErrorMessage('');
+
+  if (!readyToSend) {
+    const msg = 'Please check “Yes, it is ready to send.”';
+    setErrorMessage(msg);
+    toast.error(msg);
+    return;
+  }
+  if (!selectedEmail || !isValidEmail(selectedEmail)) {
+    const msg = 'Enter a valid email address.';
+    setErrorMessage(msg);
+    toast.error(msg);
+    return;
+  }
+  if (!billingJob) {
+    const msg = 'No work order selected.';
+    setErrorMessage(msg);
+    toast.error(msg);
+    return;
+  }
+
+  setIsSubmitting(true);
+  try {
+    const payload = {
+      workOrderId: billingJob._id,
+      manualAmount: Number(sheetTotal.toFixed(2)),
+      emailOverride: selectedEmail
+    };
+    await api.post('/api/billing/bill-workorder', payload);
+
+    // reflect UI changes
+    setJobsForDay(list =>
+      list.map(j => (j._id === billingJob._id ? { ...j, billed: true } : j))
+    );
+
+    setSubmissionMessage('Invoice sent!');
+    toast.success('Invoice sent with PDF attachment.');
+    // close the modal & reset controls
+    setBillingOpen(false);
+    setBillingJob(null);
+    setReadyToSend(false);
+  } catch (err) {
+    const msg =
+      err?.response?.data?.message ||
+      err?.message ||
+      'Failed to send invoice.';
+    setSubmissionErrorMessage(msg);
+    toast.error(msg);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
   return (
     <div>
       <Header />
@@ -935,36 +998,42 @@ onClick={() => {
           />
           Yes, it is ready to send.
         </label>
-
-        <button
-          className="btn btn--primary"
-          disabled={!readyToSend}
-          onClick={async () => {
-            await api.post('/api/billing/bill-workorder', {
-              workOrderId: billingJob._id,
-              manualAmount: Number(sheetTotal.toFixed(2)),
-              emailOverride: selectedEmail
-            });
-            setJobsForDay(list => list.map(j => j._id === billingJob._id ? { ...j, billed: true } : j));
-            setReadyToSend(false);
-            setBillingOpen(false);
-            setBillingJob(null);
-          }}
-        >
-          Send Invoice
-        </button>
-
+<div className="submit-button-wrapper">
+  <button
+   className="btn btn--primary"
+   disabled={!readyToSend || isSubmitting}
+   onClick={handleSendInvoice}
+ >
+   {isSubmitting ? (
+     <div className="spinner-button">
+       <span className="spinner" /> Submitting...
+     </div>
+   ) : (
+     'Send Invoice'
+  )}
+ </button>
         <button
           className="btn"
           onClick={() => { setReadyToSend(false); setBillingOpen(false); setBillingJob(null); }}
         >
           Cancel
         </button>
-      </div>
-    </div>
-  </div>
+  {/* Toast-like message */}
+  {submissionMessage && (
+    <div className="custom-toast success">{submissionMessage}</div>
+  )}
+  {submissionErrorMessage && (
+    <div className="custom-toast error">{submissionErrorMessage}</div>
+  )}
+  {
+  errorMessage && (
+    <div className="custom-toast error">{errorMessage}</div>
+  )}
+</div>
+</div>
+</div>
+</div>
 )}
-
   <div className="admin-plans">
   <h2 className="admin-plans-title">Traffic Control Plans</h2>
   <div className="plan-list">
@@ -1127,7 +1196,7 @@ onClick={() => {
 
   </div>
 
-</div>
+
       {/* Footer unchanged */}
       <footer className="footer">
         <div className="site-footer__inner">
@@ -1139,6 +1208,7 @@ onClick={() => {
         <p className="footer-copy-p">&copy; 2025 Traffic &amp; Barrier Solutions, LLC - 
           Website Created &amp; Deployed by <a className="footer-face" href="https://www.facebook.com/will.rowell.779" target="_blank" rel="noopener noreferrer">William Rowell</a> - All Rights Reserved.</p>
       </div>
+    </div>
     </div>
   );
 };
