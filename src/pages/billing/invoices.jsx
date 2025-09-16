@@ -884,7 +884,7 @@ onClick={() => {
     setBillToAddress([workOrder.basic?.address, workOrder.basic?.city, workOrder.basic?.state, workOrder.basic?.zip].filter(Boolean).join(', '));
     setWorkType('');
     setForeman(workOrder.basic?.foremanName || '');
-    setLocation('');
+    setLocation([workOrder.basic?.address, workOrder.basic?.city, workOrder.basic?.state, workOrder.basic?.zip].filter(Boolean).join(', '));
     setInvoiceDate(new Date().toISOString().slice(0,10));
     setInvoiceNumber('');
     setWorkRequestNumber1('');
@@ -926,7 +926,7 @@ onClick={() => {
       )}
       
       {savedInvoices[workOrder._id] && (
-        <span className="pill" style={{backgroundColor: '#28a745', color: '#fff', marginLeft: '8px'}}>
+        <span className="pill" style={{backgroundColor: '#28a745', marginLeft: '8px'}}>
           Saved ({new Date(savedInvoices[workOrder._id].savedAt).toLocaleDateString()})
         </span>
       )}
