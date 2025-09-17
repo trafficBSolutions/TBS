@@ -70,8 +70,6 @@ const [isEmergencyJob, setIsEmergencyJob] = useState(false);
   const [coordinator, setCoordinator] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [fullDates, setFullDates] = useState([]);
-  const isGASelected = company === "Georgia Power";
-const isCompanySelected = company !== "";
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -308,6 +306,25 @@ const checkAllFieldsFilled = () => {
   
   return allFilled && equipmentSelected;
 };
+// Accept common ways people type Georgia Power
+const isGeorgiaPower = (str) => {
+  const s = (str || '').trim().toLowerCase();
+
+  // regexes allow optional spaces and optional "co"/"company"
+  const patterns = [
+    /\bgeorgia\s*power\b/,                 // "georgia power"
+    /\bgeorgia\s*power\s*co(mpany)?\b/,    // "georgia power co", "georgia power company"
+    /\bga\s*power\b/,                      // "ga power"
+    /\bga\s*power\s*co(mpany)?\b/,         // "ga power company"
+    /\bgpc\b/,                             // "gpc"
+  ];
+
+  return patterns.some((rx) => rx.test(s));
+};
+
+const isGASelected = isGeorgiaPower(formData.company);
+const isCompanySelected = (formData.company || '').trim().length > 0;
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -658,91 +675,94 @@ setTimeout(checkAllFieldsFilled, 0);
   {errors.project && <div className="error-message">{errors.project}</div>}
 <label className="project-flagger-label">Flaggers *</label>
 <p className="project-flagger-p">How many flaggers does your job need?</p>
-<p>⚠️ For Additional Flaggers, additional rates will apply.</p>
-<select
-  className="project-flagger-input"
-  value={formData.flagger}
-  onChange={(e) => {
-    const value = e.target.value;
-    setFormData({ ...formData, flagger: value });
 
-    if (value.trim() !== '') {
-      setErrors((prevErrors) => ({ ...prevErrors, flagger: '' }));
-    }
-    setTimeout(checkAllFieldsFilled, 0);
-  }}
-  disabled={isGASelected}
->
-  <option value="">Select How Many Flaggers</option>
-  {flaggerCount.map((t) => (
-    <option key={t} value={t}>
-      {t}
-    </option>
-  ))}
-</select>
-<select
-  className="project-flagger-input"
-  value={isGASelected ? formData.flagger : ""}
-  onChange={(e) => {
-    const value = e.target.value;
-    setFormData({ ...formData, flagger: value });
+{/* Non-GA companies -> standard flagger count */}
+{isCompanySelected && !isGASelected && (
+  <>
+    <select
+      className="project-flagger-input"
+      value={formData.flagger}
+      onChange={(e) => {
+        const value = e.target.value;
+        setFormData({ ...formData, flagger: value });
+        if (value.trim() !== '') setErrors((p) => ({ ...p, flagger: '' }));
+      }}
+    >
+      <option value="">Select How Many Flaggers</option>
+      {flaggerCount.map((t) => (
+        <option key={t} value={t}>{t}</option>
+      ))}
+    </select>
 
-    if (value.trim() !== '') {
-      setErrors((prevErrors) => ({ ...prevErrors, flagger: '' }));
-    }
-    setTimeout(checkAllFieldsFilled, 0);
-  }}
-  disabled={!isGASelected}
->
-
-  <option value="">Select Georgia Power Scheduling</option>
-  {gaPower.map((t) => (
-    <option key={t} value={t}>
-      {t}
-    </option>
-  ))}
-</select>
-{!isCompanySelected && (
-  <p className="helper-note">Please select a company to enable this section.</p>
+    <small className="rate-warning">
+      ⚠️ For Additional Flaggers, additional rates will apply.
+    </small>
+  </>
 )}
+
+{/* Georgia Power -> TA radio buttons + gallery */}
 {isGASelected && (
-  <div className="ga-help">
-    <p className="helper-note">
-      You’ve selected Georgia Power. Please choose the TA number instead of flaggers.
-    </p>
+  <>
+    <fieldset className="choice-group">
+      <legend>Georgia Power Scheduling</legend>
+      <p className="helper-note">
+        You’ve selected Georgia Power. Please choose the TA number instead of flaggers.
+      </p>
 
-    <div className="ta-gallery">
-      <figure className="ta-card">
-        <img
-          className="ta-img"
-          src={images["../assets/buffer and tapers/ta-10.jpg"].default}
-          alt="TA-10"
-        />
-        <figcaption>TA-10</figcaption>
-      </figure>
+      <div className="radio-group">
+        {gaPower.map((ta) => (
+          <label
+            key={ta}
+            className={`radio-pill ${formData.flagger === ta ? 'selected' : ''}`}
+          >
+            <input
+              type="radio"
+              name="gaTa"
+              value={ta}
+              checked={formData.flagger === ta}
+              onChange={(e) => {
+                setFormData({ ...formData, flagger: e.target.value });
+                setErrors((p) => ({ ...p, flagger: '' }));
+              }}
+            />
+            {ta}
+          </label>
+        ))}
+      </div>
 
-      <figure className="ta-card">
-        <img
-          className="ta-img"
-          src={images["../assets/buffer and tapers/ta-33.jpg"].default}
-          alt="TA-33"
-        />
-        <figcaption>TA-33</figcaption>
-      </figure>
+      <small className="rate-warning">
+        ⚠️ For Additional Flaggers, additional rates will apply.
+      </small>
+    </fieldset>
 
-      <figure className="ta-card">
-        <img
-          className="ta-img"
-          src={images["../assets/buffer and tapers/ta-37.jpg"].default}
-          alt="TA-37"
-        />
-        <figcaption>TA-37</figcaption>
-      </figure>
+    {/* keep your GA help/gallery */}
+    <div className="ga-help">
+      <p className="helper-note">
+        You’ve selected Georgia Power. Please choose the TA number instead of flaggers.
+      </p>
+
+      <div className="ta-gallery">
+        <figure className="ta-card">
+          <img className="ta-img" src={images["../assets/buffer and tapers/ta-10.jpg"].default} alt="TA-10" />
+          <figcaption>TA-10</figcaption>
+        </figure>
+        <figure className="ta-card">
+          <img className="ta-img" src={images["../assets/buffer and tapers/ta-33.jpg"].default} alt="TA-33" />
+          <figcaption>TA-33</figcaption>
+        </figure>
+        <figure className="ta-card">
+          <img className="ta-img" src={images["../assets/buffer and tapers/ta-37.jpg"].default} alt="TA-37" />
+          <figcaption>TA-37</figcaption>
+        </figure>
+      </div>
     </div>
-  </div>
+  </>
 )}
 
-  {errors.flagger && <div className="error-message">{errors.flagger}</div>}
+{!isCompanySelected && (
+  <p className="helper-note">Please enter a company to enable this section.</p>
+)}
+{errors.flagger && <div className="error-message">{errors.flagger}</div>}
   <label className="equipment-setup-label">
     Equipment Setup * (Select all that apply)
   </label>
