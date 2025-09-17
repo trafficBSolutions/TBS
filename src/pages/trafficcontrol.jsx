@@ -693,10 +693,6 @@ setTimeout(checkAllFieldsFilled, 0);
         <option key={t} value={t}>{t}</option>
       ))}
     </select>
-
-    <small className="rate-warning">
-      ⚠️ For Additional Flaggers, additional rates will apply.
-    </small>
   </>
 )}
 
@@ -729,10 +725,6 @@ setTimeout(checkAllFieldsFilled, 0);
           </label>
         ))}
       </div>
-
-      <small className="rate-warning">
-        ⚠️ For Additional Flaggers, additional rates will apply.
-      </small>
     </fieldset>
 
     {/* keep your GA help/gallery */}
@@ -740,6 +732,39 @@ setTimeout(checkAllFieldsFilled, 0);
       <p className="helper-note">
         You’ve selected Georgia Power. Please choose the TA number instead of flaggers.
       </p>
+      <label className="checkbox-option">
+        <input
+          type="checkbox"
+          checked={formData.additionalFlaggers || false}
+          onChange={(e) => {
+            setFormData({ ...formData, additionalFlaggers: e.target.checked });
+            if (!e.target.checked) {
+              setFormData(prev => ({ ...prev, additionalFlaggers: false, additionalFlaggerCount: '' }));
+            }
+          }}
+        />
+        <small className="rate-warning">⚠️ For Additional Flaggers, additional rates will apply.</small>
+      </label>
+      
+      {formData.additionalFlaggers && (
+        <div className="additional-flaggers">
+          <p>How many additional flaggers do you need?</p>
+          {flaggerCount.map((count) => (
+            <label key={count} className="radio-option">
+              <input
+                type="radio"
+                name="additionalFlaggerCount"
+                value={count}
+                checked={formData.additionalFlaggerCount === count}
+                onChange={(e) => {
+                  setFormData({ ...formData, additionalFlaggerCount: e.target.value });
+                }}
+              />
+              {count}
+            </label>
+          ))}
+        </div>
+      )}
 
       <div className="ta-gallery">
         <figure className="ta-card">
