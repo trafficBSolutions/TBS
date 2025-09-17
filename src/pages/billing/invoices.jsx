@@ -556,6 +556,7 @@ const [selectedEmail, setSelectedEmail] = useState('');
 const [quote, setQuote] = useState(null);
 const [manualOverride, setManualOverride] = useState(false);
 const [manualAmount, setManualAmount] = useState('');
+const [localBilledJobs, setLocalBilledJobs] = useState(new Set());
   // Gate on client (UX nicety; server still enforces)
   useEffect(() => {
     const stored = localStorage.getItem('adminUser');
@@ -762,10 +763,11 @@ const fetchJobsForDay = async (date, companyName) => {
     };
     await api.post('/api/billing/bill-workorder', payload);
 
-    // reflect UI changes
-    setJobsForDay(list =>
-      list.map(j => (j._id === billingJob._id ? { ...j, billed: true } : j))
-    );
+    // Mark as billed locally immediately
+    setLocalBilledJobs(prev => new Set([...prev, billingJob._id]));
+    
+    // Refetch server data to get updated billed status
+    await fetchJobsForDay(selectedDate);
 
     setSubmissionMessage('Invoice sent!');
     toast.success('Invoice sent with PDF attachment.');
@@ -908,7 +910,7 @@ const fetchJobsForDay = async (date, companyName) => {
       <p><strong>Completed:</strong> {new Date(workOrder.createdAt).toLocaleDateString()} at {new Date(workOrder.createdAt).toLocaleTimeString()}</p>
 
       {/* Bill Job controls belong INSIDE the map/card */}
-      {!workOrder.billed && workOrder.basic?.client !== 'Georgia Power' ? (
+      {!workOrder.billed && !localBilledJobs.has(workOrder._id) && workOrder.basic?.client !== 'Georgia Power' ? (
         <button
           className="btn"
 onClick={() => {
