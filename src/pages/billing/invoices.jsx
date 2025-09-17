@@ -556,7 +556,10 @@ const [selectedEmail, setSelectedEmail] = useState('');
 const [quote, setQuote] = useState(null);
 const [manualOverride, setManualOverride] = useState(false);
 const [manualAmount, setManualAmount] = useState('');
-const [localBilledJobs, setLocalBilledJobs] = useState(new Set());
+const [localBilledJobs, setLocalBilledJobs] = useState(() => {
+    const saved = localStorage.getItem('localBilledJobs');
+    return saved ? new Set(JSON.parse(saved)) : new Set();
+  });
   // Gate on client (UX nicety; server still enforces)
   useEffect(() => {
     const stored = localStorage.getItem('adminUser');
@@ -765,7 +768,11 @@ const fetchJobsForDay = async (date, companyName) => {
     await api.post('/api/billing/bill-workorder', payload);
 
     // Mark as billed locally immediately
-    setLocalBilledJobs(prev => new Set([...prev, billingJob._id]));
+    setLocalBilledJobs(prev => {
+      const updated = new Set([...prev, billingJob._id]);
+      localStorage.setItem('localBilledJobs', JSON.stringify([...updated]));
+      return updated;
+    });
     
     // Refetch server data to get updated billed status
     await fetchJobsForDay(selectedDate);
