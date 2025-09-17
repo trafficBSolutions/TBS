@@ -919,7 +919,6 @@ onClick={() => {
   } else {
     setSelectedEmail(COMPANY_TO_EMAIL[workOrder.basic?.client] || workOrder.basic?.email || '');
     setBillToCompany('');
-    setBillToAddress(BILLING_ADDRESSES[workOrder.basic?.client] || '');
     setWorkType('');
     setForeman(workOrder.basic?.foremanName || '');
     setLocation([workOrder.basic?.address, workOrder.basic?.city, workOrder.basic?.state, workOrder.basic?.zip].filter(Boolean).join(', '));
@@ -932,6 +931,9 @@ onClick={() => {
     setSheetTaxRate(0);
     setSheetOther(0);
   }
+  
+  // Always set billing address from BILLING_ADDRESSES
+  setBillToAddress(BILLING_ADDRESSES[workOrder.basic?.client] || '');
   
   setSel({
     flagDay: '',
