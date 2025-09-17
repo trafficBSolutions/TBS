@@ -725,9 +725,11 @@ const isSubmitReady = useMemo(() => {
    name="city-input"
   type="text"
   className="city-control-box"
-  
   value={basic.company}
-/>
+  onChange={(e) => {
+    const val = toTitleCase(e.target.value);
+    setBasicField('company', val);
+  }}/>
 {errors.company && <div className="error-message">{errors.company}</div>}
                 {basicField('address', 'Address')}
                  <label>City *</label>
