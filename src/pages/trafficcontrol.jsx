@@ -671,7 +671,7 @@ setTimeout(checkAllFieldsFilled, 0);
     }
     setTimeout(checkAllFieldsFilled, 0);
   }}
-  disabled={!isCompanySelected || isGASelected}
+  disabled={isGASelected}
 >
   <option value="">Select How Many Flaggers</option>
   {flaggerCount.map((t) => (
