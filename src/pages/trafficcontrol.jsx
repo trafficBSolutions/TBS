@@ -56,6 +56,9 @@ const timeOptions = [
 const flaggerCount = [
   "2 Flaggers", "3 Flaggers", "4 Flaggers", "5 Flaggers", "6 Flaggers"
 ]
+const flaggerGACount = [
+  "1 flagger", "2 Flaggers", "3 Flaggers", "4 Flaggers", "5 Flaggers", "6 Flaggers"
+]
 export default function TrafficControl() {
   const [phone, setPhone] = useState('');
   const [jobDates, setJobDates] = useState([]);
@@ -753,7 +756,7 @@ setTimeout(checkAllFieldsFilled, 0);
       {formData.additionalFlaggers && (
         <div className="additional-flaggers">
           <p>How many additional flaggers do you need?</p>
-          {flaggerCount.map((count) => (
+          {flaggerGACount.map((count) => (
             <label key={count} className="radio-option">
               <input
                 type="radio"
