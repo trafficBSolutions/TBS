@@ -721,20 +721,13 @@ const isSubmitReady = useMemo(() => {
 
 
 <label>Company *</label>
-                  <select
-  className="project-company-input"
-value={basic.company}
-  onChange={(e) => {
-    setBasicField('company', e.target.value)
-  }}
->
-  <option value="">Select your company</option>
-  {companyList.map((t) => (
-    <option key={t} value={t}>
-      {t}
-    </option>
-  ))}
-</select>
+<input
+   name="city-input"
+  type="text"
+  className="city-control-box"
+  
+  value={basic.company}
+/>
 {errors.company && <div className="error-message">{errors.company}</div>}
                 {basicField('address', 'Address')}
                  <label>City *</label>
