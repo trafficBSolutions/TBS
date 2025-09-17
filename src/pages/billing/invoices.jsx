@@ -92,6 +92,10 @@ const PaymentForm = ({ workOrder, onPaymentComplete }) => {
   const [checkNumber, setCheckNumber] = useState('');
   const [email, setEmail] = useState(workOrder.invoiceData?.selectedEmail || workOrder.basic?.email || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState('');
+  
+  const totalOwed = workOrder.currentAmount || workOrder.billedAmount || workOrder.invoiceData?.sheetTotal || 0;
+  const remainingBalance = totalOwed - (Number(paymentAmount) || 0);
   
   return (
     <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
@@ -144,6 +148,23 @@ const PaymentForm = ({ workOrder, onPaymentComplete }) => {
           )}
           
           <div style={{marginBottom: '8px'}}>
+            <label>Payment Amount: </label>
+            <input
+              type="number"
+              step="0.01"
+              placeholder="0.00"
+              value={paymentAmount}
+              onChange={(e) => setPaymentAmount(e.target.value)}
+              style={{width: '100px', padding: '4px', marginLeft: '5px'}}
+            />
+          </div>
+          
+          <div style={{marginBottom: '8px', fontSize: '12px', color: '#666'}}>
+            <div>Total Owed: ${totalOwed.toFixed(2)}</div>
+            <div>Remaining Balance: ${remainingBalance.toFixed(2)}</div>
+          </div>
+          
+          <div style={{marginBottom: '8px'}}>
             <input
               placeholder="Receipt email"
               value={email}
@@ -166,6 +187,7 @@ const PaymentForm = ({ workOrder, onPaymentComplete }) => {
                 workOrderId: workOrder._id,
                 paymentMethod,
                 emailOverride: email,
+                paymentAmount: Number(paymentAmount),
                 ...paymentDetails
               }).then(() => {
                 toast.success('Payment recorded and receipt sent!');
