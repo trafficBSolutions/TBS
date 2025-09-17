@@ -914,11 +914,24 @@ const fetchJobsForDay = async (date, companyName) => {
 onClick={() => {
   setBillingJob(workOrder);
   
+  const normalizeCompany = (name) => name?.replace(/\s+(LLC|Inc\.?|Corporation|Corp\.?)\s*$/i, '').trim();
+  const clientName = workOrder.basic?.client;
+  const normalizedClient = normalizeCompany(clientName);
+  
+  // Find billing address by exact match or normalized match
+  const billingAddress = BILLING_ADDRESSES[clientName] || 
+    Object.entries(BILLING_ADDRESSES).find(([key]) => normalizeCompany(key) === normalizedClient)?.[1] || '';
+  
   if (savedInvoices[workOrder._id]) {
     loadSavedInvoice(workOrder._id);
+    // Only set billing address if it's empty in saved data
+    if (!savedInvoices[workOrder._id].billToAddress) {
+      setBillToAddress(billingAddress);
+    }
   } else {
-    setSelectedEmail(COMPANY_TO_EMAIL[workOrder.basic?.client] || workOrder.basic?.email || '');
-    setBillToCompany('');
+    setSelectedEmail(COMPANY_TO_EMAIL[clientName] || workOrder.basic?.email || '');
+    setBillToCompany(clientName || '');
+    setBillToAddress(billingAddress);
     setWorkType('');
     setForeman(workOrder.basic?.foremanName || '');
     setLocation([workOrder.basic?.address, workOrder.basic?.city, workOrder.basic?.state, workOrder.basic?.zip].filter(Boolean).join(', '));
@@ -931,9 +944,6 @@ onClick={() => {
     setSheetTaxRate(0);
     setSheetOther(0);
   }
-  
-  // Always set billing address from BILLING_ADDRESSES
-  setBillToAddress(BILLING_ADDRESSES[workOrder.basic?.client] || '');
   
   setSel({
     flagDay: '',
