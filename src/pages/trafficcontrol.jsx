@@ -563,27 +563,20 @@ setTimeout(checkAllFieldsFilled, 0);
   {errors.jobDate && <div className="error-message">{errors.jobDate}</div>}
 </div>
 
-  <label className="project-control-label">Company *</label>
-  <select
-  className="project-company-input"
-  value={company}
-  onChange={(e) => {
-  setCompany(e.target.value)
+  <label className="project-number-label">Company *</label>
+  <input
+  className="project-number-input"
+  type="text"
+  placeholder="Enter Company Name"
+  value={formData.company}
+onChange={(e) => { 
   setFormData({ ...formData, company: e.target.value });
-  if (e.target.value) {
-    setErrors((prevErrors) => ({ ...prevErrors, company: '' })); // Clear the error
-  }
-  setTimeout(checkAllFieldsFilled, 0);
+if (e.target.value) {
+  setErrors((prevErrors) => ({ ...prevErrors, company: '' })); // Clear the error
 }
-}
->
-  <option value="">Select your company</option>
-  {companyList.map((t) => (
-    <option key={t} value={t}>
-      {t}
-    </option>
-  ))}
-</select>
+setTimeout(checkAllFieldsFilled, 0);
+}}
+/>
 {errors.company && <div className="error-message">{errors.company}</div>}
 <label className="cord-label">Coordinator *</label>
 <input
@@ -665,6 +658,7 @@ setTimeout(checkAllFieldsFilled, 0);
   {errors.project && <div className="error-message">{errors.project}</div>}
 <label className="project-flagger-label">Flaggers *</label>
 <p className="project-flagger-p">How many flaggers does your job need?</p>
+<p>⚠️ For Additional Flaggers, additional rates will apply.</p>
 <select
   className="project-flagger-input"
   value={formData.flagger}
@@ -712,9 +706,42 @@ setTimeout(checkAllFieldsFilled, 0);
   <p className="helper-note">Please select a company to enable this section.</p>
 )}
 {isGASelected && (
-  <p className="helper-note">You’ve selected Georgia Power. Please choose the TA number instead of flaggers.</p>
+  <div className="ga-help">
+    <p className="helper-note">
+      You’ve selected Georgia Power. Please choose the TA number instead of flaggers.
+    </p>
+
+    <div className="ta-gallery">
+      <figure className="ta-card">
+        <img
+          className="ta-img"
+          src={images["../assets/buffer and tapers/ta-10.jpg"].default}
+          alt="TA-10"
+        />
+        <figcaption>TA-10</figcaption>
+      </figure>
+
+      <figure className="ta-card">
+        <img
+          className="ta-img"
+          src={images["../assets/buffer and tapers/ta-33.jpg"].default}
+          alt="TA-33"
+        />
+        <figcaption>TA-33</figcaption>
+      </figure>
+
+      <figure className="ta-card">
+        <img
+          className="ta-img"
+          src={images["../assets/buffer and tapers/ta-37.jpg"].default}
+          alt="TA-37"
+        />
+        <figcaption>TA-37</figcaption>
+      </figure>
+    </div>
+  </div>
 )}
-<p>⚠️ For Additional Flaggers, additional rates will apply.</p>
+
   {errors.flagger && <div className="error-message">{errors.flagger}</div>}
   <label className="equipment-setup-label">
     Equipment Setup * (Select all that apply)
