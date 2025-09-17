@@ -981,9 +981,11 @@ onClick={() => {
         >
           Bill Job
         </button>
-      ) : workOrder.billed && !workOrder.paid ? (
+      ) : workOrder.billed && workOrder.paid ? (
+        <span className="pill" style={{backgroundColor: '#28a745'}}>Paid</span>
+      ) : workOrder.billed ? (
         <div style={{display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap'}}>
-          <span className="pill" style={{backgroundColor: '#ffc107'}}>Billed - Awaiting Payment</span>
+          <span className="pill">Billed</span>
           <button
             className="btn"
             style={{backgroundColor: '#28a745', color: 'white', fontSize: '12px', padding: '4px 8px'}}
@@ -1022,9 +1024,7 @@ onClick={() => {
             Mark Paid
           </button>
         </div>
-      ) : (
-        <span className="pill" style={{backgroundColor: '#28a745'}}>Paid</span>
-      )}
+      ) : null
       
       {savedInvoices[workOrder._id] && (
         <span className="pill" style={{backgroundColor: '#28a745', marginLeft: '8px'}}>
