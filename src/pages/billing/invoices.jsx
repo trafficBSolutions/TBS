@@ -919,7 +919,7 @@ onClick={() => {
   } else {
     setSelectedEmail(COMPANY_TO_EMAIL[workOrder.basic?.client] || workOrder.basic?.email || '');
     setBillToCompany('');
-    setBillToAddress('');
+    setBillToAddress(BILLING_ADDRESSES[workOrder.basic?.client] || '');
     setWorkType('');
     setForeman(workOrder.basic?.foremanName || '');
     setLocation([workOrder.basic?.address, workOrder.basic?.city, workOrder.basic?.state, workOrder.basic?.zip].filter(Boolean).join(', '));
