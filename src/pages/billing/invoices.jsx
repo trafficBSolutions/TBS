@@ -1024,7 +1024,7 @@ onClick={() => {
             Mark Paid
           </button>
         </div>
-      ) : null
+      ) : null}
       
       {savedInvoices[workOrder._id] && (
         <span className="pill" style={{backgroundColor: '#28a745', marginLeft: '8px'}}>
