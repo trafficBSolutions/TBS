@@ -700,7 +700,7 @@ setTimeout(checkAllFieldsFilled, 0);
   }}
   disabled={!isGASelected}
 >
-<p><strong>⚠️ For Additional Flaggers, additional rates will apply.</strong></p>
+<p>⚠️ For Additional Flaggers, additional rates will apply.</p>
   <option value="">Select Georgia Power Scheduling</option>
   {gaPower.map((t) => (
     <option key={t} value={t}>
@@ -1073,8 +1073,3 @@ setFormData({
         </div>
     )
 };
-
-
-
-
-
