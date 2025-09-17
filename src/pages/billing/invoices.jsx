@@ -94,7 +94,7 @@ const PaymentForm = ({ workOrder, onPaymentComplete }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState('');
   
-  const totalOwed = workOrder.currentAmount || workOrder.billedAmount || workOrder.invoiceData?.sheetTotal || 0;
+  const totalOwed = workOrder.invoiceTotal || workOrder.currentAmount || workOrder.billedAmount || workOrder.invoiceData?.sheetTotal || 0;
   const remainingBalance = totalOwed - (Number(paymentAmount) || 0);
   
   return (
