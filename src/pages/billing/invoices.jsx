@@ -84,6 +84,109 @@ const formatEquipmentName = (key) => {
   return names[key] || key;
 };
 
+const PaymentForm = ({ workOrder, onPaymentComplete }) => {
+  const [showForm, setShowForm] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('card');
+  const [cardType, setCardType] = useState('');
+  const [cardLast4, setCardLast4] = useState('');
+  const [checkNumber, setCheckNumber] = useState('');
+  const [email, setEmail] = useState(workOrder.invoiceData?.selectedEmail || workOrder.basic?.email || '');
+  
+  return (
+    <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
+      <div style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
+        <span className="pill">Billed</span>
+        <button
+          className="btn"
+          style={{backgroundColor: '#28a745', color: 'white', fontSize: '12px', padding: '4px 8px'}}
+          onClick={() => setShowForm(!showForm)}
+        >
+          Mark Paid
+        </button>
+      </div>
+      
+      {showForm && (
+        <div style={{padding: '10px', border: '1px solid #ddd', borderRadius: '4px', backgroundColor: '#f9f9f9'}}>
+          <div style={{marginBottom: '8px'}}>
+            <label>Paid by: </label>
+            <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} style={{marginLeft: '5px'}}>
+              <option value="card">Card</option>
+              <option value="check">Check</option>
+            </select>
+          </div>
+          
+          {paymentMethod === 'card' ? (
+            <div style={{display: 'flex', gap: '8px', marginBottom: '8px'}}>
+              <input
+                placeholder="Card Type (Visa, MasterCard, etc.)"
+                value={cardType}
+                onChange={(e) => setCardType(e.target.value)}
+                style={{flex: 1, padding: '4px'}}
+              />
+              <input
+                placeholder="Last 4 digits"
+                value={cardLast4}
+                onChange={(e) => setCardLast4(e.target.value)}
+                maxLength={4}
+                style={{width: '80px', padding: '4px'}}
+              />
+            </div>
+          ) : (
+            <div style={{marginBottom: '8px'}}>
+              <input
+                placeholder="Check Number"
+                value={checkNumber}
+                onChange={(e) => setCheckNumber(e.target.value)}
+                style={{width: '120px', padding: '4px'}}
+              />
+            </div>
+          )}
+          
+          <div style={{marginBottom: '8px'}}>
+            <input
+              placeholder="Receipt email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              style={{width: '200px', padding: '4px'}}
+            />
+          </div>
+          
+          <button
+            className="btn"
+            style={{backgroundColor: '#007bff', color: 'white', fontSize: '12px', padding: '4px 8px', marginRight: '5px'}}
+            onClick={() => {
+              const paymentDetails = paymentMethod === 'card' 
+                ? { cardType, cardLast4 }
+                : { checkNumber };
+              
+              api.post('/api/billing/mark-paid', {
+                workOrderId: workOrder._id,
+                paymentMethod,
+                emailOverride: email,
+                ...paymentDetails
+              }).then(() => {
+                alert('Payment recorded and receipt sent!');
+                onPaymentComplete();
+              }).catch(err => {
+                alert('Failed to record payment: ' + (err.response?.data?.message || err.message));
+              });
+            }}
+          >
+            Submit
+          </button>
+          <button
+            className="btn"
+            style={{fontSize: '12px', padding: '4px 8px'}}
+            onClick={() => setShowForm(false)}
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 function buildBreakdown(sel, rates) {
   if (!sel || !rates) return [];
   const rows = [];
@@ -560,6 +663,7 @@ const [localBilledJobs, setLocalBilledJobs] = useState(() => {
     const saved = localStorage.getItem('localBilledJobs');
     return saved ? new Set(JSON.parse(saved)) : new Set();
   });
+const [showPaymentForm, setShowPaymentForm] = useState({});
   // Gate on client (UX nicety; server still enforces)
   useEffect(() => {
     const stored = localStorage.getItem('adminUser');
@@ -991,46 +1095,7 @@ onClick={() => {
           return <span className="pill" style={{backgroundColor: '#28a745'}}>Paid</span>;
         } else if (isBilled) {
           return (
-            <div style={{display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap'}}>
-              <span className="pill">Billed</span>
-              <button
-                className="btn"
-                style={{backgroundColor: '#28a745', color: 'white', fontSize: '12px', padding: '4px 8px'}}
-                onClick={() => {
-                  const paymentMethod = prompt('Payment method (card/check):')?.toLowerCase();
-                  if (!paymentMethod || !['card', 'check'].includes(paymentMethod)) return;
-                  
-                  let paymentDetails = {};
-                  if (paymentMethod === 'card') {
-                    const cardType = prompt('Card type (Visa/MasterCard/Amex/Discover):');
-                    const cardLast4 = prompt('Last 4 digits:');
-                    if (!cardType || !cardLast4) return;
-                    paymentDetails = { cardType, cardLast4 };
-                  } else {
-                    const checkNumber = prompt('Check number:');
-                    if (!checkNumber) return;
-                    paymentDetails = { checkNumber };
-                  }
-                  
-                  const email = prompt('Send receipt to email:', workOrder.invoiceData?.selectedEmail || workOrder.basic?.email || '');
-                  if (!email) return;
-                  
-                  api.post('/api/billing/mark-paid', {
-                    workOrderId: workOrder._id,
-                    paymentMethod,
-                    emailOverride: email,
-                    ...paymentDetails
-                  }).then(() => {
-                    alert('Payment recorded and receipt sent!');
-                    fetchJobsForDay(selectedDate);
-                  }).catch(err => {
-                    alert('Failed to record payment: ' + (err.response?.data?.message || err.message));
-                  });
-                }}
-              >
-                Mark Paid
-              </button>
-            </div>
+            <PaymentForm workOrder={workOrder} onPaymentComplete={() => fetchJobsForDay(selectedDate)} />
           );
         }
         return null;
