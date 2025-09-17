@@ -91,6 +91,7 @@ const PaymentForm = ({ workOrder, onPaymentComplete }) => {
   const [cardLast4, setCardLast4] = useState('');
   const [checkNumber, setCheckNumber] = useState('');
   const [email, setEmail] = useState(workOrder.invoiceData?.selectedEmail || workOrder.basic?.email || '');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   return (
     <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
@@ -152,9 +153,11 @@ const PaymentForm = ({ workOrder, onPaymentComplete }) => {
           </div>
           
           <button
-            className="btn"
-            style={{backgroundColor: '#007bff', color: 'white', fontSize: '12px', padding: '4px 8px', marginRight: '5px'}}
+            className="btn btn--primary"
+            style={{fontSize: '12px', padding: '4px 8px', marginRight: '5px'}}
+            disabled={isSubmitting}
             onClick={() => {
+              setIsSubmitting(true);
               const paymentDetails = paymentMethod === 'card' 
                 ? { cardType, cardLast4 }
                 : { checkNumber };
@@ -165,14 +168,23 @@ const PaymentForm = ({ workOrder, onPaymentComplete }) => {
                 emailOverride: email,
                 ...paymentDetails
               }).then(() => {
-                alert('Payment recorded and receipt sent!');
+                toast.success('Payment recorded and receipt sent!');
                 onPaymentComplete();
+                setShowForm(false);
               }).catch(err => {
-                alert('Failed to record payment: ' + (err.response?.data?.message || err.message));
+                toast.error('Failed to record payment: ' + (err.response?.data?.message || err.message));
+              }).finally(() => {
+                setIsSubmitting(false);
               });
             }}
           >
-            Submit
+            {isSubmitting ? (
+              <div className="spinner-button">
+                <span className="spinner" /> Recording...
+              </div>
+            ) : (
+              'Submit'
+            )}
           </button>
           <button
             className="btn"
