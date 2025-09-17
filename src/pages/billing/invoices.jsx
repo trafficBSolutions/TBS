@@ -658,6 +658,7 @@ const fetchJobsForDay = async (date, companyName) => {
       setJobsForDay([]);
       return;
     }
+    console.log('Fetched jobs with billed status:', list.map(j => ({id: j._id, client: j.basic?.client, billed: j.billed})));
     setJobsForDay(list);
   } catch (err) {
     console.error('fetchJobsForDay failed:', err);
