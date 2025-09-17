@@ -700,7 +700,7 @@ setTimeout(checkAllFieldsFilled, 0);
   }}
   disabled={!isGASelected}
 >
-<p>⚠️ For Additional Flaggers, additional rates will apply.</p>
+
   <option value="">Select Georgia Power Scheduling</option>
   {gaPower.map((t) => (
     <option key={t} value={t}>
@@ -714,7 +714,7 @@ setTimeout(checkAllFieldsFilled, 0);
 {isGASelected && (
   <p className="helper-note">You’ve selected Georgia Power. Please choose the TA number instead of flaggers.</p>
 )}
-
+<p>⚠️ For Additional Flaggers, additional rates will apply.</p>
   {errors.flagger && <div className="error-message">{errors.flagger}</div>}
   <label className="equipment-setup-label">
     Equipment Setup * (Select all that apply)
