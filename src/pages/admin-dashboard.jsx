@@ -54,6 +54,17 @@ const [viewMode, setViewMode] = useState('traffic'); // 'traffic' or 'workorders
 const [selectedPdfId, setSelectedPdfId] = useState(null);
 // Modify your fetchMonthlyJobs function to include better logging
 // Add this useEffect to fetch cancelled jobs specifically
+const formatFlaggers = (job) => {
+  const base = job?.flagger || '';
+  const extraCount = Number(job?.additionalFlaggerCount || 0);
+  const hasExtras = Boolean(job?.additionalFlaggers) || extraCount > 0;
+
+  if (!hasExtras) return base;
+
+  const label = extraCount === 1 ? 'Flagger' : 'Flaggers';
+  return `${base} + Additional: ${extraCount} ${label}`;
+};
+
 useEffect(() => {
   const fetchCancelledJobs = async () => {
     try {
@@ -327,7 +338,7 @@ useEffect(() => {
             <p><strong>On-Site Contact Phone Number:</strong> <a href={`tel:${job.site}`}>{job.site}</a></p>
             <p><strong>Time:</strong> {job.time}</p>
             <p><strong>Project/Task Number:</strong> {job.project}</p>
-            <p><strong>Flaggers:</strong> {job.flagger}{job.additionalFlaggers ? ` + Additional: ${job.additionalFlaggerCount} Flaggers` : ''}</p>
+            <p><strong>Flaggers:</strong> {formatFlaggers(job)}</p>
             <p><strong>Equipment:</strong> {job.equipment.join(', ')}</p>
             <p><strong>Address:</strong> {job.address}, {job.city}, {job.state} {job.zip}</p>
             {job.message && <p><strong>Message:</strong> {job.message}</p>}
