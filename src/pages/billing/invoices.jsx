@@ -981,8 +981,49 @@ onClick={() => {
         >
           Bill Job
         </button>
+      ) : workOrder.billed && !workOrder.paid ? (
+        <div style={{display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap'}}>
+          <span className="pill" style={{backgroundColor: '#ffc107'}}>Billed - Awaiting Payment</span>
+          <button
+            className="btn"
+            style={{backgroundColor: '#28a745', color: 'white', fontSize: '12px', padding: '4px 8px'}}
+            onClick={() => {
+              const paymentMethod = prompt('Payment method (card/check):')?.toLowerCase();
+              if (!paymentMethod || !['card', 'check'].includes(paymentMethod)) return;
+              
+              let paymentDetails = {};
+              if (paymentMethod === 'card') {
+                const cardType = prompt('Card type (Visa/MasterCard/Amex/Discover):');
+                const cardLast4 = prompt('Last 4 digits:');
+                if (!cardType || !cardLast4) return;
+                paymentDetails = { cardType, cardLast4 };
+              } else {
+                const checkNumber = prompt('Check number:');
+                if (!checkNumber) return;
+                paymentDetails = { checkNumber };
+              }
+              
+              const email = prompt('Send receipt to email:', workOrder.invoiceData?.selectedEmail || workOrder.basic?.email || '');
+              if (!email) return;
+              
+              api.post('/api/billing/mark-paid', {
+                workOrderId: workOrder._id,
+                paymentMethod,
+                emailOverride: email,
+                ...paymentDetails
+              }).then(() => {
+                alert('Payment recorded and receipt sent!');
+                fetchJobsForDay(selectedDate);
+              }).catch(err => {
+                alert('Failed to record payment: ' + (err.response?.data?.message || err.message));
+              });
+            }}
+          >
+            Mark Paid
+          </button>
+        </div>
       ) : (
-        <span className="pill">Billed</span>
+        <span className="pill" style={{backgroundColor: '#28a745'}}>Paid</span>
       )}
       
       {savedInvoices[workOrder._id] && (
