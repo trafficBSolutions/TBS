@@ -918,7 +918,12 @@ const fetchJobsForDay = async (date, companyName) => {
       <p><strong>Completed:</strong> {new Date(workOrder.createdAt).toLocaleDateString()} at {new Date(workOrder.createdAt).toLocaleTimeString()}</p>
 
       {/* Bill Job controls belong INSIDE the map/card */}
-      {!workOrder.billed && !localBilledJobs.has(workOrder._id) && workOrder.basic?.client !== 'Georgia Power' ? (
+      {(() => {
+        const isBilled = workOrder.billed || localBilledJobs.has(workOrder._id);
+        const isPaid = workOrder.paid;
+        
+        if (!isBilled && workOrder.basic?.client !== 'Georgia Power') {
+          return (
         <button
           className="btn"
 onClick={() => {
@@ -978,53 +983,58 @@ onClick={() => {
             const resolvedKey = workOrder.companyKey || COMPANY_TO_KEY[workOrder.basic?.client] || '';
             if (resolvedKey) setCompanyKey(workOrder.basic?.client);
           }}
-        >
-          Bill Job
-        </button>
-      ) : workOrder.billed && workOrder.paid ? (
-        <span className="pill" style={{backgroundColor: '#28a745'}}>Paid</span>
-      ) : workOrder.billed ? (
-        <div style={{display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap'}}>
-          <span className="pill">Billed</span>
-          <button
-            className="btn"
-            style={{backgroundColor: '#28a745', color: 'white', fontSize: '12px', padding: '4px 8px'}}
-            onClick={() => {
-              const paymentMethod = prompt('Payment method (card/check):')?.toLowerCase();
-              if (!paymentMethod || !['card', 'check'].includes(paymentMethod)) return;
-              
-              let paymentDetails = {};
-              if (paymentMethod === 'card') {
-                const cardType = prompt('Card type (Visa/MasterCard/Amex/Discover):');
-                const cardLast4 = prompt('Last 4 digits:');
-                if (!cardType || !cardLast4) return;
-                paymentDetails = { cardType, cardLast4 };
-              } else {
-                const checkNumber = prompt('Check number:');
-                if (!checkNumber) return;
-                paymentDetails = { checkNumber };
-              }
-              
-              const email = prompt('Send receipt to email:', workOrder.invoiceData?.selectedEmail || workOrder.basic?.email || '');
-              if (!email) return;
-              
-              api.post('/api/billing/mark-paid', {
-                workOrderId: workOrder._id,
-                paymentMethod,
-                emailOverride: email,
-                ...paymentDetails
-              }).then(() => {
-                alert('Payment recorded and receipt sent!');
-                fetchJobsForDay(selectedDate);
-              }).catch(err => {
-                alert('Failed to record payment: ' + (err.response?.data?.message || err.message));
-              });
-            }}
-          >
-            Mark Paid
-          </button>
-        </div>
-      ) : null}
+            >
+              Bill Job
+            </button>
+          );
+        } else if (isBilled && isPaid) {
+          return <span className="pill" style={{backgroundColor: '#28a745'}}>Paid</span>;
+        } else if (isBilled) {
+          return (
+            <div style={{display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap'}}>
+              <span className="pill">Billed</span>
+              <button
+                className="btn"
+                style={{backgroundColor: '#28a745', color: 'white', fontSize: '12px', padding: '4px 8px'}}
+                onClick={() => {
+                  const paymentMethod = prompt('Payment method (card/check):')?.toLowerCase();
+                  if (!paymentMethod || !['card', 'check'].includes(paymentMethod)) return;
+                  
+                  let paymentDetails = {};
+                  if (paymentMethod === 'card') {
+                    const cardType = prompt('Card type (Visa/MasterCard/Amex/Discover):');
+                    const cardLast4 = prompt('Last 4 digits:');
+                    if (!cardType || !cardLast4) return;
+                    paymentDetails = { cardType, cardLast4 };
+                  } else {
+                    const checkNumber = prompt('Check number:');
+                    if (!checkNumber) return;
+                    paymentDetails = { checkNumber };
+                  }
+                  
+                  const email = prompt('Send receipt to email:', workOrder.invoiceData?.selectedEmail || workOrder.basic?.email || '');
+                  if (!email) return;
+                  
+                  api.post('/api/billing/mark-paid', {
+                    workOrderId: workOrder._id,
+                    paymentMethod,
+                    emailOverride: email,
+                    ...paymentDetails
+                  }).then(() => {
+                    alert('Payment recorded and receipt sent!');
+                    fetchJobsForDay(selectedDate);
+                  }).catch(err => {
+                    alert('Failed to record payment: ' + (err.response?.data?.message || err.message));
+                  });
+                }}
+              >
+                Mark Paid
+              </button>
+            </div>
+          );
+        }
+        return null;
+      })()}
       
       {savedInvoices[workOrder._id] && (
         <span className="pill" style={{backgroundColor: '#28a745', marginLeft: '8px'}}>
