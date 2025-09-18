@@ -721,7 +721,7 @@ setTimeout(checkAllFieldsFilled, 0);
     {/* keep your GA help/gallery */}
     <div className="ga-help">
       <p className="helper-note">
-        You’ve selected Georgia Power. Please choose the TA number instead of flaggers.
+        You’ve selected a Georgia Power Company. Please choose the TA number instead of flaggers.
       </p>
       <div className="ta-gallery">
         <figure className="ta-card">
