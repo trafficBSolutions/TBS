@@ -704,34 +704,6 @@ setTimeout(checkAllFieldsFilled, 0);
 {/* Georgia Power -> TA radio buttons + gallery */}
 {isGASelected && (
   <>
-    <fieldset className="choice-group">
-      <legend>Georgia Power Scheduling</legend>
-      <p className="helper-note">
-        You’ve selected Georgia Power. Please choose the TA number instead of flaggers.
-      </p>
-
-      <div className="radio-group">
-        {gaPower.map((ta) => (
-          <label
-            key={ta}
-            className={`radio-pill ${formData.flagger === ta ? 'selected' : ''}`}
-          >
-            <input
-              type="radio"
-              name="gaTa"
-              value={ta}
-              checked={formData.flagger === ta}
-              onChange={(e) => {
-                setFormData({ ...formData, flagger: e.target.value });
-                setErrors((p) => ({ ...p, flagger: '' }));
-              }}
-            />
-            {ta}
-          </label>
-        ))}
-      </div>
-    </fieldset>
-
     {/* keep your GA help/gallery */}
     <div className="ga-help">
       <p className="helper-note">
@@ -1190,3 +1162,4 @@ setFormData({
         </div>
     )
 };
+
