@@ -11,6 +11,28 @@ import 'react-toastify/dist/ReactToastify.css';
 import ExcelJS from 'exceljs';
 // Keep this small and readable. Add more as you seed more price lists.
 // at top of invoices.jsx
+const companyList = [
+ "Atlanta Gas Light",
+  "Broadband Technical Resources",
+  "Broadband of Indiana",
+  "Car Michael",
+  "Fairway Electric",
+  "Georgia Power",
+  "Global Infrastructure",
+  "HD Excavations & Utilities",
+  "H and H Paving and Concrete",
+  "Hibbymo Properties-Cloudland",
+  "J and A Grading",
+  "Magnum Paving",
+  "Perman Construction",
+  "Pike Electric",
+  "Service Electric",
+  "Source One",
+  "The Surface Masters",
+  "Tindall",
+  "Wilson Boys Enterprises",
+  "Other(Specify if new in message to add to this list)"
+]
 const COMPANY_TO_KEY = {
   'Wilson Boys Enterprises': 'wilsonboys',
   'Perman Construction': 'perman',
