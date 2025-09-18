@@ -711,8 +711,6 @@ setTimeout(checkAllFieldsFilled, 0);
       </p>
       <div className="ta-gallery">
         <figure className="ta-card">
-          <img className="ta-img" src={images["../assets/buffer and tapers/ta-10.jpg"].default} alt="TA-10" />
-          <figcaption>TA-10</figcaption>
           <label className={`radio-pill ${formData.flagger === 'TA-10' ? 'selected' : ''}`}>
             <input
               type="radio"
@@ -724,12 +722,11 @@ setTimeout(checkAllFieldsFilled, 0);
                 setErrors((p) => ({ ...p, flagger: '' }));
               }}
             />
-            TA-10
+            <img className="ta-img" src={images["../assets/buffer and tapers/ta-10.jpg"].default} alt="TA-10" />
+            <figcaption>TA-10</figcaption>
           </label>
         </figure>
         <figure className="ta-card">
-          <img className="ta-img" src={images["../assets/buffer and tapers/ta-33.jpg"].default} alt="TA-33" />
-          <figcaption>TA-33</figcaption>
           <label className={`radio-pill ${formData.flagger === 'TA-33' ? 'selected' : ''}`}>
             <input
               type="radio"
@@ -741,12 +738,11 @@ setTimeout(checkAllFieldsFilled, 0);
                 setErrors((p) => ({ ...p, flagger: '' }));
               }}
             />
-            TA-33
+            <img className="ta-img" src={images["../assets/buffer and tapers/ta-33.jpg"].default} alt="TA-33" />
+            <figcaption>TA-33</figcaption>
           </label>
         </figure>
         <figure className="ta-card">
-          <img className="ta-img" src={images["../assets/buffer and tapers/ta-37.jpg"].default} alt="TA-37" />
-          <figcaption>TA-37</figcaption>
           <label className={`radio-pill ${formData.flagger === 'TA-37' ? 'selected' : ''}`}>
             <input
               type="radio"
@@ -758,7 +754,8 @@ setTimeout(checkAllFieldsFilled, 0);
                 setErrors((p) => ({ ...p, flagger: '' }));
               }}
             />
-            TA-37
+            <img className="ta-img" src={images["../assets/buffer and tapers/ta-37.jpg"].default} alt="TA-37" />
+            <figcaption>TA-37</figcaption>
           </label>
         </figure>
       </div>
@@ -1162,4 +1159,3 @@ setFormData({
         </div>
     )
 };
-
