@@ -317,27 +317,25 @@ const isGeorgiaPower = (str) => {
 
   // regexes allow optional spaces and optional "co"/"company"
   const patterns = [
-    /\bgeorgia\s*power\b/,                 // "georgia power"
-    /\bgeorgia\s*power\s*co(mpany)?\b/,    // "georgia power co", "georgia power company"
-    /\bga\s*power\b/,                      // "ga power"
-    /\bga\s*power\s*co(mpany)?\b/,         // "ga power company"
+    /\bg[eao]org[ie]a\s*p[ow]w[eao]r\b/,    // "georgia power" with misspellings
+    /\bg[ae]\s*p[ow]w[eao]r\b/,             // "ga power" with misspellings
     /\bgpc\b/,                             // "gpc"
-    /\bdesoto\b/,                          // "desoto"
-    /\bthe\s*desoto\s*group\b/,            // "the desoto group"
-    /\bdesoto\s*group\b/,                  // "desoto group"
-    /\bfairway\s*electric\b/,              // "fairway electric"
-    /\bfairway\b/,                         // "fairway"
-    /\bservice\s*electric\b/,              // "service electric"
-    /\belectra\s*grid\b/,                  // "electra grid"
-    /\belectra\s*grid\s*solutions\b/,      // "electra grid solutions"
-    /\bfaith\s*electric\b/,               // "faith electric"
+    /\bd[eao]s[oa]t[oa]\b/,                 // "desoto" with misspellings
+    /\bthe\s*d[eao]s[oa]t[oa]\s*gr[oa]up\b/, // "the desoto group" with misspellings
+    /\bd[eao]s[oa]t[oa]\s*gr[oa]up\b/,      // "desoto group" with misspellings
+    /\bf[ae]irw[ae]y\s*[eao]l[eao]ctr[ie]c\b/, // "fairway electric" with misspellings
+    /\bf[ae]irw[ae]y\b/,                    // "fairway" with misspellings
+    /\bs[eao]rv[ie]c[eao]\s*[eao]l[eao]ctr[ie]c\b/, // "service electric" with misspellings
+    /\b[eao]l[eao]ctr[ae]\s*gr[ie]d\b/,     // "electra grid" with misspellings
+    /\b[eao]l[eao]ctr[ae]\s*gr[ie]d\s*s[oa]l[uo]t[ie][oa]ns\b/, // "electra grid solutions" with misspellings
+    /\bf[ae]ith\s*[eao]l[eao]ctr[ie]c\b/,   // "faith electric" with misspellings
     // Slash combinations with GA Power
-    /\bfairway\s*\/\s*(ga\s*power|georgia\s*power)\b/i,     // "fairway/ga power"
-    /\bfairway\s*electric\s*\/\s*(ga\s*power|georgia\s*power)\b/i, // "fairway electric/ga power"
-    /\bfaith\s*electric\s*\/\s*(ga\s*power|georgia\s*power)\b/i,  // "faith electric/ga power"
-    /\bservice\s*electric\s*\/\s*(ga\s*power|georgia\s*power)\b/i, // "service electric/ga power"
-    /\bdesoto\s*\/\s*(ga\s*power|georgia\s*power)\b/i,      // "desoto/ga power"
-    /\belectra\s*grid\s*\/\s*(ga\s*power|georgia\s*power)\b/i, // "electra grid/ga power"
+    /\bf[ae]irw[ae]y\s*\/\s*(g[ae]\s*p[ow]w[eao]r|g[eao]org[ie]a\s*p[ow]w[eao]r)\b/i,
+    /\bf[ae]irw[ae]y\s*[eao]l[eao]ctr[ie]c\s*\/\s*(g[ae]\s*p[ow]w[eao]r|g[eao]org[ie]a\s*p[ow]w[eao]r)\b/i,
+    /\bf[ae]ith\s*[eao]l[eao]ctr[ie]c\s*\/\s*(g[ae]\s*p[ow]w[eao]r|g[eao]org[ie]a\s*p[ow]w[eao]r)\b/i,
+    /\bs[eao]rv[ie]c[eao]\s*[eao]l[eao]ctr[ie]c\s*\/\s*(g[ae]\s*p[ow]w[eao]r|g[eao]org[ie]a\s*p[ow]w[eao]r)\b/i,
+    /\bd[eao]s[oa]t[oa]\s*\/\s*(g[ae]\s*p[ow]w[eao]r|g[eao]org[ie]a\s*p[ow]w[eao]r)\b/i,
+    /\b[eao]l[eao]ctr[ae]\s*gr[ie]d\s*\/\s*(g[ae]\s*p[ow]w[eao]r|g[eao]org[ie]a\s*p[ow]w[eao]r)\b/i,
   ];
 
   return patterns.some((rx) => rx.test(s));
