@@ -737,6 +737,21 @@ setTimeout(checkAllFieldsFilled, 0);
       <p className="helper-note">
         You’ve selected Georgia Power. Please choose the TA number instead of flaggers.
       </p>
+      <div className="ta-gallery">
+        <figure className="ta-card">
+          <img className="ta-img" src={images["../assets/buffer and tapers/ta-10.jpg"].default} alt="TA-10" />
+          <figcaption>TA-10</figcaption>
+        </figure>
+        <figure className="ta-card">
+          <img className="ta-img" src={images["../assets/buffer and tapers/ta-33.jpg"].default} alt="TA-33" />
+          <figcaption>TA-33</figcaption>
+        </figure>
+        <figure className="ta-card">
+          <img className="ta-img" src={images["../assets/buffer and tapers/ta-37.jpg"].default} alt="TA-37" />
+          <figcaption>TA-37</figcaption>
+        </figure>
+      </div>
+      
       <label className="checkbox-option">
         <input
           type="checkbox"
@@ -771,21 +786,6 @@ setTimeout(checkAllFieldsFilled, 0);
 
         </div>
       )}
-
-      <div className="ta-gallery">
-        <figure className="ta-card">
-          <img className="ta-img" src={images["../assets/buffer and tapers/ta-10.jpg"].default} alt="TA-10" />
-          <figcaption>TA-10</figcaption>
-        </figure>
-        <figure className="ta-card">
-          <img className="ta-img" src={images["../assets/buffer and tapers/ta-33.jpg"].default} alt="TA-33" />
-          <figcaption>TA-33</figcaption>
-        </figure>
-        <figure className="ta-card">
-          <img className="ta-img" src={images["../assets/buffer and tapers/ta-37.jpg"].default} alt="TA-37" />
-          <figcaption>TA-37</figcaption>
-        </figure>
-      </div>
     </div>
   </>
 )}
@@ -1151,4 +1151,3 @@ setFormData({
         </div>
     )
 };
-
