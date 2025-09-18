@@ -572,7 +572,7 @@ border-radius: 5px;
 .ta-card figcaption {
   padding: 8px 10px;
   text-align: center;
-  font-size: 0.9rem;
+  font-size: 1.5rem;
   color: #374151;
   background: #f9fafb;
   border-top: 1px solid #f1f5f9;
@@ -850,3 +850,4 @@ border-radius: 5px;
   line-height: 1.4rem;
 }
 }
+
