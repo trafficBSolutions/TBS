@@ -741,14 +741,53 @@ setTimeout(checkAllFieldsFilled, 0);
         <figure className="ta-card">
           <img className="ta-img" src={images["../assets/buffer and tapers/ta-10.jpg"].default} alt="TA-10" />
           <figcaption>TA-10</figcaption>
+          <label className={`radio-pill ${formData.flagger === 'TA-10' ? 'selected' : ''}`}>
+            <input
+              type="radio"
+              name="gaTa"
+              value="TA-10"
+              checked={formData.flagger === 'TA-10'}
+              onChange={(e) => {
+                setFormData({ ...formData, flagger: e.target.value });
+                setErrors((p) => ({ ...p, flagger: '' }));
+              }}
+            />
+            TA-10
+          </label>
         </figure>
         <figure className="ta-card">
           <img className="ta-img" src={images["../assets/buffer and tapers/ta-33.jpg"].default} alt="TA-33" />
           <figcaption>TA-33</figcaption>
+          <label className={`radio-pill ${formData.flagger === 'TA-33' ? 'selected' : ''}`}>
+            <input
+              type="radio"
+              name="gaTa"
+              value="TA-33"
+              checked={formData.flagger === 'TA-33'}
+              onChange={(e) => {
+                setFormData({ ...formData, flagger: e.target.value });
+                setErrors((p) => ({ ...p, flagger: '' }));
+              }}
+            />
+            TA-33
+          </label>
         </figure>
         <figure className="ta-card">
           <img className="ta-img" src={images["../assets/buffer and tapers/ta-37.jpg"].default} alt="TA-37" />
           <figcaption>TA-37</figcaption>
+          <label className={`radio-pill ${formData.flagger === 'TA-37' ? 'selected' : ''}`}>
+            <input
+              type="radio"
+              name="gaTa"
+              value="TA-37"
+              checked={formData.flagger === 'TA-37'}
+              onChange={(e) => {
+                setFormData({ ...formData, flagger: e.target.value });
+                setErrors((p) => ({ ...p, flagger: '' }));
+              }}
+            />
+            TA-37
+          </label>
         </figure>
       </div>
       
