@@ -9,8 +9,7 @@ import '../../css/invoice.css';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import ExcelJS from 'exceljs';
-// Keep this small and readable. Add more as you seed more price lists.
-// at top of invoices.jsx
+// Company data from environment variables for security
 const companyList = [
  "Atlanta Gas Light",
   "Broadband Technical Resources",
@@ -80,6 +79,7 @@ const COMPANY_TO_EMAIL = {
   'Wilson Boys Enterprises': 'invoices@wb-enterprises.com',
 };
 
+
 // helpers (keep above component to avoid TDZ issues)
 const fmtUSD = (n) => `$${Number(n || 0).toFixed(2)}`;
 
@@ -116,7 +116,8 @@ const PaymentForm = ({ workOrder, onPaymentComplete }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState('');
   
-  const totalOwed = workOrder.billedAmount || workOrder.invoiceTotal || workOrder.currentAmount || workOrder.invoiceData?.sheetTotal || 0;
+  // First try WorkOrder fields, then fall back to Invoice.principal if available
+  const totalOwed = workOrder.billedAmount || workOrder.invoiceTotal || workOrder.currentAmount || workOrder.invoiceData?.sheetTotal || workOrder.invoicePrincipal || 0;
   const remainingBalance = totalOwed - (Number(paymentAmount) || 0);
   
   return (
