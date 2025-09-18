@@ -322,6 +322,22 @@ const isGeorgiaPower = (str) => {
     /\bga\s*power\b/,                      // "ga power"
     /\bga\s*power\s*co(mpany)?\b/,         // "ga power company"
     /\bgpc\b/,                             // "gpc"
+    /\bdesoto\b/,                          // "desoto"
+    /\bthe\s*desoto\s*group\b/,            // "the desoto group"
+    /\bdesoto\s*group\b/,                  // "desoto group"
+    /\bfairway\s*electric\b/,              // "fairway electric"
+    /\bfairway\b/,                         // "fairway"
+    /\bservice\s*electric\b/,              // "service electric"
+    /\belectra\s*grid\b/,                  // "electra grid"
+    /\belectra\s*grid\s*solutions\b/,      // "electra grid solutions"
+    /\bfaith\s*electric\b/,               // "faith electric"
+    // Slash combinations with GA Power
+    /\bfairway\s*\/\s*(ga\s*power|georgia\s*power)\b/i,     // "fairway/ga power"
+    /\bfairway\s*electric\s*\/\s*(ga\s*power|georgia\s*power)\b/i, // "fairway electric/ga power"
+    /\bfaith\s*electric\s*\/\s*(ga\s*power|georgia\s*power)\b/i,  // "faith electric/ga power"
+    /\bservice\s*electric\s*\/\s*(ga\s*power|georgia\s*power)\b/i, // "service electric/ga power"
+    /\bdesoto\s*\/\s*(ga\s*power|georgia\s*power)\b/i,      // "desoto/ga power"
+    /\belectra\s*grid\s*\/\s*(ga\s*power|georgia\s*power)\b/i, // "electra grid/ga power"
   ];
 
   return patterns.some((rx) => rx.test(s));
