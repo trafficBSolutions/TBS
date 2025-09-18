@@ -328,6 +328,7 @@ const isGeorgiaPower = (str) => {
     /\bs[eao]rv[ie]c[eao]\s*[eao]l[eao]ctr[ie]c\b/, // "service electric" with misspellings
     /\b[eao]l[eao]ctr[ae]\s*gr[ie]d\b/,     // "electra grid" with misspellings
     /\b[eao]l[eao]ctr[ae]\s*gr[ie]d\s*s[oa]l[uo]t[ie][oa]ns\b/, // "electra grid solutions" with misspellings
+    /\b[eao]l[eao]ctr[ae]\b/,               // "electra" with misspellings
     /\bf[ae]ith\s*[eao]l[eao]ctr[ie]c\b/,   // "faith electric" with misspellings
     /\b[eao]l[eao]ctr[ie]c\b/,              // "electric" with misspellings
     /\bf[ae]ith\b/,                         // "faith" with misspellings
