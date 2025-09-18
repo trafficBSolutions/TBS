@@ -315,6 +315,7 @@ const [planEmail, setPlanEmail] = useState('');
 const [planReadyToSend, setPlanReadyToSend] = useState(false);
 // Bill To form state
 const [billToCompany, setBillToCompany] = useState('');
+const [customCompanyName, setCustomCompanyName] = useState('');
 const [billToAddress, setBillToAddress] = useState('');
 const [workType, setWorkType] = useState('');
 const [foreman, setForeman] = useState('');
@@ -919,7 +920,7 @@ const fetchJobsForDay = async (date, companyName) => {
         workRequestNumber1,
         workRequestNumber2,
         dueDate,
-        billToCompany,
+        billToCompany: billToCompany === "Other(Specify if new in message to add to this list)" ? customCompanyName : billToCompany,
         billToAddress,
         workType,
         foreman,
@@ -1096,24 +1097,12 @@ const fetchJobsForDay = async (date, companyName) => {
 onClick={() => {
   setBillingJob(workOrder);
   
-  const normalizeCompany = (name) => name?.replace(/\s+(LLC|Inc\.?|Corporation|Corp\.?)\s*$/i, '').trim();
-  const clientName = workOrder.basic?.client;
-  const normalizedClient = normalizeCompany(clientName);
-  
-  // Find billing address by exact match or normalized match
-  const billingAddress = BILLING_ADDRESSES[clientName] || 
-    Object.entries(BILLING_ADDRESSES).find(([key]) => normalizeCompany(key) === normalizedClient)?.[1] || '';
-  
   if (savedInvoices[workOrder._id]) {
     loadSavedInvoice(workOrder._id);
-    // Only set billing address if it's empty in saved data
-    if (!savedInvoices[workOrder._id].billToAddress) {
-      setBillToAddress(billingAddress);
-    }
   } else {
-    setSelectedEmail(COMPANY_TO_EMAIL[clientName] || workOrder.basic?.email || '');
-    setBillToCompany(clientName || '');
-    setBillToAddress(billingAddress);
+    setSelectedEmail(workOrder.basic?.email || '');
+    setBillToCompany('');
+    setBillToAddress('');
     setWorkType('');
     setForeman(workOrder.basic?.foremanName || '');
     setLocation([workOrder.basic?.address, workOrder.basic?.city, workOrder.basic?.state, workOrder.basic?.zip].filter(Boolean).join(', '));
@@ -1275,12 +1264,46 @@ onClick={() => {
   <div className="v42-bar">BILL TO</div>
   <div className="v42-billto">
     <div className="v42-billto-left">
-      <input
+      <select
         className="v42-billto-line"
         value={billToCompany}
-        onChange={(e) => setBillToCompany(e.target.value)}
-        placeholder="Company name"
-      />
+        onChange={(e) => {
+          const selectedCompany = e.target.value;
+          setBillToCompany(selectedCompany);
+          
+          if (selectedCompany !== "Other(Specify if new in message to add to this list)") {
+            // Auto-fill billing address and email for predefined companies
+            const normalizeCompany = (name) => name?.replace(/\s+(LLC|Inc\.?|Corporation|Corp\.?)\s*$/i, '').trim();
+            const normalizedSelected = normalizeCompany(selectedCompany);
+            
+            const billingAddress = BILLING_ADDRESSES[selectedCompany] || 
+              Object.entries(BILLING_ADDRESSES).find(([key]) => normalizeCompany(key) === normalizedSelected)?.[1] || '';
+            
+            setBillToAddress(billingAddress);
+            
+            const email = COMPANY_TO_EMAIL[selectedCompany] || selectedEmail;
+            setSelectedEmail(email);
+            setCustomCompanyName('');
+          } else {
+            // Clear fields for "Other" selection
+            setBillToAddress('');
+            setCustomCompanyName('');
+          }
+        }}
+      >
+        <option value="">Select Company</option>
+        {companyList.map((company) => (
+          <option key={company} value={company}>{company}</option>
+        ))}
+      </select>
+      {billToCompany === "Other(Specify if new in message to add to this list)" && (
+        <input
+          className="v42-billto-line"
+          value={customCompanyName}
+          onChange={(e) => setCustomCompanyName(e.target.value)}
+          placeholder="Enter company name"
+        />
+      )}
       <input
         className="v42-billto-line"
         value={billToAddress}
