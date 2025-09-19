@@ -2,13 +2,14 @@ import '../css/trafficcontrol.css'
 import '../css/header.css'
 import '../css/footer.css'
 import images  from '../utils/tbsImages';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import DatePicker from 'react-datepicker';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import 'react-datepicker/dist/react-datepicker.css';
 import Header from '../components/headerviews/HeaderDropControl'
+import ReCAPTCHA from 'react-google-recaptcha';
 const states = [
   { abbreviation: 'AL', name: 'Alabama' },
   { abbreviation: 'FL', name: 'Florida' },
@@ -96,6 +97,9 @@ const [isEmergencyJob, setIsEmergencyJob] = useState(false);
   const [errors, setErrors] = useState({});
   const [submissionMessage, setSubmissionMessage] = useState('');
   const [submissionErrorMessage, setSubmissionErrorMessage] = useState('');
+  const recaptchaRef = useRef(null);
+  const [recaptchaToken, setRecaptchaToken] = useState('');
+  const recaptchaWrapRef = useRef(null);
   const getNowInEST = () => {
   return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
 };
@@ -403,13 +407,19 @@ const isCompanySelected = (formData.company || '').trim().length > 0;
     if (formData.equipment.length === 0) {
       newErrors.equipment = 'Please select at least one piece of equipment.';
     }
-if (Object.keys(newErrors).length > 0) {
-  setErrorMessage('Required fields are missing.');
-  setErrors(newErrors);
-  return;
-} else {
-  setErrorMessage(''); // ✅ Clear general error if all fields are now valid
-}
+// Check reCAPTCHA
+    if (!recaptchaToken) {
+      newErrors.recaptcha = 'Please complete the reCAPTCHA.';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrorMessage('Required fields are missing.');
+      setErrors(newErrors);
+      if (newErrors.recaptcha) {
+        recaptchaWrapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
 
     if (!termsAccepted) {
       setErrors((prevErrors) => ({
@@ -419,7 +429,7 @@ if (Object.keys(newErrors).length > 0) {
       setErrorMessage('You must accept the terms and conditions.');
       setIsSubmitting(false);
       return;
-    }     
+    } 
   setIsSubmitting(true);
       const response = await axios.post('/trafficcontrol', formData, {
         headers: {
@@ -450,6 +460,9 @@ if (Object.keys(newErrors).length > 0) {
 
       setErrors({});
       setPhone('');
+      setRecaptchaToken('');
+      setTermsAccepted(false);
+      recaptchaRef.current?.reset();
       setSubmissionMessage(
         '✅ Your job has been submitted! A confirmation email has been sent. You can cancel your job anytime using the cancellation link in that email. We’ll take it from here!'
       );}
@@ -886,29 +899,7 @@ Barricades
   </label>
   {errors.equipment && <div className="error-message">{errors.equipment}</div>}
 </div>
-<div className="terms-checkbox">
-  <label className="terms-label">Terms & Conditions *</label>
-  <input
-    type="checkbox"
-    id="terms"
-    checked={termsAccepted}
-    onChange={(e) => {
-      const checked = e.target.checked;
-      setTermsAccepted(checked);
-      setFormData((prev) => ({ ...prev, terms: checked }));
-      if (checked) {
-        setErrors((prevErrors) => ({ ...prevErrors, terms: '' }));
-      }
-      setTimeout(checkAllFieldsFilled, 0);
-    }}
-  />
-  <p className="terms-text">
-    <strong>PLEASE READ AND CHECK: </strong>
-    By scheduling this job, you agree to pay once job is complete. 
-  </p>
-  
-</div>
-{errors.terms && <div className="error-message">{errors.terms}</div>}
+
 <label className="addr-control-label">Job Site Address *</label>
 <p className="address-note"><b>NOTE: </b>Enter a valid street address without punctuation (no commas, periods, slashes, or symbols). </p>
 <p className="example-note"><b>For Example: </b>(123 Main St SE) (123 N Main St) (10 US Hwy 41) or (4 Town And Country Dr)</p>
@@ -1022,7 +1013,53 @@ setTimeout(checkAllFieldsFilled, 0);
 />
 
   {errors.message && <span className="error-message">{errors.message}</span>}
+  <div className="terms-checkbox">
+  <label className="terms-label">Terms & Conditions *</label>
+  <input
+    type="checkbox"
+    id="terms"
+    checked={termsAccepted}
+    onChange={(e) => {
+      const checked = e.target.checked;
+      setTermsAccepted(checked);
+      setFormData((prev) => ({ ...prev, terms: checked }));
+      if (checked) {
+        setErrors((prevErrors) => ({ ...prevErrors, terms: '' }));
+      }
+      setTimeout(checkAllFieldsFilled, 0);
+    }}
+  />
+  <p className="terms-text">
+    <strong>PLEASE READ AND CHECK: </strong>
+    By scheduling this job, you agree to pay once job is complete. 
+  </p>
   
+</div>
+{errors.terms && <div className="error-message">{errors.terms}</div>}
+
+<div
+  ref={recaptchaWrapRef}
+  className={`recaptcha-wrap ${errors.recaptcha ? 'has-error' : ''}`}
+  style={{ marginTop: '12px' }}
+>
+  <ReCAPTCHA
+    ref={recaptchaRef}
+    sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+    onChange={(token) => {
+      setRecaptchaToken(token || '');
+      if (token) setErrors((prev) => ({ ...prev, recaptcha: '' }));
+    }}
+    onExpired={() => {
+      setRecaptchaToken('');
+      setErrors((prev) => ({ ...prev, recaptcha: 'Please complete the reCAPTCHA.' }));
+    }}
+    onErrored={() => {
+      setRecaptchaToken('');
+      setErrors((prev) => ({ ...prev, recaptcha: 'reCAPTCHA failed to load. Please try again.' }));
+    }}
+  />
+</div>
+{errors.recaptcha && <div className="error-message">{errors.recaptcha}</div>}
   </div>
   <div className="submit-button-wrapper">
   <button
