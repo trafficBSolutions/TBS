@@ -74,7 +74,7 @@ const handleFileRemove = (fileType) => {
     e.preventDefault();
 
     const requiredFields = ['name', 'email', 'phone', 'company', 'project', 'address', 'city', 
-    'state', 'zip', 'structure', 'message', 'terms'];
+    'state', 'zip', 'structure', 'message'];
     const newErrors = {};
 
     requiredFields.forEach(field => {
@@ -90,27 +90,28 @@ const handleFileRemove = (fileType) => {
         if (field ==='state') fieldLabel = 'State';
         if (field === 'zip') fieldLabel = 'Zip Code';
         if (field === 'structure') fieldLabel = 'Structure File';
-        if (field === 'terms') fieldLabel = 'Terms & Conditions';
         newErrors[field] = `${fieldLabel} is required!`;
       }
     });
-    let hasError = false;
+
+    // Check terms separately
+    if (!termsAccepted) {
+      newErrors.terms = 'Terms & Conditions must be accepted!';
+    }
+
+    // Check reCAPTCHA
+    if (!recaptchaToken) {
+      newErrors.recaptcha = 'Please complete the reCAPTCHA.';
+    }
+
     if (Object.keys(newErrors).length > 0) {
-      setErrorMessage('Required fields are missing.'); // Set the general error message
+      setErrorMessage('Required fields are missing.');
       setErrors(newErrors);
+      if (newErrors.recaptcha) {
+        recaptchaWrapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
       return;
     }
-   // ✅ Check if structure file is uploaded
-   if (!formData.structure) {
-    newErrors.structure = "Structure File is required.";
-    hasError = true;
-}
-console.log('reCAPTCHA token:', recaptchaToken);
-if (!recaptchaToken) {
-  setErrors((prev) => ({ ...prev, recaptcha: 'Please complete the reCAPTCHA.' }));
-  recaptchaWrapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  return;
-}
 
 
   try {
@@ -148,7 +149,8 @@ if (!recaptchaToken) {
     setErrors({});
     setPhone('');
     setRecaptchaToken('');
-    recaptchaRef.current?.reset(); // reset widget
+    setTermsAccepted(false);
+    recaptchaRef.current?.reset();
 
     toast.success('✅ Job submitted! Check your email for confirmation.');
     setSubmissionMessage(
