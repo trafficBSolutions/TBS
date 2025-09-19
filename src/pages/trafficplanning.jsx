@@ -1,7 +1,7 @@
 import '../css/trafficplan.css'
 import '../css/header.css'
 import '../css/footer.css'
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import MapPlanComponent from '../components/MapComponentPlan';
 import { ToastContainer, toast } from 'react-toastify';
