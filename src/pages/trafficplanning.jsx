@@ -1,12 +1,13 @@
 import '../css/trafficplan.css'
 import '../css/header.css'
 import '../css/footer.css'
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import MapPlanComponent from '../components/MapComponentPlan';
 import { ToastContainer, toast } from 'react-toastify';
 import images from '../utils/tbsImages';
 import Header from '../components/headerviews/HeaderDropPlan'
+import ReCAPTCHA from 'react-google-recaptcha';
 const states = [
   { abbreviation: 'AL', name: 'Alabama' },
   { abbreviation: 'FL', name: 'Florida' },
@@ -38,7 +39,11 @@ export default function TrafficPlan() {
     message: ''
   });
   const [errors, setErrors] = useState({});
+  const recaptchaRef = useRef(null);
+  const [recaptchaToken, setRecaptchaToken] = useState('');
   const [submissionMessage, setSubmissionMessage] = useState('');
+  const recaptchaWrapRef = useRef(null); 
+
   const [submissionErrorMessage, setSubmissionErrorMessage] = useState('');
 
   const handlePhoneChange = (event) => {
@@ -100,46 +105,63 @@ const handleFileRemove = (fileType) => {
     newErrors.structure = "Structure File is required.";
     hasError = true;
 }
-    try {
-      const formDataToSend = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-        if (value !== null && typeof value !== 'undefined') {
-          formDataToSend.append(key, value);
-        }
-      });
+if (!recaptchaToken) {
+  setErrors((prev) => ({ ...prev, recaptcha: 'Please complete the reCAPTCHA.' }));
+  // Scroll into view so the user sees what to fix
+  recaptchaWrapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  return;
+}
 
-      const response = await axios.post('/trafficplanning', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      console.log(response.data);
-      setSubmissionErrorMessage(response.data.message);
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        company: '',
-        project: '',
-        address: '',
-        city: '',
-        state: '',
-        zip: '',
-        structure: '',
-        message: ''
-      });
 
-      setErrors({});
-      setPhone('');
-      toast.success('✅ Job submitted! Check your email for confirmation.');
-      setSubmissionMessage(
-        '✅ Your plan has been submitted! A confirmation email has been sent. We’ll take it from here!'
-      );
-    } catch (error) {
-      console.error('Error submitting traffic control plan:', error);
-    }
-  };
-  
+  try {
+    const formDataToSend = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value !== null && typeof value !== 'undefined') {
+        formDataToSend.append(key, value);
+      }
+    });
+    // Include the recaptcha token
+    formDataToSend.append('recaptchaToken', recaptchaToken);
+
+    // ✅ Send the FormData (not the plain object)
+    const response = await axios.post('/trafficplanning', formDataToSend, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+
+    console.log(response.data);
+    setSubmissionErrorMessage(response.data.message);
+
+    // clear form
+    setFormData({
+      name: '',
+      email: '',
+      phone: '',
+      company: '',
+      project: '',
+      address: '',
+      city: '',
+      state: '',
+      zip: '',
+      structure: '',
+      message: ''
+    });
+    setErrors({});
+    setPhone('');
+    setRecaptchaToken('');
+    recaptchaRef.current?.reset(); // reset widget
+
+    toast.success('✅ Job submitted! Check your email for confirmation.');
+    setSubmissionMessage(
+      '✅ Your plan has been submitted! A confirmation email has been sent. We’ll take it from here!'
+    );
+  } catch (error) {
+    console.error('Error submitting traffic control plan:', error);
+    toast.error('Submission failed. Please try again.');
+    // consider resetting token on failure too
+    setRecaptchaToken('');
+    recaptchaRef.current?.reset();
+  }
+};
     return (
         <div>
           <Header />
@@ -457,23 +479,48 @@ Together, we can create safer roads, smoother traffic flow, and more resilient c
     <strong>PLEASE READ AND CHECK:</strong>
     By planning your job, you agree to pay once plan is complete. 
   </p>
-  
+  {errors.terms && <div className="error-message">{errors.terms}</div>}
+<div
+  ref={recaptchaWrapRef}
+  className={`recaptcha-wrap ${errors.recaptcha ? 'has-error' : ''}`}
+  style={{ marginTop: '12px' }}
+>
+  <ReCAPTCHA
+    ref={recaptchaRef}
+    sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+    onChange={(token) => {
+      setRecaptchaToken(token || '');
+      if (token) setErrors((prev) => ({ ...prev, recaptcha: '' })); // clear error
+    }}
+    onExpired={() => {
+      setRecaptchaToken('');
+      setErrors((prev) => ({ ...prev, recaptcha: 'Please complete the reCAPTCHA.' })); // show error on expire
+    }}
+    onErrored={() => {
+      setRecaptchaToken('');
+      setErrors((prev) => ({ ...prev, recaptcha: 'reCAPTCHA failed to load. Please try again.' }));
+    }}
+  />
 </div>
-{errors.terms && <div className="error-message">{errors.terms}</div>}
+{errors.recaptcha && <div className="error-message">{errors.recaptcha}</div>}
+
+
+</div>
               </div>
-              <button
-    type="submit"
-    className="btn btn--full submit-plan"
-    disabled={isSubmitting}
-  >
-    {isSubmitting ? (
-      <div className="spinner-button">
-        <span className="spinner"></span> Submitting...
-      </div>
-    ) : (
-      'SUBMIT TRAFFIC CONTROL PLAN'
-    )}
-  </button>
+<button
+  type="submit"
+  className="btn btn--full submit-plan"
+  disabled={isSubmitting} // <- optional
+>
+  {isSubmitting ? (
+    <div className="spinner-button">
+      <span className="spinner"></span> Submitting...
+    </div>
+  ) : (
+    'SUBMIT TRAFFIC CONTROL PLAN'
+  )}
+</button>
+
   {/* Toast-like message */}
   {submissionMessage && (
     <div className="custom-toast success">{submissionMessage}</div>
