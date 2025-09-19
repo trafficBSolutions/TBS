@@ -72,6 +72,15 @@ const [isEmergencyJob, setIsEmergencyJob] = useState(false);
   const [coordinator, setCoordinator] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [fullDates, setFullDates] = useState([]);
+  const [recaptchaSize, setRecaptchaSize] = useState('normal');
+
+useEffect(() => {
+  const mq = window.matchMedia('(min-width: 320px) and (max-width: 640px) and (orientation: portrait)');
+  const update = () => setRecaptchaSize(mq.matches ? 'compact' : 'normal');
+  update();
+  mq.addEventListener?.('change', update);
+  return () => mq.removeEventListener?.('change', update);
+}, []);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -1045,6 +1054,7 @@ setTimeout(checkAllFieldsFilled, 0);
   <ReCAPTCHA
     ref={recaptchaRef}
     sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+    size={recaptchaSize}  
     onChange={(token) => {
       setRecaptchaToken(token || '');
       if (token) setErrors((prev) => ({ ...prev, recaptcha: '' }));
