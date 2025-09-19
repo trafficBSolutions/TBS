@@ -416,8 +416,8 @@ const isCompanySelected = (formData.company || '').trim().length > 0;
     if (formData.equipment.length === 0) {
       newErrors.equipment = 'Please select at least one piece of equipment.';
     }
-// Check reCAPTCHA
-    if (!recaptchaToken) {
+// Check reCAPTCHA (allow bypass if service fails)
+    if (!recaptchaToken && recaptchaToken !== 'bypass') {
       newErrors.recaptcha = 'Please complete the reCAPTCHA.';
     }
 
@@ -1064,8 +1064,9 @@ setTimeout(checkAllFieldsFilled, 0);
       setErrors((prev) => ({ ...prev, recaptcha: 'Please complete the reCAPTCHA.' }));
     }}
     onErrored={() => {
-      setRecaptchaToken('');
-      setErrors((prev) => ({ ...prev, recaptcha: 'reCAPTCHA failed to load. Please try again.' }));
+      console.warn('reCAPTCHA error - continuing without verification');
+      setRecaptchaToken('bypass');
+      setErrors((prev) => ({ ...prev, recaptcha: '' }));
     }}
   />
 </div>
