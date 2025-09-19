@@ -572,7 +572,7 @@ border-radius: 5px;
 .ta-card figcaption {
   padding: 8px 10px;
   text-align: center;
-  font-size: 1.5rem;
+  font-size: 0.9rem;
   color: #374151;
   background: #f9fafb;
   border-top: 1px solid #f1f5f9;
@@ -728,6 +728,24 @@ border-radius: 5px;
   .terms-text {
     font-size: 1.2rem;
   }
+  
+  .recaptcha-wrap {
+    width: 100%;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .recaptcha-wrap > div {
+    transform: scale(0.77);
+    transform-origin: 0 0;
+    width: 130% !important;
+  }
+  
+  .recaptcha-wrap iframe {
+    max-width: 100% !important;
+    width: 304px !important;
+  }
 }
 
 @media screen and (max-width: 320px) and (orientation: landscape) {
@@ -850,4 +868,3 @@ border-radius: 5px;
   line-height: 1.4rem;
 }
 }
-
