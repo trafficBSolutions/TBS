@@ -172,12 +172,8 @@ const PaymentForm = ({ workOrder, onPaymentComplete }) => {
           
           <div style={{marginBottom: '8px'}}>
             <label>Payment Amount: </label>
-            <input
-              type="number"
-              step="0.01"
-              placeholder="0.00"
-              value={paymentAmount}
-              onChange={(e) => setPaymentAmount(e.target.value)}
+            <input type="number" step="0.01" min="0" max={totalOwed}
+  value={paymentAmount} onChange={e => setPaymentAmount(e.target.value)} 
               style={{width: '100px', padding: '4px', marginLeft: '5px'}}
             />
           </div>
@@ -773,32 +769,29 @@ const [showPaymentForm, setShowPaymentForm] = useState({});
 
 // Calendar: fetch jobs for month (optionally filtered by company)
 // Calendar: fetch jobs for month (optionally filtered by company)
-const fetchMonthlyJobs = async (date) => {
+const fetchMonthlyJobs = async (date, companyName = '') => {
   try {
     const month = date.getMonth() + 1;
     const year = date.getFullYear();
-    console.log(`Fetching work orders for ${month}/${year}`);
+    const res = await axios.get(`/work-orders/month?month=${month}&year=${year}${companyName ? `&company=${encodeURIComponent(companyName)}` : ''}`);
 
-    const res = await axios.get(`/work-orders/month?month=${month}&year=${year}`);
-    console.log("Work orders received:", res.data);
+    // Option A: filter client-side if the API doesn’t support ?company on that endpoint
+    const filtered = companyName
+      ? res.data.filter(wo => (wo.basic?.client || '').trim() === companyName.trim())
+      : res.data;
 
-    // Group work orders by scheduled date
     const grouped = {};
-
-    res.data.forEach(workOrder => {
-      const dateStr = new Date(workOrder.scheduledDate).toISOString().split('T')[0];
-      if (!grouped[dateStr]) {
-        grouped[dateStr] = [];
-      }
-      grouped[dateStr].push(workOrder);
+    filtered.forEach(wo => {
+      const dateStr = new Date(wo.scheduledDate).toISOString().split('T')[0];
+      (grouped[dateStr] ||= []).push(wo);
     });
-
     setMonthlyJobs(grouped);
     setMonthlyKey(prev => prev + 1);
   } catch (err) {
     console.error("Failed to fetch monthly work orders:", err);
   }
 };
+
 useEffect(() => {
   fetchMonthlyJobs(new Date()); // 👈 Fetch initial calendar jobs on mount
 }, []);
