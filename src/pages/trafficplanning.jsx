@@ -105,9 +105,9 @@ const handleFileRemove = (fileType) => {
     newErrors.structure = "Structure File is required.";
     hasError = true;
 }
+console.log('reCAPTCHA token:', recaptchaToken);
 if (!recaptchaToken) {
   setErrors((prev) => ({ ...prev, recaptcha: 'Please complete the reCAPTCHA.' }));
-  // Scroll into view so the user sees what to fix
   recaptchaWrapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   return;
 }
@@ -489,8 +489,9 @@ Together, we can create safer roads, smoother traffic flow, and more resilient c
     ref={recaptchaRef}
     sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
     onChange={(token) => {
+      console.log('reCAPTCHA onChange:', token);
       setRecaptchaToken(token || '');
-      if (token) setErrors((prev) => ({ ...prev, recaptcha: '' })); // clear error
+      if (token) setErrors((prev) => ({ ...prev, recaptcha: '' }));
     }}
     onExpired={() => {
       setRecaptchaToken('');
