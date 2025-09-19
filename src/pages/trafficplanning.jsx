@@ -25,6 +25,15 @@ export default function TrafficPlan() {
   const [errorMessage, setErrorMessage] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
+  const [recaptchaSize, setRecaptchaSize] = useState('normal');
+  
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 320px) and (max-width: 640px) and (orientation: portrait)');
+    const update = () => setRecaptchaSize(mq.matches ? 'compact' : 'normal');
+    update();
+    mq.addEventListener?.('change', update);
+    return () => mq.removeEventListener?.('change', update);
+  }, []);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -489,6 +498,7 @@ Together, we can create safer roads, smoother traffic flow, and more resilient c
 >
   <ReCAPTCHA
     ref={recaptchaRef}
+    size={recaptchaSize}  
     sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
     onChange={(token) => {
       console.log('reCAPTCHA onChange:', token);
