@@ -57,7 +57,7 @@ const timeOptions = [
 const flaggerCount = [
   "2 Flaggers", "3 Flaggers", "4 Flaggers", "5 Flaggers", "6 Flaggers"
 ]
-const flaggerGACount = [1, 2, 3, 4, 5, 6];
+const flaggerGACount = [1];
 export default function TrafficControl() {
   const [phone, setPhone] = useState('');
   const [jobDates, setJobDates] = useState([]);
@@ -1224,3 +1224,4 @@ setFormData({
         </div>
     )
 };
+
