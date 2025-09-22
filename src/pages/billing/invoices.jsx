@@ -115,9 +115,10 @@ const PaymentForm = ({ workOrder, onPaymentComplete }) => {
   const [email, setEmail] = useState(workOrder.invoiceData?.selectedEmail || workOrder.basic?.email || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState('');
+  const [totalOwedInput, setTotalOwedInput] = useState('');
   
-  // First try WorkOrder fields, then fall back to Invoice.principal if available
-  const totalOwed = workOrder.billedAmount || workOrder.invoiceTotal || workOrder.currentAmount || workOrder.invoiceData?.sheetTotal || workOrder.invoicePrincipal || 0;
+  // Use manual input if provided, otherwise fall back to stored values
+  const totalOwed = Number(totalOwedInput) || workOrder.billedAmount || workOrder.invoiceTotal || workOrder.currentAmount || workOrder.invoiceData?.sheetTotal || workOrder.invoicePrincipal || 0;
   const remainingBalance = totalOwed - (Number(paymentAmount) || 0);
   
   return (
@@ -171,9 +172,18 @@ const PaymentForm = ({ workOrder, onPaymentComplete }) => {
           )}
           
           <div style={{marginBottom: '8px'}}>
+            <label>Total Owed: </label>
+            <input type="number" step="0.01" min="0"
+              value={totalOwedInput} onChange={e => setTotalOwedInput(e.target.value)} 
+              placeholder={`${totalOwed.toFixed(2)}`}
+              style={{width: '100px', padding: '4px', marginLeft: '5px'}}
+            />
+          </div>
+          
+          <div style={{marginBottom: '8px'}}>
             <label>Payment Amount: </label>
             <input type="number" step="0.01" min="0" max={totalOwed}
-  value={paymentAmount} onChange={e => setPaymentAmount(e.target.value)} 
+              value={paymentAmount} onChange={e => setPaymentAmount(e.target.value)} 
               style={{width: '100px', padding: '4px', marginLeft: '5px'}}
             />
           </div>
@@ -207,6 +217,7 @@ const PaymentForm = ({ workOrder, onPaymentComplete }) => {
                 paymentMethod,
                 emailOverride: email,
                 paymentAmount: Number(paymentAmount),
+                totalOwed: Number(totalOwedInput) || totalOwed,
                 ...paymentDetails
               }).then(() => {
                 toast.success('Payment recorded and receipt sent!');
