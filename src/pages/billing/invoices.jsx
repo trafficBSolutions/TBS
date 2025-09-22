@@ -116,11 +116,43 @@ const PaymentForm = ({ workOrder, onPaymentComplete }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [totalOwedInput, setTotalOwedInput] = useState('');
+  const [autoSaveTimer, setAutoSaveTimer] = useState(null);
   
   // Use manual input if provided, otherwise use currentAmount (remaining balance) or fall back to stored values
   const totalOwed = Number(totalOwedInput) || workOrder.lastManualTotalOwed || workOrder.billedAmount || workOrder.invoiceTotal || workOrder.invoiceData?.sheetTotal || workOrder.invoicePrincipal || 0;
   const currentBalance = workOrder.currentAmount || totalOwed;
   const remainingBalance = currentBalance - (Number(paymentAmount) || 0);
+  
+  // Auto-save when payment amount changes and remaining balance > 0
+  useEffect(() => {
+    if (paymentAmount && remainingBalance > 0 && email) {
+      if (autoSaveTimer) clearTimeout(autoSaveTimer);
+      
+      const timer = setTimeout(() => {
+        const paymentDetails = paymentMethod === 'card' ? { cardType, cardLast4 } : { checkNumber };
+        
+        api.post('/api/billing/mark-paid', {
+          workOrderId: workOrder._id,
+          paymentMethod,
+          emailOverride: email,
+          paymentAmount: Number(paymentAmount),
+          totalOwed: Number(totalOwedInput) || currentBalance,
+          ...paymentDetails
+        }).then(() => {
+          toast.success('Payment auto-saved!');
+          onPaymentComplete();
+        }).catch(err => {
+          console.error('Auto-save failed:', err);
+        });
+      }, 2000); // Auto-save after 2 seconds of no changes
+      
+      setAutoSaveTimer(timer);
+    }
+    
+    return () => {
+      if (autoSaveTimer) clearTimeout(autoSaveTimer);
+    };
+  }, [paymentAmount, totalOwedInput, paymentMethod, cardType, cardLast4, checkNumber, email]);
   
   return (
     <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
@@ -201,6 +233,9 @@ const PaymentForm = ({ workOrder, onPaymentComplete }) => {
             <div>Original Total: ${totalOwed.toFixed(2)}</div>
             <div>Current Balance: ${currentBalance.toFixed(2)}</div>
             <div>After Payment: ${remainingBalance.toFixed(2)}</div>
+            {paymentAmount && remainingBalance > 0 && (
+              <div style={{color: '#007bff', fontWeight: 'bold'}}>Auto-saving in 2s...</div>
+            )}
           </div>
           
           <div style={{marginBottom: '8px'}}>
