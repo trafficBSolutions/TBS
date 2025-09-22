@@ -117,21 +117,30 @@ const PaymentForm = ({ workOrder, onPaymentComplete }) => {
   const [paymentAmount, setPaymentAmount] = useState('');
   const [totalOwedInput, setTotalOwedInput] = useState('');
   
-  // Use manual input if provided, otherwise fall back to stored values
-  const totalOwed = Number(totalOwedInput) || workOrder.billedAmount || workOrder.invoiceTotal || workOrder.currentAmount || workOrder.invoiceData?.sheetTotal || workOrder.invoicePrincipal || 0;
-  const remainingBalance = totalOwed - (Number(paymentAmount) || 0);
+  // Use manual input if provided, otherwise use currentAmount (remaining balance) or fall back to stored values
+  const totalOwed = Number(totalOwedInput) || workOrder.lastManualTotalOwed || workOrder.billedAmount || workOrder.invoiceTotal || workOrder.invoiceData?.sheetTotal || workOrder.invoicePrincipal || 0;
+  const currentBalance = workOrder.currentAmount || totalOwed;
+  const remainingBalance = currentBalance - (Number(paymentAmount) || 0);
   
   return (
     <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
       <div style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
-        <span className="pill">Billed</span>
-        <button
-          className="btn"
-          style={{backgroundColor: '#28a745', color: 'white', fontSize: '12px', padding: '4px 8px'}}
-          onClick={() => setShowForm(!showForm)}
-        >
-          Mark Paid
-        </button>
+        {workOrder.paid ? (
+          <span className="pill" style={{backgroundColor: '#28a745'}}>Paid</span>
+        ) : workOrder.currentAmount < (workOrder.billedAmount || workOrder.invoiceTotal || 0) ? (
+          <span className="pill" style={{backgroundColor: '#ffc107', color: '#000'}}>Partial</span>
+        ) : (
+          <span className="pill">Billed</span>
+        )}
+        {!workOrder.paid && (
+          <button
+            className="btn"
+            style={{backgroundColor: '#28a745', color: 'white', fontSize: '12px', padding: '4px 8px'}}
+            onClick={() => setShowForm(!showForm)}
+          >
+            {workOrder.currentAmount < (workOrder.billedAmount || workOrder.invoiceTotal || 0) ? 'Add Payment' : 'Mark Paid'}
+          </button>
+        )}
       </div>
       
       {showForm && (
@@ -182,15 +191,16 @@ const PaymentForm = ({ workOrder, onPaymentComplete }) => {
           
           <div style={{marginBottom: '8px'}}>
             <label>Payment Amount: </label>
-            <input type="number" step="0.01" min="0" max={totalOwed}
+            <input type="number" step="0.01" min="0" max={currentBalance}
               value={paymentAmount} onChange={e => setPaymentAmount(e.target.value)} 
               style={{width: '100px', padding: '4px', marginLeft: '5px'}}
             />
           </div>
           
           <div style={{marginBottom: '8px', fontSize: '12px', color: '#666'}}>
-            <div>Total Owed: ${totalOwed.toFixed(2)}</div>
-            <div>Remaining Balance: ${remainingBalance.toFixed(2)}</div>
+            <div>Original Total: ${totalOwed.toFixed(2)}</div>
+            <div>Current Balance: ${currentBalance.toFixed(2)}</div>
+            <div>After Payment: ${remainingBalance.toFixed(2)}</div>
           </div>
           
           <div style={{marginBottom: '8px'}}>
@@ -217,7 +227,7 @@ const PaymentForm = ({ workOrder, onPaymentComplete }) => {
                 paymentMethod,
                 emailOverride: email,
                 paymentAmount: Number(paymentAmount),
-                totalOwed: Number(totalOwedInput) || totalOwed,
+                totalOwed: Number(totalOwedInput) || currentBalance,
                 ...paymentDetails
               }).then(() => {
                 toast.success('Payment recorded and receipt sent!');
@@ -1685,13 +1695,3 @@ onClick={() => {
           {/* ... */}
         </div>
       </footer>
-      <div className="footer-copyright">
-        <p className="footer-copy-p">&copy; 2025 Traffic &amp; Barrier Solutions, LLC - 
-          Website Created &amp; Deployed by <a className="footer-face" href="https://www.facebook.com/will.rowell.779" target="_blank" rel="noopener noreferrer">William Rowell</a> - All Rights Reserved.</p>
-      </div>
-    </div>
-    </div>
-  );
-};
-
-export default Invoice;
