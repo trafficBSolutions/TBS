@@ -288,42 +288,48 @@ useEffect(() => {
             />
           </div>
           
-          <button
-            className="btn btn--primary"
-            style={{fontSize: '12px', padding: '4px 8px', marginRight: '5px'}}
-            disabled={isSubmitting}
-            onClick={() => {
-              setIsSubmitting(true);
-              const paymentDetails = paymentMethod === 'card' 
-                ? { cardType, cardLast4 }
-                : { checkNumber };
-              
-              api.post('/api/billing/mark-paid', {
-                workOrderId: workOrder._id,
-                paymentMethod,
-                emailOverride: email,
-                paymentAmount: Number(paymentAmount),
-                totalOwed: Number(totalOwedInput) || currentBalance,
-                ...paymentDetails
-              }).then(() => {
-                toast.success('Payment recorded and receipt sent!');
-                onPaymentComplete();
-                setShowForm(false);
-              }).catch(err => {
-                toast.error('Failed to record payment: ' + (err.response?.data?.message || err.message));
-              }).finally(() => {
-                setIsSubmitting(false);
-              });
-            }}
-          >
-            {isSubmitting ? (
-              <div className="spinner-button">
-                <span className="spinner" /> Recording...
-              </div>
-            ) : (
-              'Submit'
-            )}
-          </button>
+          {remainingBalance > 0 ? (
+            <div style={{fontSize: '12px', color: '#666', fontStyle: 'italic'}}>
+              Auto-saving partial payments...
+            </div>
+          ) : (
+            <button
+              className="btn btn--primary"
+              style={{fontSize: '12px', padding: '4px 8px', marginRight: '5px'}}
+              disabled={isSubmitting || !paymentAmount}
+              onClick={() => {
+                setIsSubmitting(true);
+                const paymentDetails = paymentMethod === 'card' 
+                  ? { cardType, cardLast4 }
+                  : { checkNumber };
+                
+                api.post('/api/billing/mark-paid', {
+                  workOrderId: workOrder._id,
+                  paymentMethod,
+                  emailOverride: email,
+                  paymentAmount: Number(paymentAmount),
+                  totalOwed: Number(totalOwedInput) || currentBalance,
+                  ...paymentDetails
+                }).then(() => {
+                  toast.success('Payment recorded and receipt sent!');
+                  onPaymentComplete();
+                  setShowForm(false);
+                }).catch(err => {
+                  toast.error('Failed to record payment: ' + (err.response?.data?.message || err.message));
+                }).finally(() => {
+                  setIsSubmitting(false);
+                });
+              }}
+            >
+              {isSubmitting ? (
+                <div className="spinner-button">
+                  <span className="spinner" /> Recording...
+                </div>
+              ) : (
+                'Finish Payment'
+              )}
+            </button>
+          )}
           <button
             className="btn"
             style={{fontSize: '12px', padding: '4px 8px'}}
