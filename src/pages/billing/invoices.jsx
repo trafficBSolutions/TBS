@@ -124,56 +124,96 @@ const PaymentForm = ({ workOrder, onPaymentComplete }) => {
   const remainingBalance = currentBalance - (Number(paymentAmount) || 0);
   
   // Auto-save when payment amount changes and remaining balance > 0
-  useEffect(() => {
-    if (paymentAmount && remainingBalance > 0 && email) {
-      if (autoSaveTimer) clearTimeout(autoSaveTimer);
-      
-      const timer = setTimeout(() => {
-        const paymentDetails = paymentMethod === 'card' ? { cardType, cardLast4 } : { checkNumber };
-        
-        api.post('/api/billing/mark-paid', {
-          workOrderId: workOrder._id,
-          paymentMethod,
-          emailOverride: email,
-          paymentAmount: Number(paymentAmount),
-          totalOwed: Number(totalOwedInput) || currentBalance,
-          ...paymentDetails
-        }).then(() => {
-          toast.success('Payment auto-saved!');
-          onPaymentComplete();
-        }).catch(err => {
-          console.error('Auto-save failed:', err);
-        });
-      }, 2000); // Auto-save after 2 seconds of no changes
-      
-      setAutoSaveTimer(timer);
+// Auto-save partials after 2s; auto-finish immediately at $0.00
+useEffect(() => {
+  if (!paymentAmount || !email) return;
+
+  // Always clear any pending timer
+  if (autoSaveTimer) clearTimeout(autoSaveTimer);
+
+  const doPost = async () => {
+    const paymentDetails =
+      paymentMethod === 'card' ? { cardType, cardLast4 } : { checkNumber };
+
+    try {
+      await api.post('/api/billing/mark-paid', {
+        workOrderId: workOrder._id,
+        paymentMethod,
+        emailOverride: email,
+        paymentAmount: Number(paymentAmount),
+        totalOwed: Number(totalOwedInput) || currentBalance,
+        ...paymentDetails,
+      });
+
+      if (remainingBalance === 0) {
+        toast.success('Paid in full! Receipt sent.');
+        setShowForm(false);
+      } else {
+        toast.success('Payment auto-saved!');
+      }
+      onPaymentComplete();
+    } catch (err) {
+      console.error('Auto-save failed:', err);
     }
-    
-    return () => {
-      if (autoSaveTimer) clearTimeout(autoSaveTimer);
-    };
-  }, [paymentAmount, totalOwedInput, paymentMethod, cardType, cardLast4, checkNumber, email]);
+  };
+
+  if (remainingBalance > 0) {
+    // Debounced auto-save for partials
+    const timer = setTimeout(doPost, 2000);
+    setAutoSaveTimer(timer);
+  } else if (remainingBalance === 0) {
+    // Instant finish when fully paid
+    doPost();
+  }
+
+  return () => {
+    if (autoSaveTimer) clearTimeout(autoSaveTimer);
+  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [
+  paymentAmount,
+  totalOwedInput,
+  paymentMethod,
+  cardType,
+  cardLast4,
+  checkNumber,
+  email,
+]);
+
   
   return (
     <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
-      <div style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
-        {workOrder.paid ? (
-          <span className="pill" style={{backgroundColor: '#28a745'}}>Paid</span>
-        ) : workOrder.currentAmount < (workOrder.billedAmount || workOrder.invoiceTotal || 0) ? (
-          <span className="pill" style={{backgroundColor: '#ffc107', color: '#000'}}>Partial</span>
-        ) : (
-          <span className="pill">Billed</span>
-        )}
-        {!workOrder.paid && (
-          <button
-            className="btn"
-            style={{backgroundColor: '#28a745', color: 'white', fontSize: '12px', padding: '4px 8px'}}
-            onClick={() => setShowForm(!showForm)}
-          >
-            {workOrder.currentAmount < (workOrder.billedAmount || workOrder.invoiceTotal || 0) ? 'Add Payment' : 'Mark Paid'}
-          </button>
-        )}
-      </div>
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+  {workOrder.paid ? (
+    <span className="pill" style={{ backgroundColor: '#28a745' }}>Paid</span>
+  ) : workOrder.currentAmount < (workOrder.billedAmount || workOrder.invoiceTotal || 0) ? (
+    <span className="pill" style={{ backgroundColor: '#ffc107', color: '#000' }}>Partial</span>
+  ) : (
+    <span className="pill">Billed</span>
+  )}
+
+  {!workOrder.paid && (
+    <button
+      className="btn"
+      style={{
+        backgroundColor:
+          workOrder.currentAmount < (workOrder.billedAmount || workOrder.invoiceTotal || 0)
+            ? '#ffc107' // yellow for partials
+            : '#28a745', // green for no payments yet
+        color: workOrder.currentAmount < (workOrder.billedAmount || workOrder.invoiceTotal || 0)
+          ? '#000'
+          : '#fff',
+        fontSize: '12px',
+        padding: '4px 8px',
+      }}
+      onClick={() => setShowForm(!showForm)}
+    >
+      {workOrder.currentAmount < (workOrder.billedAmount || workOrder.invoiceTotal || 0)
+        ? 'Finish Paid'
+        : 'Mark Paid'}
+    </button>
+  )}
+</div>
       
       {showForm && (
         <div style={{padding: '10px', border: '1px solid #ddd', borderRadius: '4px', backgroundColor: '#f9f9f9'}}>
@@ -228,16 +268,17 @@ const PaymentForm = ({ workOrder, onPaymentComplete }) => {
               style={{width: '100px', padding: '4px', marginLeft: '5px'}}
             />
           </div>
-          
-          <div style={{marginBottom: '8px', fontSize: '12px', color: '#666'}}>
-            <div>Original Total: ${totalOwed.toFixed(2)}</div>
-            <div>Current Balance: ${currentBalance.toFixed(2)}</div>
-            <div>After Payment: ${remainingBalance.toFixed(2)}</div>
-            {paymentAmount && remainingBalance > 0 && (
-              <div style={{color: '#007bff', fontWeight: 'bold'}}>Auto-saving in 2s...</div>
-            )}
-          </div>
-          
+<div style={{ marginBottom: '8px', fontSize: '12px', color: '#666' }}>
+  <div>Original Total: ${totalOwed.toFixed(2)}</div>
+  <div>Current Balance: ${currentBalance.toFixed(2)}</div>
+  <div>After Payment: ${remainingBalance.toFixed(2)}</div>
+  {paymentAmount && remainingBalance > 0 && (
+    <div style={{ color: '#007bff', fontWeight: 'bold' }}>Auto-saving in 2s...</div>
+  )}
+  {paymentAmount && remainingBalance === 0 && (
+    <div style={{ color: '#28a745', fontWeight: 'bold' }}>Finishing payment…</div>
+  )}
+</div>
           <div style={{marginBottom: '8px'}}>
             <input
               placeholder="Receipt email"
