@@ -1,7 +1,6 @@
 import '../css/trafficcontrol.css'
 import '../css/header.css'
 import '../css/footer.css'
-import '../css/modal.css'
 import images  from '../utils/tbsImages';
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
@@ -1288,3 +1287,4 @@ setFormData({
         </div>
     )
 };
+
