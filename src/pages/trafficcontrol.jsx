@@ -1117,7 +1117,7 @@ setTimeout(checkAllFieldsFilled, 0);
         disabled={!ackAdditionalConfirm}
         onClick={() => setShowAdditionalConfirm(false)}
       >
-        OK
+        YES, I Approve Additional Flagger
       </button>
       <button
         type="button"
@@ -1287,4 +1287,3 @@ setFormData({
         </div>
     )
 };
-
