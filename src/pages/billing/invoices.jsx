@@ -135,26 +135,45 @@ useEffect(() => {
     const paymentDetails =
       paymentMethod === 'card' ? { cardType, cardLast4 } : { checkNumber };
 
-    try {
-      await api.post('/api/billing/mark-paid', {
-        workOrderId: workOrder._id,
-        paymentMethod,
-        emailOverride: email,
-        paymentAmount: Number(paymentAmount),
-        totalOwed: Number(totalOwedInput) || currentBalance,
-        ...paymentDetails,
-      });
+try {
+  await api.post('/api/billing/mark-paid', {
+    workOrderId: workOrder._id,
+    paymentMethod,
+    emailOverride: email,
+    paymentAmount: Number(paymentAmount),
+    totalOwed: Number(totalOwedInput) || currentBalance,
+    ...paymentDetails,
+  });
 
-      if (remainingBalance === 0) {
-        toast.success('Paid in full! Receipt sent.');
-        setShowForm(false);
-      } else {
-        toast.success('Payment auto-saved!');
-      }
-      onPaymentComplete();
-    } catch (err) {
-      console.error('Auto-save failed:', err);
-    }
+  // persist partial/full status for refreshes
+  const stash = (() => {
+    try { return JSON.parse(localStorage.getItem('localPaidProgress') || '{}'); }
+    catch { return {}; }
+  })();
+
+  if (remainingBalance > 0) {
+    // still partially paid -> remember it
+    stash[workOrder._id] = {
+      billedAmount: Number(totalOwedInput) || currentBalance,      // total owed
+      currentAmount: Math.max(0, remainingBalance),               // remaining
+      updatedAt: Date.now(),
+    };
+  } else {
+    // fully paid -> remove any cache entry
+    delete stash[workOrder._id];
+  }
+  localStorage.setItem('localPaidProgress', JSON.stringify(stash));
+
+  if (remainingBalance === 0) {
+    toast.success('Paid in full! Receipt sent.');
+    setShowForm(false);
+  } else {
+    toast.success('Payment auto-saved!');
+  }
+  onPaymentComplete();
+} catch (err) {
+  console.error('Auto-save failed:', err);
+}
   };
 
   if (remainingBalance > 0) {
@@ -820,6 +839,27 @@ const [localBilledJobs, setLocalBilledJobs] = useState(() => {
     const saved = localStorage.getItem('localBilledJobs');
     return saved ? new Set(JSON.parse(saved)) : new Set();
   });
+  const [localPaidProgress, setLocalPaidProgress] = useState(() => {
+  try {
+    return JSON.parse(localStorage.getItem('localPaidProgress') || '{}');
+  } catch {
+    return {};
+  }
+});
+useEffect(() => {
+  // whenever jobsForDay changes, purge any cache entries the server has fully resolved
+  setLocalPaidProgress(prev => {
+    const copy = { ...prev };
+    let changed = false;
+
+    for (const j of jobsForDay) {
+      if (j.paid && copy[j._id]) { delete copy[j._id]; changed = true; }
+    }
+    if (changed) localStorage.setItem('localPaidProgress', JSON.stringify(copy));
+    return copy;
+  });
+}, [jobsForDay]);
+
 const [showPaymentForm, setShowPaymentForm] = useState({});
   // Gate on client (UX nicety; server still enforces)
   useEffect(() => {
@@ -1184,14 +1224,25 @@ const fetchJobsForDay = async (date, companyName) => {
 
       {/* Bill Job controls belong INSIDE the map/card */}
       {(() => {
-        const isBilled = workOrder.billed || localBilledJobs.has(workOrder._id);
-        const isPaid = workOrder.paid;
-        
-        if (!isBilled && workOrder.basic?.client !== 'Georgia Power') {
-          return (
-        <button
-          className="btn"
-onClick={() => {
+  const isBilled = workOrder.billed || localBilledJobs.has(workOrder._id);
+  const isPaid = workOrder.paid;
+
+  // 🟡 pull any cached partial progress
+  const cached = localPaidProgress[workOrder._id];
+  const effectiveBilledAmount =
+    workOrder.billedAmount ??
+    workOrder.invoiceTotal ??
+    cached?.billedAmount ??
+    0;
+
+  const effectiveCurrentAmount =
+    workOrder.currentAmount ??
+    cached?.currentAmount ??
+    effectiveBilledAmount;
+
+  if (!isBilled && workOrder.basic?.client !== 'Georgia Power') {
+    return (
+      <button className="btn" onClick={() => {
   setBillingJob(workOrder);
   
   if (savedInvoices[workOrder._id]) {
@@ -1235,21 +1286,53 @@ onClick={() => {
             // If you want the pricing panel to match this job’s company:
             const resolvedKey = workOrder.companyKey || COMPANY_TO_KEY[workOrder.basic?.client] || '';
             if (resolvedKey) setCompanyKey(workOrder.basic?.client);
+          }}>
+        Bill Job
+      </button>
+    );
+  } else if (isBilled && isPaid) {
+    return <span className="pill" style={{ backgroundColor: '#28a745' }}>Paid</span>;
+  } else if (isBilled) {
+    // ❗use the effective values to set color/label
+    const isPartial = effectiveCurrentAmount < effectiveBilledAmount;
+
+    return (
+      <>
+        {/* status pill */}
+        <span
+          className="pill"
+          style={{
+            backgroundColor: isPartial ? '#ffc107' : undefined,
+            color: isPartial ? '#000' : undefined,
           }}
-            >
-              Bill Job
-            </button>
-          );
-        } else if (isBilled && isPaid) {
-          return <span className="pill" style={{backgroundColor: '#28a745'}}>Paid</span>;
-        } else if (isBilled) {
-          return (
-            <PaymentForm workOrder={workOrder} onPaymentComplete={() => fetchJobsForDay(selectedDate)} />
-          );
-        }
-        return null;
-      })()}
-      
+        >
+          {isPartial ? 'Partial' : 'Billed'}
+        </span>
+
+        {/* open the payment form */}
+        <PaymentForm
+          workOrder={workOrder}
+          onPaymentComplete={() => fetchJobsForDay(selectedDate)}
+        />
+
+        {/* and the action button, if you render it here */}
+        <button
+          className="btn"
+          style={{
+            backgroundColor: isPartial ? '#ffc107' : '#28a745',
+            color: isPartial ? '#000' : '#fff',
+            fontSize: '12px',
+            padding: '4px 8px',
+          }}
+          onClick={() => setShowPaymentForm(prev => ({ ...prev, [workOrder._id]: true }))}
+        >
+          {isPartial ? 'Finish Paid' : 'Mark Paid'}
+        </button>
+      </>
+    );
+  }
+  return null;
+})()}
       {savedInvoices[workOrder._id] && (
         <span className="pill" style={{backgroundColor: '#28a745', marginLeft: '8px'}}>
           Saved ({new Date(savedInvoices[workOrder._id].savedAt).toLocaleDateString()})
