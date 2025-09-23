@@ -373,30 +373,9 @@ const isCompanySelected = (formData.company || '').trim().length > 0;
     e.preventDefault();
     if (isSubmitting) return;
     setIsSubmitting(true);
-    const nowEST = getNowInEST();
-  const isAfter8pmEST = nowEST.getHours() >= 20;
 
-  const tomorrowEST = new Date(nowEST);
-  tomorrowEST.setDate(nowEST.getDate() + 1);
-  tomorrowEST.setHours(0, 0, 0, 0);
-
-  const isTomorrowSelected = jobDates.some(
-    (d) => d.toDateString() === tomorrowEST.toDateString()
-  );
-
-  // Emergency confirmation
-  if (isAfter8pmEST && isTomorrowSelected && !isEmergencyJob) {
-    setShowEmergencyConfirm(true);
-    setIsSubmitting(false);
-    return;
-  }
-
-  formData.jobDates = jobDates;
-  formData.phone = phone;
-  formData.emergency = isEmergencyJob;
-
-  runSubmissionLogic();
-    try { const requiredFields = ['name', 'email', 'phone', 'jobDate',
+    // Validation first
+    const requiredFields = ['name', 'email', 'phone', 'jobDate',
       'company', 'coordinator', 'time', 'project', 'flagger', 'address', 'city', 
     'state', 'zip', 'message', 'terms'];
     const newErrors = {};
@@ -421,19 +400,20 @@ const isCompanySelected = (formData.company || '').trim().length > 0;
         newErrors[field] = `${fieldLabel} is required!`;
       }
     });
+    
     if (formData.equipment.length === 0) {
       newErrors.equipment = 'Please select at least one piece of equipment.';
     }
-// Check reCAPTCHA (allow bypass if service fails)
+    
     if (!recaptchaToken && recaptchaToken !== 'bypass') {
       newErrors.recaptcha = 'Please complete the reCAPTCHA.';
     }
-// In handleSubmit before proceeding:
-if (formData.additionalFlaggers && showAdditionalConfirm) {
-  setErrorMessage('Please acknowledge the additional flagger warning.');
-  setIsSubmitting(false);
-  return;
-}
+    
+    if (formData.additionalFlaggers && showAdditionalConfirm) {
+      setErrorMessage('Please acknowledge the additional flagger warning.');
+      setIsSubmitting(false);
+      return;
+    }
 
     if (Object.keys(newErrors).length > 0) {
       setErrorMessage('Required fields are missing.');
@@ -441,6 +421,7 @@ if (formData.additionalFlaggers && showAdditionalConfirm) {
       if (newErrors.recaptcha) {
         recaptchaWrapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
+      setIsSubmitting(false);
       return;
     }
 
@@ -452,7 +433,31 @@ if (formData.additionalFlaggers && showAdditionalConfirm) {
       setErrorMessage('You must accept the terms and conditions.');
       setIsSubmitting(false);
       return;
-    } 
+    }
+
+    // Emergency job check after validation passes
+    const nowEST = getNowInEST();
+    const isAfter8pmEST = nowEST.getHours() >= 20;
+    const tomorrowEST = new Date(nowEST);
+    tomorrowEST.setDate(nowEST.getDate() + 1);
+    tomorrowEST.setHours(0, 0, 0, 0);
+    const isTomorrowSelected = jobDates.some(
+      (d) => d.toDateString() === tomorrowEST.toDateString()
+    );
+
+    if (isAfter8pmEST && isTomorrowSelected && !isEmergencyJob) {
+      setShowEmergencyConfirm(true);
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Prepare form data and submit
+    formData.jobDates = jobDates;
+    formData.phone = phone;
+    formData.emergency = isEmergencyJob;
+
+    runSubmissionLogic();
+    try { 
   setIsSubmitting(true);
       const response = await axios.post('/trafficcontrol', formData, {
         headers: {
