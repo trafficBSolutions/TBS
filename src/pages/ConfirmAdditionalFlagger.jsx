@@ -47,9 +47,9 @@ export default function ConfirmAdditionalFlagger() {
           
           {status === 'error' && (
             <div>
-              <h2 style={{ color: '#28a745' }}>✅ Confirmation Successful</h2>
+              <h2 style={{ color: '#dc3545' }}>❌ Confirmation Failed</h2>
               <p style={{ fontSize: '18px', margin: '20px 0' }}>{message}</p>
-              <p>You should receive a final confirmation email shortly.</p>
+              <p>If you continue to have issues, please call (706) 263-0175.</p>
             </div>
           )}
           
