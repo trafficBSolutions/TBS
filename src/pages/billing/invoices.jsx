@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import api from '../../utils/api';
 import axios from 'axios';
 import DatePicker from 'react-datepicker';
@@ -117,89 +117,116 @@ const PaymentForm = ({ workOrder, onPaymentComplete }) => {
   const [paymentAmount, setPaymentAmount] = useState('');
   const [totalOwedInput, setTotalOwedInput] = useState('');
   const [autoSaveTimer, setAutoSaveTimer] = useState(null);
-  
+  const timerRef = useRef(null);   
   // Use manual input if provided, otherwise use currentAmount (remaining balance) or fall back to stored values
-  const totalOwed = Number(totalOwedInput) || workOrder.lastManualTotalOwed || workOrder.billedAmount || workOrder.invoiceTotal || workOrder.invoiceData?.sheetTotal || workOrder.invoicePrincipal || 0;
+  const totalOwed =
+    Number(totalOwedInput) ||
+    workOrder.lastManualTotalOwed ||
+    workOrder.billedAmount ||
+    workOrder.invoiceTotal ||
+    workOrder.invoiceData?.sheetTotal ||
+    workOrder.invoicePrincipal ||
+    0;
   const currentBalance = workOrder.currentAmount || totalOwed;
+  const payAmt = Number(paymentAmount) || 0;
   const remainingBalance = currentBalance - (Number(paymentAmount) || 0);
   
   // Auto-save when payment amount changes and remaining balance > 0
 // Auto-save partials after 2s; auto-finish immediately at $0.00
-useEffect(() => {
-  if (!paymentAmount || !email) return;
+ useEffect(() => {
+    // nothing to do until we have an amount AND an email
+    if (!payAmt || !email) return;
 
-  // Always clear any pending timer
-  if (autoSaveTimer) clearTimeout(autoSaveTimer);
+    // always clear previous timer for this render
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
 
-  const doPost = async () => {
-    const paymentDetails =
-      paymentMethod === 'card' ? { cardType, cardLast4 } : { checkNumber };
+    const doPost = async () => {
+      // ⚠️ compute fresh values at send time (don’t trust closed-over ones)
+      const _totalOwed =
+        Number(totalOwedInput) ||
+        workOrder.currentAmount ||
+        workOrder.billedAmount ||
+        workOrder.invoiceTotal ||
+        workOrder.invoiceData?.sheetTotal ||
+        workOrder.invoicePrincipal ||
+        0;
 
-try {
-  await api.post('/api/billing/mark-paid', {
-    workOrderId: workOrder._id,
-    paymentMethod,
-    emailOverride: email,
-    paymentAmount: Number(paymentAmount),
-    totalOwed: Number(totalOwedInput) || currentBalance,
-    ...paymentDetails,
-  });
+      const _payAmt = Number(paymentAmount) || 0;
+      const _remaining = Math.max(0, (workOrder.currentAmount || _totalOwed) - _payAmt);
 
-  // persist partial/full status for refreshes
-  const stash = (() => {
-    try { return JSON.parse(localStorage.getItem('localPaidProgress') || '{}'); }
-    catch { return {}; }
-  })();
+      const paymentDetails =
+        paymentMethod === 'card' ? { cardType, cardLast4 } : { checkNumber };
 
-  if (remainingBalance > 0) {
-    // still partially paid -> remember it
-    stash[workOrder._id] = {
-      billedAmount: Number(totalOwedInput) || currentBalance,      // total owed
-      currentAmount: Math.max(0, remainingBalance),               // remaining
-      updatedAt: Date.now(),
+      try {
+        await api.post('/api/billing/mark-paid', {
+          workOrderId: workOrder._id,
+          paymentMethod,
+          emailOverride: email,
+          paymentAmount: _payAmt,
+          totalOwed: _totalOwed,
+          ...paymentDetails,
+        });
+
+        // ✅ persist local partial/full state for refresh continuity
+        const stash = (() => {
+          try { return JSON.parse(localStorage.getItem('localPaidProgress') || '{}'); }
+          catch { return {}; }
+        })();
+
+        if (_remaining > 0) {
+          stash[workOrder._id] = {
+            billedAmount: _totalOwed,
+            currentAmount: _remaining,
+            updatedAt: Date.now(),
+          };
+        } else {
+          delete stash[workOrder._id];
+        }
+        localStorage.setItem('localPaidProgress', JSON.stringify(stash));
+
+        if (_remaining === 0) {
+          toast.success('Paid in full! Receipt sent.');
+          setShowForm(false);
+        } else {
+          toast.success('Payment auto-saved!');
+        }
+        onPaymentComplete();
+      } catch (err) {
+        console.error('Auto-save failed:', err);
+        toast.error(err?.response?.data?.message || err.message || 'Auto-save failed');
+      }
     };
-  } else {
-    // fully paid -> remove any cache entry
-    delete stash[workOrder._id];
-  }
-  localStorage.setItem('localPaidProgress', JSON.stringify(stash));
 
-  if (remainingBalance === 0) {
-    toast.success('Paid in full! Receipt sent.');
-    setShowForm(false);
-  } else {
-    toast.success('Payment auto-saved!');
-  }
-  onPaymentComplete();
-} catch (err) {
-  console.error('Auto-save failed:', err);
-}
-  };
+    if (remainingBalance > 0) {
+      // ⏳ debounce partials
+      timerRef.current = setTimeout(doPost, 2000);
+    } else {
+      // ✅ finish immediately on $0.00
+      doPost();
+    }
 
-  if (remainingBalance > 0) {
-    // Debounced auto-save for partials
-    const timer = setTimeout(doPost, 2000);
-    setAutoSaveTimer(timer);
-  } else if (remainingBalance === 0) {
-    // Instant finish when fully paid
-    doPost();
-  }
-
-  return () => {
-    if (autoSaveTimer) clearTimeout(autoSaveTimer);
-  };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [
-  paymentAmount,
-  totalOwedInput,
-  paymentMethod,
-  cardType,
-  cardLast4,
-  checkNumber,
-  email,
-]);
-
-  
+    // cleanup on re-render/unmount — always clears the *latest* timer
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  // include all inputs that should trigger a new debounce
+  }, [
+    paymentMethod,
+    cardType,
+    cardLast4,
+    checkNumber,
+    email,
+    paymentAmount,
+    totalOwedInput,
+    workOrder._id,
+    workOrder.currentAmount,
+  ]);
   return (
     <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
