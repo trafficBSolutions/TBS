@@ -63,7 +63,9 @@ export default function TrafficControl() {
   const [jobDates, setJobDates] = useState([]);
   const [time, setTime] = useState('7:00am');
   const [isSubmitting, setIsSubmitting] = useState(false); 
-  const [company, setCompany] = useState('');
+  const [showAdditionalConfirm, setShowAdditionalConfirm] = useState(false);
+const [ackAdditionalConfirm, setAckAdditionalConfirm] = useState(false);
+
   const [site, setSite] = useState('');
   const [showEmergencyConfirm, setShowEmergencyConfirm] = useState(false);
 const [isEmergencyJob, setIsEmergencyJob] = useState(false);
@@ -420,6 +422,12 @@ const isCompanySelected = (formData.company || '').trim().length > 0;
     if (!recaptchaToken && recaptchaToken !== 'bypass') {
       newErrors.recaptcha = 'Please complete the reCAPTCHA.';
     }
+// In handleSubmit before proceeding:
+if (formData.additionalFlaggers && showAdditionalConfirm) {
+  setErrorMessage('Please acknowledge the additional flagger warning.');
+  setIsSubmitting(false);
+  return;
+}
 
     if (Object.keys(newErrors).length > 0) {
       setErrorMessage('Required fields are missing.');
@@ -798,21 +806,27 @@ setTimeout(checkAllFieldsFilled, 0);
           </label>
         </figure>
       </div>
-      
-      <label className="checkbox-option">
-        <input
-          type="checkbox"
-          checked={formData.additionalFlaggers || false}
-          onChange={(e) => {
-            setFormData({ ...formData, additionalFlaggers: e.target.checked });
-            if (!e.target.checked) {
-              setFormData(prev => ({ ...prev, additionalFlaggers: false, additionalFlaggerCount: '' }));
-            }
-          }}
-        />
-        <small className="rate-warning">⚠️ For Additional Flaggers, additional rates will apply.</small>
-      </label>
-      
+<label className="checkbox-option">
+  <input
+    type="checkbox"
+    checked={formData.additionalFlaggers || false}
+    onChange={(e) => {
+      const checked = e.target.checked;
+      setFormData({ ...formData, additionalFlaggers: checked });
+
+      if (checked) {
+        // Pop the warning modal
+        setShowAdditionalConfirm(true);
+        setAckAdditionalConfirm(false);
+      } else {
+        // If they turn it off, clear count
+        setFormData(prev => ({ ...prev, additionalFlaggers: false, additionalFlaggerCount: '' }));
+      }
+    }}
+  />
+  <small className="rate-warning">⚠️ For Additional Flaggers, additional rates will apply.</small>
+</label>
+
       {formData.additionalFlaggers && (
         <div className="additional-flaggers">
           <p>How many additional flaggers do you need?</p>
@@ -1072,6 +1086,49 @@ setTimeout(checkAllFieldsFilled, 0);
 </div>
 {errors.recaptcha && <div className="error-message">{errors.recaptcha}</div>}
   </div>
+  {showAdditionalConfirm && (
+  <div className="emergency-warning-box">
+    <p className="warning-text">⚠️ WARNING</p>
+    <p className="emergency-warning-text" style={{ marginTop: 8 }}>
+      <strong>WARNING:</strong> Do you approve the additional flagger for the additional charge?
+      <br />
+      <strong>You are required to confirm through your confirmation email that you need an additional flagger.</strong>
+    </p>
+
+    <label style={{ display: 'block', marginTop: 12 }}>
+      <input
+        type="checkbox"
+        checked={ackAdditionalConfirm}
+        onChange={(e) => setAckAdditionalConfirm(e.target.checked)}
+      />{' '}
+      I understand that I must confirm this in the email I receive.
+    </label>
+
+    <div className="emergency-warning-buttons" style={{ marginTop: 12 }}>
+      <button
+        type="button"
+        className="btn btn--warning"
+        disabled={!ackAdditionalConfirm}
+        onClick={() => setShowAdditionalConfirm(false)}
+      >
+        OK
+      </button>
+      <button
+        type="button"
+        className="btn btn--cancel"
+        onClick={() => {
+          setShowAdditionalConfirm(false);
+          setAckAdditionalConfirm(false);
+          // Revert the additional flagger choice
+          setFormData(prev => ({ ...prev, additionalFlaggers: false, additionalFlaggerCount: '' }));
+        }}
+      >
+        Cancel Additional Flagger
+      </button>
+    </div>
+  </div>
+)}
+
   <div className="submit-button-wrapper">
   <button
   type="submit"
@@ -1224,4 +1281,3 @@ setFormData({
         </div>
     )
 };
-
