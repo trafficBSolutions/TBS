@@ -65,7 +65,7 @@
     justify-content: center;
 }
 .btn--warning {
-    background-color: #rgb(40, 167, 69);
+    background-color: rgb(40, 167, 69);
     color: black;
     padding: 0.9rem 1.8rem;
     border: none;
@@ -231,4 +231,5 @@
         font-size: 1.2rem;
     }
 }
+
 
