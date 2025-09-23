@@ -1,6 +1,7 @@
 import '../css/trafficcontrol.css'
 import '../css/header.css'
 import '../css/footer.css'
+import '../css/modal.css'
 import images  from '../utils/tbsImages';
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
@@ -209,43 +210,49 @@ useEffect(() => {
     setTimeout(checkAllFieldsFilled, 0);
   };
   const runSubmissionLogic = async () => {
-  try {
-    const res = await axios.post('https://tbs-server.onrender.com/jobs/submit', formData);
-    toast.success('Job submitted successfully!');
-    setSubmissionMessage('Success! Your job has been submitted.');
-    setFormData({
-  name: '',
-  email: '',
-  phone: '',
-  jobDate: '',
-  company: '',
-  coordinator: '',
-  site: '',
-  siteContact: '',
-  time: '',
-  project: '',
-  flagger: '',
-  additionalFlaggers: false,
-  additionalFlaggerCount: '',
-  equipment: [],
-  terms: '',
-  address: '',
-  city: '',
-  state: '',
-  zip: '',
-  message: ''
-});
-
-    setJobDates([]);
-    setPhone('');
-    setIsSubmitting(false);
-    setErrors({});
-    setIsEmergencyJob(false);
-  } catch (error) {
-    toast.error('Submission failed. Please try again.');
-    setIsSubmitting(false);
-  }
-};
+    try {
+      const res = await axios.post('https://tbs-server.onrender.com/trafficcontrol', formData);
+      
+      if (res.data.requiresConfirmation) {
+        toast.info('Additional Flagger confirmation email sent! Please check your email.');
+        setSubmissionMessage('Additional Flagger confirmation email sent. Please check your email to complete job submission.');
+      } else {
+        toast.success('Job submitted successfully!');
+        setSubmissionMessage('Success! Your job has been submitted.');
+      }
+      
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        jobDate: '',
+        company: '',
+        coordinator: '',
+        site: '',
+        siteContact: '',
+        time: '',
+        project: '',
+        flagger: '',
+        additionalFlaggers: false,
+        additionalFlaggerCount: '',
+        equipment: [],
+        terms: '',
+        address: '',
+        city: '',
+        state: '',
+        zip: '',
+        message: ''
+      });
+      setJobDates([]);
+      setPhone('');
+      setIsSubmitting(false);
+      setErrors({});
+      setIsEmergencyJob(false);
+    } catch (error) {
+      toast.error('Submission failed. Please try again.');
+      setIsSubmitting(false);
+    }
+  };
 
   const handleContactChange = (e) => {
     const value = e.target.value;
