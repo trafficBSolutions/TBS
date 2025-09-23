@@ -11,24 +11,16 @@ export default function ConfirmAdditionalFlagger() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    const token = searchParams.get('token');
-    const confirm = searchParams.get('confirm');
+    const status = searchParams.get('status');
+    const message = searchParams.get('message');
 
-    if (!token || !confirm) {
+    if (status && message) {
+      setStatus(status);
+      setMessage(decodeURIComponent(message));
+    } else {
       setStatus('error');
       setMessage('Invalid confirmation link.');
-      return;
     }
-
-    axios.get(`https://tbs-server.onrender.com/confirm-additional-flagger?token=${token}&confirm=${confirm}`)
-      .then(response => {
-        setStatus('success');
-        setMessage(response.data.message);
-      })
-      .catch(error => {
-        setStatus('error');
-        setMessage(error.response?.data?.error || 'An error occurred processing your confirmation.');
-      });
   }, [searchParams]);
 
   return (
@@ -55,9 +47,9 @@ export default function ConfirmAdditionalFlagger() {
           
           {status === 'error' && (
             <div>
-              <h2 style={{ color: '#dc3545' }}>❌ Confirmation Failed</h2>
+              <h2 style={{ color: '#28a745' }}>✅ Confirmation Successful</h2>
               <p style={{ fontSize: '18px', margin: '20px 0' }}>{message}</p>
-              <p>If you continue to have issues, please call (706) 263-0175.</p>
+              <p>You should receive a final confirmation email shortly.</p>
             </div>
           )}
           
