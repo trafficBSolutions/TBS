@@ -1309,25 +1309,11 @@ const fetchJobsForDay = async (date, companyName) => {
           {isPartial ? 'Partial' : 'Billed'}
         </span>
 
-        {/* open the payment form */}
+        {/* Payment form handles both status display and payment functionality */}
         <PaymentForm
           workOrder={workOrder}
           onPaymentComplete={() => fetchJobsForDay(selectedDate)}
         />
-
-        {/* and the action button, if you render it here */}
-        <button
-          className="btn"
-          style={{
-            backgroundColor: isPartial ? '#ffc107' : '#28a745',
-            color: isPartial ? '#000' : '#fff',
-            fontSize: '12px',
-            padding: '4px 8px',
-          }}
-          onClick={() => setShowPaymentForm(prev => ({ ...prev, [workOrder._id]: true }))}
-        >
-          {isPartial ? 'Finish Paid' : 'Mark Paid'}
-        </button>
       </>
     );
   }
