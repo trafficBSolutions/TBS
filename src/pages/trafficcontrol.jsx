@@ -456,51 +456,7 @@ const isCompanySelected = (formData.company || '').trim().length > 0;
     formData.phone = phone;
     formData.emergency = isEmergencyJob;
 
-    runSubmissionLogic();
-    try { 
-  setIsSubmitting(true);
-      const response = await axios.post('/trafficcontrol', formData, {
-        headers: {
-          'Content-Type': 'application/json'
-      }})
-      console.log(response.data); // Now this works
-           
-      setFormData({
-        name: '',
-        site: '',
-        email: '',
-        phone: '',
-        jobDate: '',
-        company: '',
-        coordinator: '',
-        siteContact: '',
-        time: '',
-        project: '',
-        flagger: '',
-        equipment: [],
-        terms: '',
-        address: '',
-        city: '',
-        state: '',
-        zip: '',
-        message: ''
-      });
-
-      setErrors({});
-      setPhone('');
-      setRecaptchaToken('');
-      setTermsAccepted(false);
-      recaptchaRef.current?.reset();
-      setSubmissionMessage(
-        '✅ Your job has been submitted! A confirmation email has been sent. You can cancel your job anytime using the cancellation link in that email. We’ll take it from here!'
-      );}
-      catch (err) {
-        console.error(err);
-        toast.success('✅ Job submitted! Check your email for confirmation.');
-        setSubmissionErrorMessage("Something went wrong.");
-      } finally {
-        setIsSubmitting(false);
-      }
+    await runSubmissionLogic();
   };
     return (
         <div>
