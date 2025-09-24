@@ -133,100 +133,93 @@ const PaymentForm = ({ workOrder, onPaymentComplete }) => {
   
   // Auto-save when payment amount changes and remaining balance > 0
 // Auto-save partials after 2s; auto-finish immediately at $0.00
- useEffect(() => {
-    // nothing to do until we have an amount AND an email
-    if (!payAmt || !email) return;
+useEffect(() => {
+  // no autosave until we have a numeric amount
+  if (!payAmt) return;
 
-    // always clear previous timer for this render
+  // always clear previous timer
+  if (timerRef.current) {
+    clearTimeout(timerRef.current);
+    timerRef.current = null;
+  }
+
+  const doPost = async () => {
+    const _totalOwed =
+      Number(totalOwedInput) ||
+      workOrder.currentAmount ||
+      workOrder.billedAmount ||
+      workOrder.invoiceTotal ||
+      workOrder.invoiceData?.sheetTotal ||
+      workOrder.invoicePrincipal ||
+      0;
+
+    const _payAmt = Number(paymentAmount) || 0;
+    const _remaining = Math.max(0, (workOrder.currentAmount || _totalOwed) - _payAmt);
+
+    const paymentDetails =
+      paymentMethod === 'card' ? { cardType, cardLast4 } : { checkNumber };
+
+    try {
+      // 🔕 IMPORTANT: no emailOverride on autosave – prevents receipt emails
+      await api.post('/api/billing/mark-paid', {
+        workOrderId: workOrder._id,
+        paymentMethod,
+        paymentAmount: _payAmt,
+        totalOwed: _totalOwed,
+        ...paymentDetails,
+      });
+
+      // persist local partial/full status for refreshes
+      const stash = (() => {
+        try { return JSON.parse(localStorage.getItem('localPaidProgress') || '{}'); }
+        catch { return {}; }
+      })();
+
+      if (_remaining > 0) {
+        stash[workOrder._id] = {
+          billedAmount: _totalOwed,
+          currentAmount: _remaining,
+          updatedAt: Date.now(),
+        };
+      } else {
+        delete stash[workOrder._id];
+      }
+      localStorage.setItem('localPaidProgress', JSON.stringify(stash));
+
+      // toast: autosave only for partials
+      if (_remaining > 0) {
+        toast.success('Payment auto-saved!');
+      }
+      onPaymentComplete();
+    } catch (err) {
+      console.error('Auto-save failed:', err);
+      toast.error(err?.response?.data?.message || err.message || 'Auto-save failed');
+    }
+  };
+
+  if (remainingBalance > 0) {
+    // ⏳ debounce partial saves only
+    timerRef.current = setTimeout(doPost, 2000);
+  }
+  // ❌ no auto-finish when remainingBalance === 0 – wait for explicit click
+
+  return () => {
     if (timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
     }
+  };
+}, [
+  paymentMethod,
+  cardType,
+  cardLast4,
+  checkNumber,
+  paymentAmount,
+  totalOwedInput,
+  workOrder._id,
+  workOrder.currentAmount,
+]);
 
-    const doPost = async () => {
-      // ⚠️ compute fresh values at send time (don’t trust closed-over ones)
-      const _totalOwed =
-        Number(totalOwedInput) ||
-        workOrder.currentAmount ||
-        workOrder.billedAmount ||
-        workOrder.invoiceTotal ||
-        workOrder.invoiceData?.sheetTotal ||
-        workOrder.invoicePrincipal ||
-        0;
-
-      const _payAmt = Number(paymentAmount) || 0;
-      const _remaining = Math.max(0, (workOrder.currentAmount || _totalOwed) - _payAmt);
-
-      const paymentDetails =
-        paymentMethod === 'card' ? { cardType, cardLast4 } : { checkNumber };
-
-      try {
-        await api.post('/api/billing/mark-paid', {
-          workOrderId: workOrder._id,
-          paymentMethod,
-          emailOverride: email,
-          paymentAmount: _payAmt,
-          totalOwed: _totalOwed,
-          ...paymentDetails,
-        });
-
-        // ✅ persist local partial/full state for refresh continuity
-        const stash = (() => {
-          try { return JSON.parse(localStorage.getItem('localPaidProgress') || '{}'); }
-          catch { return {}; }
-        })();
-
-        if (_remaining > 0) {
-          stash[workOrder._id] = {
-            billedAmount: _totalOwed,
-            currentAmount: _remaining,
-            updatedAt: Date.now(),
-          };
-        } else {
-          delete stash[workOrder._id];
-        }
-        localStorage.setItem('localPaidProgress', JSON.stringify(stash));
-
-        if (_remaining === 0) {
-          toast.success('Paid in full! Receipt sent.');
-          setShowForm(false);
-        } else {
-          toast.success('Payment auto-saved!');
-        }
-        onPaymentComplete();
-      } catch (err) {
-        console.error('Auto-save failed:', err);
-        toast.error(err?.response?.data?.message || err.message || 'Auto-save failed');
-      }
-    };
-
-    if (remainingBalance > 0) {
-      // ⏳ debounce partials
-      timerRef.current = setTimeout(doPost, 2000);
-    } else {
-      // ✅ finish immediately on $0.00
-      doPost();
-    }
-
-    // cleanup on re-render/unmount — always clears the *latest* timer
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-        timerRef.current = null;
-      }
-    };
-  // include all inputs that should trigger a new debounce
-  }, [
-    paymentMethod,
-    cardType,
-    cardLast4,
-    checkNumber,
-    email,
-    paymentAmount,
-    totalOwedInput,
-    workOrder._id,
-    workOrder.currentAmount,
-  ]);
   return (
     <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
