@@ -328,9 +328,9 @@ useEffect(() => {
             <p><strong>Time:</strong> {job.time}</p>
             <p><strong>Project/Task Number:</strong> {job.project}</p>
             <p><strong>Flaggers:</strong> {job.flagger}</p>
-{(job.additionalFlaggers || Number(job.additionalFlaggerCount) > 0) && (
-  <p><strong>Additional Flaggers:</strong> {Number(job.additionalFlaggerCount)} additional</p>
-)}
+            {job.additionalFlaggers && (
+              <p><strong>Additional Flaggers:</strong> Yes ({job.additionalFlaggerCount} additional)</p>
+            )}
             <p><strong>Equipment:</strong> {job.equipment.join(', ')}</p>
             <p><strong>Address:</strong> {job.address}, {job.city}, {job.state} {job.zip}</p>
             {job.message && <p><strong>Message:</strong> {job.message}</p>}
@@ -446,7 +446,7 @@ useEffect(() => {
 {allowedForInvoices && (
   <div className="admin-invoice">
     <h1 className="invoice-h1">Invoicing</h1>
-    <a href="/billing/invoices" className="btn">Go to Invoicing</a>
+    <a href="/admin-dashboard/invoices" className="btn">Go to Invoicing</a>
   </div>
 )}
 <div className="cancelled-jobs">
@@ -738,4 +738,3 @@ useEffect(() => {
 };
 
 export default AdminDashboard;
-
