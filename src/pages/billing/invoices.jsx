@@ -351,10 +351,9 @@ useEffect(() => {
                   totalOwed: Number(totalOwedInput) || currentBalance,
                   ...paymentDetails
                 }).then(() => {
-                  toast.success('Payment recorded and receipt sent!');
-                  setShowForm(false);            // close UI immediately
-                  onPaymentComplete();
-                  onLocalPaid && onLocalPaid();
+                toast.success('Payment recorded and receipt sent!');
+                onPaymentComplete();
+                setShowForm(false);            // close form after data refresh
                 }).catch(err => {
                   toast.error('Failed to record payment: ' + (err.response?.data?.message || err.message));
                 }).finally(() => {
