@@ -107,6 +107,7 @@ const formatEquipmentName = (key) => {
 };
 
 const PaymentForm = ({ workOrder, onPaymentComplete }) => {
+  if (workOrder?.paid) return null;
   const [showForm, setShowForm] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [cardType, setCardType] = useState('');
@@ -351,8 +352,8 @@ useEffect(() => {
                   ...paymentDetails
                 }).then(() => {
                   toast.success('Payment recorded and receipt sent!');
+                  setShowForm(false);            // close UI immediately
                   onPaymentComplete();
-                  setShowForm(false);
                 }).catch(err => {
                   toast.error('Failed to record payment: ' + (err.response?.data?.message || err.message));
                 }).finally(() => {
