@@ -3,6 +3,7 @@ import { About, ConfirmAdditionalFlagger, Invoice, Work, ManageJobTest, CancelJo
 import axios from 'axios';
 import Navbar from './components/Navbar';
 import { Toaster } from 'react-hot-toast'
+import RequireAdmin from './utils/requireAdmin';
 import { isAdminAuthenticated } from './utils/auth';
 import EmployeeLogin from './pages/employee-login';
 import RequireStaff from './components/requireStaff';
@@ -101,9 +102,16 @@ function App() {
    <Route path="/traffic-control-test-page" element={<TrafficControlTest />} />
    <Route path="/manage-job-test/:id" element={<ManageJobTest/>} />
    <Route path="/cancel-job-test/:id" element={<CancelJobTest/>} />
-   <Route path="/billing/invoices" element={<Invoice />} />
     <Route path="/admin-dashboard"
         element={isAdminAuthenticated() ? <AdminDashboard /> : <Navigate to="/admin-login" />}
+/>
+<Route
+  path="/admin-dashboard/invoices"
+  element={
+    <RequireAdmin>
+      <Invoice />
+    </RequireAdmin>
+  }
 />
     <Route path="/cancel-job/:id" element={<CancelJob />} />
     <Route path="/work-order/:id" element={<Work />} />
