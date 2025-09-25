@@ -354,6 +354,7 @@ useEffect(() => {
                   toast.success('Payment recorded and receipt sent!');
                   setShowForm(false);            // close UI immediately
                   onPaymentComplete();
+                  onLocalPaid && onLocalPaid();
                 }).catch(err => {
                   toast.error('Failed to record payment: ' + (err.response?.data?.message || err.message));
                 }).finally(() => {
@@ -463,6 +464,20 @@ const [location, setLocation] = useState('');
 
 // Email validation helper
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+// near other localStorage-backed state
+const [locallyPaid, setLocallyPaid] = useState(() => {
+  try { return new Set(JSON.parse(localStorage.getItem('locallyPaid') || '[]')); }
+  catch { return new Set(); }
+});
+
+const markLocallyPaid = (id) => {
+  setLocallyPaid(prev => {
+    const next = new Set(prev);
+    next.add(id);
+    localStorage.setItem('locallyPaid', JSON.stringify([...next]));
+    return next;
+  });
+};
 
 // Invoice header fields
 const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().slice(0,10));
@@ -1246,7 +1261,7 @@ const fetchJobsForDay = async (date, companyName) => {
       {/* Bill Job controls belong INSIDE the map/card */}
       {(() => {
   const isBilled = workOrder.billed || localBilledJobs.has(workOrder._id);
-  const isPaid = workOrder.paid;
+  const isPaid = workOrder.paid || locallyPaid.has(workOrder._id);
 
   // 🟡 pull any cached partial progress
   const cached = localPaidProgress[workOrder._id];
@@ -1331,10 +1346,11 @@ const fetchJobsForDay = async (date, companyName) => {
         </span>
 
         {/* Payment form handles both status display and payment functionality */}
-        <PaymentForm
-          workOrder={workOrder}
-          onPaymentComplete={() => fetchJobsForDay(selectedDate)}
-        />
+ <PaymentForm
+   workOrder={workOrder}
+   onPaymentComplete={() => fetchJobsForDay(selectedDate)}
+   onLocalPaid={() => markLocallyPaid(workOrder._id)}
+ />
       </>
     );
   }
