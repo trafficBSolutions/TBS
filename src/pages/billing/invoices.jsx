@@ -1349,7 +1349,7 @@ const gaPowerOnly = isGaPowerOnly(workOrder.basic?.client);
       </button>
     );
   } else if (isBilled && isPaid) {
-    return <span className="pill" style={{ backgroundColor: '#28a745' }}>Paid</span>;
+    return <span className="pill" style={{ color: '#fff', backgroundColor: '#28a745' }}>Paid</span>;
   } else if (isBilled) {
     // ❗use the effective values to set color/label
     const isPartial = effectiveCurrentAmount < effectiveBilledAmount;
