@@ -701,15 +701,15 @@ const isSubmitReady = useMemo(() => {
   </p>
 
   <DatePicker
-    selected={ymdToDate(basic.dateOfJob)}
-    onChange={(d) => setBasicField('dateOfJob', dateToYmd(d))}
-    inline
-    calendarClassName="custom-datepicker"
-    wrapperClassName="custom-datepicker-wrapper"
-    dateFormat="yyyy-MM-dd"
-    includeDates={allowedDates.length ? allowedDates : undefined}
-    minDate={startOfLocalDay(new Date())}
-  />
+  selected={ymdToDate(basic.dateOfJob)}
+  onChange={(d) => setBasicField('dateOfJob', dateToYmd(d))}
+  inline
+  calendarClassName="custom-datepicker"
+  wrapperClassName="custom-datepicker-wrapper"
+  dateFormat="yyyy-MM-dd"
+  includeDates={allowedDates.length ? allowedDates : undefined}
+/>
+
 
   <div className="selected-date-display" aria-live="polite">
     {basic.dateOfJob
