@@ -87,6 +87,7 @@ function App() {
     }
   />
     <Route path="/trafficcontrol" element={<TrafficControl/>}/>
+    
     <Route path="/trafficplanning" element={<TrafficPlan/>}/>
     <Route path="/rentals" element={<Rentals/>}/>
     <Route path="/ppe" element={<PPE/>}/>
@@ -105,14 +106,9 @@ function App() {
     <Route path="/admin-dashboard"
         element={isAdminAuthenticated() ? <AdminDashboard /> : <Navigate to="/admin-login" />}
 />
-<Route
-  path="/admin-dashboard/invoices"
-  element={
-    <RequireAdmin>
-      <Invoice />
-    </RequireAdmin>
-  }
-/>
+ <Route element={<RequireAdmin />}>
+   <Route path="/admin-dashboard/invoices" element={<Invoice />} />
+ </Route>
     <Route path="/cancel-job/:id" element={<CancelJob />} />
     <Route path="/work-order/:id" element={<Work />} />
    <Route path="/manage-job/:id" element={<ManageJob />} />
