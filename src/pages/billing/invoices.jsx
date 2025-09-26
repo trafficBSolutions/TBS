@@ -45,6 +45,11 @@ const COMPANY_TO_KEY = {
   'Tindall': 'tindall',
   'Atlanta Gas Light': 'agl',
 };
+const GA_POWER_TOKEN = /\b(georgia\s*power|ga\s*power|gpc)\b/i;
+// Add any other "GA Power partner" names you use in combo client strings
+const NON_GA_PARTNERS = [
+  'fairway', 'service electric', 'faith electric', 'desoto', 'the desoto group', 'electra grid'
+];
 const BILLING_ADDRESSES = {
   'Atlanta Gas Light': '600 Townpark Ln, Kennesaw, GA 30144',
   'Broadband of Indiana': '145 Peppers Dr, Paris, TN 38242',
@@ -82,7 +87,15 @@ const COMPANY_TO_EMAIL = {
 
 // helpers (keep above component to avoid TDZ issues)
 const fmtUSD = (n) => `$${Number(n || 0).toFixed(2)}`;
-
+function isGaPowerOnly(name) {
+  if (!name) return false;
+  const n = String(name).toLowerCase();
+  const hasGa = GA_POWER_TOKEN.test(n);
+  if (!hasGa) return false;
+  // If any partner word appears anywhere, treat it as NOT GA-only
+  const mentionsOther = NON_GA_PARTNERS.some(k => n.includes(k));
+  return !mentionsOther;
+}
 const formatTime = (timeStr) => {
   if (!timeStr) return '';
   const [hours, minutes] = timeStr.split(':');
@@ -106,7 +119,7 @@ const formatEquipmentName = (key) => {
   return names[key] || key;
 };
 
-const PaymentForm = ({ workOrder, onPaymentComplete }) => {
+const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) => {
   if (workOrder?.paid) return null;
   const [showForm, setShowForm] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('card');
@@ -352,6 +365,15 @@ useEffect(() => {
                   ...paymentDetails
                 }).then(() => {
                 toast.success('Payment recorded and receipt sent!');
+                         try {
+           onLocalPaid();
+           // ✅ Clear any cached partial progress for this job
+           const stash = JSON.parse(localStorage.getItem('localPaidProgress') || '{}');
+           if (stash[workOrder._id]) {
+             delete stash[workOrder._id];
+             localStorage.setItem('localPaidProgress', JSON.stringify(stash));
+           }
+         } catch {}
                 onPaymentComplete();
                 setShowForm(false);            // close form after data refresh
                 }).catch(err => {
@@ -1259,7 +1281,8 @@ const fetchJobsForDay = async (date, companyName) => {
 
       {/* Bill Job controls belong INSIDE the map/card */}
       {(() => {
-  const isBilled = workOrder.billed || localBilledJobs.has(workOrder._id);
+const gaPowerOnly = isGaPowerOnly(workOrder.basic?.client);
+ const isBilled = gaPowerOnly || workOrder.billed || localBilledJobs.has(workOrder._id);
   const isPaid = workOrder.paid || locallyPaid.has(workOrder._id);
 
   // 🟡 pull any cached partial progress
