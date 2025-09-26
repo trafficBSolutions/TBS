@@ -15,6 +15,7 @@ const companyList = [
   "Broadband Technical Resources",
   "Broadband of Indiana",
   "Car Michael",
+  "Desoto",
   "Fairway Electric",
   "Georgia Power",
   "Global Infrastructure",
