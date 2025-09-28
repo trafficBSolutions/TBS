@@ -1290,8 +1290,8 @@ useEffect(() => {
       {/* Bill Job controls belong INSIDE the map/card */}
 {(() => {
   const gaPowerOnly = isGaPowerOnly(workOrder.basic?.client);
-  const isBilled = gaPowerOnly || !!workOrder.billed || localBilledJobs.has(workOrder._id);
-  const isPaid = workOrder.paid || locallyPaid.has(workOrder._id);
+  const isBilled = gaPowerOnly || !!workOrder.billed; // server truth
+const isPaid   = !!workOrder.paid;                  // server truth
 
   const cached = localPaidProgress[workOrder._id];
   const effectiveBilledAmount =
