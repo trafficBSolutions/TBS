@@ -1288,21 +1288,16 @@ useEffect(() => {
       <p><strong>Completed:</strong> {new Date(workOrder.createdAt).toLocaleDateString()} at {new Date(workOrder.createdAt).toLocaleTimeString()}</p>
 
       {/* Bill Job controls belong INSIDE the map/card */}
-      {(() => {
-const gaPowerOnly = isGaPowerOnly(workOrder.basic?.client);
- const serverBilled = !!workOrder.billed;
-const localHint    = localBilledJobs.has(workOrder._id); // optimistic only
-const isBilled     = gaPowerOnly || serverBilled || localHint;
-
+{(() => {
+  const gaPowerOnly = isGaPowerOnly(workOrder.basic?.client);
+  const isBilled = gaPowerOnly || !!workOrder.billed || localBilledJobs.has(workOrder._id);
   const isPaid = workOrder.paid || locallyPaid.has(workOrder._id);
 
-  // 🟡 pull any cached partial progress
   const cached = localPaidProgress[workOrder._id];
   const effectiveBilledAmount =
     workOrder.billedAmount ??
     workOrder.invoiceTotal ??
-    cached?.billedAmount ??
-    0;
+    cached?.billedAmount ?? 0;
 
   const effectiveCurrentAmount =
     workOrder.currentAmount ??
@@ -1312,83 +1307,79 @@ const isBilled     = gaPowerOnly || serverBilled || localHint;
   if (!isBilled && workOrder.basic?.client !== 'Georgia Power') {
     return (
       <button className="btn" onClick={() => {
-  setBillingJob(workOrder);
-  
-  if (savedInvoices[workOrder._id]) {
-    loadSavedInvoice(workOrder._id);
-  } else {
-    setSelectedEmail(workOrder.basic?.email || '');
-    setBillToCompany('');
-    setBillToAddress('');
-    setWorkType('');
-    setForeman(workOrder.basic?.foremanName || '');
-    setLocation([workOrder.basic?.address, workOrder.basic?.city, workOrder.basic?.state, workOrder.basic?.zip].filter(Boolean).join(', '));
-    setInvoiceDate(new Date().toISOString().slice(0,10));
-    setInvoiceNumber('');
-    setWorkRequestNumber1('');
-    setWorkRequestNumber2('');
-    setDueDate('');
-    setSheetRows(VERTEX42_STARTER_ROWS);
-    setSheetTaxRate(0);
-    setSheetOther(0);
-  }
-  
-  setSel({
-    flagDay: '',
-    laneClosure: 'NONE',
-    intersections: 0,
-    arrowBoardsQty: 0,
-    messageBoardsQty: 0,
-    afterHours: false,
-    afterHoursSigns: 0,
-    afterHoursCones: 0,
-    nightWeekend: false,
-    roadblock: false,
-    extraWorker: false,
-    miles: 0
-  });
-  setBillingOpen(true);
-            setManualOverride(false);
-            setManualAmount('');
-            setQuote(null);
+        setBillingJob(workOrder);
+        if (savedInvoices[workOrder._id]) {
+          loadSavedInvoice(workOrder._id);
+        } else {
+          setSelectedEmail(workOrder.basic?.email || '');
+          setBillToCompany('');
+          setBillToAddress('');
+          setWorkType('');
+          setForeman(workOrder.basic?.foremanName || '');
+          setLocation([workOrder.basic?.address, workOrder.basic?.city, workOrder.basic?.state, workOrder.basic?.zip].filter(Boolean).join(', '));
+          setInvoiceDate(new Date().toISOString().slice(0,10));
+          setInvoiceNumber('');
+          setWorkRequestNumber1('');
+          setWorkRequestNumber2('');
+          setDueDate('');
+          setSheetRows(VERTEX42_STARTER_ROWS);
+          setSheetTaxRate(0);
+          setSheetOther(0);
+        }
+        setSel({
+          flagDay: '',
+          laneClosure: 'NONE',
+          intersections: 0,
+          arrowBoardsQty: 0,
+          messageBoardsQty: 0,
+          afterHours: false,
+          afterHoursSigns: 0,
+          afterHoursCones: 0,
+          nightWeekend: false,
+          roadblock: false,
+          extraWorker: false,
+          miles: 0
+        });
+        setBillingOpen(true);
+        setManualOverride(false);
+        setManualAmount('');
+        setQuote(null);
 
-            // If you want the pricing panel to match this job’s company:
-            const resolvedKey = workOrder.companyKey || COMPANY_TO_KEY[workOrder.basic?.client] || '';
-            if (resolvedKey) setCompanyKey(workOrder.basic?.client);
-          }}>
+        // optional: if you keep this, consider not changing the filter while modal is open
+        const resolvedKey = workOrder.companyKey || COMPANY_TO_KEY[workOrder.basic?.client] || '';
+        if (resolvedKey) setCompanyKey(workOrder.basic?.client);
+      }}>
         Bill Job
       </button>
     );
-  } else if (isBilled && isPaid) {
-    return <span className="pill" style={{ color: '#fff', backgroundColor: '#28a745' }}>Paid</span>;
-  } else if (isBilled) {
-    // ❗use the effective values to set color/label
-    const isPartial = effectiveCurrentAmount < effectiveBilledAmount;
+  }
 
+  if (isBilled && isPaid) {
+    return <span className="pill" style={{ color: '#fff', backgroundColor: '#28a745' }}>Paid</span>;
+  }
+
+  if (isBilled) {
+    const isPartial = (effectiveCurrentAmount ?? 0) < (effectiveBilledAmount ?? 0);
     return (
       <>
-        {/* status pill */}
         <span
           className="pill"
-          style={{
-            backgroundColor: isPartial ? '#ffc107' : undefined,
-            color: isPartial ? '#000' : undefined,
-          }}
+          style={{ backgroundColor: isPartial ? '#ffc107' : undefined, color: isPartial ? '#000' : undefined }}
         >
           {isPartial ? 'Partial' : 'Billed'}
         </span>
-
-        {/* Payment form handles both status display and payment functionality */}
- <PaymentForm
-   workOrder={workOrder}
-   onPaymentComplete={() => fetchJobsForDay(selectedDate)}
-   onLocalPaid={() => markLocallyPaid(workOrder._id)}
- />
+        <PaymentForm
+          workOrder={workOrder}
+          onPaymentComplete={() => fetchJobsForDay(selectedDate)}
+          onLocalPaid={() => markLocallyPaid(workOrder._id)}
+        />
       </>
     );
   }
+
   return null;
 })()}
+
       {savedInvoices[workOrder._id] && (
         <span className="pill" style={{backgroundColor: '#28a745', marginLeft: '8px'}}>
           Saved ({new Date(savedInvoices[workOrder._id].savedAt).toLocaleDateString()})
