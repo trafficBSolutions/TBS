@@ -1283,7 +1283,18 @@ const fetchJobsForDay = async (date, companyName) => {
       {/* Bill Job controls belong INSIDE the map/card */}
       {(() => {
 const gaPowerOnly = isGaPowerOnly(workOrder.basic?.client);
- const isBilled = gaPowerOnly || workOrder.billed || localBilledJobs.has(workOrder._id);
+ const serverBilled = !!workOrder.billed;
+const localHint    = localBilledJobs.has(workOrder._id); // optimistic only
+const isBilled     = gaPowerOnly || serverBilled || localHint;
+useEffect(() => {
+  setLocalBilledJobs(prev => {
+    const next = new Set(prev);
+    for (const j of jobsForDay) if (j.billed) next.delete(j._id);
+    localStorage.setItem('localBilledJobs', JSON.stringify([...next]));
+    return next;
+  });
+}, [jobsForDay]);
+
   const isPaid = workOrder.paid || locallyPaid.has(workOrder._id);
 
   // 🟡 pull any cached partial progress
