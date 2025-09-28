@@ -592,10 +592,9 @@ const [rates, setRates] = useState({
 });
 const handleDownloadXLSXStyled = async () => {
   if (!billingJob) return;
-
-  const company = billingJob.company || '';
-  const jobNum  = billingJob.project || '';
-  const address = [billingJob.address, billingJob.city, billingJob.state, billingJob.zip]
+ const company = billingJob.basic?.client || '';
+ const jobNum  = billingJob.basic?.project || '';
+ const address = [billingJob.basic?.address, billingJob.basic?.city, billingJob.basic?.state, billingJob.basic?.zip]
     .filter(Boolean)
     .join(', ');
   const email   = selectedEmail || '';
