@@ -364,15 +364,7 @@ useEffect(() => {
   setTbsEnabled(isBasicReady());
 }, [basic, foremanName, foremanSig]);
 
-const sigCanvasProps = React.useMemo(
-  () => ({
-    className: 'sig-canvas',
-    'aria-label': 'Foreman signature',
-    width: 600,   // pick sizes that fit your layout
-    height: 200,
-  }),
-  []
-);
+
 useEffect(() => {
   const loadJob = async () => {
     if (!jobId) {
@@ -715,8 +707,6 @@ const isSubmitReady = useMemo(() => {
     calendarClassName="custom-datepicker"
     wrapperClassName="custom-datepicker-wrapper"
     dateFormat="yyyy-MM-dd"
-    includeDates={allowedDates.length ? allowedDates : undefined}
-    minDate={startOfLocalDay(new Date())}
   />
 
   <div className="selected-date-display" aria-live="polite">
@@ -1065,11 +1055,11 @@ value={basic.company}
 
 
         <SignatureCanvas
-  ref={sigRef}
-  penColor="#000"
-  onEnd={handleSigEnd}
-  canvasProps={sigCanvasProps}
-/>
+          ref={sigRef}
+          penColor="#000"
+          onEnd={handleSigEnd}
+          canvasProps={{ className: 'sig-canvas', 'aria-label': 'Foreman signature' }}
+        />
         <div className="sig-actions">
           <button type="button" className="btn sig-clear" onClick={clearSignature}>
             Clear Signature
