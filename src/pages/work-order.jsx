@@ -56,7 +56,6 @@ const states = [
   { abbreviation: 'TN', name: 'Tennessee' }
 ];
 export default function Work() {
-  
   const [searchParams] = useSearchParams();
   const jobId = searchParams.get('jobId');     // 👈 now from query
   const dateParam = searchParams.get('date');  // optional "YYYY-MM-DD"
@@ -64,9 +63,11 @@ export default function Work() {
   const [errorMessage, setErrorMessage] = useState('');
     const [submissionMessage, setSubmissionMessage] = useState('');
     const [submissionErrorMessage, setSubmissionErrorMessage] = useState('');
-const handleSigEnd = React.useCallback(() => {
+const handleSigEnd = () => {
   const pad = sigRef.current;
   if (!pad) return;
+
+  // if the pad exposes isEmpty() and it’s actually empty, treat as no signature
   if (typeof pad.isEmpty === 'function' && pad.isEmpty()) {
     setForemanSig('');
     setErrors(prev => ({ ...prev, foremanSignature: 'Signature required' }));
@@ -75,30 +76,22 @@ const handleSigEnd = React.useCallback(() => {
 
   let dataUrl;
   try {
+    // some builds of trim-canvas fail; guard the call
     if (typeof pad.getTrimmedCanvas === 'function') {
       dataUrl = pad.getTrimmedCanvas().toDataURL('image/png');
     } else {
       throw new Error('getTrimmedCanvas not available');
     }
   } catch {
+    // fallback to the raw canvas
     dataUrl = pad.getCanvas().toDataURL('image/png');
   }
 
+  // store only the base64 payload (no prefix)
   setForemanSig(dataUrl.split(',')[1]);
   setErrors(prev => ({ ...prev, foremanSignature: '' }));
-}, []);
+};
 
-
-// at top of component
-const sigCanvasProps = React.useMemo(
-  () => ({
-    className: 'sig-canvas',
-    'aria-label': 'Foreman signature',
-    width: 600,   // lock size; pick values that fit your layout
-    height: 200,
-  }),
-  []
-);
 
 const clearSignature = () => {
   sigRef.current?.clear();
@@ -185,32 +178,6 @@ useEffect(() => {
   };
   loadJob();
 }, [jobId, dateParam]);
-// Persist every stroke
-useEffect(() => {
-  const pad = sigRef.current;
-  if (!pad) return;
-  const onEnd = () => {
-    try {
-      const dataUrl = (pad.getTrimmedCanvas?.() ?? pad.getCanvas()).toDataURL('image/png');
-      setForemanSig(dataUrl.split(',')[1]);
-    } catch {}
-  };
-  pad.onEnd = onEnd;
-}, []);
-
-// Restore on window resize (if sized container still wiggles)
-useEffect(() => {
-  const handle = () => {
-    const pad = sigRef.current;
-    if (!pad || !foremanSig) return;
-    try {
-      // after resize, re-draw the saved image
-      pad.fromDataURL(`data:image/png;base64,${foremanSig}`);
-    } catch {}
-  };
-  window.addEventListener('resize', handle);
-  return () => window.removeEventListener('resize', handle);
-}, [foremanSig]);
 
 const clearError = (key) => setErrors(prev => {
   const next = { ...prev };
@@ -734,15 +701,15 @@ const isSubmitReady = useMemo(() => {
   </p>
 
   <DatePicker
-  selected={ymdToDate(basic.dateOfJob)}
-  onChange={(d) => setBasicField('dateOfJob', dateToYmd(d))}
-  inline
-  calendarClassName="custom-datepicker"
-  wrapperClassName="custom-datepicker-wrapper"
-  dateFormat="yyyy-MM-dd"
-  includeDates={allowedDates.length ? allowedDates : undefined}
-/>
-
+    selected={ymdToDate(basic.dateOfJob)}
+    onChange={(d) => setBasicField('dateOfJob', dateToYmd(d))}
+    inline
+    calendarClassName="custom-datepicker"
+    wrapperClassName="custom-datepicker-wrapper"
+    dateFormat="yyyy-MM-dd"
+    includeDates={allowedDates.length ? allowedDates : undefined}
+    minDate={startOfLocalDay(new Date())}
+  />
 
   <div className="selected-date-display" aria-live="polite">
     {basic.dateOfJob
@@ -754,15 +721,20 @@ const isSubmitReady = useMemo(() => {
 
 
 <label>Company *</label>
-<input
-   name="city-input"
-  type="text"
-  className="city-control-box"
-  value={basic.company}
+                  <select
+  className="project-company-input"
+value={basic.company}
   onChange={(e) => {
-    const val = toTitleCase(e.target.value);
-    setBasicField('company', val);
-  }}/>
+    setBasicField('company', e.target.value)
+  }}
+>
+  <option value="">Select your company</option>
+  {companyList.map((t) => (
+    <option key={t} value={t}>
+      {t}
+    </option>
+  ))}
+</select>
 {errors.company && <div className="error-message">{errors.company}</div>}
                 {basicField('address', 'Address')}
                  <label>City *</label>
@@ -1082,13 +1054,14 @@ const isSubmitReady = useMemo(() => {
       <p className="sign-here">Please Sign Your First & Last Name to Approve Work Order</p>
       {/* Signature canvas */}
       <div className="sig-canvas-wrap">
-<SignatureCanvas
-  ref={sigRef}
-  penColor="#000"
-  onEnd={handleSigEnd}
-  canvasProps={sigCanvasProps}
-/>
 
+
+        <SignatureCanvas
+          ref={sigRef}
+          penColor="#000"
+          onEnd={handleSigEnd}
+          canvasProps={{ className: 'sig-canvas', 'aria-label': 'Foreman signature' }}
+        />
         <div className="sig-actions">
           <button type="button" className="btn sig-clear" onClick={clearSignature}>
             Clear Signature
