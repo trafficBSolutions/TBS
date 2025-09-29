@@ -149,6 +149,9 @@ max-width: 75px;
     .main-work-section {
         margin: 0 auto;
     }
+    .sig-canvas {
+        width: 400px;
+    }
 }
 @media screen and (max-width: 320px) and (orientation: landscape) {
     .workorder {
