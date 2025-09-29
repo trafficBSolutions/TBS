@@ -434,7 +434,7 @@ useEffect(() => {
                   paymentAmount: Number(paymentAmount),
                   totalOwed: Number(totalOwedInput) || (invoiceData ? invoiceData.principal : 0) || currentBalance,
                   ...paymentDetails
-                }).then(() => {
+                }).then(async () => {
                 toast.success('Payment recorded and receipt sent!');
                          try {
            onLocalPaid();
@@ -446,8 +446,8 @@ useEffect(() => {
            }
          } catch {}
                 // Call onPaymentComplete to refresh data from server (including Invoice status)
-                onPaymentComplete();
-                setShowForm(false);            // close form after data refresh
+                await onPaymentComplete();
+                setShowForm(false);            // close form after data refresh completes
                 }).catch(err => {
                   toast.error('Failed to record payment: ' + (err.response?.data?.message || err.message));
                 }).finally(() => {
@@ -1098,7 +1098,10 @@ const fetchJobsForDay = async (date, companyName) => {
     let map = {};
    try {
        const invRes = await api.get('/api/billing/invoice-status', {
-   params: { workOrderIds: ids },
+   params: { 
+     workOrderIds: ids,
+     _t: Date.now() // Cache-busting timestamp
+   },
  });
       map = invRes?.data?.byWorkOrder || {};
     } catch (e) {
@@ -1109,12 +1112,10 @@ const fetchJobsForDay = async (date, companyName) => {
 
     const enriched = list.map(j => {
       const inv = map[j._id] || null;
-      const enrichedJob = {
+      return {
         ...j,
         _invoice: inv // attach canonical invoice info (or null)
       };
-      console.log('Enriched job:', j._id, 'WorkOrder.paid:', j.paid, 'Invoice data:', inv);
-      return enrichedJob;
     });
     setJobsForDay(enriched);
   } catch (err) {
@@ -1486,7 +1487,7 @@ const effectiveCurrentAmount = Number(
         </span>
         <PaymentForm
           workOrder={workOrder}
-          onPaymentComplete={() => fetchJobsForDay(selectedDate)}
+          onPaymentComplete={() => fetchJobsForDay(selectedDate, companyKey || '')}
           onLocalPaid={() => markLocallyPaid(workOrder._id)}
         />
       </>
