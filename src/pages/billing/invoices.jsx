@@ -1319,17 +1319,21 @@ useEffect(() => {
       {/* Bill Job controls belong INSIDE the map/card */}
 {(() => {
   const gaPowerOnly = isGaPowerOnly(workOrder.basic?.client);
-  const isBilled = gaPowerOnly || !!workOrder.billed || localBilledJobs.has(workOrder._id);
-  const isPaid = workOrder.paid || locallyPaid.has(workOrder._id);
+  // Prioritize server data over localStorage for cross-device sync
+  const isBilled = gaPowerOnly || !!workOrder.billed || (!workOrder.billed && localBilledJobs.has(workOrder._id));
+  const isPaid = !!workOrder.paid || (!workOrder.paid && locallyPaid.has(workOrder._id));
 
   const cached = localPaidProgress[workOrder._id];
+  // Prioritize server data over localStorage cache
   const effectiveBilledAmount =
     workOrder.billedAmount ??
     workOrder.invoiceTotal ??
+    workOrder.invoicePrincipal ??
     cached?.billedAmount ?? 0;
 
   const effectiveCurrentAmount =
     workOrder.currentAmount ??
+    (workOrder.billedAmount || workOrder.invoiceTotal || workOrder.invoicePrincipal) ??
     cached?.currentAmount ??
     effectiveBilledAmount;
 
