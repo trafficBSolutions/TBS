@@ -121,7 +121,14 @@ const formatEquipmentName = (key) => {
 };
 
 const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) => {
-  if (workOrder?.paid) return null;
+  // Check both WorkOrder.paid and Invoice status from MongoDB
+  const invoiceData = workOrder._invoice;
+  const isPaid = workOrder?.paid || (invoiceData && invoiceData.status === 'PAID');
+  
+  // Debug logging to help troubleshoot payment status
+  console.log('PaymentForm - WorkOrder ID:', workOrder._id, 'WorkOrder.paid:', workOrder.paid, 'Invoice status:', invoiceData?.status, 'Combined isPaid:', isPaid);
+  
+  if (isPaid) return null;
   const [showForm, setShowForm] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [cardType, setCardType] = useState('');
@@ -134,7 +141,7 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
   const [autoSaveTimer, setAutoSaveTimer] = useState(null);
   const timerRef = useRef(null);   
   // Connect to authoritative Invoice data from MongoDB first, then fallback to WorkOrder fields
-  const invoiceData = workOrder._invoice; // Invoice data from MongoDB
+  // Note: invoiceData already defined above for isPaid check
   
   // Calculate the authoritative total owed amount
   const authoritativeTotalOwed = 
@@ -266,7 +273,7 @@ useEffect(() => {
   return (
     <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-  {workOrder.paid ? (
+  {isPaid ? (
     <span className="pill" style={{ backgroundColor: '#28a745' }}>Paid</span>
   ) : workOrder.currentAmount < (workOrder.billedAmount || workOrder.invoiceTotal || 0) ? (
     <span className="pill" style={{ backgroundColor: '#ffc107', color: '#000' }}>Partial</span>
@@ -274,7 +281,7 @@ useEffect(() => {
     <span className="pill">Billed</span>
   )}
 
-  {!workOrder.paid && (
+  {!isPaid && (
     <button
       className="btn"
       style={{
@@ -438,6 +445,7 @@ useEffect(() => {
              localStorage.setItem('localPaidProgress', JSON.stringify(stash));
            }
          } catch {}
+                // Call onPaymentComplete to refresh data from server (including Invoice status)
                 onPaymentComplete();
                 setShowForm(false);            // close form after data refresh
                 }).catch(err => {
