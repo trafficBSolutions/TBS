@@ -15,6 +15,7 @@ const companyList = [
   "Broadband Technical Resources",
   "Broadband of Indiana",
   "Car Michael",
+  "Desoto",
   "Fairway Electric",
   "Georgia Power",
   "Global Infrastructure",
@@ -197,6 +198,14 @@ useEffect(() => {
         };
       } else {
         delete stash[workOrder._id];
+        // Also clear from locallyPaid cache when fully paid
+        try {
+          const locallyPaid = JSON.parse(localStorage.getItem('locallyPaid') || '[]');
+          const updated = [...locallyPaid, workOrder._id];
+          localStorage.setItem('locallyPaid', JSON.stringify(updated));
+        } catch (e) {
+          console.warn('Failed to update locallyPaid cache:', e);
+        }
       }
       localStorage.setItem('localPaidProgress', JSON.stringify(stash));
 
@@ -499,17 +508,6 @@ const markLocallyPaid = (id) => {
     return next;
   });
 };
-useEffect(() => {
-  setLocallyPaid(prev => {
-    const next = new Set(prev);
-    let changed = false;
-    for (const j of jobsForDay) {
-      if (j.paid && next.has(j._id)) { next.delete(j._id); changed = true; }
-    }
-    if (changed) localStorage.setItem('locallyPaid', JSON.stringify([...next]));
-    return next;
-  });
-}, [jobsForDay]);
 
 // Invoice header fields
 const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().slice(0,10));
@@ -984,9 +982,7 @@ const fetchMonthlyJobs = async (date, companyName = '') => {
   try {
     const month = date.getMonth() + 1;
     const year = date.getFullYear();
-     const res = await api.get(`/work-orders/month`, {
-   params: { month: date.getMonth() + 1, year: date.getFullYear(), company: companyName || undefined }
- });
+    const res = await axios.get(`/work-orders/month?month=${month}&year=${year}${companyName ? `&company=${encodeURIComponent(companyName)}` : ''}`);
 
     // Option A: filter client-side if the API doesn’t support ?company on that endpoint
     const filtered = companyName
@@ -1022,7 +1018,7 @@ const fetchJobsForDay = async (date, companyName) => {
     const params = { date: dateStr };
     if (companyName) params.company = companyName;
 
-    const res = await api.get('/work-orders', { params });
+    const res = await axios.get('/work-orders', { params });
     const list = pickList(res?.data);
     if (!Array.isArray(list)) {
       console.warn('Unexpected /work-orders payload; skipping render', res?.data);
@@ -1043,7 +1039,14 @@ const fetchJobsForDay = async (date, companyName) => {
     setJobsForDay([]);
   }
 };
-
+useEffect(() => {
+  setLocalBilledJobs(prev => {
+    const next = new Set(prev);
+    for (const j of jobsForDay) if (j.billed) next.delete(j._id);
+    localStorage.setItem('localBilledJobs', JSON.stringify([...next]));
+    return next;
+  });
+}, [jobsForDay]);
   // Initial calendar load: ALL companies
   useEffect(() => {
     (async () => {
@@ -1051,6 +1054,17 @@ const fetchJobsForDay = async (date, companyName) => {
       await fetchJobsForDay(selectedDate, '');
     })();
   }, []); // run once
+
+  // Auto-refresh every 30 seconds to sync payment status across browsers
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (selectedDate) {
+        fetchJobsForDay(selectedDate, companyKey || '');
+      }
+    }, 30000); // 30 seconds
+    
+    return () => clearInterval(interval);
+  }, [selectedDate, companyKey]);
 
   // When company changes: refetch month + selected day with that filter
   useEffect(() => {
@@ -1140,33 +1154,17 @@ const fetchJobsForDay = async (date, companyName) => {
         sheetTotal
       }
     };
-     const { data } = await api.post('/api/billing/bill-workorder', payload);
- if (data?.workOrder?._id) {
-   setJobsForDay(list => list.map(j => j._id === data.workOrder._id ? data.workOrder : j));
- }
- // optimistic local update so the card flips to Billed immediately
-setJobsForDay(list =>
-  list.map(j =>
-    j._id === billingJob._id
-      ? {
-          ...j,
-          billed: true,
-          paid: false, // ← add this
-          billedAt: new Date().toISOString(),
-          billedAmount: Number(sheetTotal.toFixed(2)),
-          currentAmount: Number(sheetTotal.toFixed(2)),
-          invoiceTotal: Number(sheetTotal.toFixed(2)),
-          invoiceData: {
-            ...(j.invoiceData || {}),
-            ...payload.invoiceData,
-            selectedEmail,
-          },
-        }
-      : j
-  )
-);
+    await api.post('/api/billing/bill-workorder', payload);
+
+    // Mark as billed locally immediately
+    setLocalBilledJobs(prev => {
+      const updated = new Set([...prev, billingJob._id]);
+      localStorage.setItem('localBilledJobs', JSON.stringify([...updated]));
+      return updated;
+    });
+    
     // Refetch server data to get updated billed status
-    await fetchJobsForDay(selectedDate, companyKey || '');
+    await fetchJobsForDay(selectedDate);
 
     setSubmissionMessage('Invoice sent!');
     toast.success('Invoice sent with PDF attachment.');
@@ -1190,7 +1188,17 @@ setJobsForDay(list =>
     <div>
       <Header />
       <div className="invoice-page container">
-        <h1>Invoices</h1>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h1>Invoices</h1>
+          <button 
+            className="btn"
+            onClick={() => fetchJobsForDay(selectedDate, companyKey || '')}
+            style={{ fontSize: '12px', padding: '6px 12px' }}
+            title="Refresh to sync payment status across all devices"
+          >
+            🔄 Refresh
+          </button>
+        </div>
         {/* Jobs Calendar – shows ALL jobs until a selection is made, then filters */}
         <div className="admin-job-calendar" style={{ marginTop: 20 }}>
           <h2>
@@ -1311,121 +1319,94 @@ setJobsForDay(list =>
       {/* Bill Job controls belong INSIDE the map/card */}
 {(() => {
   const gaPowerOnly = isGaPowerOnly(workOrder.basic?.client);
+  const isBilled = gaPowerOnly || !!workOrder.billed || localBilledJobs.has(workOrder._id);
+  const isPaid = workOrder.paid || locallyPaid.has(workOrder._id);
 
-  // When is it considered billed?
-  const billedish =
-    gaPowerOnly ||
-    Boolean(workOrder.billed) ||
-    Boolean(workOrder.invoiceId) ||
-    Boolean(workOrder.billedAt) ||
-    Number(workOrder.invoiceTotal) > 0 ||
-    Number(workOrder.billedAmount) > 0;
-
-  // Use server for hiding the form
-  const serverPaid = Boolean(workOrder.paid);
-
-  // Cached partials for status math only
   const cached = localPaidProgress[workOrder._id];
   const effectiveBilledAmount =
-    Number(
-      workOrder.billedAmount ??
-      workOrder.invoiceTotal ??
-      cached?.billedAmount ??
-      0
-    );
+    workOrder.billedAmount ??
+    workOrder.invoiceTotal ??
+    cached?.billedAmount ?? 0;
 
   const effectiveCurrentAmount =
-    Number(
-      workOrder.currentAmount ??
-      cached?.currentAmount ??
-      effectiveBilledAmount
-    );
+    workOrder.currentAmount ??
+    cached?.currentAmount ??
+    effectiveBilledAmount;
 
-  const isPartial = effectiveCurrentAmount < effectiveBilledAmount;
-
-  // 1) Not billed yet → show "Bill Job" (except GA Power auto-bill rule)
-  if (!billedish && workOrder.basic?.client !== 'Georgia Power') {
+  if (!isBilled && workOrder.basic?.client !== 'Georgia Power') {
     return (
-      <button
-        className="btn"
-        onClick={() => {
-          setBillingJob(workOrder);
+      <button className="btn" onClick={() => {
+        setBillingJob(workOrder);
+        if (savedInvoices[workOrder._id]) {
+          loadSavedInvoice(workOrder._id);
+        } else {
+          setSelectedEmail(workOrder.basic?.email || '');
+          setBillToCompany('');
+          setBillToAddress('');
+          setWorkType('');
+          setForeman(workOrder.basic?.foremanName || '');
+          setLocation([workOrder.basic?.address, workOrder.basic?.city, workOrder.basic?.state, workOrder.basic?.zip].filter(Boolean).join(', '));
+          setInvoiceDate(new Date().toISOString().slice(0,10));
+          setInvoiceNumber('');
+          setWorkRequestNumber1('');
+          setWorkRequestNumber2('');
+          setDueDate('');
+          setSheetRows(VERTEX42_STARTER_ROWS);
+          setSheetTaxRate(0);
+          setSheetOther(0);
+        }
+        setSel({
+          flagDay: '',
+          laneClosure: 'NONE',
+          intersections: 0,
+          arrowBoardsQty: 0,
+          messageBoardsQty: 0,
+          afterHours: false,
+          afterHoursSigns: 0,
+          afterHoursCones: 0,
+          nightWeekend: false,
+          roadblock: false,
+          extraWorker: false,
+          miles: 0
+        });
+        setBillingOpen(true);
+        setManualOverride(false);
+        setManualAmount('');
+        setQuote(null);
 
-          if (savedInvoices[workOrder._id]) {
-            loadSavedInvoice(workOrder._id);
-          } else {
-            setSelectedEmail(workOrder.basic?.email || '');
-            setBillToCompany('');
-            setBillToAddress('');
-            setWorkType('');
-            setForeman(workOrder.basic?.foremanName || '');
-            setLocation([workOrder.basic?.address, workOrder.basic?.city, workOrder.basic?.state, workOrder.basic?.zip].filter(Boolean).join(', '));
-            setInvoiceDate(new Date().toISOString().slice(0,10));
-            setInvoiceNumber('');
-            setWorkRequestNumber1('');
-            setWorkRequestNumber2('');
-            setDueDate('');
-            setSheetRows(VERTEX42_STARTER_ROWS);
-            setSheetTaxRate(0);
-            setSheetOther(0);
-          }
-
-          setSel({
-            flagDay: '',
-            laneClosure: 'NONE',
-            intersections: 0,
-            arrowBoardsQty: 0,
-            messageBoardsQty: 0,
-            afterHours: false,
-            afterHoursSigns: 0,
-            afterHoursCones: 0,
-            nightWeekend: false,
-            roadblock: false,
-            extraWorker: false,
-            miles: 0
-          });
-
-          setBillingOpen(true);
-          setManualOverride(false);
-          setManualAmount('');
-          setQuote(null);
-
-          const resolvedKey = workOrder.companyKey || COMPANY_TO_KEY[workOrder.basic?.client] || '';
-          if (resolvedKey) setCompanyKey(workOrder.basic?.client);
-        }}
-      >
+        // optional: if you keep this, consider not changing the filter while modal is open
+        const resolvedKey = workOrder.companyKey || COMPANY_TO_KEY[workOrder.basic?.client] || '';
+        if (resolvedKey) setCompanyKey(workOrder.basic?.client);
+      }}>
         Bill Job
       </button>
     );
   }
 
-  // 2) Billed → always show a status pill...
-  //    ...and show PaymentForm unless the SERVER says paid.
-  const showPaidPill = serverPaid || locallyPaid.has(workOrder._id);
+  if (isBilled && isPaid) {
+    return <span className="pill" style={{ color: '#fff', backgroundColor: '#28a745' }}>Paid</span>;
+  }
 
-  return (
-    <>
-      <span
-        className="pill"
-        style={{
-          backgroundColor: showPaidPill ? '#28a745'
-                           : isPartial ? '#ffc107' : undefined,
-          color: showPaidPill ? '#fff'
-               : isPartial ? '#000' : undefined,
-        }}
-      >
-        {showPaidPill ? 'Paid' : isPartial ? 'Partial' : 'Billed'}
-      </span>
-
-      {!serverPaid && (
+  if (isBilled) {
+    const isPartial = (effectiveCurrentAmount ?? 0) < (effectiveBilledAmount ?? 0);
+    return (
+      <>
+        <span
+          className="pill"
+          style={{ backgroundColor: isPartial ? '#ffc107' : undefined, color: isPartial ? '#000' : undefined }}
+        >
+          {isPartial ? 'Partial' : 'Billed'}
+        </span>
         <PaymentForm
           workOrder={workOrder}
           onPaymentComplete={() => fetchJobsForDay(selectedDate)}
           onLocalPaid={() => markLocallyPaid(workOrder._id)}
         />
-      )}
-    </>
-  );
+      </>
+    );
+  }
+
+  return null;
 })()}
 
       {savedInvoices[workOrder._id] && (
