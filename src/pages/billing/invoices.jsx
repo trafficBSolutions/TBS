@@ -1030,7 +1030,24 @@ const fetchJobsForDay = async (date, companyName) => {
       currentAmount: j.currentAmount,
       billedAmount: j.billedAmount
     })));
-    setJobsForDay(list);
+        // Enrich with invoice status from server
+    const ids = list.map(j => j._id).join(',');
+    let map = {};
+   try {
+      const invRes = await axios.get(`/billing/invoice-status`, { params: { workOrderIds: ids } });
+      map = invRes?.data?.byWorkOrder || {};
+    } catch (e) {
+      console.warn('Failed to fetch invoice status map:', e);
+   }
+
+    const enriched = list.map(j => {
+      const inv = map[j._id] || null;
+      return {
+        ...j,
+        _invoice: inv // attach canonical invoice info (or null)
+      };
+    });
+    setJobsForDay(enriched);
   } catch (err) {
     console.error('fetchJobsForDay failed:', err);
     setJobsForDay([]);
@@ -1302,20 +1319,27 @@ const fetchJobsForDay = async (date, companyName) => {
       {/* Bill Job controls belong INSIDE the map/card */}
 {(() => {
 const gaPowerOnly = isGaPowerOnly(workOrder.basic?.client);
+const inv = workOrder._invoice || null;
 
-// Treat any of these as "billed"
-const isBilled =
-  gaPowerOnly ||
+// Canonical from Invoice doc when present
+const serverHasInvoice   = !!inv;
+const serverIsBilled     = inv ? ['SENT','PARTIALLY_PAID','PAID'].includes(inv.status) : false;
+const serverIsPaid       = inv ? inv.status === 'PAID' || !!workOrder.paid : !!workOrder.paid;
+
+// Back-compat fallback if no invoice row found (older data)
+const legacyIsBilled =
   Boolean(workOrder.billed) ||
   Boolean(workOrder.invoiceId) ||
   Number(workOrder.invoiceTotal) > 0 ||
   Number(workOrder.billedAmount) > 0 ||
   Number(workOrder?.invoiceData?.sheetTotal) > 0;
 
-const isPaid = Boolean(workOrder.paid);
+const isBilled = serverHasInvoice ? serverIsBilled : legacyIsBilled || gaPowerOnly;
+const isPaid   = serverHasInvoice ? serverIsPaid   : Boolean(workOrder.paid);
 
 // Amounts (prefer server)
 const effectiveBilledAmount = Number(
+  (inv?.principal) ??
   workOrder.billedAmount ??
   workOrder.invoiceTotal ??
   workOrder.invoicePrincipal ??
