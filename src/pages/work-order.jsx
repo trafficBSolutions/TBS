@@ -63,6 +63,15 @@ export default function Work() {
   const [errorMessage, setErrorMessage] = useState('');
     const [submissionMessage, setSubmissionMessage] = useState('');
     const [submissionErrorMessage, setSubmissionErrorMessage] = useState('');
+    const sigCanvasProps = React.useMemo(
+  () => ({
+    className: 'sig-canvas',
+    'aria-label': 'Foreman signature',
+    width: 600,   // pick fixed size that fits your layout
+    height: 200,
+  }),
+  []
+);
 const handleSigEnd = () => {
   const pad = sigRef.current;
   if (!pad) return;
@@ -1052,14 +1061,12 @@ value={basic.company}
       <p className="sign-here">Please Sign Your First & Last Name to Approve Work Order</p>
       {/* Signature canvas */}
       <div className="sig-canvas-wrap">
-
-
-        <SignatureCanvas
-          ref={sigRef}
-          penColor="#000"
-          onEnd={handleSigEnd}
-          canvasProps={{ className: 'sig-canvas', 'aria-label': 'Foreman signature' }}
-        />
+<SignatureCanvas
+  ref={sigRef}
+  penColor="#000"
+  onEnd={handleSigEnd}
+  canvasProps={sigCanvasProps}
+/>
         <div className="sig-actions">
           <button type="button" className="btn sig-clear" onClick={clearSignature}>
             Clear Signature
