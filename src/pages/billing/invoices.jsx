@@ -1129,11 +1129,32 @@ const fetchJobsForDay = async (date, companyName) => {
         sheetTotal
       }
     };
-    await api.post('/api/billing/bill-workorder', payload);
-
-    
+     const { data } = await api.post('/api/billing/bill-workorder', payload);
+ if (data?.workOrder?._id) {
+   setJobsForDay(list => list.map(j => j._id === data.workOrder._id ? data.workOrder : j));
+ }
+ // optimistic local update so the card flips to Billed immediately
+ setJobsForDay(list =>
+   list.map(j =>
+     j._id === billingJob._id
+       ? {
+           ...j,
+           billed: true,
+           billedAt: new Date().toISOString(),
+           billedAmount: Number(sheetTotal.toFixed(2)),
+           currentAmount: Number(sheetTotal.toFixed(2)),
+           invoiceTotal: Number(sheetTotal.toFixed(2)),
+           invoiceData: {
+             ...(j.invoiceData || {}),
+             ...payload.invoiceData,
+             selectedEmail, // keep what you showed in the editor
+           },
+         }
+       : j
+   )
+ );
     // Refetch server data to get updated billed status
-    await fetchJobsForDay(selectedDate);
+    await fetchJobsForDay(selectedDate, companyKey || '');
 
     setSubmissionMessage('Invoice sent!');
     toast.success('Invoice sent with PDF attachment.');
@@ -1279,7 +1300,13 @@ const fetchJobsForDay = async (date, companyName) => {
       {(() => {
 const gaPowerOnly = isGaPowerOnly(workOrder.basic?.client);
 // Only trust server for billed; keep GA Power auto-bill rule if you want.
-const isBilled = gaPowerOnly || Boolean(workOrder.billed);
+ const isBilled =
+   gaPowerOnly ||
+   Boolean(workOrder.billed) ||
+   Boolean(workOrder.invoiceId) ||
+   Boolean(workOrder.billedAt) ||
+   (Number(workOrder.invoiceTotal) > 0) ||
+   (Number(workOrder.billedAmount) > 0);
 // Paid can still be derived from server, keep local fallback for UX if you like:
 const isPaid = Boolean(workOrder.paid) || locallyPaid.has(workOrder._id);
 
