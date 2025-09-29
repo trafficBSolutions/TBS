@@ -973,7 +973,9 @@ const fetchMonthlyJobs = async (date, companyName = '') => {
   try {
     const month = date.getMonth() + 1;
     const year = date.getFullYear();
-    const res = await axios.get(`/work-orders/month?month=${month}&year=${year}${companyName ? `&company=${encodeURIComponent(companyName)}` : ''}`);
+     const res = await api.get(`/work-orders/month`, {
+   params: { month: date.getMonth() + 1, year: date.getFullYear(), company: companyName || undefined }
+ });
 
     // Option A: filter client-side if the API doesn’t support ?company on that endpoint
     const filtered = companyName
@@ -1009,7 +1011,7 @@ const fetchJobsForDay = async (date, companyName) => {
     const params = { date: dateStr };
     if (companyName) params.company = companyName;
 
-    const res = await axios.get('/work-orders', { params });
+    const res = await api.get('/work-orders', { params });
     const list = pickList(res?.data);
     if (!Array.isArray(list)) {
       console.warn('Unexpected /work-orders payload; skipping render', res?.data);
@@ -1129,12 +1131,6 @@ const fetchJobsForDay = async (date, companyName) => {
     };
     await api.post('/api/billing/bill-workorder', payload);
 
-    // Mark as billed locally immediately
-    setLocalBilledJobs(prev => {
-      const updated = new Set([...prev, billingJob._id]);
-      localStorage.setItem('localBilledJobs', JSON.stringify([...updated]));
-      return updated;
-    });
     
     // Refetch server data to get updated billed status
     await fetchJobsForDay(selectedDate);
@@ -1282,8 +1278,11 @@ const fetchJobsForDay = async (date, companyName) => {
       {/* Bill Job controls belong INSIDE the map/card */}
       {(() => {
 const gaPowerOnly = isGaPowerOnly(workOrder.basic?.client);
- const isBilled = gaPowerOnly || workOrder.billed || localBilledJobs.has(workOrder._id);
-  const isPaid = workOrder.paid || locallyPaid.has(workOrder._id);
+// Only trust server for billed; keep GA Power auto-bill rule if you want.
+const isBilled = gaPowerOnly || Boolean(workOrder.billed);
+// Paid can still be derived from server, keep local fallback for UX if you like:
+const isPaid = Boolean(workOrder.paid) || locallyPaid.has(workOrder._id);
+
 
   // 🟡 pull any cached partial progress
   const cached = localPaidProgress[workOrder._id];
