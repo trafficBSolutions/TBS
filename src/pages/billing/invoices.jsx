@@ -135,6 +135,23 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
   const timerRef = useRef(null);   
   // Connect to authoritative Invoice data from MongoDB first, then fallback to WorkOrder fields
   const invoiceData = workOrder._invoice; // Invoice data from MongoDB
+  
+  // Calculate the authoritative total owed amount
+  const authoritativeTotalOwed = 
+    (invoiceData ? invoiceData.principal : 0) || 
+    workOrder.lastManualTotalOwed ||
+    workOrder.billedAmount ||
+    workOrder.invoiceTotal ||
+    workOrder.invoiceData?.sheetTotal ||
+    workOrder.invoicePrincipal ||
+    0;
+
+  // Auto-populate Total Owed field when component loads or invoice data changes
+  useEffect(() => {
+    if (authoritativeTotalOwed > 0 && !totalOwedInput) {
+      setTotalOwedInput(authoritativeTotalOwed.toString());
+    }
+  }, [authoritativeTotalOwed, totalOwedInput]);
   const totalOwed =
     Number(totalOwedInput) || // Manual override if user enters amount
     (invoiceData ? invoiceData.principal : 0) || // PRIORITY: Use Invoice.principal from MongoDB
@@ -321,17 +338,52 @@ useEffect(() => {
             <label>Total Owed: </label>
             <input type="number" step="0.01" min="0"
               value={totalOwedInput} onChange={e => setTotalOwedInput(e.target.value)} 
-              placeholder={`${totalOwed.toFixed(2)}`}
-              style={{width: '100px', padding: '4px', marginLeft: '5px'}}
+              style={{
+                width: '100px', 
+                padding: '4px', 
+                marginLeft: '5px',
+                backgroundColor: '#f8f9fa',
+                border: '1px solid #ced4da',
+                fontWeight: '600'
+              }}
+              title="Auto-filled from invoice amount - you can override if needed"
             />
+            <small style={{color: '#6c757d', marginLeft: '5px', fontSize: '11px'}}>
+              {invoiceData ? '(from invoice)' : '(calculated)'}
+            </small>
           </div>
           
           <div style={{marginBottom: '8px'}}>
-            <label>Payment Amount: </label>
+            <label style={{fontWeight: 'bold'}}>Payment Amount: </label>
             <input type="number" step="0.01" min="0" max={currentBalance}
               value={paymentAmount} onChange={e => setPaymentAmount(e.target.value)} 
-              style={{width: '100px', padding: '4px', marginLeft: '5px'}}
+              style={{
+                width: '100px', 
+                padding: '4px', 
+                marginLeft: '5px',
+                border: '2px solid #007bff',
+                borderRadius: '4px'
+              }}
+              placeholder="Enter amount"
+              autoFocus
             />
+            <button 
+              type="button"
+              onClick={() => setPaymentAmount(currentBalance.toString())}
+              style={{
+                marginLeft: '5px',
+                fontSize: '11px',
+                padding: '2px 6px',
+                border: '1px solid #007bff',
+                backgroundColor: '#f8f9fa',
+                color: '#007bff',
+                borderRadius: '3px',
+                cursor: 'pointer'
+              }}
+              title={`Pay remaining balance: $${currentBalance.toFixed(2)}`}
+            >
+              Pay ${currentBalance.toFixed(0)}
+            </button>
           </div>
 <div style={{ marginBottom: '8px', fontSize: '12px', color: '#666' }}>
   <div>Original Total: ${totalOwed.toFixed(2)}</div>
