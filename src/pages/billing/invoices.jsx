@@ -979,12 +979,7 @@ const fetchMonthlyJobs = async (date, companyName = '') => {
   try {
     const month = date.getMonth() + 1;
     const year = date.getFullYear();
-    const t = Date.now();
-    const url =
-      `/work-orders/month?month=${month}&year=${year}` +
-      (companyName ? `&company=${encodeURIComponent(companyName)}` : '') +
-      `&_=${t}`;
-    const res = await axios.get(url, { headers: { 'Cache-Control': 'no-cache' }});
+    const res = await axios.get(`/work-orders/month?month=${month}&year=${year}${companyName ? `&company=${encodeURIComponent(companyName)}` : ''}`);
 
     // Option A: filter client-side if the API doesn’t support ?company on that endpoint
     const filtered = companyName
@@ -1016,16 +1011,11 @@ useEffect(() => {
 const fetchJobsForDay = async (date, companyName) => {
   try {
     if (!date) return setJobsForDay([]);
-    const t = Date.now();
-    const params = {
-      date: date.toISOString().split('T')[0],
-      ...(companyName ? { company: companyName } : {}),
-      _: t, // cache buster
-    };
-    const res = await axios.get('/work-orders', {
-      params,
-      headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
-    });
+    const dateStr = date.toISOString().split('T')[0];
+    const params = { date: dateStr };
+    if (companyName) params.company = companyName;
+
+    const res = await axios.get('/work-orders', { params });
     const list = pickList(res?.data);
     if (!Array.isArray(list)) {
       console.warn('Unexpected /work-orders payload; skipping render', res?.data);
