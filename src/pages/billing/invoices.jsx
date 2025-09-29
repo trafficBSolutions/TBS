@@ -499,6 +499,17 @@ const markLocallyPaid = (id) => {
     return next;
   });
 };
+useEffect(() => {
+  setLocallyPaid(prev => {
+    const next = new Set(prev);
+    let changed = false;
+    for (const j of jobsForDay) {
+      if (j.paid && next.has(j._id)) { next.delete(j._id); changed = true; }
+    }
+    if (changed) localStorage.setItem('locallyPaid', JSON.stringify([...next]));
+    return next;
+  });
+}, [jobsForDay]);
 
 // Invoice header fields
 const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().slice(0,10));
@@ -1134,25 +1145,26 @@ const fetchJobsForDay = async (date, companyName) => {
    setJobsForDay(list => list.map(j => j._id === data.workOrder._id ? data.workOrder : j));
  }
  // optimistic local update so the card flips to Billed immediately
- setJobsForDay(list =>
-   list.map(j =>
-     j._id === billingJob._id
-       ? {
-           ...j,
-           billed: true,
-           billedAt: new Date().toISOString(),
-           billedAmount: Number(sheetTotal.toFixed(2)),
-           currentAmount: Number(sheetTotal.toFixed(2)),
-           invoiceTotal: Number(sheetTotal.toFixed(2)),
-           invoiceData: {
-             ...(j.invoiceData || {}),
-             ...payload.invoiceData,
-             selectedEmail, // keep what you showed in the editor
-           },
-         }
-       : j
-   )
- );
+setJobsForDay(list =>
+  list.map(j =>
+    j._id === billingJob._id
+      ? {
+          ...j,
+          billed: true,
+          paid: false, // ← add this
+          billedAt: new Date().toISOString(),
+          billedAmount: Number(sheetTotal.toFixed(2)),
+          currentAmount: Number(sheetTotal.toFixed(2)),
+          invoiceTotal: Number(sheetTotal.toFixed(2)),
+          invoiceData: {
+            ...(j.invoiceData || {}),
+            ...payload.invoiceData,
+            selectedEmail,
+          },
+        }
+      : j
+  )
+);
     // Refetch server data to get updated billed status
     await fetchJobsForDay(selectedDate, companyKey || '');
 
@@ -1297,113 +1309,125 @@ const fetchJobsForDay = async (date, companyName) => {
       <p><strong>Completed:</strong> {new Date(workOrder.createdAt).toLocaleDateString()} at {new Date(workOrder.createdAt).toLocaleTimeString()}</p>
 
       {/* Bill Job controls belong INSIDE the map/card */}
-      {(() => {
-const gaPowerOnly = isGaPowerOnly(workOrder.basic?.client);
-// Only trust server for billed; keep GA Power auto-bill rule if you want.
- const isBilled =
-   gaPowerOnly ||
-   Boolean(workOrder.billed) ||
-   Boolean(workOrder.invoiceId) ||
-   Boolean(workOrder.billedAt) ||
-   (Number(workOrder.invoiceTotal) > 0) ||
-   (Number(workOrder.billedAmount) > 0);
-// Paid can still be derived from server, keep local fallback for UX if you like:
-const isPaid = Boolean(workOrder.paid) || locallyPaid.has(workOrder._id);
+{(() => {
+  const gaPowerOnly = isGaPowerOnly(workOrder.basic?.client);
 
+  // When is it considered billed?
+  const billedish =
+    gaPowerOnly ||
+    Boolean(workOrder.billed) ||
+    Boolean(workOrder.invoiceId) ||
+    Boolean(workOrder.billedAt) ||
+    Number(workOrder.invoiceTotal) > 0 ||
+    Number(workOrder.billedAmount) > 0;
 
-  // 🟡 pull any cached partial progress
+  // Use server for hiding the form
+  const serverPaid = Boolean(workOrder.paid);
+
+  // Cached partials for status math only
   const cached = localPaidProgress[workOrder._id];
   const effectiveBilledAmount =
-    workOrder.billedAmount ??
-    workOrder.invoiceTotal ??
-    cached?.billedAmount ??
-    0;
+    Number(
+      workOrder.billedAmount ??
+      workOrder.invoiceTotal ??
+      cached?.billedAmount ??
+      0
+    );
 
   const effectiveCurrentAmount =
-    workOrder.currentAmount ??
-    cached?.currentAmount ??
-    effectiveBilledAmount;
+    Number(
+      workOrder.currentAmount ??
+      cached?.currentAmount ??
+      effectiveBilledAmount
+    );
 
-  if (!isBilled && workOrder.basic?.client !== 'Georgia Power') {
+  const isPartial = effectiveCurrentAmount < effectiveBilledAmount;
+
+  // 1) Not billed yet → show "Bill Job" (except GA Power auto-bill rule)
+  if (!billedish && workOrder.basic?.client !== 'Georgia Power') {
     return (
-      <button className="btn" onClick={() => {
-  setBillingJob(workOrder);
-  
-  if (savedInvoices[workOrder._id]) {
-    loadSavedInvoice(workOrder._id);
-  } else {
-    setSelectedEmail(workOrder.basic?.email || '');
-    setBillToCompany('');
-    setBillToAddress('');
-    setWorkType('');
-    setForeman(workOrder.basic?.foremanName || '');
-    setLocation([workOrder.basic?.address, workOrder.basic?.city, workOrder.basic?.state, workOrder.basic?.zip].filter(Boolean).join(', '));
-    setInvoiceDate(new Date().toISOString().slice(0,10));
-    setInvoiceNumber('');
-    setWorkRequestNumber1('');
-    setWorkRequestNumber2('');
-    setDueDate('');
-    setSheetRows(VERTEX42_STARTER_ROWS);
-    setSheetTaxRate(0);
-    setSheetOther(0);
-  }
-  
-  setSel({
-    flagDay: '',
-    laneClosure: 'NONE',
-    intersections: 0,
-    arrowBoardsQty: 0,
-    messageBoardsQty: 0,
-    afterHours: false,
-    afterHoursSigns: 0,
-    afterHoursCones: 0,
-    nightWeekend: false,
-    roadblock: false,
-    extraWorker: false,
-    miles: 0
-  });
-  setBillingOpen(true);
-            setManualOverride(false);
-            setManualAmount('');
-            setQuote(null);
+      <button
+        className="btn"
+        onClick={() => {
+          setBillingJob(workOrder);
 
-            // If you want the pricing panel to match this job’s company:
-            const resolvedKey = workOrder.companyKey || COMPANY_TO_KEY[workOrder.basic?.client] || '';
-            if (resolvedKey) setCompanyKey(workOrder.basic?.client);
-          }}>
+          if (savedInvoices[workOrder._id]) {
+            loadSavedInvoice(workOrder._id);
+          } else {
+            setSelectedEmail(workOrder.basic?.email || '');
+            setBillToCompany('');
+            setBillToAddress('');
+            setWorkType('');
+            setForeman(workOrder.basic?.foremanName || '');
+            setLocation([workOrder.basic?.address, workOrder.basic?.city, workOrder.basic?.state, workOrder.basic?.zip].filter(Boolean).join(', '));
+            setInvoiceDate(new Date().toISOString().slice(0,10));
+            setInvoiceNumber('');
+            setWorkRequestNumber1('');
+            setWorkRequestNumber2('');
+            setDueDate('');
+            setSheetRows(VERTEX42_STARTER_ROWS);
+            setSheetTaxRate(0);
+            setSheetOther(0);
+          }
+
+          setSel({
+            flagDay: '',
+            laneClosure: 'NONE',
+            intersections: 0,
+            arrowBoardsQty: 0,
+            messageBoardsQty: 0,
+            afterHours: false,
+            afterHoursSigns: 0,
+            afterHoursCones: 0,
+            nightWeekend: false,
+            roadblock: false,
+            extraWorker: false,
+            miles: 0
+          });
+
+          setBillingOpen(true);
+          setManualOverride(false);
+          setManualAmount('');
+          setQuote(null);
+
+          const resolvedKey = workOrder.companyKey || COMPANY_TO_KEY[workOrder.basic?.client] || '';
+          if (resolvedKey) setCompanyKey(workOrder.basic?.client);
+        }}
+      >
         Bill Job
       </button>
     );
-  } else if (isBilled && isPaid) {
-    return <span className="pill" style={{ color: '#fff', backgroundColor: '#28a745' }}>Paid</span>;
-  } else if (isBilled) {
-    // ❗use the effective values to set color/label
-    const isPartial = effectiveCurrentAmount < effectiveBilledAmount;
-
-    return (
-      <>
-        {/* status pill */}
-        <span
-          className="pill"
-          style={{
-            backgroundColor: isPartial ? '#ffc107' : undefined,
-            color: isPartial ? '#000' : undefined,
-          }}
-        >
-          {isPartial ? 'Partial' : 'Billed'}
-        </span>
-
-        {/* Payment form handles both status display and payment functionality */}
- <PaymentForm
-   workOrder={workOrder}
-   onPaymentComplete={() => fetchJobsForDay(selectedDate)}
-   onLocalPaid={() => markLocallyPaid(workOrder._id)}
- />
-      </>
-    );
   }
-  return null;
+
+  // 2) Billed → always show a status pill...
+  //    ...and show PaymentForm unless the SERVER says paid.
+  const showPaidPill = serverPaid || locallyPaid.has(workOrder._id);
+
+  return (
+    <>
+      <span
+        className="pill"
+        style={{
+          backgroundColor: showPaidPill ? '#28a745'
+                           : isPartial ? '#ffc107' : undefined,
+          color: showPaidPill ? '#fff'
+               : isPartial ? '#000' : undefined,
+        }}
+      >
+        {showPaidPill ? 'Paid' : isPartial ? 'Partial' : 'Billed'}
+      </span>
+
+      {!serverPaid && (
+        <PaymentForm
+          workOrder={workOrder}
+          onPaymentComplete={() => fetchJobsForDay(selectedDate)}
+          onLocalPaid={() => markLocallyPaid(workOrder._id)}
+        />
+      )}
+    </>
+  );
 })()}
+
       {savedInvoices[workOrder._id] && (
         <span className="pill" style={{backgroundColor: '#28a745', marginLeft: '8px'}}>
           Saved ({new Date(savedInvoices[workOrder._id].savedAt).toLocaleDateString()})
