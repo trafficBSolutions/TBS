@@ -1104,13 +1104,17 @@ const fetchJobsForDay = async (date, companyName) => {
     } catch (e) {
       console.warn('Failed to fetch invoice status map:', e);
    }
+   
+   console.log('Invoice status map fetched:', map);
 
     const enriched = list.map(j => {
       const inv = map[j._id] || null;
-      return {
+      const enrichedJob = {
         ...j,
         _invoice: inv // attach canonical invoice info (or null)
       };
+      console.log('Enriched job:', j._id, 'WorkOrder.paid:', j.paid, 'Invoice data:', inv);
+      return enrichedJob;
     });
     setJobsForDay(enriched);
   } catch (err) {
