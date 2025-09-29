@@ -71,15 +71,15 @@
   padding: 8px 10px; border: 1px solid #ccc; border-radius: 8px;
 }
 .truck-tag.selected { border-color: #333; font-weight: 600; }
-/* CSS */
-.sig-canvas {
-  display: block;
-  width: 600px !important;   /* match canvasProps */
-  height: 200px !important;  /* match canvasProps */
-  border: 1px solid #ccc;
-  border-radius: 6px;
-}
+.sig-canvas { /* canvas on page */
+  width: 100%;
 
+  height: 160px;
+  background: #fff;
+  border: 2px dashed #bbb;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px #0000001a;
+}
 .datepicker-container .custom-datepicker {
         margin: 0 auto;
     text-align: center;
@@ -123,6 +123,7 @@
   padding: 5px 10px;
   font-size: 12px;
 }
+
 @media screen and (max-width: 1200px) and (orientation: portrait) {
     .cone-img {
 max-width: 75px;
