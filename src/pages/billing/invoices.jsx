@@ -605,15 +605,16 @@ const sheetSubtotal = useMemo(
   [sheetRows]
 );
 const sheetTaxable = useMemo(() => {
-  const taxableAmount = sheetRows.reduce((s, r) => s + (r.taxed ? (Number(r.amount) || 0) : 0), 0);
-  console.log('Tax calculation - Taxable amount:', taxableAmount, 'from rows:', sheetRows.filter(r => r.taxed));
-  return taxableAmount;
+  return sheetRows.reduce(
+    (sum, r) => sum + (r.taxed ? (Number(r.amount) || 0) : 0),
+    0
+  );
 }, [sheetRows]);
 
 const sheetTaxDue = useMemo(() => {
-  const taxDue = Number(((sheetTaxable * (Number(sheetTaxRate) || 0)) / 100).toFixed(2));
-  console.log('Tax calculation - Tax due:', taxDue, 'Rate:', sheetTaxRate, '% of', sheetTaxable);
-  return taxDue;
+  const rate = Number(sheetTaxRate) || 0;       // percent, e.g. 7
+  const due  = (sheetTaxable * rate) / 100;
+  return Math.round(due * 100) / 100;           // round to cents
 }, [sheetTaxable, sheetTaxRate]);
 const sheetTotal = useMemo(
   () => Number((sheetSubtotal + sheetTaxDue + (Number(sheetOther) || 0)).toFixed(2)),
@@ -1764,8 +1765,8 @@ const effectiveCurrentAmount = Number(
         <input
           type="number" step="0.01"
           className="v42-taxrate"
-          value={sheetTaxRate}
-          onChange={(e)=>setSheetTaxRate(Number(e.target.value || 0))}
+           value={sheetTaxRate}
+           onChange={(e)=> setSheetTaxRate(Number.isFinite(e.target.valueAsNumber) ? e.target.valueAsNumber : 0)}
         />%
         <div style={{marginTop: 4, fontSize: '12px'}}>
           <button type="button" className="btn-small" onClick={() => setSheetTaxRate(7)}>7%</button>
