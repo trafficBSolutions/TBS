@@ -364,7 +364,15 @@ useEffect(() => {
   setTbsEnabled(isBasicReady());
 }, [basic, foremanName, foremanSig]);
 
-
+const sigCanvasProps = React.useMemo(
+  () => ({
+    className: 'sig-canvas',
+    'aria-label': 'Foreman signature',
+    width: 600,   // pick sizes that fit your layout
+    height: 200,
+  }),
+  []
+);
 useEffect(() => {
   const loadJob = async () => {
     if (!jobId) {
@@ -1057,11 +1065,11 @@ value={basic.company}
 
 
         <SignatureCanvas
-          ref={sigRef}
-          penColor="#000"
-          onEnd={handleSigEnd}
-          canvasProps={{ className: 'sig-canvas', 'aria-label': 'Foreman signature' }}
-        />
+  ref={sigRef}
+  penColor="#000"
+  onEnd={handleSigEnd}
+  canvasProps={sigCanvasProps}
+/>
         <div className="sig-actions">
           <button type="button" className="btn sig-clear" onClick={clearSignature}>
             Clear Signature
