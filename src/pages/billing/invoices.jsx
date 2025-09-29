@@ -133,9 +133,11 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
   const [totalOwedInput, setTotalOwedInput] = useState('');
   const [autoSaveTimer, setAutoSaveTimer] = useState(null);
   const timerRef = useRef(null);   
-  // Use manual input if provided, otherwise use currentAmount (remaining balance) or fall back to stored values
+  // Connect to authoritative Invoice data from MongoDB first, then fallback to WorkOrder fields
+  const invoiceData = workOrder._invoice; // Invoice data from MongoDB
   const totalOwed =
-    Number(totalOwedInput) ||
+    Number(totalOwedInput) || // Manual override if user enters amount
+    (invoiceData ? invoiceData.principal : 0) || // PRIORITY: Use Invoice.principal from MongoDB
     workOrder.lastManualTotalOwed ||
     workOrder.billedAmount ||
     workOrder.invoiceTotal ||
@@ -160,7 +162,8 @@ useEffect(() => {
 
   const doPost = async () => {
     const _totalOwed =
-      Number(totalOwedInput) ||
+      Number(totalOwedInput) || // Manual override
+      (invoiceData ? invoiceData.principal : 0) || // PRIORITY: Use Invoice.principal from MongoDB
       workOrder.currentAmount ||
       workOrder.billedAmount ||
       workOrder.invoiceTotal ||
@@ -370,7 +373,7 @@ useEffect(() => {
                   paymentMethod,
                   emailOverride: email,
                   paymentAmount: Number(paymentAmount),
-                  totalOwed: Number(totalOwedInput) || currentBalance,
+                  totalOwed: Number(totalOwedInput) || (invoiceData ? invoiceData.principal : 0) || currentBalance,
                   ...paymentDetails
                 }).then(() => {
                 toast.success('Payment recorded and receipt sent!');
