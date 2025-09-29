@@ -604,14 +604,17 @@ const sheetSubtotal = useMemo(
   () => sheetRows.reduce((s, r) => s + (Number(r.amount) || 0), 0),
   [sheetRows]
 );
-const sheetTaxable = useMemo(
-  () => sheetRows.reduce((s, r) => s + (r.taxed ? (Number(r.amount) || 0) : 0), 0),
-  [sheetRows]
-);
-const sheetTaxDue = useMemo(
-  () => Number(((sheetTaxable * (Number(sheetTaxRate) || 0)) / 100).toFixed(2)),
-  [sheetTaxable, sheetTaxRate]
-);
+const sheetTaxable = useMemo(() => {
+  const taxableAmount = sheetRows.reduce((s, r) => s + (r.taxed ? (Number(r.amount) || 0) : 0), 0);
+  console.log('Tax calculation - Taxable amount:', taxableAmount, 'from rows:', sheetRows.filter(r => r.taxed));
+  return taxableAmount;
+}, [sheetRows]);
+
+const sheetTaxDue = useMemo(() => {
+  const taxDue = Number(((sheetTaxable * (Number(sheetTaxRate) || 0)) / 100).toFixed(2));
+  console.log('Tax calculation - Tax due:', taxDue, 'Rate:', sheetTaxRate, '% of', sheetTaxable);
+  return taxDue;
+}, [sheetTaxable, sheetTaxRate]);
 const sheetTotal = useMemo(
   () => Number((sheetSubtotal + sheetTaxDue + (Number(sheetOther) || 0)).toFixed(2)),
   [sheetSubtotal, sheetTaxDue, sheetOther]
@@ -1714,7 +1717,10 @@ const effectiveCurrentAmount = Number(
               <input
                 type="checkbox"
                 checked={row.taxed}
-                onChange={(e)=>updateRow(row.id, { taxed: e.target.checked })}
+                onChange={(e)=>{
+                  console.log('Taxable checkbox changed - Row ID:', row.id, 'New value:', e.target.checked);
+                  updateRow(row.id, { taxed: e.target.checked });
+                }}
               />
               <span aria-hidden="true">X</span>
             </label>
