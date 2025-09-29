@@ -979,7 +979,12 @@ const fetchMonthlyJobs = async (date, companyName = '') => {
   try {
     const month = date.getMonth() + 1;
     const year = date.getFullYear();
-    const res = await axios.get(`/work-orders/month?month=${month}&year=${year}${companyName ? `&company=${encodeURIComponent(companyName)}` : ''}`);
+    const t = Date.now();
+    const url =
+      `/work-orders/month?month=${month}&year=${year}` +
+      (companyName ? `&company=${encodeURIComponent(companyName)}` : '') +
+      `&_=${t}`;
+    const res = await axios.get(url, { headers: { 'Cache-Control': 'no-cache' }});
 
     // Option A: filter client-side if the API doesn’t support ?company on that endpoint
     const filtered = companyName
@@ -1011,11 +1016,16 @@ useEffect(() => {
 const fetchJobsForDay = async (date, companyName) => {
   try {
     if (!date) return setJobsForDay([]);
-    const dateStr = date.toISOString().split('T')[0];
-    const params = { date: dateStr };
-    if (companyName) params.company = companyName;
-
-    const res = await axios.get('/work-orders', { params });
+    const t = Date.now();
+    const params = {
+      date: date.toISOString().split('T')[0],
+      ...(companyName ? { company: companyName } : {}),
+      _: t, // cache buster
+    };
+    const res = await axios.get('/work-orders', {
+      params,
+      headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
+    });
     const list = pickList(res?.data);
     if (!Array.isArray(list)) {
       console.warn('Unexpected /work-orders payload; skipping render', res?.data);
@@ -1301,24 +1311,31 @@ const fetchJobsForDay = async (date, companyName) => {
 
       {/* Bill Job controls belong INSIDE the map/card */}
 {(() => {
-  const gaPowerOnly = isGaPowerOnly(workOrder.basic?.client);
-  // Prioritize server data over localStorage for cross-device sync
-  const isBilled = gaPowerOnly || !!workOrder.billed;
-  const isPaid = !!workOrder.paid;
+const gaPowerOnly = isGaPowerOnly(workOrder.basic?.client);
 
-  const cached = localPaidProgress[workOrder._id];
-  // Prioritize server data over localStorage cache
-  const effectiveBilledAmount =
-    workOrder.billedAmount ??
-    workOrder.invoiceTotal ??
-    workOrder.invoicePrincipal ??
-    cached?.billedAmount ?? 0;
+// Treat any of these as "billed"
+const isBilled =
+  gaPowerOnly ||
+  Boolean(workOrder.billed) ||
+  Boolean(workOrder.invoiceId) ||
+  Number(workOrder.invoiceTotal) > 0 ||
+  Number(workOrder.billedAmount) > 0 ||
+  Number(workOrder?.invoiceData?.sheetTotal) > 0;
 
-  const effectiveCurrentAmount =
-    workOrder.currentAmount ??
-    (workOrder.billedAmount || workOrder.invoiceTotal || workOrder.invoicePrincipal) ??
-    cached?.currentAmount ??
-    effectiveBilledAmount;
+const isPaid = Boolean(workOrder.paid);
+
+// Amounts (prefer server)
+const effectiveBilledAmount = Number(
+  workOrder.billedAmount ??
+  workOrder.invoiceTotal ??
+  workOrder.invoicePrincipal ??
+  workOrder?.invoiceData?.sheetTotal ??
+  0
+);
+
+const effectiveCurrentAmount = Number(
+  workOrder.currentAmount ?? effectiveBilledAmount
+);
 
   if (!isBilled && workOrder.basic?.client !== 'Georgia Power') {
     return (
