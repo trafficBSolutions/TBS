@@ -56,6 +56,7 @@ const BILLING_ADDRESSES = {
   'Broadband of Indiana': '145 Peppers Dr, Paris, TN 38242',
   'Broadband Technical Resources': '6 Francis St, Chattanooga, TN 37419',
   'Carmichael Development LLC': '246 River Park N Dr, Woodstock, GA 30188',
+  'Desoto': '4705 S Apopka Vineland Rd ste 130, Orlando, FL 32819',
   'Fairway Electric': '7138 Keegan Ct, Covington GA 30014',
   'Global Infrastructure': 'PO Box 22756, Chattanooga, TN 37422',
   'HD Excavations & Utilities LLC': '516 Cole Creek Rd, Dallas, GA 30157',
