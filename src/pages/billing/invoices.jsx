@@ -901,10 +901,7 @@ const [selectedEmail, setSelectedEmail] = useState('');
 const [quote, setQuote] = useState(null);
 const [manualOverride, setManualOverride] = useState(false);
 const [manualAmount, setManualAmount] = useState('');
-const [localBilledJobs, setLocalBilledJobs] = useState(() => {
-    const saved = localStorage.getItem('localBilledJobs');
-    return saved ? new Set(JSON.parse(saved)) : new Set();
-  });
+// Remove localBilledJobs to fix cross-device sync - rely on server data only
   const [localPaidProgress, setLocalPaidProgress] = useState(() => {
   try {
     return JSON.parse(localStorage.getItem('localPaidProgress') || '{}');
@@ -1039,14 +1036,7 @@ const fetchJobsForDay = async (date, companyName) => {
     setJobsForDay([]);
   }
 };
-useEffect(() => {
-  setLocalBilledJobs(prev => {
-    const next = new Set(prev);
-    for (const j of jobsForDay) if (j.billed) next.delete(j._id);
-    localStorage.setItem('localBilledJobs', JSON.stringify([...next]));
-    return next;
-  });
-}, [jobsForDay]);
+// Remove localBilledJobs cleanup - rely on server data only
   // Initial calendar load: ALL companies
   useEffect(() => {
     (async () => {
@@ -1156,14 +1146,7 @@ useEffect(() => {
     };
     await api.post('/api/billing/bill-workorder', payload);
 
-    // Mark as billed locally immediately
-    setLocalBilledJobs(prev => {
-      const updated = new Set([...prev, billingJob._id]);
-      localStorage.setItem('localBilledJobs', JSON.stringify([...updated]));
-      return updated;
-    });
-    
-    // Refetch server data to get updated billed status
+    // Refetch server data to get updated billed status (no more localStorage)
     await fetchJobsForDay(selectedDate);
 
     setSubmissionMessage('Invoice sent!');
@@ -1320,8 +1303,8 @@ useEffect(() => {
 {(() => {
   const gaPowerOnly = isGaPowerOnly(workOrder.basic?.client);
   // Prioritize server data over localStorage for cross-device sync
-  const isBilled = gaPowerOnly || !!workOrder.billed || (!workOrder.billed && localBilledJobs.has(workOrder._id));
-  const isPaid = !!workOrder.paid || (!workOrder.paid && locallyPaid.has(workOrder._id));
+  const isBilled = gaPowerOnly || !!workOrder.billed;
+  const isPaid = !!workOrder.paid;
 
   const cached = localPaidProgress[workOrder._id];
   // Prioritize server data over localStorage cache
