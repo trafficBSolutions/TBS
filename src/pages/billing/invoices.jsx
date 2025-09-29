@@ -1034,7 +1034,9 @@ const fetchJobsForDay = async (date, companyName) => {
     const ids = list.map(j => j._id).join(',');
     let map = {};
    try {
-      const invRes = await axios.get(`/billing/invoice-status`, { params: { workOrderIds: ids } });
+       const invRes = await api.get('/api/billing/invoice-status', {
+   params: { workOrderIds: ids },
+ });
       map = invRes?.data?.byWorkOrder || {};
     } catch (e) {
       console.warn('Failed to fetch invoice status map:', e);
