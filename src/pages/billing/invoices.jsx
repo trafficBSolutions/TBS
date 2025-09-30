@@ -557,6 +557,25 @@ const [foreman, setForeman] = useState('');
 const [location, setLocation] = useState('');
 const [crewsCount, setCrewsCount] = useState('');
 const [otHours, setOtHours]       = useState('');
+const noteValues = useMemo(() => {
+  const findRow = (needle) =>
+    sheetRows.find(r => r.service?.toLowerCase().includes(needle));
+
+  const intersections = findRow('intersection');      // row 8 in your starter
+  const afterHours    = findRow('after-hours');        // row 9
+  const arrowBoard    = findRow('arrow');              // row 10
+  const messageBoard  = findRow('message');            // row 11
+  const mobilization  = findRow('mobilization');       // row 12
+
+  return {
+    intersectionsPer: Number(intersections?.amount) || 25,
+    afterHoursPer:    Number(afterHours?.amount)    || 0,
+    arrowAmt:         Number(arrowBoard?.amount)    || 0,
+    messageAmt:       Number(messageBoard?.amount)  || 0,
+    mobilizationAmt:  Number(mobilization?.amount)  || 0,
+  };
+}, [sheetRows]);
+
 const tbsHours = useMemo(() => {
   const s = billingJob?.basic?.startTime ? formatTime(billingJob.basic.startTime) : '';
   const e = billingJob?.basic?.endTime   ? formatTime(billingJob.basic.endTime)   : '';
@@ -1754,10 +1773,36 @@ const effectiveCurrentAmount = Number(
       </tr>
 
       {/* Grey note rows (exact text from template — edit freely) */}
-      <tr className="v42-note"><td colSpan={3}>Per Secondary Street Intersections/Closing signs: $25.00</td></tr>
-      <tr className="v42-note"><td colSpan={3}>Signs and additional equipment left after hours: $- per/sign</td></tr>
-      <tr className="v42-note"><td colSpan={3}>Arrow Board $- ( Used ) &nbsp; Message Board $- ( )</td></tr>
-      <tr className="v42-note"><td colSpan={3}>Mobilization: If applicable: 25 miles from TBS's building &nbsp; $0.82/mile/vehicle (-)</td></tr>
+      <tr className="v42-note">
+  <td colSpan={3}>
+    Per Secondary Street Intersections/Closing signs: {fmtUSD(noteValues.intersectionsPer)}
+  </td>
+</tr>
+
+<tr className="v42-note">
+  <td colSpan={3}>
+    Signs and additional equipment left after hours: {noteValues.afterHoursPer > 0
+      ? `${fmtUSD(noteValues.afterHoursPer)} per/sign`
+      : '$- per/sign'}
+  </td>
+</tr>
+
+<tr className="v42-note">
+  <td colSpan={3}>
+    Arrow Board {noteValues.arrowAmt > 0 ? fmtUSD(noteValues.arrowAmt) : '$-'} ({noteValues.arrowAmt > 0 ? 'Used' : '—'})
+    &nbsp; Message Board {noteValues.messageAmt > 0 ? fmtUSD(noteValues.messageAmt) : '$-'} ({noteValues.messageAmt > 0 ? 'Used' : '—'})
+  </td>
+</tr>
+
+<tr className="v42-note">
+  <td colSpan={3}>
+    Mobilization: If applicable: 25 miles from TBS's building &nbsp;
+    {noteValues.mobilizationAmt > 0
+      ? `${fmtUSD(noteValues.mobilizationAmt)} total`
+      : `${fmtUSD(rates.mileRate)} /mile/vehicle (-)`}
+  </td>
+</tr>
+
       <tr className="v42-note">
   <td colSpan={3}>
     All quotes are based off a "TBS HR" – hour day, anything over 8 hours will be billed at $-/hr per crew member.
