@@ -557,24 +557,6 @@ const [foreman, setForeman] = useState('');
 const [location, setLocation] = useState('');
 const [crewsCount, setCrewsCount] = useState('');
 const [otHours, setOtHours]       = useState('');
-const noteValues = useMemo(() => {
-  const findRow = (needle) =>
-    sheetRows.find(r => r.service?.toLowerCase().includes(needle));
-
-  const intersections = findRow('intersection');      // row 8 in your starter
-  const afterHours    = findRow('after-hours');        // row 9
-  const arrowBoard    = findRow('arrow');              // row 10
-  const messageBoard  = findRow('message');            // row 11
-  const mobilization  = findRow('mobilization');       // row 12
-
-  return {
-    intersectionsPer: Number(intersections?.amount) || 25,
-    afterHoursPer:    Number(afterHours?.amount)    || 0,
-    arrowAmt:         Number(arrowBoard?.amount)    || 0,
-    messageAmt:       Number(messageBoard?.amount)  || 0,
-    mobilizationAmt:  Number(mobilization?.amount)  || 0,
-  };
-}, [sheetRows]);
 
 const tbsHours = useMemo(() => {
   const s = billingJob?.basic?.startTime ? formatTime(billingJob.basic.startTime) : '';
@@ -625,7 +607,24 @@ const VERTEX42_STARTER_ROWS = [
 const [sheetRows, setSheetRows] = useState(VERTEX42_STARTER_ROWS);
 const [sheetTaxRate, setSheetTaxRate] = useState(0); // percent
 const [sheetOther, setSheetOther] = useState(0);     // shipping/discount/etc. (can be negative)
+const noteValues = useMemo(() => {
+  const findRow = (needle) =>
+    sheetRows.find(r => r.service?.toLowerCase().includes(needle));
 
+  const intersections = findRow('intersection');      // row 8 in your starter
+  const afterHours    = findRow('after-hours');        // row 9
+  const arrowBoard    = findRow('arrow');              // row 10
+  const messageBoard  = findRow('message');            // row 11
+  const mobilization  = findRow('mobilization');       // row 12
+
+  return {
+    intersectionsPer: Number(intersections?.amount) || 25,
+    afterHoursPer:    Number(afterHours?.amount)    || 0,
+    arrowAmt:         Number(arrowBoard?.amount)    || 0,
+    messageAmt:       Number(messageBoard?.amount)  || 0,
+    mobilizationAmt:  Number(mobilization?.amount)  || 0,
+  };
+}, [sheetRows]);
 const sheetSubtotal = useMemo(
   () => sheetRows.reduce((s, r) => s + (Number(r.amount) || 0), 0),
   [sheetRows]
