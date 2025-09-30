@@ -1713,19 +1713,16 @@ const effectiveCurrentAmount = Number(
               placeholder=""
             />
           </td>
-          <td className="v42-td-taxed">
-            <label className="v42-x">
-              <input
-                type="checkbox"
-                checked={row.taxed}
-                onChange={(e)=>{
-                  console.log('Taxable checkbox changed - Row ID:', row.id, 'New value:', e.target.checked);
-                  updateRow(row.id, { taxed: e.target.checked });
-                }}
-              />
-              <span aria-hidden="true">X</span>
-            </label>
-          </td>
+<td className="v42-td-taxed">
+  <input
+    type="checkbox"
+    className="v42-checkbox"
+    checked={row.taxed}
+    onChange={(e)=>updateRow(row.id, { taxed: e.target.checked })}
+    aria-label="Tax this line"
+  />
+</td>
+
           <td className="v42-td-amount">
             <input
               type="number"
