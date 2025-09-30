@@ -557,6 +557,12 @@ const [foreman, setForeman] = useState('');
 const [location, setLocation] = useState('');
 const [crewsCount, setCrewsCount] = useState('');
 const [otHours, setOtHours]       = useState('');
+const tbsHours = useMemo(() => {
+  const s = billingJob?.basic?.startTime ? formatTime(billingJob.basic.startTime) : '';
+  const e = billingJob?.basic?.endTime   ? formatTime(billingJob.basic.endTime)   : '';
+  if (s && e) return `${s} – ${e}`;
+  return s || e || '';
+}, [billingJob]);
 // Email validation helper
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 // near other localStorage-backed state
@@ -1468,8 +1474,8 @@ const effectiveCurrentAmount = Number(
         setManualOverride(false);
         setManualAmount('');
         setQuote(null);
-        setCrewsCount('');
-        setOtHours('');
+        setCrewsCount(saved.crewsCount ?? '');
+        setOtHours(saved.otHours ?? '');
 
 
         // optional: if you keep this, consider not changing the filter while modal is open
