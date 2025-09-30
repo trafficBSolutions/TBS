@@ -1259,7 +1259,10 @@ const fetchJobsForDay = async (date, companyName) => {
         sheetTaxRate,
         sheetTaxDue,
         sheetOther,
-        sheetTotal
+        sheetTotal,
+        crewsCount,        // << add
+        otHours,           // << add
+        tbsHours           // << add (you already compute this with start/end time)
       }
     };
     await api.post('/api/billing/bill-workorder', payload);
