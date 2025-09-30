@@ -555,7 +555,8 @@ const [billToAddress, setBillToAddress] = useState('');
 const [workType, setWorkType] = useState('');
 const [foreman, setForeman] = useState('');
 const [location, setLocation] = useState('');
-
+const [crewsCount, setCrewsCount] = useState('');
+const [otHours, setOtHours]       = useState('');
 // Email validation helper
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 // near other localStorage-backed state
@@ -1013,7 +1014,8 @@ const [showPaymentForm, setShowPaymentForm] = useState({});
     const invoiceData = {
       invoiceDate, invoiceNumber, workRequestNumber1, workRequestNumber2, dueDate,
       billToCompany, billToAddress, workType, foreman, location,
-      sheetRows, sheetTaxRate, sheetOther, selectedEmail,
+      sheetRows, sheetTaxRate, sheetOther, selectedEmail, crewsCount,
+  otHours, tbsHours,
       savedAt: new Date().toISOString()
     };
     const updated = { ...savedInvoices, [billingJob._id]: invoiceData };
@@ -1466,6 +1468,9 @@ const effectiveCurrentAmount = Number(
         setManualOverride(false);
         setManualAmount('');
         setQuote(null);
+        setCrewsCount('');
+        setOtHours('');
+
 
         // optional: if you keep this, consider not changing the filter while modal is open
         const resolvedKey = workOrder.companyKey || COMPANY_TO_KEY[workOrder.basic?.client] || '';
@@ -1747,8 +1752,45 @@ const effectiveCurrentAmount = Number(
       <tr className="v42-note"><td colSpan={3}>Signs and additional equipment left after hours: $- per/sign</td></tr>
       <tr className="v42-note"><td colSpan={3}>Arrow Board $- ( Used ) &nbsp; Message Board $- ( )</td></tr>
       <tr className="v42-note"><td colSpan={3}>Mobilization: If applicable: 25 miles from TBS's building &nbsp; $0.82/mile/vehicle (-)</td></tr>
-      <tr className="v42-note"><td colSpan={3}>All quotes based off a "TBS HR" – hour day, anything over 8 hours will be billed at $-/hr. per crew member. CREWS OF ____ WORKED ____ HRS OT</td></tr>
-      <tr className="v42-note"><td colSpan={3}>TBS HOURS: ____ AM – ____ PM</td></tr>
+      <tr className="v42-note">
+  <td colSpan={3}>
+    All quotes are based off a "TBS HR" – hour day, anything over 8 hours will be billed at $-/hr per crew member.
+    &nbsp;CREWS OF&nbsp;
+    <input
+      type="number"
+      min="0"
+      value={crewsCount}
+      onChange={(e) => setCrewsCount(e.target.value)}
+      style={{ width: 60, margin: '0 4px', textAlign: 'center' }}
+      aria-label="Crew size"
+    />
+    &nbsp;WORKED&nbsp;
+    <input
+      type="number"
+      min="0"
+      step="0.1"
+      value={otHours}
+      onChange={(e) => setOtHours(e.target.value)}
+      style={{ width: 80, margin: '0 4px', textAlign: 'center' }}
+      aria-label="Overtime hours"
+    />
+    &nbsp;HRS OT
+  </td>
+</tr>
+<tr className="v42-note">
+  <td colSpan={3}>
+    TBS HOURS:&nbsp;
+    <input
+      type="text"
+      value={tbsHours}
+      readOnly
+      style={{ width: 180, textAlign: 'center', background: '#f3f4f6', border: '1px solid #ddd' }}
+      aria-label="TBS Hours (auto-filled)"
+      title="Auto-filled from work order times"
+    />
+  </td>
+</tr>
+
     </tbody>
   </table>
 
