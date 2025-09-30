@@ -1254,7 +1254,7 @@ const fetchJobsForDay = async (date, companyName) => {
         workType,
         foreman,
         location,
-        sheetRows: sheetRows.filter(row => Number(row.amount) > 0),
+        sheetRows: sheetRows,
         sheetSubtotal,
         sheetTaxRate,
         sheetTaxDue,
