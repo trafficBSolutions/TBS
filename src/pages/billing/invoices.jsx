@@ -146,7 +146,7 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
   
   // Calculate the authoritative total owed amount
   const authoritativeTotalOwed = 
-    (invoiceData ? invoiceData.principal : 0) || 
+    (invoiceData ? (invoiceData.computedTotalDue || invoiceData.principal) : 0) || 
     workOrder.lastManualTotalOwed ||
     workOrder.billedAmount ||
     workOrder.invoiceTotal ||
@@ -162,7 +162,7 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
   }, [authoritativeTotalOwed, totalOwedInput]);
   const totalOwed =
     Number(totalOwedInput) || // Manual override if user enters amount
-    (invoiceData ? invoiceData.principal : 0) || // PRIORITY: Use Invoice.principal from MongoDB
+    (invoiceData ? (invoiceData.computedTotalDue || invoiceData.principal) : 0) || // PRIORITY: Use computed total (principal + interest) from MongoDB
     workOrder.lastManualTotalOwed ||
     workOrder.billedAmount ||
     workOrder.invoiceTotal ||
@@ -188,7 +188,7 @@ useEffect(() => {
   const doPost = async () => {
     const _totalOwed =
       Number(totalOwedInput) || // Manual override
-      (invoiceData ? invoiceData.principal : 0) || // PRIORITY: Use Invoice.principal from MongoDB
+      (invoiceData ? (invoiceData.computedTotalDue || invoiceData.principal) : 0) || // PRIORITY: Use computed total (principal + interest) from MongoDB
       workOrder.currentAmount ||
       workOrder.billedAmount ||
       workOrder.invoiceTotal ||
@@ -357,7 +357,7 @@ useEffect(() => {
               title="Auto-filled from invoice amount - you can override if needed"
             />
             <small style={{color: '#6c757d', marginLeft: '5px', fontSize: '11px'}}>
-              {invoiceData ? '(from invoice)' : '(calculated)'}
+              {invoiceData ? (invoiceData.computedTotalDue ? '(principal + interest)' : '(from invoice)') : '(calculated)'}
             </small>
           </div>
           
