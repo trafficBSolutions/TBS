@@ -46,7 +46,7 @@ const COMPANY_TO_KEY = {
   'Tindall': 'tindall',
   'Atlanta Gas Light': 'agl',
 };
-const GA_POWER_TOKEN = /\b(georgia\s*power|ga\s*power|gpc)\b/i;
+const GA_POWER_TOKEN = /\b(georgia\s*power|ga\s*power|g\s*power|gpc)\b/i;
 // Add any other "GA Power partner" names you use in combo client strings
 const NON_GA_PARTNERS = [
   'fairway', 'service electric', 'faith electric', 'desoto', 'the desoto group', 'electra grid'
@@ -1480,7 +1480,7 @@ const fetchJobsForDay = async (date, companyName) => {
 
       {/* Bill Job controls belong INSIDE the map/card */}
 {(() => {
-const gaPowerOnly = isGaPowerOnly(workOrder.basic?.client);
+const forcePaidForGaPower = isGaPowerOnly(workOrder.basic?.client);
 const inv = workOrder._invoice || null;
 
 // Canonical from Invoice doc when present
@@ -1496,9 +1496,9 @@ const legacyIsBilled =
   Number(workOrder.billedAmount) > 0 ||
   Number(workOrder?.invoiceData?.sheetTotal) > 0;
 
-const isBilled = serverHasInvoice ? serverIsBilled : legacyIsBilled || gaPowerOnly;
-const isPaid   = serverHasInvoice ? serverIsPaid   : Boolean(workOrder.paid);
-
+ // If GA Power-only, treat as both billed and paid (client never pays you directly)
+ const isPaid   = serverHasInvoice ? serverIsPaid : (Boolean(workOrder.paid) || forcePaidForGaPower);
+ const isBilled = serverHasInvoice ? serverIsBilled : (legacyIsBilled || forcePaidForGaPower);
 // Amounts (prefer server)
 const effectiveBilledAmount = Number(
   (inv?.principal) ??
