@@ -46,10 +46,40 @@ const COMPANY_TO_KEY = {
   'Tindall': 'tindall',
   'Atlanta Gas Light': 'agl',
 };
-const GA_POWER_TOKEN = /\b(georgia\s*power|ga\s*power|g\s*power|gpc)\b/i;
-// Add any other "GA Power partner" names you use in combo client strings
-const NON_GA_PARTNERS = [
-  'fairway', 'service electric', 'faith electric', 'desoto', 'the desoto group', 'electra grid'
+// 1) normalize helper (keep)
+const normalize = (s = '') =>
+  s
+    .toLowerCase()
+    .replace(/[_-]+/g, ' ')               // dashes/underscores -> space
+    .replace(/[^a-z0-9\s/]+/g, '')        // strip punctuation except slash
+    .replace(/([a-z0-9])\1{1,}/g, '$1')   // collapse repeats: powerrr -> power
+    .replace(/\s+/g, ' ')                 // collapse spaces
+    .trim();
+
+// 2) GA Power ONLY (robust typos/shortcuts). SINGLE LINE + no comments.
+const GA_POWER_TOKEN =
+  /\b(?:g[eao]org[ie]a[\s_-]*p(?:ow|0w)?r[ea]?|g[ae][\s_-]*p(?:ow|0w)?r[ea]?|g[\s_-]*power|gpc|georgia[\s_-]*pwr|ga[\s_-]*pwr)\b/i;
+
+// 3) Partners to EXCLUDE (each is its own regex; these can be multiline array items)
+const NON_GA_PARTNER_PATTERNS = [
+  /\bd[eao]s[oa]t[oa]\b/i,                                      // desoto (typos)
+  /\bthe\s*d[eao]s[oa]t[oa]\s*gr[oa]up\b/i,                     // the desoto group
+  /\bd[eao]s[oa]t[oa]\s*gr[oa]up\b/i,                           // desoto group
+  /\bf[ae]irw[ae]y\b/i,                                         // fairway
+  /\bf[ae]irw[ae]y\s*[eao]l[eao]ctr[ie]c\b/i,                   // fairway electric
+  /\bs[eao]rv[ie]c[eao]\s*[eao]l[eao]ctr[ie]c\b/i,              // service electric
+  /\bf[ae]ith\b/i,                                              // faith
+  /\bf[ae]ith\s*[eao]l[eao]ctr[ie]c\b/i,                        // faith electric
+  /\b[eao]l[eao]ctr[ae]\s*gr[ie]d\b/i,                          // electra grid
+  /\b[eao]l[eao]ctr[ae]\s*gr[ie]d\s*s[oa]l[uo]t[ie][oa]ns\b/i,  // electra grid solutions
+
+  // Slash combos like "Fairway / GA Power" (catch sloppy GA Power on right side)
+  /\bf[ae]irw[ae]y\s*\/\s*(g[ae][\s_-]*p(?:ow|0w)?r[ea]?|g[eao]org[ie]a[\s_-]*p(?:ow|0w)?r[ea]?)\b/i,
+  /\bf[ae]irw[ae]y\s*[eao]l[eao]ctr[ie]c\s*\/\s*(g[ae][\s_-]*p(?:ow|0w)?r[ea]?|g[eao]org[ie]a[\s_-]*p(?:ow|0w)?r[ea]?)\b/i,
+  /\bf[ae]ith\s*[eao]l[eao]ctr[ie]c\s*\/\s*(g[ae][\s_-]*p(?:ow|0w)?r[ea]?|g[eao]org[ie]a[\s_-]*p(?:ow|0w)?r[ea]?)\b/i,
+  /\bs[eao]rv[ie]c[eao]\s*[eao]l[eao]ctr[ie]c\s*\/\s*(g[ae][\s_-]*p(?:ow|0w)?r[ea]?|g[eao]org[ie]a[\s_-]*p(?:ow|0w)?r[ea]?)\b/i,
+  /\bd[eao]s[oa]t[oa]\s*\/\s*(g[ae][\s_-]*p(?:ow|0w)?r[ea]?|g[eao]org[ie]a[\s_-]*p(?:ow|0w)?r[ea]?)\b/i,
+  /\b[eao]l[eao]ctr[ae]\s*gr[ie]d\s*\/\s*(g[ae][\s_-]*p(?:ow|0w)?r[ea]?|g[eao]org[ie]a[\s_-]*p(?:ow|0w)?r[ea]?)\b/i,
 ];
 const BILLING_ADDRESSES = {
   'Atlanta Gas Light': '600 Townpark Ln, Kennesaw, GA 30144',
@@ -91,12 +121,9 @@ const COMPANY_TO_EMAIL = {
 const fmtUSD = (n) => `$${Number(n || 0).toFixed(2)}`;
 function isGaPowerOnly(name) {
   if (!name) return false;
-  const n = String(name).toLowerCase();
-  const hasGa = GA_POWER_TOKEN.test(n);
-  if (!hasGa) return false;
-  // If any partner word appears anywhere, treat it as NOT GA-only
-  const mentionsOther = NON_GA_PARTNERS.some(k => n.includes(k));
-  return !mentionsOther;
+  const n = normalize(name);
+  if (!GA_POWER_TOKEN.test(n)) return false;
+  return !NON_GA_PARTNER_PATTERNS.some(rx => rx.test(n));
 }
 const formatTime = (timeStr) => {
   if (!timeStr) return '';
