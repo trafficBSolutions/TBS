@@ -1092,11 +1092,6 @@ useEffect(() => {
 
 const [showPaymentForm, setShowPaymentForm] = useState({});
   // Auto-update due date when invoice date changes (30 days later)
-  useEffect(() => {
-    const date = new Date(invoiceDate);
-    date.setDate(date.getDate() + 30);
-    setDueDate(date.toISOString().slice(0,10));
-  }, [invoiceDate]);
 
   // Gate on client (UX nicety; server still enforces)
   useEffect(() => {
@@ -1556,7 +1551,6 @@ const effectiveCurrentAmount = Number(
           setWorkRequestNumber1('');
           setWorkRequestNumber2('');
    // ✅ When “Bill Job” is clicked, auto-pick due date = today + 30
-          setDueDate(calcDueIn30DaysFromNow());
           setSheetRows(VERTEX42_STARTER_ROWS);
           setSheetTaxRate(0);
           setSheetOther(0);
@@ -1579,8 +1573,8 @@ const effectiveCurrentAmount = Number(
         setManualOverride(false);
         setManualAmount('');
         setQuote(null);
-        setCrewsCount(saved.crewsCount ?? '');
-        setOtHours(saved.otHours ?? '');
+         setCrewsCount('');
+ setOtHours('');
         setAutoDueFromInvoice(true);
         setDueDate(calcDueIn30DaysFromNow());
 
