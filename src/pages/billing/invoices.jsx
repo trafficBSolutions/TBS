@@ -61,7 +61,7 @@ const GA_POWER_TOKEN =
   /\b(?:g[eao]org[ie]a[\s_-]*p(?:ow|0w)?r[ea]?|g[ae][\s_-]*p(?:ow|0w)?r[ea]?|g[\s_-]*power|gpc|georgia[\s_-]*pwr|ga[\s_-]*pwr)\b/i;
 
 // 3) Partners to EXCLUDE (each is its own regex; these can be multiline array items)
-const NON_GA_PARTNER_PATTERNS = [
+const NON_GA_PARTNERS = [
   /\bd[eao]s[oa]t[oa]\b/i,                                      // desoto (typos)
   /\bthe\s*d[eao]s[oa]t[oa]\s*gr[oa]up\b/i,                     // the desoto group
   /\bd[eao]s[oa]t[oa]\s*gr[oa]up\b/i,                           // desoto group
