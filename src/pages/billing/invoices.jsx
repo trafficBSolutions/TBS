@@ -140,7 +140,14 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
   const [paymentAmount, setPaymentAmount] = useState('');
   const [totalOwedInput, setTotalOwedInput] = useState('');
   const [autoSaveTimer, setAutoSaveTimer] = useState(null);
-  const timerRef = useRef(null);   
+  const timerRef = useRef(null);
+  
+  // Stripe card fields
+  const [cardNumber, setCardNumber] = useState('');
+  const [expMonth, setExpMonth] = useState('');
+  const [expYear, setExpYear] = useState('');
+  const [cvc, setCvc] = useState('');
+  const [processStripe, setProcessStripe] = useState(false);   
   // Connect to authoritative Invoice data from MongoDB first, then fallback to WorkOrder fields
   // Note: invoiceData already defined above for isPaid check
   
@@ -316,20 +323,69 @@ useEffect(() => {
           </div>
           
           {paymentMethod === 'card' ? (
-            <div style={{display: 'flex', gap: '8px', marginBottom: '8px'}}>
-              <input
-                placeholder="Card Type (Visa, MasterCard, etc.)"
-                value={cardType}
-                onChange={(e) => setCardType(e.target.value)}
-                style={{flex: 1, padding: '4px'}}
-              />
-              <input
-                placeholder="Last 4 digits"
-                value={cardLast4}
-                onChange={(e) => setCardLast4(e.target.value)}
-                maxLength={4}
-                style={{width: '80px', padding: '4px'}}
-              />
+            <div>
+              <div style={{marginBottom: '8px'}}>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={processStripe}
+                    onChange={(e) => setProcessStripe(e.target.checked)}
+                    style={{marginRight: '5px'}}
+                  />
+                  Process card payment through Stripe
+                </label>
+              </div>
+              
+              {processStripe ? (
+                <div style={{display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '8px'}}>
+                  <input
+                    placeholder="Card Number (1234 5678 9012 3456)"
+                    value={cardNumber}
+                    onChange={(e) => setCardNumber(e.target.value.replace(/\s/g, ''))}
+                    maxLength={16}
+                    style={{padding: '4px'}}
+                  />
+                  <div style={{display: 'flex', gap: '8px'}}>
+                    <input
+                      placeholder="MM"
+                      value={expMonth}
+                      onChange={(e) => setExpMonth(e.target.value)}
+                      maxLength={2}
+                      style={{width: '60px', padding: '4px'}}
+                    />
+                    <input
+                      placeholder="YY"
+                      value={expYear}
+                      onChange={(e) => setExpYear(e.target.value)}
+                      maxLength={2}
+                      style={{width: '60px', padding: '4px'}}
+                    />
+                    <input
+                      placeholder="CVC"
+                      value={cvc}
+                      onChange={(e) => setCvc(e.target.value)}
+                      maxLength={4}
+                      style={{width: '60px', padding: '4px'}}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div style={{display: 'flex', gap: '8px', marginBottom: '8px'}}>
+                  <input
+                    placeholder="Card Type (Visa, MasterCard, etc.)"
+                    value={cardType}
+                    onChange={(e) => setCardType(e.target.value)}
+                    style={{flex: 1, padding: '4px'}}
+                  />
+                  <input
+                    placeholder="Last 4 digits"
+                    value={cardLast4}
+                    onChange={(e) => setCardLast4(e.target.value)}
+                    maxLength={4}
+                    style={{width: '80px', padding: '4px'}}
+                  />
+                </div>
+              )}
             </div>
           ) : (
             <div style={{marginBottom: '8px'}}>
@@ -425,7 +481,9 @@ useEffect(() => {
               onClick={() => {
                 setIsSubmitting(true);
                 const paymentDetails = paymentMethod === 'card' 
-                  ? { cardType, cardLast4 }
+                  ? (processStripe 
+                      ? { cardNumber, expMonth, expYear, cvc, processStripe: true }
+                      : { cardType, cardLast4 })
                   : { checkNumber };
                 
                 api.post('/api/billing/mark-paid', {
