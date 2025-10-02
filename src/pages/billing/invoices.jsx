@@ -615,19 +615,7 @@ const [foreman, setForeman] = useState('');
 const [location, setLocation] = useState('');
 const [crewsCount, setCrewsCount] = useState('');
 const [otHours, setOtHours]       = useState('');
-const [autoDueFromInvoice, setAutoDueFromInvoice] = useState(true);
-// put near other helpers
-const calcDueIn30DaysFromNow = () => {
-  const d = new Date();
-  d.setDate(d.getDate() + 30);
-  return d.toISOString().slice(0, 10);
-};
-useEffect(() => {
-  if (!autoDueFromInvoice) return;
-  const date = new Date(invoiceDate);
-  date.setDate(date.getDate() + 30);
-  setDueDate(date.toISOString().slice(0,10));
-}, [invoiceDate, autoDueFromInvoice]);
+
 const tbsHours = useMemo(() => {
   const s = billingJob?.basic?.startTime ? formatTime(billingJob.basic.startTime) : '';
   const e = billingJob?.basic?.endTime   ? formatTime(billingJob.basic.endTime)   : '';
@@ -656,11 +644,7 @@ const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().slice(0,
 const [invoiceNumber, setInvoiceNumber] = useState('');
 const [workRequestNumber1, setWorkRequestNumber1] = useState('');
 const [workRequestNumber2, setWorkRequestNumber2] = useState('');
-const [dueDate, setDueDate] = useState(() => {
-  const date = new Date();
-  date.setDate(date.getDate() + 30);
-  return date.toISOString().slice(0,10);
-});
+const [dueDate, setDueDate] = useState('');
 const [savedInvoices, setSavedInvoices] = useState({});
 // ===== Spreadsheet editor state (replaces the fixed rates UI) =====
 const VERTEX42_STARTER_ROWS = [
@@ -1091,8 +1075,6 @@ useEffect(() => {
 }, [jobsForDay]);
 
 const [showPaymentForm, setShowPaymentForm] = useState({});
-  // Auto-update due date when invoice date changes (30 days later)
-
   // Gate on client (UX nicety; server still enforces)
   useEffect(() => {
     const stored = localStorage.getItem('adminUser');
@@ -1115,7 +1097,7 @@ const [showPaymentForm, setShowPaymentForm] = useState({});
       invoiceDate, invoiceNumber, workRequestNumber1, workRequestNumber2,
       billToCompany, billToAddress, workType, foreman, location,
       sheetRows, sheetTaxRate, sheetOther, selectedEmail, crewsCount,
-  otHours, tbsHours,
+      otHours, tbsHours,
       savedAt: new Date().toISOString()
     };
     const updated = { ...savedInvoices, [billingJob._id]: invoiceData };
@@ -1131,8 +1113,7 @@ const [showPaymentForm, setShowPaymentForm] = useState({});
     setInvoiceNumber(saved.invoiceNumber || '');
     setWorkRequestNumber1(saved.workRequestNumber1 || '');
     setWorkRequestNumber2(saved.workRequestNumber2 || '');
- // ❌ don't restore due date from draft
- // The due date is set when “Bill Job” opens (today + 30), and the user may still change it.
+    setDueDate(saved.dueDate || '');
     setBillToCompany(saved.billToCompany || '');
     setBillToAddress(saved.billToAddress || '');
     setWorkType(saved.workType || '');
@@ -1534,8 +1515,7 @@ const effectiveCurrentAmount = Number(
 
   if (!isBilled && workOrder.basic?.client !== 'Georgia Power') {
     return (
-      <button className="btn" 
-      onClick={() => {
+      <button className="btn" onClick={() => {
         setBillingJob(workOrder);
         if (savedInvoices[workOrder._id]) {
           loadSavedInvoice(workOrder._id);
@@ -1546,15 +1526,18 @@ const effectiveCurrentAmount = Number(
           setWorkType('');
           setForeman(workOrder.basic?.foremanName || '');
           setLocation([workOrder.basic?.address, workOrder.basic?.city, workOrder.basic?.state, workOrder.basic?.zip].filter(Boolean).join(', '));
-          setInvoiceDate(new Date().toISOString().slice(0,10)); // today
+          setInvoiceDate(new Date().toISOString().slice(0,10));
           setInvoiceNumber('');
           setWorkRequestNumber1('');
           setWorkRequestNumber2('');
-   // ✅ When “Bill Job” is clicked, auto-pick due date = today + 30
           setSheetRows(VERTEX42_STARTER_ROWS);
           setSheetTaxRate(0);
           setSheetOther(0);
         }
+        // Always set due date to 30 days from today when Bill Job is clicked
+        const dueDateCalc = new Date();
+        dueDateCalc.setDate(dueDateCalc.getDate() + 30);
+        setDueDate(dueDateCalc.toISOString().slice(0,10));
         setSel({
           flagDay: '',
           laneClosure: 'NONE',
@@ -1573,10 +1556,9 @@ const effectiveCurrentAmount = Number(
         setManualOverride(false);
         setManualAmount('');
         setQuote(null);
-         setCrewsCount('');
- setOtHours('');
-        setAutoDueFromInvoice(true);
-        setDueDate(calcDueIn30DaysFromNow());
+        setCrewsCount(saved.crewsCount ?? '');
+        setOtHours(saved.otHours ?? '');
+
 
         // optional: if you keep this, consider not changing the filter while modal is open
         const resolvedKey = workOrder.companyKey || COMPANY_TO_KEY[workOrder.basic?.client] || '';
@@ -1710,15 +1692,12 @@ const effectiveCurrentAmount = Number(
       </div>
       <div className="v42-meta-row">
         <div>DUE DATE</div>
-<input
-  type="date"
-  className="v42-meta-input"
-  value={dueDate}
-  onChange={(e) => {
-    setDueDate(e.target.value);
-    setAutoDueFromInvoice(false); // stop auto-adjusting after manual change
-  }}
-/>
+        <input 
+          type="date" 
+          className="v42-meta-input" 
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
+        />
       </div>
     </div>
   </div>
