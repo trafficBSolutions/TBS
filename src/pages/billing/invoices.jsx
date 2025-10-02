@@ -46,9 +46,7 @@ const COMPANY_TO_KEY = {
   'Tindall': 'tindall',
   'Atlanta Gas Light': 'agl',
 };
-
-const GA_POWER_TOKEN =
-  /\b(?:g[eao]org[ie]a[\s_-]*p(?:ow|0w)?r[ea]?|g[ae][\s_-]*p(?:ow|0w)?r[ea]?|g[\s_-]*power|gpc|georgia[\s_-]*pwr|ga[\s_-]*pwr)\b/i;
+const GA_POWER_TOKEN = /\b(georgia\s*power|ga\s*power|g\s*power|gpc)\b/i;
 // Add any other "GA Power partner" names you use in combo client strings
 const NON_GA_PARTNERS = [
   'fairway', 'service electric', 'faith electric', 'desoto', 'the desoto group', 'electra grid'
