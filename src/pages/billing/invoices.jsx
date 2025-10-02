@@ -121,9 +121,12 @@ const COMPANY_TO_EMAIL = {
 const fmtUSD = (n) => `$${Number(n || 0).toFixed(2)}`;
 function isGaPowerOnly(name) {
   if (!name) return false;
-  const n = normalize(name);
-  if (!GA_POWER_TOKEN.test(n)) return false;
-  return !NON_GA_PARTNER_PATTERNS.some(rx => rx.test(n));
+  const n = String(name).toLowerCase();
+  const hasGa = GA_POWER_TOKEN.test(n);
+  if (!hasGa) return false;
+  // If any partner word appears anywhere, treat it as NOT GA-only
+  const mentionsOther = NON_GA_PARTNERS.some(k => n.includes(k));
+  return !mentionsOther;
 }
 const formatTime = (timeStr) => {
   if (!timeStr) return '';
