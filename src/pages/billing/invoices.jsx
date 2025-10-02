@@ -8,8 +8,11 @@ import images from '../../utils/tbsImages';
 import '../../css/invoice.css';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import {loadStripe} from '@stripe/stripe-js';
 import ExcelJS from 'exceljs';
 // Company data from environment variables for security
+const STRIPE_PK = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+const stripePromise = STRIPE_PK ? loadStripe(STRIPE_PK) : null;
 const companyList = [
  "Atlanta Gas Light",
   "Broadband Technical Resources",
@@ -125,7 +128,7 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
   // Check both WorkOrder.paid and Invoice status from MongoDB
   const invoiceData = workOrder._invoice;
   const isPaid = workOrder?.paid || (invoiceData && invoiceData.status === 'PAID');
-  
+  const hasStripe = !!stripePromise;
   // Debug logging to help troubleshoot payment status
   console.log('PaymentForm - WorkOrder ID:', workOrder._id, 'WorkOrder.paid:', workOrder.paid, 'Invoice status:', invoiceData?.status, 'Combined isPaid:', isPaid);
   
@@ -325,17 +328,22 @@ useEffect(() => {
           {paymentMethod === 'card' ? (
             <div>
               <div style={{marginBottom: '8px'}}>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={processStripe}
-                    onChange={(e) => setProcessStripe(e.target.checked)}
-                    style={{marginRight: '5px'}}
-                  />
-                  Process card payment through Stripe
-                </label>
+<label>
+    <input
+      type="checkbox"
+      checked={processStripe}
+      onChange={(e) => setProcessStripe(e.target.checked)}
+      style={{ marginRight: '5px' }}
+      disabled={!hasStripe}  // 🔒 disable if no publishable key present
+    />
+    Process card payment through Stripe
+  </label>
               </div>
-              
+              {processStripe && !hasStripe && (
+    <div style={{ color: '#b91c1c', fontSize: 12, marginTop: 4 }}>
+      Stripe isn’t configured. Set VITE_STRIPE_PUBLISHABLE_KEY in your .env and restart the dev server.
+    </div>
+  )}
               {processStripe ? (
                 <div style={{display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '8px'}}>
                   <input
