@@ -615,7 +615,19 @@ const [foreman, setForeman] = useState('');
 const [location, setLocation] = useState('');
 const [crewsCount, setCrewsCount] = useState('');
 const [otHours, setOtHours]       = useState('');
-
+const [autoDueFromInvoice, setAutoDueFromInvoice] = useState(true);
+// put near other helpers
+const calcDueIn30DaysFromNow = () => {
+  const d = new Date();
+  d.setDate(d.getDate() + 30);
+  return d.toISOString().slice(0, 10);
+};
+useEffect(() => {
+  if (!autoDueFromInvoice) return;
+  const date = new Date(invoiceDate);
+  date.setDate(date.getDate() + 30);
+  setDueDate(date.toISOString().slice(0,10));
+}, [invoiceDate, autoDueFromInvoice]);
 const tbsHours = useMemo(() => {
   const s = billingJob?.basic?.startTime ? formatTime(billingJob.basic.startTime) : '';
   const e = billingJob?.basic?.endTime   ? formatTime(billingJob.basic.endTime)   : '';
@@ -1105,7 +1117,7 @@ const [showPaymentForm, setShowPaymentForm] = useState({});
   const saveInvoiceData = () => {
     if (!billingJob) return;
     const invoiceData = {
-      invoiceDate, invoiceNumber, workRequestNumber1, workRequestNumber2, dueDate,
+      invoiceDate, invoiceNumber, workRequestNumber1, workRequestNumber2,
       billToCompany, billToAddress, workType, foreman, location,
       sheetRows, sheetTaxRate, sheetOther, selectedEmail, crewsCount,
   otHours, tbsHours,
@@ -1124,7 +1136,8 @@ const [showPaymentForm, setShowPaymentForm] = useState({});
     setInvoiceNumber(saved.invoiceNumber || '');
     setWorkRequestNumber1(saved.workRequestNumber1 || '');
     setWorkRequestNumber2(saved.workRequestNumber2 || '');
-    setDueDate(saved.dueDate || '');
+ // ❌ don't restore due date from draft
+ // The due date is set when “Bill Job” opens (today + 30), and the user may still change it.
     setBillToCompany(saved.billToCompany || '');
     setBillToAddress(saved.billToAddress || '');
     setWorkType(saved.workType || '');
@@ -1526,7 +1539,8 @@ const effectiveCurrentAmount = Number(
 
   if (!isBilled && workOrder.basic?.client !== 'Georgia Power') {
     return (
-      <button className="btn" onClick={() => {
+      <button className="btn" 
+      onClick={() => {
         setBillingJob(workOrder);
         if (savedInvoices[workOrder._id]) {
           loadSavedInvoice(workOrder._id);
@@ -1537,11 +1551,12 @@ const effectiveCurrentAmount = Number(
           setWorkType('');
           setForeman(workOrder.basic?.foremanName || '');
           setLocation([workOrder.basic?.address, workOrder.basic?.city, workOrder.basic?.state, workOrder.basic?.zip].filter(Boolean).join(', '));
-          setInvoiceDate(new Date().toISOString().slice(0,10));
+          setInvoiceDate(new Date().toISOString().slice(0,10)); // today
           setInvoiceNumber('');
           setWorkRequestNumber1('');
           setWorkRequestNumber2('');
-          setDueDate('');
+   // ✅ When “Bill Job” is clicked, auto-pick due date = today + 30
+          setDueDate(calcDueIn30DaysFromNow());
           setSheetRows(VERTEX42_STARTER_ROWS);
           setSheetTaxRate(0);
           setSheetOther(0);
@@ -1566,7 +1581,8 @@ const effectiveCurrentAmount = Number(
         setQuote(null);
         setCrewsCount(saved.crewsCount ?? '');
         setOtHours(saved.otHours ?? '');
-
+        setAutoDueFromInvoice(true);
+        setDueDate(calcDueIn30DaysFromNow());
 
         // optional: if you keep this, consider not changing the filter while modal is open
         const resolvedKey = workOrder.companyKey || COMPANY_TO_KEY[workOrder.basic?.client] || '';
@@ -1700,12 +1716,15 @@ const effectiveCurrentAmount = Number(
       </div>
       <div className="v42-meta-row">
         <div>DUE DATE</div>
-        <input 
-          type="date" 
-          className="v42-meta-input" 
-          value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
-        />
+<input
+  type="date"
+  className="v42-meta-input"
+  value={dueDate}
+  onChange={(e) => {
+    setDueDate(e.target.value);
+    setAutoDueFromInvoice(false); // stop auto-adjusting after manual change
+  }}
+/>
       </div>
     </div>
   </div>
