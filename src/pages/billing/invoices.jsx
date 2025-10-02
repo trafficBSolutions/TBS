@@ -644,7 +644,11 @@ const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().slice(0,
 const [invoiceNumber, setInvoiceNumber] = useState('');
 const [workRequestNumber1, setWorkRequestNumber1] = useState('');
 const [workRequestNumber2, setWorkRequestNumber2] = useState('');
-const [dueDate, setDueDate] = useState('');
+const [dueDate, setDueDate] = useState(() => {
+  const date = new Date();
+  date.setDate(date.getDate() + 30);
+  return date.toISOString().slice(0,10);
+});
 const [savedInvoices, setSavedInvoices] = useState({});
 // ===== Spreadsheet editor state (replaces the fixed rates UI) =====
 const VERTEX42_STARTER_ROWS = [
@@ -1075,6 +1079,13 @@ useEffect(() => {
 }, [jobsForDay]);
 
 const [showPaymentForm, setShowPaymentForm] = useState({});
+  // Auto-update due date when invoice date changes (30 days later)
+  useEffect(() => {
+    const date = new Date(invoiceDate);
+    date.setDate(date.getDate() + 30);
+    setDueDate(date.toISOString().slice(0,10));
+  }, [invoiceDate]);
+
   // Gate on client (UX nicety; server still enforces)
   useEffect(() => {
     const stored = localStorage.getItem('adminUser');
