@@ -461,7 +461,7 @@ useEffect(() => {
 {allowedForInvoices && (
   <div className="admin-invoice">
     <h1 className="invoice-h1">Invoicing</h1>
-    <a href="/admin-dashboard/invoices" className="btn">Go to Invoicing</a>
+    <a href="/admin-dashboard/invoices" className="btn invoice-btn">Go to Invoicing</a>
   </div>
 )}
 <div className="cancelled-jobs">
