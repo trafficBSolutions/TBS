@@ -406,7 +406,12 @@
   border-radius: 8px;
   margin-top: 10px;
 }
-
+.admin-invoice {
+  padding: 20px 0;
+}
+.invoice-h1 {
+  text-align: center;
+}
 @media screen and (min-width: 320px) and (max-width: 640px) and (orientation: portrait) {
   .admin-date-picker {
     font-size: 1.5rem;
