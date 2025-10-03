@@ -1121,21 +1121,37 @@ useEffect(() => {
 
 const [showPaymentForm, setShowPaymentForm] = useState({});
   // Gate on client (UX nicety; server still enforces)
-  useEffect(() => {
-    const stored = localStorage.getItem('adminUser');
-    if (stored) {
-      const user = JSON.parse(stored);
-      const allowed = new Set([
-        'tbsolutions9@gmail.com',
-        'tbsolutions1999@gmail.com',
-        'trafficandbarriersolutions.ap@gmail.com',
-        'tbsellen@gmail.com'
-      ]);
-      if (!allowed.has(user.email)) window.location.href = '/admin';
-    }
-    const saved = localStorage.getItem('savedInvoices');
-    if (saved) setSavedInvoices(JSON.parse(saved));
-  }, []);
+useEffect(() => {
+  const stored = localStorage.getItem('adminUser');
+  if (!stored) {
+    window.location.replace('/admin');
+    return;
+  }
+
+  const user = JSON.parse(stored);
+
+  const legacyEmails = new Set([
+    'tbsolutions9@gmail.com',
+    'tbsolutions1999@gmail.com',
+    'trafficandbarriersolutions.ap@gmail.com',
+    'tbsellen@gmail.com',
+  ]);
+
+  const canInvoice =
+    (Array.isArray(user?.roles) && user.roles.includes('billing')) ||
+    (Array.isArray(user?.permissions) && user.permissions.includes('INVOICING')) ||
+    legacyEmails.has(user.email);
+
+  if (!canInvoice) {
+    // optional: toast.error('You do not have permission to access invoicing.');
+    window.location.replace('/admin');
+    return;
+  }
+
+  const saved = localStorage.getItem('savedInvoices');
+  if (saved) setSavedInvoices(JSON.parse(saved));
+}, []);
+
 
   const saveInvoiceData = () => {
     if (!billingJob) return;
