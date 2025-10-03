@@ -409,6 +409,10 @@
 .admin-invoice {
   padding: 20px 0;
   text-align: center;
+  display: flex;
+  gap: 20px;
+  flex-direction: column;
+  align-items: center
 }
 .invoice-h1 {
   text-align: center;
