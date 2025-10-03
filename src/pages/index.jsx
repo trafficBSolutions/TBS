@@ -23,7 +23,8 @@ import Work from './work-order'
 import EmployeeLogin from './employee-login'
 import EmployeeDashboard from './employee-dashboard'
 import EmployeeComplaintForm from './employee-complaint-form'
-export { AdminDashboard, EmployeeLogin, EmployeeDashboard, EmployeeComplaintForm, Work, Invoice, CancelJob, About, Contact, Apply, Home, AdminLog, TrafficControl, TrafficPlan, BollardsWheels, Signs, Rentals, PPE, Error, TService, Product, ManageJob, TrafficControlTest, ManageJobTest, CancelJobTest };
+import ConfirmAdditionalFlagger from './ConfirmAdditionalFlagger'
+export { AdminDashboard, ConfirmAdditionalFlagger, EmployeeLogin, EmployeeDashboard, EmployeeComplaintForm, Work, Invoice, CancelJob, About, Contact, Apply, Home, AdminLog, TrafficControl, TrafficPlan, BollardsWheels, Signs, Rentals, PPE, Error, TService, Product, ManageJob, TrafficControlTest, ManageJobTest, CancelJobTest };
 
 
 
