@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate} from 'react-router-dom'
-import { About, ConfirmAdditionalFlagger, Invoice, Work, ManageJobTest, CancelJobTest, ManageJob, CancelJob, AdminLog, AdminDashboard, Contact, Apply, Home, TrafficControl, TrafficPlan, Rentals, PPE, Signs, BollardsWheels, Error, TService, Product, TrafficControlTest } from './pages';
+import { About, ConfirmAdditionalFlagger, Invoice, Work, ManageJobTest, CancelJobTest, ManageJob, CancelJob, AdminLog, AdminDashboard, Contact, Apply, Home, TrafficControl, TrafficPlan, Rentals, PPE, Signs, BollardsWheels, Error, TService, Product, TrafficControlTest, EmployeeDashboard, EmployeeComplaintForm } from './pages';
 import axios from 'axios';
 import Navbar from './components/Navbar';
 import { Toaster } from 'react-hot-toast'
@@ -108,7 +108,11 @@ function App() {
 />
  <Route element={<RequireAdmin />}>
    <Route path="/admin-dashboard/invoices" element={<Invoice />} />
+   <Route path="/admin-dashboard/work-order" element={<Work />} />
  </Route>
+    <Route path="/employee-dashboard" element={<RequireStaff><EmployeeDashboard /></RequireStaff>} />
+    <Route path="/employee-dashboard/work-order" element={<RequireStaff><Work /></RequireStaff>} />
+    <Route path="/employee-dashboard/employee-complaint-form" element={<RequireStaff><EmployeeComplaintForm /></RequireStaff>} />
     <Route path="/cancel-job/:id" element={<CancelJob />} />
     <Route path="/work-order/:id" element={<Work />} />
    <Route path="/manage-job/:id" element={<ManageJob />} />
