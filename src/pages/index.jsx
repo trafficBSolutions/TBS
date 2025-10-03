@@ -21,9 +21,9 @@ import CancelJobTest from './cancel-job-test'
 import Invoice from './billing/invoices'
 import Work from './work-order'
 import EmployeeLogin from './employee-login'
-import ConfirmAdditionalFlagger from './ConfirmAdditionalFlagger'
-export { ConfirmAdditionalFlagger, AdminDashboard, EmployeeLogin, Work, Invoice, CancelJob, About, Contact, Apply, Home, AdminLog, TrafficControl, TrafficPlan, BollardsWheels, Signs, Rentals, PPE, Error, TService, Product, ManageJob, TrafficControlTest, ManageJobTest, CancelJobTest };
-
+import EmployeeDashboard from './employee-dashboard'
+import EmployeeComplaintForm from './employee-complaint-form'
+export { AdminDashboard, EmployeeLogin, EmployeeDashboard, EmployeeComplaintForm, Work, Invoice, CancelJob, About, Contact, Apply, Home, AdminLog, TrafficControl, TrafficPlan, BollardsWheels, Signs, Rentals, PPE, Error, TService, Product, ManageJob, TrafficControlTest, ManageJobTest, CancelJobTest };
 
 
 
