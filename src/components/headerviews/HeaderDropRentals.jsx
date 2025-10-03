@@ -78,14 +78,14 @@ const handleEmployeeClick = async () => {
             <ul className="sub-nav-list">
                 <li><a className="main-nav-link" href="/trafficcontrol">Traffic Control</a></li>
                 <li><a className="main-nav-link" href="/trafficplanning">Traffic Control Plans</a></li>
-                <li><a className="main-nav-link" href="/rentals">Equipment Rental & Sales</a></li>
+                <li><a className="main-nav-link-view" href="/rentals">Equipment Rental & Sales</a></li>
             </ul>
         </li>
         <li>
             <a className="main-nav-link" href="/product-services">Product Services</a>
             <ul className="sub-nav-list">
                 <li><a className="main-nav-link" href="/bollardswheels">Bollards & Wheel Stops</a></li>
-                <li><a className="main-nav-link-view" href="/signs">Traffic Sign Manufacturing</a></li>
+                <li><a className="main-nav-link" href="/signs">Traffic Sign Manufacturing</a></li>
                 <li><a className="main-nav-link" href="/ppe">PPE Sales</a></li>
             </ul>
         </li>
@@ -144,3 +144,4 @@ const handleEmployeeClick = async () => {
 }
 
 export default Header;
+
