@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import Header from '../components/headerviews/HeaderAdmin';
+import images from '../utils/tbsImages';
 const EmployeeDashboard = () => {
   return (
     <div>
