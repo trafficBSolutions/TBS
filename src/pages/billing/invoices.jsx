@@ -8,16 +8,16 @@ import images from '../../utils/tbsImages';
 import '../../css/invoice.css';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import {loadStripe} from '@stripe/stripe-js';
 import ExcelJS from 'exceljs';
-// Company data from environment variables for security
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
 const STRIPE_PK = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = STRIPE_PK ? loadStripe(STRIPE_PK) : null;
 const companyList = [
  "Atlanta Gas Light",
   "Broadband Technical Resources",
   "Broadband of Indiana",
-  "Car Michael",
+  "Carmichael Development LLC",
   "Desoto",
   "Fairway Electric",
   "Georgia Power",
@@ -131,8 +131,39 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
   const hasStripe = !!stripePromise;
   // Debug logging to help troubleshoot payment status
   console.log('PaymentForm - WorkOrder ID:', workOrder._id, 'WorkOrder.paid:', workOrder.paid, 'Invoice status:', invoiceData?.status, 'Combined isPaid:', isPaid);
-  
-  if (isPaid) return null;
+if (isPaid) {
+  return (
+    <div style={{display:'flex', gap:8, alignItems:'center'}}>
+      <span className="pill" style={{ backgroundColor: '#28a745' }}>Paid</span>
+    </div>
+  );
+}
+useEffect(() => {
+  const amt = Number(paymentAmount) || 0;
+  if (!processStripe || !hasStripe || !workOrder?._id || amt <= 0) {
+    setClientSecret(null);
+    return;
+  }
+
+  let cancelled = false;
+  (async () => {
+    try {
+      setCreatingPI(true);
+      const { data } = await api.post('/api/billing/create-payment-intent', {
+        workOrderId: workOrder._id,
+        paymentAmount: amt, // dollars; your API will convert to cents
+      });
+      if (!cancelled) setClientSecret(data.clientSecret);
+    } catch (e) {
+      toast.error(e?.response?.data?.message || 'Failed to initialize card payment');
+      setClientSecret(null);
+    } finally {
+      setCreatingPI(false);
+    }
+  })();
+
+  return () => { cancelled = true; };
+}, [processStripe, paymentAmount, workOrder?._id, hasStripe]);
   const [showForm, setShowForm] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [cardType, setCardType] = useState('');
@@ -150,7 +181,9 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
   const [expMonth, setExpMonth] = useState('');
   const [expYear, setExpYear] = useState('');
   const [cvc, setCvc] = useState('');
-  const [processStripe, setProcessStripe] = useState(false);   
+  const [processStripe, setProcessStripe] = useState(false);
+const [clientSecret, setClientSecret] = useState(null);
+const [creatingPI, setCreatingPI] = useState(false);
   // Connect to authoritative Invoice data from MongoDB first, then fallback to WorkOrder fields
   // Note: invoiceData already defined above for isPaid check
   
@@ -194,7 +227,6 @@ useEffect(() => {
     clearTimeout(timerRef.current);
     timerRef.current = null;
   }
-
   const doPost = async () => {
     const _totalOwed =
       Number(totalOwedInput) || // Manual override
@@ -258,7 +290,7 @@ useEffect(() => {
     }
   };
 
-  if (remainingBalance > 0) {
+  if (remainingBalance > 0 && !(paymentMethod === 'card' && processStripe)) {
     // ⏳ debounce partial saves only
     timerRef.current = setTimeout(doPost, 2000);
   }
@@ -344,56 +376,49 @@ useEffect(() => {
       Stripe isn’t configured. Set VITE_STRIPE_PUBLISHABLE_KEY in your .env and restart the dev server.
     </div>
   )}
-              {processStripe ? (
-                <div style={{display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '8px'}}>
-                  <input
-                    placeholder="Card Number (1234 5678 9012 3456)"
-                    value={cardNumber}
-                    onChange={(e) => setCardNumber(e.target.value.replace(/\s/g, ''))}
-                    maxLength={16}
-                    style={{padding: '4px'}}
-                  />
-                  <div style={{display: 'flex', gap: '8px'}}>
-                    <input
-                      placeholder="MM"
-                      value={expMonth}
-                      onChange={(e) => setExpMonth(e.target.value)}
-                      maxLength={2}
-                      style={{width: '60px', padding: '4px'}}
-                    />
-                    <input
-                      placeholder="YY"
-                      value={expYear}
-                      onChange={(e) => setExpYear(e.target.value)}
-                      maxLength={2}
-                      style={{width: '60px', padding: '4px'}}
-                    />
-                    <input
-                      placeholder="CVC"
-                      value={cvc}
-                      onChange={(e) => setCvc(e.target.value)}
-                      maxLength={4}
-                      style={{width: '60px', padding: '4px'}}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div style={{display: 'flex', gap: '8px', marginBottom: '8px'}}>
-                  <input
-                    placeholder="Card Type (Visa, MasterCard, etc.)"
-                    value={cardType}
-                    onChange={(e) => setCardType(e.target.value)}
-                    style={{flex: 1, padding: '4px'}}
-                  />
-                  <input
-                    placeholder="Last 4 digits"
-                    value={cardLast4}
-                    onChange={(e) => setCardLast4(e.target.value)}
-                    maxLength={4}
-                    style={{width: '80px', padding: '4px'}}
-                  />
-                </div>
-              )}
+ {paymentMethod === 'card' && processStripe && hasStripe ? (
+   clientSecret ? (
+     <Elements stripe={stripePromise} options={{ clientSecret }}>
+       <StripeCheckoutInner
+         clientSecret={clientSecret}
+         email={email}
+         onSucceeded={async (pi) => {
+           // mark paid on your server once Stripe confirms
+           try {
+             await api.post('/api/billing/mark-paid', {
+               workOrderId: workOrder._id,
+               paymentMethod: 'card',
+               paymentAmount: Number(paymentAmount) || 0,
+               totalOwed: Number(totalOwedInput) || authoritativeTotalOwed,
+               stripePaymentIntentId: pi.id,
+               emailOverride: email,
+             });
+             toast.success('Payment recorded and receipt sent!');
+             onLocalPaid();
+             onPaymentComplete();
+           } catch (err) {
+             toast.error(err?.response?.data?.message || err.message || 'Failed to record payment');
+           }
+         }}
+       />
+     </Elements>
+   ) : (
+     <div style={{ fontSize:12, color:'#666' }}>
+       {creatingPI ? 'Initializing secure card form…' : 'Enter an amount to create a payment form.'}
+     </div>
+   )
+ ) : paymentMethod === 'card' ? (
+   // fallback “manual card type / last4” fields (no Stripe capture)
+   <div style={{display:'flex', gap:8, marginBottom:8}}>
+     <input placeholder="Card Type (Visa, MasterCard, etc.)" value={cardType} onChange={(e)=>setCardType(e.target.value)} style={{flex:1,padding:4}} />
+     <input placeholder="Last 4 digits" value={cardLast4} onChange={(e)=>setCardLast4(e.target.value)} maxLength={4} style={{width:80,padding:4}} />
+   </div>
+ ) : (
+   // check number field (unchanged)
+   <div style={{marginBottom:8}}>
+     <input placeholder="Check Number" value={checkNumber} onChange={(e)=>setCheckNumber(e.target.value)} style={{width:120,padding:4}} />
+   </div>
+ )}
             </div>
           ) : (
             <div style={{marginBottom: '8px'}}>
@@ -487,6 +512,10 @@ useEffect(() => {
               style={{fontSize: '12px', padding: '4px 8px', marginRight: '5px'}}
               disabled={isSubmitting || !paymentAmount}
               onClick={() => {
+                 if (paymentMethod === 'card' && processStripe) {
+                  toast.info('Use the secure card form above to complete payment.');
+                  return;
+                }
                 setIsSubmitting(true);
                 const paymentDetails = paymentMethod === 'card' 
                   ? (processStripe 
@@ -543,6 +572,45 @@ useEffect(() => {
     </div>
   );
 };
+
+function StripeCheckoutInner({ clientSecret, onSucceeded, email }) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!stripe || !elements) return;
+    setSubmitting(true);
+    const { error, paymentIntent } = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        receipt_email: email || undefined,
+        // return_url can be omitted for on-session confirmation
+      },
+      redirect: 'if_required'
+    });
+    setSubmitting(false);
+
+    if (error) {
+      toast.error(error.message || 'Payment failed');
+      return;
+    }
+    if (paymentIntent?.status === 'succeeded') {
+      onSucceeded(paymentIntent);
+    } else {
+      toast.error(`Payment status: ${paymentIntent?.status || 'unknown'}`);
+    }
+  };
+
+  return (
+    <div style={{display:'grid', gap:8}}>
+      <PaymentElement />
+      <button className="btn btn--primary" onClick={handleSubmit} disabled={!stripe || submitting}>
+        {submitting ? 'Processing…' : 'Pay now'}
+      </button>
+    </div>
+  );
+}
 
 function buildBreakdown(sel, rates) {
   if (!sel || !rates) return [];
@@ -1564,8 +1632,9 @@ const effectiveCurrentAmount = Number(
         setManualOverride(false);
         setManualAmount('');
         setQuote(null);
-        setCrewsCount(saved.crewsCount ?? '');
-        setOtHours(saved.otHours ?? '');
+         const saved = savedInvoices[workOrder._id];
+ setCrewsCount(saved?.crewsCount ?? '');
+ setOtHours(saved?.otHours ?? '');
 
 
         // optional: if you keep this, consider not changing the filter while modal is open
