@@ -452,7 +452,7 @@ useEffect(() => {
           className="btn workorder-btn"
           onClick={() => {
             // Open the employee Work Order page for this job/date
-            navigate(`/work-order`);
+            navigate(`/admin-dashboard/work-order`);
           }}
         >
           Open Work Order
@@ -753,3 +753,4 @@ useEffect(() => {
 };
 
 export default AdminDashboard;
+
