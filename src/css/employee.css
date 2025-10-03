@@ -1,27 +1,178 @@
+/* ====== Base & Theme ====== */
+:root {
+  --bg: #f7f8fa;
+  --card: #ffffff;
+  --text: #23262a;
+  --muted: #6b7280;   /* gray-500 */
+  --ring: #4f46e5;    /* indigo-600 */
+  --brand: #efad76;   /* your orange */
+  --brand-hover: #e6943f;
+  --border: #e5e7eb;  /* gray-200 */
+  --shadow: 0 6px 18px rgba(16, 24, 40, 0.06);
+  --shadow-hover: 0 10px 24px rgba(16, 24, 40, 0.10);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1115;
+    --card: #151922;
+    --text: #e6e7ea;
+    --muted: #9aa3b2;
+    --ring: #818cf8;
+    --border: #232736;
+    --shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    --shadow-hover: 0 12px 30px rgba(0, 0, 0, 0.45);
+  }
+}
+
+/* Reduce motion for folks who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ====== Page ====== */
 .employee-main {
-    padding: 2rem;
-    background-color: #f8f8f8;
+  min-height: 20vh;
+  padding: clamp(1rem, 2vw + 1rem, 2.5rem);
+  background: radial-gradient(1200px 500px at 20% -20%, rgb(229, 160, 70), transparent 60%),
+              radial-gradient(1000px 400px at 110% 10%, rgba(229, 160, 70, 0.5), transparent 60%),
+              var(--bg);
+  display: flex;
+  align-items: flex-start;
 }
+
+.employee-options {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* ====== Title ====== */
 .employee-title {
-    font-size: 4rem;
-    color: #333;
-    text-align: center;
-    margin-bottom: 2rem;
+  font-size: clamp(2rem, 1.5rem + 2.5vw, 3rem);
+  color: var(--text);
+  text-align: center;
+  margin: 0 0 1.75rem 0;
+  letter-spacing: 0.2px;
+  font-weight: 800;
 }
+
+/* ====== Card Grid ====== */
+.div-links {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+  align-items: stretch;
+}
+
+@media (min-width: 640px) {
+  .div-links {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ====== Link-as-Card ====== */
 .btn-links {
-    margin: 20px 0;
-  padding: 10px 20px;
-  background-color: #efad76;
-  color: #000;
-  font-weight: 700;
-  font-size: 2rem;
-  border: 0;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0,0,0,.12);
-  cursor: pointer;
-  transition: all 0.3s ease;
+  display: block;
+  text-decoration: none;
+  position: relative;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+
+  /* spacing tuned for scan-ability */
+  padding: 1.75rem 1.5rem;
+
+  /* polish */
+  box-shadow: var(--shadow);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  will-change: transform;
 }
+
+/* Hover + Focus states */
 .btn-links:hover {
-    background-color: #e6943f;
-    color: #000;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+  border-color: rgba(79, 70, 229, 0.35); /* subtle indigo ring on hover */
 }
+
+.btn-links:focus {
+  outline: none;
+}
+
+.btn-links:focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 30%, transparent), var(--shadow-hover);
+  border-color: var(--ring);
+}
+
+/* If you want the whole card to take on brand color on hover, uncomment:
+.btn-links:hover {
+  background: var(--brand);
+  color: #000;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+  border-color: transparent;
+}
+*/
+
+/* ====== Card Content ====== */
+.text-center {
+  text-align: center;
+}
+
+.work-order-icon,
+.complaint-form-icon,
+.compant-form-icon { /* keep your existing class name just in case */
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 0.75rem auto;
+
+  /* shaped badge behind the emoji */
+  display: grid;
+  place-items: center;
+  font-size: 34px;
+  line-height: 1;
+  border-radius: 16px;
+
+  /* soft brand tint */
+  background: color-mix(in oklab, var(--brand) 20%, var(--card));
+  border: 1px solid var(--border);
+}
+
+/* Titles inside the cards */
+.work-order-title,
+.complaint-form-title {
+  margin: 0.25rem 0 0.35rem 0;
+  font-size: 2rem;            /* 18px */
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+/* Descriptions inside the cards */
+.text-gray-600 {
+  color: var(--muted) !important; /* keep your class name but unify the color */
+  font-size: 1rem;
+}
+
+/* ====== Optional: Button-style variant (if you prefer pill buttons over cards) ======
+   Apply this in addition to .btn-links when you want louder CTA styling:
+*/
+.btn-links.is-cta {
+  background: var(--brand);
+  color: #000;
+  border: none;
+  box-shadow: 0 3px 0 #00000022;
+}
+.btn-links.is-cta:hover {
+  background: var(--brand-hover);
+  transform: translateY(-2px);
+}
+.btn-links.is-cta:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 0 #00000022;
+}
+
