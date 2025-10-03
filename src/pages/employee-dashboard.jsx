@@ -13,7 +13,7 @@ const EmployeeDashboard = () => {
         <div className="div-links">
           <Link 
             to="/employee-dashboard/work-order"
-            className="btn"
+            className="btn-links"
           >
             <div className="text-center">
               <div className="work-order-icon">📋</div>
@@ -24,12 +24,12 @@ const EmployeeDashboard = () => {
           
           <Link 
             to="/employee-dashboard/employee-complaint-form"
-            className="btn"
+            className="btn-links"
           >
             <div className="text-center">
               <div className="compant-form-icon">📝</div>
               <h2 className="complaint-form-title">Employee Complaint Form</h2>
-              <p className="text-gray-600">Submit employee complaints and feedback</p>
+              <p className="text-gray-600">Not Ready Yet, but will be added soon</p>
             </div>
           </Link>
         </div>
