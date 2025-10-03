@@ -20,7 +20,7 @@ const handleEmployeeClick = async () => {
   if (isEmployee) {
     // logout employee
     try {
-      await fetch((import.meta.env.VITE_API_URL || 'http://localhost:8000') + '/employee/logout', {
+      await fetch((import.meta.env.VITE_API_URL || 'https://tbs-server.onrender.com') + '/employee/logout', {
         method: 'POST',
         credentials: 'include'
       });
