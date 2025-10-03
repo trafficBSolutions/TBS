@@ -125,45 +125,13 @@ const formatEquipmentName = (key) => {
 };
 
 const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) => {
-  // Check both WorkOrder.paid and Invoice status from MongoDB
+  // ----- derived flags / data (no hooks) -----
   const invoiceData = workOrder._invoice;
   const isPaid = workOrder?.paid || (invoiceData && invoiceData.status === 'PAID');
   const hasStripe = !!stripePromise;
-  // Debug logging to help troubleshoot payment status
   console.log('PaymentForm - WorkOrder ID:', workOrder._id, 'WorkOrder.paid:', workOrder.paid, 'Invoice status:', invoiceData?.status, 'Combined isPaid:', isPaid);
-if (isPaid) {
-  return (
-    <div style={{display:'flex', gap:8, alignItems:'center'}}>
-      <span className="pill" style={{ backgroundColor: '#28a745' }}>Paid</span>
-    </div>
-  );
-}
-useEffect(() => {
-  const amt = Number(paymentAmount) || 0;
-  if (!processStripe || !hasStripe || !workOrder?._id || amt <= 0) {
-    setClientSecret(null);
-    return;
-  }
 
-  let cancelled = false;
-  (async () => {
-    try {
-      setCreatingPI(true);
-      const { data } = await api.post('/api/billing/create-payment-intent', {
-        workOrderId: workOrder._id,
-        paymentAmount: amt, // dollars; your API will convert to cents
-      });
-      if (!cancelled) setClientSecret(data.clientSecret);
-    } catch (e) {
-      toast.error(e?.response?.data?.message || 'Failed to initialize card payment');
-      setClientSecret(null);
-    } finally {
-      setCreatingPI(false);
-    }
-  })();
-
-  return () => { cancelled = true; };
-}, [processStripe, paymentAmount, workOrder?._id, hasStripe]);
+  // ----- ALL STATE HOOKS FIRST (before any effects) -----
   const [showForm, setShowForm] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [cardType, setCardType] = useState('');
@@ -173,23 +141,20 @@ useEffect(() => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [totalOwedInput, setTotalOwedInput] = useState('');
-  const [autoSaveTimer, setAutoSaveTimer] = useState(null);
   const timerRef = useRef(null);
-  
-  // Stripe card fields
+
+  // stripe fields
   const [cardNumber, setCardNumber] = useState('');
   const [expMonth, setExpMonth] = useState('');
   const [expYear, setExpYear] = useState('');
   const [cvc, setCvc] = useState('');
   const [processStripe, setProcessStripe] = useState(false);
-const [clientSecret, setClientSecret] = useState(null);
-const [creatingPI, setCreatingPI] = useState(false);
-  // Connect to authoritative Invoice data from MongoDB first, then fallback to WorkOrder fields
-  // Note: invoiceData already defined above for isPaid check
-  
-  // Calculate the authoritative total owed amount
-  const authoritativeTotalOwed = 
-    (invoiceData ? (invoiceData.computedTotalDue || invoiceData.principal) : 0) || 
+  const [clientSecret, setClientSecret] = useState(null);
+  const [creatingPI, setCreatingPI] = useState(false);
+
+  // ----- derived amounts (no hooks) -----
+  const authoritativeTotalOwed =
+    (invoiceData ? (invoiceData.computedTotalDue || invoiceData.principal) : 0) ||
     workOrder.lastManualTotalOwed ||
     workOrder.billedAmount ||
     workOrder.invoiceTotal ||
@@ -197,122 +162,125 @@ const [creatingPI, setCreatingPI] = useState(false);
     workOrder.invoicePrincipal ||
     0;
 
-  // Auto-populate Total Owed field when component loads or invoice data changes
+  const totalOwed =
+    Number(totalOwedInput) ||
+    (invoiceData ? (invoiceData.computedTotalDue || invoiceData.principal) : 0) ||
+    workOrder.lastManualTotalOwed ||
+    workOrder.billedAmount ||
+    workOrder.invoiceTotal ||
+    workOrder.invoiceData?.sheetTotal ||
+    workOrder.invoicePrincipal ||
+    0;
+
+  const currentBalance = workOrder.currentAmount || totalOwed;
+  const payAmt = Number(paymentAmount) || 0;
+  const remainingBalance = currentBalance - payAmt;
+
+  // ----- EFFECTS (now safe to reference state) -----
+  // 1) auto-fill total owed once
   useEffect(() => {
     if (authoritativeTotalOwed > 0 && !totalOwedInput) {
       setTotalOwedInput(authoritativeTotalOwed.toString());
     }
   }, [authoritativeTotalOwed, totalOwedInput]);
-  const totalOwed =
-    Number(totalOwedInput) || // Manual override if user enters amount
-    (invoiceData ? (invoiceData.computedTotalDue || invoiceData.principal) : 0) || // PRIORITY: Use computed total (principal + interest) from MongoDB
-    workOrder.lastManualTotalOwed ||
-    workOrder.billedAmount ||
-    workOrder.invoiceTotal ||
-    workOrder.invoiceData?.sheetTotal ||
-    workOrder.invoicePrincipal ||
-    0;
-  const currentBalance = workOrder.currentAmount || totalOwed;
-  const payAmt = Number(paymentAmount) || 0;
-  const remainingBalance = currentBalance - (Number(paymentAmount) || 0);
-  
-  // Auto-save when payment amount changes and remaining balance > 0
-// Auto-save partials after 2s; auto-finish immediately at $0.00
-useEffect(() => {
-  // no autosave until we have a numeric amount
-  if (!payAmt) return;
 
-  // always clear previous timer
-  if (timerRef.current) {
-    clearTimeout(timerRef.current);
-    timerRef.current = null;
-  }
-  const doPost = async () => {
-    const _totalOwed =
-      Number(totalOwedInput) || // Manual override
-      (invoiceData ? (invoiceData.computedTotalDue || invoiceData.principal) : 0) || // PRIORITY: Use computed total (principal + interest) from MongoDB
-      workOrder.currentAmount ||
-      workOrder.billedAmount ||
-      workOrder.invoiceTotal ||
-      workOrder.invoiceData?.sheetTotal ||
-      workOrder.invoicePrincipal ||
-      0;
+  // 2) create PaymentIntent when doing Stripe card payments
+  useEffect(() => {
+    const amt = Number(paymentAmount) || 0;
+    if (!processStripe || !hasStripe || !workOrder?._id || amt <= 0) {
+      setClientSecret(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        setCreatingPI(true);
+        const { data } = await api.post('/api/billing/create-payment-intent', {
+          workOrderId: workOrder._id,
+          paymentAmount: amt,
+        });
+        if (!cancelled) setClientSecret(data.clientSecret);
+      } catch (e) {
+        toast.error(e?.response?.data?.message || 'Failed to initialize card payment');
+        setClientSecret(null);
+      } finally {
+        setCreatingPI(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [processStripe, paymentAmount, workOrder?._id, hasStripe]);
 
-    const _payAmt = Number(paymentAmount) || 0;
-    const _remaining = Math.max(0, (workOrder.currentAmount || _totalOwed) - _payAmt);
+  // 3) auto-save partials (not during Stripe flow)
+  useEffect(() => {
+    if (!payAmt) return;
+    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
 
-    const paymentDetails =
-      paymentMethod === 'card' ? { cardType, cardLast4 } : { checkNumber };
+    const doPost = async () => {
+      const _totalOwed =
+        Number(totalOwedInput) ||
+        (invoiceData ? (invoiceData.computedTotalDue || invoiceData.principal) : 0) ||
+        workOrder.currentAmount ||
+        workOrder.billedAmount ||
+        workOrder.invoiceTotal ||
+        workOrder.invoiceData?.sheetTotal ||
+        workOrder.invoicePrincipal ||
+        0;
 
-    try {
-      // 🔕 IMPORTANT: no emailOverride on autosave – prevents receipt emails
-      await api.post('/api/billing/mark-paid', {
-        workOrderId: workOrder._id,
-        paymentMethod,
-        paymentAmount: _payAmt,
-        totalOwed: _totalOwed,
-        ...paymentDetails,
-      });
+      const _payAmt = Number(paymentAmount) || 0;
+      const _remaining = Math.max(0, (workOrder.currentAmount || _totalOwed) - _payAmt);
+      const paymentDetails = paymentMethod === 'card' ? { cardType, cardLast4 } : { checkNumber };
 
-      // persist local partial/full status for refreshes
-      const stash = (() => {
-        try { return JSON.parse(localStorage.getItem('localPaidProgress') || '{}'); }
-        catch { return {}; }
-      })();
+      try {
+        await api.post('/api/billing/mark-paid', {
+          workOrderId: workOrder._id,
+          paymentMethod,
+          paymentAmount: _payAmt,
+          totalOwed: _totalOwed,
+          ...paymentDetails,
+        });
 
-      if (_remaining > 0) {
-        stash[workOrder._id] = {
-          billedAmount: _totalOwed,
-          currentAmount: _remaining,
-          updatedAt: Date.now(),
-        };
-      } else {
-        delete stash[workOrder._id];
-        // Also clear from locallyPaid cache when fully paid
-        try {
-          const locallyPaid = JSON.parse(localStorage.getItem('locallyPaid') || '[]');
-          const updated = [...locallyPaid, workOrder._id];
-          localStorage.setItem('locallyPaid', JSON.stringify(updated));
-        } catch (e) {
-          console.warn('Failed to update locallyPaid cache:', e);
+        const stash = (() => {
+          try { return JSON.parse(localStorage.getItem('localPaidProgress') || '{}'); }
+          catch { return {}; }
+        })();
+
+        if (_remaining > 0) {
+          stash[workOrder._id] = { billedAmount: _totalOwed, currentAmount: _remaining, updatedAt: Date.now() };
+        } else {
+          delete stash[workOrder._id];
+          try {
+            const locallyPaid = JSON.parse(localStorage.getItem('locallyPaid') || '[]');
+            const updated = [...locallyPaid, workOrder._id];
+            localStorage.setItem('locallyPaid', JSON.stringify(updated));
+          } catch {}
         }
+        localStorage.setItem('localPaidProgress', JSON.stringify(stash));
+        if (_remaining > 0) toast.success('Payment auto-saved!');
+        onPaymentComplete();
+      } catch (err) {
+        console.error('Auto-save failed:', err);
+        toast.error(err?.response?.data?.message || err.message || 'Auto-save failed');
       }
-      localStorage.setItem('localPaidProgress', JSON.stringify(stash));
+    };
 
-      // toast: autosave only for partials
-      if (_remaining > 0) {
-        toast.success('Payment auto-saved!');
-      }
-      onPaymentComplete();
-    } catch (err) {
-      console.error('Auto-save failed:', err);
-      toast.error(err?.response?.data?.message || err.message || 'Auto-save failed');
+    if (remainingBalance > 0 && !(paymentMethod === 'card' && processStripe)) {
+      timerRef.current = setTimeout(doPost, 2000);
     }
-  };
-
-  if (remainingBalance > 0 && !(paymentMethod === 'card' && processStripe)) {
-    // ⏳ debounce partial saves only
-    timerRef.current = setTimeout(doPost, 2000);
-  }
-  // ❌ no auto-finish when remainingBalance === 0 – wait for explicit click
-
-  return () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-  };
-}, [
-  paymentMethod,
-  cardType,
-  cardLast4,
-  checkNumber,
-  paymentAmount,
-  totalOwedInput,
-  workOrder._id,
-  workOrder.currentAmount,
-]);
-
+    return () => {
+      if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
+    };
+  }, [
+    payAmt,
+    remainingBalance,
+    paymentMethod,
+    processStripe,
+    cardType,
+    cardLast4,
+    checkNumber,
+    totalOwedInput,
+    workOrder?._id,
+    workOrder?.currentAmount,
+  ]);
   return (
     <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
