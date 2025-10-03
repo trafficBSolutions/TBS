@@ -107,7 +107,7 @@ const handleEmployeeClick = async () => {
           ) : isEmployee ? (
             // Employee is logged in - show employee portal and logout
             <>
-              <a className="btn-main main-nav-link-view" href="/work-order">
+              <a className="btn-main main-nav-link-view" href="/employee-dashboard">
                 Employee Portal
               </a>
               <button className="btn-main main-nav-link" onClick={handleEmployeeClick}>
