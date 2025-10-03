@@ -1128,7 +1128,8 @@ const [showPaymentForm, setShowPaymentForm] = useState({});
       const allowed = new Set([
         'tbsolutions9@gmail.com',
         'tbsolutions1999@gmail.com',
-        'trafficandbarriersolutions.ap@gmail.com'
+        'trafficandbarriersolutions.ap@gmail.com',
+        'tbsellen@gmail.com'
       ]);
       if (!allowed.has(user.email)) window.location.href = '/admin';
     }
@@ -1315,6 +1316,72 @@ const fetchJobsForDay = async (date, companyName) => {
   useEffect(() => {
     fetchPlans();
   }, []);
+
+const handleUpdateInvoice = async () => {
+  setSubmissionMessage('');
+  setSubmissionErrorMessage('');
+  setErrorMessage('');
+
+  if (!selectedEmail || !isValidEmail(selectedEmail)) {
+    const msg = 'Enter a valid email address.';
+    setErrorMessage(msg);
+    toast.error(msg);
+    return;
+  }
+  if (!billingJob) {
+    const msg = 'No work order selected.';
+    setErrorMessage(msg);
+    toast.error(msg);
+    return;
+  }
+
+  setIsSubmitting(true);
+  try {
+    const payload = {
+      workOrderId: billingJob._id,
+      manualAmount: Number(sheetTotal.toFixed(2)),
+      emailOverride: selectedEmail,
+      invoiceData: {
+        invoiceDate,
+        invoiceNumber,
+        workRequestNumber1,
+        workRequestNumber2,
+        dueDate: billingJob.invoiceData?.dueDate, // Keep original due date
+        billToCompany: billToCompany === "Other(Specify if new in message to add to this list)" ? customCompanyName : billToCompany,
+        billToAddress,
+        workType,
+        foreman,
+        location,
+        sheetRows: sheetRows,
+        sheetSubtotal,
+        sheetTaxRate,
+        sheetTaxDue,
+        sheetOther,
+        sheetTotal,
+        crewsCount,
+        otHours,
+        tbsHours
+      }
+    };
+    await api.post('/api/billing/update-invoice', payload);
+
+    await fetchJobsForDay(selectedDate);
+
+    setSubmissionMessage('Invoice updated and sent!');
+    toast.success('Invoice updated and sent successfully!');
+    setBillingOpen(false);
+    setBillingJob(null);
+  } catch (err) {
+    const msg =
+      err?.response?.data?.message ||
+      err?.message ||
+      'Failed to update invoice.';
+    setSubmissionErrorMessage(msg);
+    toast.error(msg);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
   const handleSendInvoice = async () => {
   // reset any old messages
   setSubmissionMessage('');
@@ -2026,19 +2093,36 @@ const effectiveCurrentAmount = Number(
           Yes, it is ready to send.
         </label>
 <div className="submit-button-wrapper">
-  <button
-   className="btn btn--primary"
-   disabled={!readyToSend || isSubmitting}
-   onClick={handleSendInvoice}
- >
-   {isSubmitting ? (
-     <div className="spinner-button">
-       <span className="spinner" /> Submitting...
-     </div>
-   ) : (
-     'Send Invoice'
+  {billingJob?.billed ? (
+    <button
+      className="btn btn--primary"
+      disabled={isSubmitting}
+      onClick={handleUpdateInvoice}
+      style={{ backgroundColor: '#17365D' }}
+    >
+      {isSubmitting ? (
+        <div className="spinner-button">
+          <span className="spinner" /> Updating...
+        </div>
+      ) : (
+        'Update Invoice'
+      )}
+    </button>
+  ) : (
+    <button
+      className="btn btn--primary"
+      disabled={!readyToSend || isSubmitting}
+      onClick={handleSendInvoice}
+    >
+      {isSubmitting ? (
+        <div className="spinner-button">
+          <span className="spinner" /> Submitting...
+        </div>
+      ) : (
+        'Send Invoice'
+      )}
+    </button>
   )}
- </button>
         <button
           className="btn"
           onClick={() => { setReadyToSend(false); setBillingOpen(false); setBillingJob(null); }}
