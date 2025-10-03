@@ -42,7 +42,7 @@ const [previewPlan, setPreviewPlan] = useState(null);
 const [showCancelledJobs, setShowCancelledJobs] = useState(false);
   const [applicants, setApplicants] = useState([]);
   const [PlanUser, setPlanUser] = useState([]);
-  const [allowedForInvoices, setAllowedForInvoices] = useState([]);
+  const [allowedForInvoices, setAllowedForInvoices] = useState(false);
 const [currentIndex, setCurrentIndex] = useState(0); // To control the visible slice
 const [jobs, setJobs] = useState([]);
 const [calendarViewDate, setCalendarViewDate] = useState(new Date());
@@ -81,7 +81,21 @@ useEffect(() => {
     const user = JSON.parse(stored);
     setAdminName(user.firstName);
     setIsAdmin(true);
-    setAllowedForInvoices(allowed.has(user.email));
+
+    // Role/permission based (preferred), with fallback to legacy emails
+    const legacyEmails = new Set([
+      'tbsolutions9@gmail.com',
+      'tbsolutions1999@gmail.com',
+      'trafficandbarriersolutions.ap@gmail.com',
+      'tbsellen@gmail.com',
+    ]);
+
+    const canInvoice =
+      (Array.isArray(user?.roles) && user.roles.includes('billing')) ||
+      (Array.isArray(user?.permissions) && user.permissions.includes('INVOICING')) ||
+      legacyEmails.has(user.email);
+
+    setAllowedForInvoices(Boolean(canInvoice));
   }
 }, []);
 const fetchMonthlyWorkOrders = async (date) => {
