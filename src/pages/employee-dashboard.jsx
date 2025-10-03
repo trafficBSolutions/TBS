@@ -1,39 +1,69 @@
 import { Link } from 'react-router-dom';
 import Header from '../components/headerviews/HeaderAdmin';
 import images from '../utils/tbsImages';
-const EmployeeDashboard = () => {
-  return (
-    <div>
-        <Header />
-    <div className="min-h-screen bg-gray-100 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        <h1 className="text-3xl font-bold text-center mb-8">Employee Dashboard</h1>
-        
-        <div className="grid md:grid-cols-2 gap-6">
-          <Link 
-            to="/employee-dashboard/work-order"
-            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
-          >
-            <div className="text-center">
-              <div className="text-4xl mb-4">📋</div>
-              <h2 className="text-xl font-semibold mb-2">Work Order</h2>
-              <p className="text-gray-600">Create and manage work orders</p>
-            </div>
-          </Link>
-          
-          <Link 
-            to="/employee-dashboard/employee-complaint-form"
-            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
-          >
-            <div className="text-center">
-              <div className="text-4xl mb-4">📝</div>
-              <h2 className="text-xl font-semibold mb-2">Employee Complaint Form</h2>
-              <p className="text-gray-600">Submit employee complaints and feedback</p>
-            </div>
-          </Link>
-        </div>
+
+const Card = ({ to, emoji, title, desc }) => (
+  <Link
+    to={to}
+    className="group focus:outline-none"
+  >
+    <div
+      className="
+        bg-white/90 backdrop-blur rounded-2xl shadow-sm
+        ring-1 ring-gray-200 hover:ring-indigo-300
+        transition-all duration-200
+        p-6 h-full
+        hover:shadow-md group-focus:ring-2 group-focus:ring-indigo-500
+        hover:-translate-y-0.5
+      "
+      role="button"
+      tabIndex={0}
+    >
+      <div className="text-center">
+        <div className="text-5xl mb-4" aria-hidden="true">{emoji}</div>
+        <h2 className="text-lg font-semibold mb-1 text-gray-900">{title}</h2>
+        <p className="text-gray-600 text-sm">{desc}</p>
       </div>
     </div>
+  </Link>
+);
+
+const EmployeeDashboard = () => {
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <Header />
+
+      {/* Hero strip */}
+      <div className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
+        <div className="max-w-5xl mx-auto px-4 py-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-center">
+            Employee Dashboard
+          </h1>
+          <p className="text-center text-white/90 mt-2 text-sm">
+            Quick access to the tools you use every day.
+          </p>
+        </div>
+      </div>
+
+      {/* Content */}
+      <main className="flex-1">
+        <div className="max-w-5xl mx-auto px-4 py-8">
+          <div className="grid gap-6 sm:grid-cols-2">
+            <Card
+              to="/employee-dashboard/work-order"
+              emoji="📋"
+              title="Work Order"
+              desc="Create and manage work orders"
+            />
+            <Card
+              to="/employee-dashboard/employee-complaint-form"
+              emoji="📝"
+              title="Employee Complaint Form"
+              desc="Submit employee complaints and feedback"
+            />
+          </div>
+        </div>
+      </main>
           <footer className="footer">
   <div className="site-footer__inner">
     <img className="tbs-logo" alt="TBS logo" src={images["../assets/tbs_companies/tbs white.svg"].default} />
