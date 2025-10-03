@@ -199,7 +199,8 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
           workOrderId: workOrder._id,
           paymentAmount: amt,
         });
-        if (!cancelled) setClientSecret(data.clientSecret);
+        const cs = data?.clientSecret || data?.client_secret; // 👈 accept either
+     if (!cancelled) setClientSecret(cs || null);
       } catch (e) {
         toast.error(e?.response?.data?.message || 'Failed to initialize card payment');
         setClientSecret(null);
@@ -334,7 +335,7 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
       checked={processStripe}
       onChange={(e) => setProcessStripe(e.target.checked)}
       style={{ marginRight: '5px' }}
-      disabled={!hasStripe}  // 🔒 disable if no publishable key present
+      disabled={!hasStripe || !(Number(paymentAmount) > 0)} // need amount first
     />
     Process card payment through Stripe
   </label>
@@ -346,7 +347,7 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
   )}
  {paymentMethod === 'card' && processStripe && hasStripe ? (
    clientSecret ? (
-     <Elements stripe={stripePromise} options={{ clientSecret }}>
+     <Elements stripe={stripePromise} options={{ clientSecret }} key={clientSecret}>
        <StripeCheckoutInner
          clientSecret={clientSecret}
          email={email}
