@@ -415,6 +415,15 @@
 }
 .invoice-btn {
   margin: 20px 0;
+  padding: 10px 20px;
+  background-color: #efad76;
+  color: #000;
+  font-weight: 700;
+  border: 0;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.12);
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 .invoice-btn:hover {
   background-color: #e6943f;
