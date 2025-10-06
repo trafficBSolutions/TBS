@@ -248,7 +248,7 @@ const EmployeeComplaintForm = () => {
           <div className="emergency-container">
             <h2 className="emergency-header">WARNING</h2>
             <p className="emergency-paragraph">
-              If you are making a false report, you may be subject to being written up. Honesty and Integrity are fundamental values at TBS. 
+              If you are making a false report, you may be subject to disciplinary action. Honesty and Integrity are fundamental values at TBS. 
               Please make sure you are sure of your information.</p>
             </div>
             <form onSubmit={handleSubmit} className="form-center">
