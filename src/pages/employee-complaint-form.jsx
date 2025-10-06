@@ -222,7 +222,7 @@ const EmployeeComplaintForm = () => {
       };
 
       // Example POST (uncomment & set your endpoint):
-      await axios.post((import.meta.env.VITE_API_URL || 'http://localhost:8000') + '/employee-complaint-form', payload, { withCredentials: true });
+      await axios.post((import.meta.env.VITE_API_URL || 'https://tbs-server.onrender.com') + '/employee-complaint-form', payload, { withCredentials: true });
 
       setSubmissionMessage('✅ Complaint has been successfully submitted! Thank you!');
       toast.success('Complaint submitted');
@@ -302,7 +302,7 @@ const EmployeeComplaintForm = () => {
                 {errors.date && <div className="error-message">{errors.date}</div>}
 
                 {/* Title */}
-                <label className="project-number-label">Title (Driver, Foreman or Flagger) *</label>
+                <label className="project-number-label">Title (Driver or Foreman) *</label>
                 <input
                   name="title"
                   className="project-number-input"
@@ -346,16 +346,55 @@ const EmployeeComplaintForm = () => {
                 {errors.dateOfIncident && <div className="error-message">{errors.dateOfIncident}</div>}
 
                 {/* Address of Incident */}
-                <label className="addr-control-label">Location of Incident *</label>
+                <label className="addr-control-label">Address of Incident *</label>
                 <input
                   name="address"
                   type="text"
                   className="address-control-box"
-                  placeholder="Enter Location"
+                  placeholder="Enter Address"
                   value={formData.address}
                   onChange={handleChange}
                 />
                 {errors.address && <div className="error-message">{errors.address}</div>}
+
+                {/* Optional: City / State / Zip */}
+                <div className="city-state">
+                  <input
+                    name="city"
+                    type="text"
+                    className="city-control-box"
+                    placeholder="City (optional)"
+                    value={formData.city}
+                    onChange={handleChange}
+                  />
+                  {errors.city && <span className="error-message">{errors.city}</span>}
+
+                  <select
+                    name="state"
+                    className="state-control-box"
+                    value={formData.state}
+                    onChange={handleChange}
+                  >
+                    <option value="">State (optional)</option>
+                    {states.map(s => (
+                      <option key={s.abbreviation} value={s.abbreviation}>{s.name}</option>
+                    ))}
+                  </select>
+                  {errors.state && <span className="error-message">{errors.state}</span>}
+
+                  <input
+                    name="zip"
+                    type="text"
+                    className="zip-control-box"
+                    value={formData.zip}
+                    onChange={handleChange}
+                    placeholder="Zip Code (optional)"
+                    maxLength={5}
+                    pattern="\d{5}"
+                    title="Zip code must be 5 digits"
+                  />
+                  {errors.zip && <span className="error-message">{errors.zip}</span>}
+                </div>
 
                 {/* Crew members */}
                 <label className="project-number-label">Crew member(s) *</label>
