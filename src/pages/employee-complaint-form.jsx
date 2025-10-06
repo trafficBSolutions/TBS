@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react';
+I' import { useState, useRef, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 import Header from '../components/headerviews/HeaderEmpDash';
 import '../css/complaint.css';
@@ -302,7 +302,7 @@ const EmployeeComplaintForm = () => {
                 {errors.date && <div className="error-message">{errors.date}</div>}
 
                 {/* Title */}
-                <label className="project-number-label">Title (Driver or Foreman) *</label>
+                <label className="project-number-label">Title (Driver, Foreman or Flagger) *</label>
                 <input
                   name="title"
                   className="project-number-input"
