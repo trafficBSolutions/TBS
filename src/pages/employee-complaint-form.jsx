@@ -222,7 +222,7 @@ const EmployeeComplaintForm = () => {
       };
 
       // Example POST (uncomment & set your endpoint):
-      // await axios.post((import.meta.env.VITE_API_URL || 'http://localhost:8000') + '/employee-complaints', payload, { withCredentials: true });
+      await axios.post((import.meta.env.VITE_API_URL || 'https://tbs-server.onrender.com') + '/employee-complaint-form', payload, { withCredentials: true });
 
       setSubmissionMessage('✅ Complaint has been successfully submitted! Thank you!');
       toast.success('Complaint submitted');
