@@ -1,0 +1,17 @@
+.complaint-main {
+        background-color: #bcc3bd;
+}
+.complaint-title {
+    font-size: 8rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    text-align: center;
+    color: #000;
+    font-family: "Moveo Sans W00 Bold";
+}
+.emergency-paragraph {
+        font-size: 2rem;
+    color: #555;
+    margin-top: 20px;
+    font-weight: bold;
+}
