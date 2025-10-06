@@ -107,9 +107,17 @@ function App() {
         element={isAdminAuthenticated() ? <AdminDashboard /> : <Navigate to="/admin-login" />}
 />
  <Route element={<RequireAdmin />}>
-   <Route path="/admin-dashboard/invoices" element={<Invoice />} />
-   <Route path="/admin-dashboard/work-order" element={<Work />} />
- </Route>
+  <Route path="/admin-dashboard/invoices" element={<Invoice />} />
+</Route>
+
+<Route
+  path="/admin-dashboard/work-order"
+  element={
+    <RequireStaff>
+      <Work />
+    </RequireStaff>
+  }
+/>
     <Route path="/employee-dashboard" element={<RequireStaff><EmployeeDashboard /></RequireStaff>} />
     <Route path="/employee-dashboard/work-order" element={<RequireStaff><Work /></RequireStaff>} />
     <Route path="/employee-dashboard/employee-complaint-form" element={<RequireStaff><EmployeeComplaintForm /></RequireStaff>} />
