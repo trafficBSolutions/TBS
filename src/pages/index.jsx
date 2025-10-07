@@ -24,7 +24,9 @@ import EmployeeLogin from './employee-login'
 import EmployeeDashboard from './employee-dashboard'
 import EmployeeComplaintForm from './employee-complaint-form'
 import ConfirmAdditionalFlagger from './ConfirmAdditionalFlagger'
-export { AdminDashboard, ConfirmAdditionalFlagger, EmployeeLogin, EmployeeDashboard, EmployeeComplaintForm, Work, Invoice, CancelJob, About, Contact, Apply, Home, AdminLog, TrafficControl, TrafficPlan, BollardsWheels, Signs, Rentals, PPE, Error, TService, Product, ManageJob, TrafficControlTest, ManageJobTest, CancelJobTest };
+import EmployeeDiscipline from './employee-discipline'
+export { AdminDashboard, EmployeeDiscipline, ConfirmAdditionalFlagger, EmployeeLogin, EmployeeDashboard, EmployeeComplaintForm, Work, Invoice, CancelJob, About, Contact, Apply, Home, AdminLog, TrafficControl, TrafficPlan, BollardsWheels, Signs, Rentals, PPE, Error, TService, Product, ManageJob, TrafficControlTest, ManageJobTest, CancelJobTest };
+
 
 
 
