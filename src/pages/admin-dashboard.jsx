@@ -105,7 +105,7 @@ const fetchComplaintsForDay = async (date) => {
   if (!date) return;
   try {
     const dateStr = date.toISOString().split('T')[0];
-    const res = await axios.get(`/employee-complaints/day?date=${dateStr}`);
+    const res = await axios.get(`/employee-complaint-form/day?date=${dateStr}`);
     setComplaintsList(res.data || []);
   } catch (e) {
     console.error('Failed to fetch daily complaints:', e);
@@ -117,7 +117,7 @@ const fetchMonthlyComplaints = async (date) => {
   try {
     const month = date.getMonth() + 1;
     const year = date.getFullYear();
-    const res = await axios.get(`/employee-complaints/month?month=${month}&year=${year}`);
+    const res = await axios.get(`/employee-complaint-form/month?month=${month}&year=${year}`);
     // group by YYYY-MM-DD to show counts on the calendar
     const grouped = {};
     (res.data || []).forEach(c => {
