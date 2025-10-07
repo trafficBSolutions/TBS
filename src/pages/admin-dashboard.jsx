@@ -51,6 +51,9 @@ const [woSelectedDate, setWoSelectedDate] = useState(null);
 const [woMonthly, setWoMonthly] = useState({});
 const [woList, setWoList] = useState([]);
 const [viewMode, setViewMode] = useState('traffic'); // 'traffic' or 'workorders'
+const [complaintsDate, setComplaintsDate] = useState(new Date());
+const [complaintsList, setComplaintsList] = useState([]);
+const [complaintsMonthly, setComplaintsMonthly] = useState({});
 const [selectedPdfId, setSelectedPdfId] = useState(null);
 // Modify your fetchMonthlyJobs function to include better logging
 // Add this useEffect to fetch cancelled jobs specifically
@@ -98,6 +101,36 @@ useEffect(() => {
     setAllowedForInvoices(Boolean(canInvoice));
   }
 }, []);
+const fetchComplaintsForDay = async (date) => {
+  if (!date) return;
+  try {
+    const dateStr = date.toISOString().split('T')[0];
+    const res = await axios.get(`/employee-complaints/day?date=${dateStr}`);
+    setComplaintsList(res.data || []);
+  } catch (e) {
+    console.error('Failed to fetch daily complaints:', e);
+    setComplaintsList([]);
+  }
+};
+
+const fetchMonthlyComplaints = async (date) => {
+  try {
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+    const res = await axios.get(`/employee-complaints/month?month=${month}&year=${year}`);
+    // group by YYYY-MM-DD to show counts on the calendar
+    const grouped = {};
+    (res.data || []).forEach(c => {
+      const dateStr = (c.dateOfIncident || '').slice(0,10); // already YYYY-MM-DD in your controller
+      if (!dateStr) return;
+      (grouped[dateStr] ||= []).push(c);
+    });
+    setComplaintsMonthly(grouped);
+  } catch (e) {
+    console.error('Failed to fetch monthly complaints:', e);
+    setComplaintsMonthly({});
+  }
+};
 const fetchMonthlyWorkOrders = async (date) => {
   try {
     const month = date.getMonth() + 1;
@@ -131,6 +164,9 @@ useEffect(() => {
     setWoSelectedDate(d);
     fetchMonthlyWorkOrders(d);
     fetchWorkOrdersForDay(d);
+    setComplaintsDate(d);
+    fetchMonthlyComplaints(d);
+    fetchComplaintsForDay(d);
   }
 }, [isAdmin]);
 
@@ -140,7 +176,12 @@ useEffect(() => {
     fetchWorkOrdersForDay(woSelectedDate);
   }
 }, [woSelectedDate]);
-
+useEffect(() => {
+  if (complaintsDate) {
+    fetchMonthlyComplaints(complaintsDate);
+    fetchComplaintsForDay(complaintsDate);
+  }
+}, [complaintsDate]);
 // Update the fetchMonthlyJobs function to focus only on active jobs
 const fetchMonthlyJobs = async (date) => {
   try {
@@ -262,23 +303,26 @@ useEffect(() => {
       >
         Switch to Work Orders
       </button>
+        <button className={`btn ${viewMode === 'complaints' ? 'active' : ''}`} onClick={() => setViewMode('complaints')}>
+    Switch to Complaints
+  </button>
     </div>
     <DatePicker
-  selected={viewMode === 'traffic' ? selectedDate : woSelectedDate}
+    selected={
+    viewMode === 'traffic' ? selectedDate
+    : viewMode === 'workorders' ? woSelectedDate
+    : complaintsDate
+  }
   onChange={(date) => {
-    if (viewMode === 'traffic') {
-      setSelectedDate(date);
-    } else {
-      setWoSelectedDate(date);
-    }
+    if (viewMode === 'traffic') setSelectedDate(date);
+    else if (viewMode === 'workorders') setWoSelectedDate(date);
+    else setComplaintsDate(date);
   }}
   onMonthChange={(date) => {
     setCalendarViewDate(date);
-    if (viewMode === 'traffic') {
-      fetchMonthlyJobs(date);
-    } else {
-      fetchMonthlyWorkOrders(date);
-    }
+    if (viewMode === 'traffic') fetchMonthlyJobs(date);
+    else if (viewMode === 'workorders') fetchMonthlyWorkOrders(date);
+    else fetchMonthlyComplaints(date);
   }}  
   calendarClassName="admin-date-picker"
   dateFormat="MMMM d, yyyy"
@@ -297,13 +341,19 @@ useEffect(() => {
   }}
   dayClassName={(date) => {
     const dateStr = date.toISOString().split('T')[0];
-    const dataSource = viewMode === 'traffic' ? monthlyJobs : woMonthly;
+        const dataSource =
+      viewMode === 'traffic' ? monthlyJobs
+      : viewMode === 'workorders' ? woMonthly
+      : complaintsMonthly;
     const hasItems = dataSource[dateStr] && dataSource[dateStr].length > 0;
     return hasItems ? 'has-jobs' : '';
   }}
   renderDayContents={(day, date) => {
     const dateStr = date.toISOString().split('T')[0];
-    const dataSource = viewMode === 'traffic' ? monthlyJobs : woMonthly;
+        const dataSource =
+      viewMode === 'traffic' ? monthlyJobs
+      : viewMode === 'workorders' ? woMonthly
+      : complaintsMonthly;
     const itemsOnDate = dataSource[dateStr];
     const itemCount = itemsOnDate ? itemsOnDate.length : 0;
 
@@ -311,7 +361,9 @@ useEffect(() => {
       <div className="calendar-day-kiss">
         <div className="day-number">{day}</div>
         {itemCount > 0 && (
-          <div className="job-count">{viewMode === 'traffic' ? 'Jobs' : 'Work Orders'} {itemCount}</div>
+                    <div className="job-count">
+            {viewMode === 'traffic' ? 'Jobs' : viewMode === 'workorders' ? 'Work Orders' : 'Complaints'} {itemCount}
+          </div>
         )}
       </div>
     );
