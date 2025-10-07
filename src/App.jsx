@@ -109,7 +109,7 @@ function App() {
  <Route element={<RequireAdmin />}>
   <Route path="/admin-dashboard/invoices" element={<Invoice />} />
 </Route>
-<Route path="/employee-dashboard/disciplinary-action" element={<RequireStaff><EmployeeDiscipline /></RequireStaff>} />
+<Route path="/admin-dashboard/disciplinary-action" element={<RequireStaff><EmployeeDiscipline /></RequireStaff>} />
 <Route
   path="/admin-dashboard/work-order"
   element={
