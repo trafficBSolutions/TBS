@@ -55,6 +55,10 @@ const [complaintsDate, setComplaintsDate] = useState(new Date());
 const [complaintsList, setComplaintsList] = useState([]);
 const [complaintsMonthly, setComplaintsMonthly] = useState({});
 const [selectedPdfId, setSelectedPdfId] = useState(null);
+const [disciplineDate, setDisciplineDate] = useState(new Date());
+const [disciplineMonthly, setDisciplineMonthly] = useState({});
+const [disciplineList,   setDisciplineList]   = useState([]);
+
 // Modify your fetchMonthlyJobs function to include better logging
 // Add this useEffect to fetch cancelled jobs specifically
 useEffect(() => {
@@ -76,6 +80,37 @@ const allowed = new Set([
   'trafficandbarriersolutions.ap@gmail.com',
   'tbsellen@gmail.com'
 ]);
+const fetchMonthlyDiscipline = async (date) => {
+  try {
+    const month = date.getMonth() + 1;
+    const year  = date.getFullYear();
+    const res = await axios.get(`/discipline/month?month=${month}&year=${year}`);
+    setDisciplineMonthly(res.data || {});
+  } catch (e) {
+    console.error('Failed to fetch monthly discipline:', e);
+    setDisciplineMonthly({});
+  }
+};
+
+const fetchDisciplineForDay = async (date) => {
+  if (!date) return;
+  try {
+    const dateStr = date.toISOString().split('T')[0];
+    const res = await axios.get(`/discipline?date=${dateStr}`);
+    setDisciplineList(res.data || []);
+  } catch (e) {
+    console.error('Failed to fetch daily discipline:', e);
+    setDisciplineList([]);
+  }
+};
+useEffect(() => {
+  if (isAdmin) {
+    const d = new Date();
+    setDisciplineDate(d);
+    fetchMonthlyDiscipline(d);
+    fetchDisciplineForDay(d);
+  }
+}, [isAdmin]);
 
 // after reading localStorage adminUser
 useEffect(() => {
@@ -306,24 +341,34 @@ useEffect(() => {
         <button className={`btn ${viewMode === 'complaints' ? 'active' : ''}`} onClick={() => setViewMode('complaints')}>
     Switch to Complaints
   </button>
+  <button 
+  className={`btn ${viewMode === 'discipline' ? 'active' : ''}`}
+  onClick={() => setViewMode('discipline')}
+>
+  Switch to Discipline
+</button>
+
     </div>
     <DatePicker
-    selected={
-    viewMode === 'traffic' ? selectedDate
+selected={
+  viewMode === 'traffic' ? selectedDate
     : viewMode === 'workorders' ? woSelectedDate
-    : complaintsDate
-  }
+    : viewMode === 'complaints' ? complaintsDate
+    : disciplineDate
+}
   onChange={(date) => {
-    if (viewMode === 'traffic') setSelectedDate(date);
-    else if (viewMode === 'workorders') setWoSelectedDate(date);
-    else setComplaintsDate(date);
-  }}
+  if (viewMode === 'traffic') setSelectedDate(date);
+  else if (viewMode === 'workorders') setWoSelectedDate(date);
+  else if (viewMode === 'complaints') setComplaintsDate(date);
+  else setDisciplineDate(date);
+}}
   onMonthChange={(date) => {
-    setCalendarViewDate(date);
-    if (viewMode === 'traffic') fetchMonthlyJobs(date);
-    else if (viewMode === 'workorders') fetchMonthlyWorkOrders(date);
-    else fetchMonthlyComplaints(date);
-  }}  
+  setCalendarViewDate(date);
+  if (viewMode === 'traffic') fetchMonthlyJobs(date);
+  else if (viewMode === 'workorders') fetchMonthlyWorkOrders(date);
+  else if (viewMode === 'complaints') fetchMonthlyComplaints(date);
+  else fetchMonthlyDiscipline(date);
+}}
   calendarClassName="admin-date-picker"
   dateFormat="MMMM d, yyyy"
   inline
@@ -342,9 +387,10 @@ useEffect(() => {
   dayClassName={(date) => {
     const dateStr = date.toISOString().split('T')[0];
         const dataSource =
-      viewMode === 'traffic' ? monthlyJobs
-      : viewMode === 'workorders' ? woMonthly
-      : complaintsMonthly;
+  viewMode === 'traffic' ? monthlyJobs
+  : viewMode === 'workorders' ? woMonthly
+  : viewMode === 'complaints' ? complaintsMonthly
+  : disciplineMonthly;
     const hasItems = dataSource[dateStr] && dataSource[dateStr].length > 0;
     return hasItems ? 'has-jobs' : '';
   }}
@@ -537,6 +583,33 @@ useEffect(() => {
     </div>
   </>
 )}
+{viewMode === 'discipline' && (
+  <>
+    <h3>Disciplinary Actions on {disciplineDate?.toLocaleDateString()}</h3>
+    <div className="job-info-list">
+      {disciplineList.map((d, i) => (
+        <div key={d._id || i} className="job-card">
+          <h4 className="job-company">{d.employeeName}</h4>
+          <p><strong>Department:</strong> {d.department || '—'}</p>
+          <p><strong>Incident:</strong> {new Date(d.incidentDate).toLocaleDateString()} {d.incidentTime ? `@ ${d.incidentTime}` : ''}</p>
+          <p><strong>Place:</strong> {d.incidentPlace || '—'}</p>
+          {d.violationTypes?.length > 0 && <p><strong>Violations:</strong> {d.violationTypes.join(', ')}{d.otherViolationText ? ` (Other: ${d.otherViolationText})` : ''}</p>}
+          {d.decision && <p><strong>Decision:</strong> {d.decision}</p>}
+          {d.meetingDate && <p><strong>Meeting:</strong> {new Date(d.meetingDate).toLocaleDateString()}</p>}
+          <p><strong>Issued By:</strong> {d.issuedByName} {d.issuedByTitle ? `(${d.issuedByTitle})` : ''}</p>
+          <p><strong>Supervisor:</strong> {d.supervisorName} {d.supervisorTitle ? `(${d.supervisorTitle})` : ''}</p>
+          <div className="job-actions">
+            <button className="btn workorder-btn" onClick={() => window.open(`/discipline/${d._id}/pdf`, '_blank', 'noopener')}>
+              Open Printable PDF
+            </button>
+          </div>
+        </div>
+      ))}
+      {disciplineList.length === 0 && <p>No disciplinary actions on this day.</p>}
+    </div>
+  </>
+)}
+
 
       <div className="job-actions">
         <h2 className="admin-apps-title">Need To Fill Out a Work Order?</h2>
