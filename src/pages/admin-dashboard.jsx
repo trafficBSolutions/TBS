@@ -572,9 +572,9 @@ selected={
           <div className="job-actions">
             <button
               className="btn workorder-btn"
-              onClick={() => navigate(`/admin-dashboard/complaints/${c._id}`)}
+              onClick={() => navigate(`/admin-dashboard/disciplinary-action`)}
             >
-              Open Complaint
+              Create Disciplinary Action
             </button>
           </div>
         </div>
