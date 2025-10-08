@@ -351,7 +351,7 @@ const EmployeeComplaintForm = () => {
                   name="address"
                   type="text"
                   className="address-control-box"
-                  placeholder="Enter Address"
+                  placeholder="Enter Location"
                   value={formData.address}
                   onChange={handleChange}
                 />
