@@ -66,8 +66,10 @@ function EmployeeDiscipline() {
       <Header />
       <main className="control-main">
         <h2>Employee Disciplinary Action (Office Signatures Required)</h2>
-        <form onSubmit={submit} className="kiss-form">
-          <div className="grid-2">
+        <form onSubmit={submit} className="form-center">
+          <div className="control-container container--narrow page-section">
+            <div className="job-actual">
+                <div className="first-control-input">
             <label>Employee Name<input value={form.employeeName} onChange={e=>setForm({...form,employeeName:e.target.value})}/></label>
             <label>Employee Title<input value={form.employeeTitle} onChange={e=>setForm({...form,employeeTitle:e.target.value})}/></label>
             <label>Department<input value={form.department} onChange={e=>setForm({...form,department:e.target.value})}/></label>
@@ -78,7 +80,7 @@ function EmployeeDiscipline() {
             <label>Incident Date<input type="date" value={form.incidentDate} onChange={e=>setForm({...form,incidentDate:e.target.value})} required/></label>
             <label>Incident Time<input placeholder="e.g. 3:00 PM" value={form.incidentTime} onChange={e=>setForm({...form,incidentTime:e.target.value})}/></label>
             <label>Place<input value={form.incidentPlace} onChange={e=>setForm({...form,incidentPlace:e.target.value})}/></label>
-          </div>
+          
 
           <fieldset>
             <legend>Type of Violation</legend>
@@ -118,8 +120,11 @@ function EmployeeDiscipline() {
             ))}
             <button type="button" className="btn" onClick={addPrev}>+ Add Previous Warning</button>
           </div>
-
+</div>
           <button className="btn workorder-btn" type="submit">Submit & Open Printable PDF</button>
+          </div>
+          
+          </div>
         </form>
         </main>
         <footer className="footer">
