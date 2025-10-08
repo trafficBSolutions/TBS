@@ -100,7 +100,7 @@ function EmployeeDiscipline() {
             </div>
             {form.violationTypes.includes('Other') && (
               <label>Other (describe)
-                <input value={form.otherViolationText} onChange={e=>setForm({...form,otherViolationText:e.target.value})}/>
+                <input type="text" value={form.otherViolationText} onChange={e=>setForm({...form,otherViolationText:e.target.value})}/>
               </label>
             )}
           </fieldset>
