@@ -80,7 +80,7 @@ function EmployeeDiscipline() {
             <label>Employee Title<input type="text" value={form.employeeTitle} onChange={e=>setForm({...form,employeeTitle:e.target.value})}/></label>
             <label>Department<input type="text" value={form.department} onChange={e=>setForm({...form,department:e.target.value})}/></label>
             <label>Issued By (Person Warning)<input type="text" value={form.issuedByName} onChange={e=>setForm({...form,issuedByName:e.target.value})} required/></label>
-            <label>Issued By Title<input type="text" value={form.issuedByTitle} onChange={e=>setForm({...form,issuedByTitle:e.target.value})}/></label>
+            <label>Issued By Title<input value={form.issuedByTitle} type="text" onChange={e=>setForm({...form,issuedByTitle:e.target.value})}/></label>
             <label>Supervisor Name<input type="text" value={form.supervisorName} onChange={e=>setForm({...form,supervisorName:e.target.value})} required/></label>
             <label>Supervisor Title<input type="text" value={form.supervisorTitle} onChange={e=>setForm({...form,supervisorTitle:e.target.value})}/></label>
             <label>Incident Date<input type="date" value={form.incidentDate} onChange={e=>setForm({...form,incidentDate:e.target.value})} required/></label>
