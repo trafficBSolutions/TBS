@@ -61,9 +61,10 @@ function EmployeeDiscipline() {
   };
 
   return (
+    <div>
     <RequireStaff>
       <Header />
-      <div className="form-wrap">
+      <main className="control-main">
         <h2>Employee Disciplinary Action (Office Signatures Required)</h2>
         <form onSubmit={submit} className="kiss-form">
           <div className="grid-2">
@@ -120,6 +121,7 @@ function EmployeeDiscipline() {
 
           <button className="btn workorder-btn" type="submit">Submit & Open Printable PDF</button>
         </form>
+        </main>
         <footer className="footer">
   <div className="site-footer__inner">
     <img className="tbs-logo" alt="TBS logo" src={images["../assets/tbs_companies/tbs white.svg"].default} />
@@ -174,8 +176,8 @@ function EmployeeDiscipline() {
       <p className="footer-copy-p">&copy; 2025 Traffic & Barrier Solutions, LLC - 
         Website Created & Deployed by <a className="footer-face"href="https://www.facebook.com/will.rowell.779" target="_blank" rel="noopener noreferrer">William Rowell</a> - All Rights Reserved.</p>
     </div>
-      </div>
     </RequireStaff>
+    </div>
   );
 }
 
