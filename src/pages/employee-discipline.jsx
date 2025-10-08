@@ -65,7 +65,9 @@ function EmployeeDiscipline() {
     <RequireStaff>
       <Header />
       <main className="control-main">
-        <h2>Employee Disciplinary Action (Office Signatures Required)</h2>
+        <div className="apply-container">
+        <h2 className="traffic-control-head">Employee Disciplinary Action (Office Signatures Required)</h2>
+        </div>
         <form onSubmit={submit} className="form-center">
           <div className="control-container container--narrow page-section">
             <div className="job-actual">
