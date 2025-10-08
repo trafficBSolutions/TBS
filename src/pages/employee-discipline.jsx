@@ -76,16 +76,16 @@ function EmployeeDiscipline() {
             </div>
             <div className="job-actual">
                 <div className="first-control-input">
-            <label>Employee Name<input value={form.employeeName} onChange={e=>setForm({...form,employeeName:e.target.value})}/></label>
-            <label>Employee Title<input value={form.employeeTitle} onChange={e=>setForm({...form,employeeTitle:e.target.value})}/></label>
-            <label>Department<input value={form.department} onChange={e=>setForm({...form,department:e.target.value})}/></label>
-            <label>Issued By (Person Warning)<input value={form.issuedByName} onChange={e=>setForm({...form,issuedByName:e.target.value})} required/></label>
-            <label>Issued By Title<input value={form.issuedByTitle} onChange={e=>setForm({...form,issuedByTitle:e.target.value})}/></label>
-            <label>Supervisor Name<input value={form.supervisorName} onChange={e=>setForm({...form,supervisorName:e.target.value})} required/></label>
-            <label>Supervisor Title<input value={form.supervisorTitle} onChange={e=>setForm({...form,supervisorTitle:e.target.value})}/></label>
+            <label>Employee Name<input type="text" value={form.employeeName} onChange={e=>setForm({...form,employeeName:e.target.value})}/></label>
+            <label>Employee Title<input type="text" value={form.employeeTitle} onChange={e=>setForm({...form,employeeTitle:e.target.value})}/></label>
+            <label>Department<input type="text" value={form.department} onChange={e=>setForm({...form,department:e.target.value})}/></label>
+            <label>Issued By (Person Warning)<input type="text" value={form.issuedByName} onChange={e=>setForm({...form,issuedByName:e.target.value})} required/></label>
+            <label>Issued By Title<input value={form.issuedByTitle} type="text" onChange={e=>setForm({...form,issuedByTitle:e.target.value})}/></label>
+            <label>Supervisor Name<input type="text" value={form.supervisorName} onChange={e=>setForm({...form,supervisorName:e.target.value})} required/></label>
+            <label>Supervisor Title<input type="text" value={form.supervisorTitle} onChange={e=>setForm({...form,supervisorTitle:e.target.value})}/></label>
             <label>Incident Date<input type="date" value={form.incidentDate} onChange={e=>setForm({...form,incidentDate:e.target.value})} required/></label>
-            <label>Incident Time<input placeholder="e.g. 3:00 PM" value={form.incidentTime} onChange={e=>setForm({...form,incidentTime:e.target.value})}/></label>
-            <label>Place<input value={form.incidentPlace} onChange={e=>setForm({...form,incidentPlace:e.target.value})}/></label>
+            <label>Incident Time<input type="time" placeholder="e.g. 3:00 PM" value={form.incidentTime} onChange={e=>setForm({...form,incidentTime:e.target.value})}/></label>
+            <label>Place<input type="text" value={form.incidentPlace} onChange={e=>setForm({...form,incidentPlace:e.target.value})}/></label>
           
 
           <fieldset>
@@ -100,7 +100,7 @@ function EmployeeDiscipline() {
             </div>
             {form.violationTypes.includes('Other') && (
               <label>Other (describe)
-                <input value={form.otherViolationText} onChange={e=>setForm({...form,otherViolationText:e.target.value})}/>
+                <input type="text" value={form.otherViolationText} onChange={e=>setForm({...form,otherViolationText:e.target.value})}/>
               </label>
             )}
           </fieldset>
@@ -121,7 +121,7 @@ function EmployeeDiscipline() {
                   </select>
                 </label>
                 <label>Date<input type="date" value={p.date} onChange={e=>updatePrev(i,'date',e.target.value)}/></label>
-                <label>By Whom<input value={p.byWhom||''} onChange={e=>updatePrev(i,'byWhom',e.target.value)}/></label>
+                <label>By Whom<input type="text" value={p.byWhom||''} onChange={e=>updatePrev(i,'byWhom',e.target.value)}/></label>
               </div>
             ))}
             <button type="button" className="btn" onClick={addPrev}>+ Add Previous Warning</button>
