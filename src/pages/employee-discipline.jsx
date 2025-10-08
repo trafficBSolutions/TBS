@@ -70,6 +70,10 @@ function EmployeeDiscipline() {
         </div>
         <form onSubmit={submit} className="form-center">
           <div className="control-container container--narrow page-section">
+            <div className="control-box">
+                <h1 className="control-app-box">Employee Discipline Form</h1>
+                <h2 className="control-fill">Please Fill Out the Form Below to report a disciplinary incident</h2>
+            </div>
             <div className="job-actual">
                 <div className="first-control-input">
             <label>Employee Name<input value={form.employeeName} onChange={e=>setForm({...form,employeeName:e.target.value})}/></label>
