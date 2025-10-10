@@ -660,18 +660,6 @@ const [foreman, setForeman] = useState('');
 const [location, setLocation] = useState('');
 const [crewsCount, setCrewsCount] = useState('');
 const [otHours, setOtHours]       = useState('');
-const STARTER_IDS = new Set(VERTEX42_STARTER_ROWS.map(r => r.id));
-// helper to know if we can remove (only rows beyond the starter set)
-const canRemoveLast = sheetRows.some(r => !STARTER_IDS.has(r.id));
-
-const removeLastAdded = () => {
-  setSheetRows(rows => {
-    // walk from end until you find a non-starter row and drop it
-    const idx = [...rows].map(r => STARTER_IDS.has(r.id)).lastIndexOf(false);
-    if (idx === -1) return rows;           // nothing to remove
-    return rows.slice(0, idx).concat(rows.slice(idx + 1));
-  });
-};
 
 const tbsHours = useMemo(() => {
   const s = billingJob?.basic?.startTime ? formatTime(billingJob.basic.startTime) : '';
@@ -1954,171 +1942,149 @@ const effectiveCurrentAmount = Number(
         <th className="v42-th-amount">AMOUNT</th>
       </tr>
     </thead>
-<tbody>
-  {/* Existing editable sheet rows */}
-{sheetRows.map((row) => (
-  <tr key={row.id}>
-    <td className="v42-td-service">
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <input
-          type="text"
-          className="v42-cell"
-          value={row.service}
-          onChange={(e)=>updateRow(row.id, { service: e.target.value })}
-          placeholder=""
-        />
-        {!STARTER_IDS.has(row.id) && (
-          <button
-            type="button"
-            className="btn btn--tiny"
-            onClick={() => removeRow(row.id)}
-            title="Remove this line"
-            style={{ padding: '2px 6px' }}
-          >
-            🗑 Remove
-          </button>
-        )}
-      </div>
-    </td>
+    <tbody>
+      {/* Starter/spec rows (editable) */}
+      {sheetRows.map((row) => (
+        <tr key={row.id}>
+          <td className="v42-td-service">
+            <input
+              type="text"
+              className="v42-cell"
+              value={row.service}
+              onChange={(e)=>updateRow(row.id, { service: e.target.value })}
+              placeholder=""
+            />
+          </td>
+<td className="v42-td-taxed">
+  <input
+    type="checkbox"
+    className="v42-checkbox"
+    checked={row.taxed}
+    onChange={(e)=>updateRow(row.id, { taxed: e.target.checked })}
+    aria-label="Tax this line"
+  />
+</td>
 
-    <td className="v42-td-taxed">
-      <input
-        type="checkbox"
-        className="v42-checkbox"
-        checked={row.taxed}
-        onChange={(e)=>updateRow(row.id, { taxed: e.target.checked })}
-        aria-label="Tax this line"
-      />
-    </td>
+          <td className="v42-td-amount">
+            <input
+              type="number"
+              step="0.01"
+              className="v42-cell v42-right"
+              value={row.amount}
+              onChange={(e)=>updateRow(row.id, { amount: Number(e.target.value || 0) })}
+            />
+          </td>
+        </tr>
+      ))}
 
-    <td className="v42-td-amount">
-      <input
-        type="number"
-        step="0.01"
-        className="v42-cell v42-right"
-        value={row.amount}
-        onChange={(e)=>updateRow(row.id, { amount: Number(e.target.value || 0) })}
-      />
-    </td>
-  </tr>
-))}
+      {/* Add row */}
+      <tr>
+        <td colSpan={3} className="v42-addrow">
+          <button className="btn" onClick={addRow}>+ Add line</button>
+        </td>
+      </tr>
 
-
-  {/* ⬇️ Move OT row here, ABOVE the Add Line button */}
-  <tr>
-    <td className="v42-td-service">
-      <div style={{ display:'flex', flexWrap:'wrap', gap:8, alignItems:'center' }}>
-        <span>Overtime labor —</span>
-        <label style={{ display:'flex', alignItems:'center', gap:4 }}>
-          Crews:
-          <input
-            type="number"
-            min="0"
-            value={crewsCount}
-            onChange={(e) => setCrewsCount(e.target.value)}
-            style={{ width: 60, textAlign: 'center' }}
-            aria-label="Crew size"
-          />
-        </label>
-        <label style={{ display:'flex', alignItems:'center', gap:4 }}>
-          OT hrs:
-          <input
-            type="number"
-            min="0"
-            step="0.1"
-            value={otHours}
-            onChange={(e) => setOtHours(e.target.value)}
-            style={{ width: 80, textAlign: 'center' }}
-            aria-label="Overtime hours"
-          />
-        </label>
-        <label style={{ display:'flex', alignItems:'center', gap:4 }}>
-          $/hr:
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            value={otRate}
-            onChange={(e) => setOtRate(e.target.value)}
-            style={{ width: 100, textAlign: 'right' }}
-            aria-label="OT rate per hour"
-          />
-        </label>
-      </div>
-    </td>
-    <td className="v42-td-taxed">
-      {/* If OT should be taxable, wire this to state and include it in sheetTaxable */}
-      <input type="checkbox" className="v42-checkbox" disabled title="OT untaxed by default" />
-    </td>
-    <td className="v42-td-amount">
-      <input
-        readOnly
-        className="v42-cell v42-right"
-        value={otLaborTotal.toFixed(2)}
-        title="Computed: crews × otHours × $/hr"
-      />
-    </td>
-  </tr>
-
-  {/* ⬇️ Keep TBS HOURS note with it, still above Add Line */}
-  <tr className="v42-note">
-    <td colSpan={3}>
-      TBS HOURS:&nbsp;
-      <input
-        type="text"
-        value={tbsHours}
-        readOnly
-        style={{ width: 180, textAlign: 'center', background: '#f3f4f6', border: '1px solid #ddd' }}
-        aria-label="TBS Hours (auto-filled)"
-        title="Auto-filled from work order times"
-      />
-    </td>
-  </tr>
-
-  {/* Add line button — now BELOW the OT/TBS rows */}
-<tr>
-  <td colSpan={3} className="v42-addrow" style={{ display: 'flex', gap: 8 }}>
-    <button className="btn" onClick={addRow}>+ Add line</button>
-    <button
-      className="btn"
-      onClick={removeLastAdded}
-      disabled={!canRemoveLast}
-      title={canRemoveLast ? 'Remove the last added line' : 'No added lines to remove'}
-    >
-      − Remove last
-    </button>
+      {/* Grey note rows (exact text from template — edit freely) */}
+      <tr className="v42-note">
+  <td colSpan={3}>
+    Per Secondary Street Intersections/Closing signs: {fmtUSD(noteValues.intersectionsPer)}
   </td>
 </tr>
 
-  {/* Grey note rows */}
-  <tr className="v42-note">
-    <td colSpan={3}>
-      Per Secondary Street Intersections/Closing signs: {fmtUSD(noteValues.intersectionsPer)}
-    </td>
-  </tr>
-  <tr className="v42-note">
-    <td colSpan={3}>
-      Signs and additional equipment left after hours: {noteValues.afterHoursPer > 0
-        ? `${fmtUSD(noteValues.afterHoursPer)} per/sign`
-        : '$- per/sign'}
-    </td>
-  </tr>
-  <tr className="v42-note">
-    <td colSpan={3}>
-      Arrow Board {noteValues.arrowAmt > 0 ? fmtUSD(noteValues.arrowAmt) : '$-'} ({noteValues.arrowAmt > 0 ? 'Used' : '—'})
-      &nbsp; Message Board {noteValues.messageAmt > 0 ? fmtUSD(noteValues.messageAmt) : '$-'} ({noteValues.messageAmt > 0 ? 'Used' : '—'})
-    </td>
-  </tr>
-  <tr className="v42-note">
-    <td colSpan={3}>
-      Mobilization: If applicable: 25 miles from TBS's building &nbsp;
-      {noteValues.mobilizationAmt > 0
-        ? `${fmtUSD(noteValues.mobilizationAmt)} total`
-        : `${fmtUSD(rates.mileRate)} /mile/vehicle (-)`}
-    </td>
-  </tr>
-</tbody>
+<tr className="v42-note">
+  <td colSpan={3}>
+    Signs and additional equipment left after hours: {noteValues.afterHoursPer > 0
+      ? `${fmtUSD(noteValues.afterHoursPer)} per/sign`
+      : '$- per/sign'}
+  </td>
+</tr>
 
+<tr className="v42-note">
+  <td colSpan={3}>
+    Arrow Board {noteValues.arrowAmt > 0 ? fmtUSD(noteValues.arrowAmt) : '$-'} ({noteValues.arrowAmt > 0 ? 'Used' : '—'})
+    &nbsp; Message Board {noteValues.messageAmt > 0 ? fmtUSD(noteValues.messageAmt) : '$-'} ({noteValues.messageAmt > 0 ? 'Used' : '—'})
+  </td>
+</tr>
+
+<tr className="v42-note">
+  <td colSpan={3}>
+    Mobilization: If applicable: 25 miles from TBS's building &nbsp;
+    {noteValues.mobilizationAmt > 0
+      ? `${fmtUSD(noteValues.mobilizationAmt)} total`
+      : `${fmtUSD(rates.mileRate)} /mile/vehicle (-)`}
+  </td>
+</tr>
+     <tr>
+      <td className="v42-td-service">
+         <div style={{ display:'flex', flexWrap:'wrap', gap:8, alignItems:'center' }}>
+           <span>Overtime labor —</span>
+           <label style={{ display:'flex', alignItems:'center', gap:4 }}>
+             Crews:
+             <input
+               type="number"
+               min="0"
+               value={crewsCount}
+               onChange={(e) => setCrewsCount(e.target.value)}
+               style={{ width: 60, textAlign: 'center' }}
+               aria-label="Crew size"
+             />
+           </label>
+           <label style={{ display:'flex', alignItems:'center', gap:4 }}>
+             OT hrs:
+             <input
+               type="number"
+               min="0"
+               step="0.1"
+               value={otHours}
+               onChange={(e) => setOtHours(e.target.value)}
+               style={{ width: 80, textAlign: 'center' }}
+               aria-label="Overtime hours"
+             />
+           </label>
+           <label style={{ display:'flex', alignItems:'center', gap:4 }}>
+             $/hr:
+             <input
+               type="number"
+               min="0"
+               step="0.01"
+               value={otRate}
+               onChange={(e) => setOtRate(e.target.value)}
+               style={{ width: 100, textAlign: 'right' }}
+               aria-label="OT rate per hour"
+             />
+           </label>
+         </div>
+       </td>
+       <td className="v42-td-taxed">
+         {/* If OT should be taxable, add a checkbox & include otLaborTotal in sheetTaxable */}
+         <input type="checkbox" className="v42-checkbox" disabled title="OT untaxed by default" />
+       </td>
+       <td className="v42-td-amount">
+         <input
+           readOnly
+           className="v42-cell v42-right"
+           value={otLaborTotal.toFixed(2)}
+           title="Computed: crews × otHours × $/hr"
+         />
+       </td>
+     </tr>
+
+     {/* Keep TBS HOURS as an informational note row (not billed) */}
+     <tr className="v42-note">
+       <td colSpan={3}>
+         TBS HOURS:&nbsp;
+         <input
+           type="text"
+           value={tbsHours}
+           readOnly
+           style={{ width: 180, textAlign: 'center', background: '#f3f4f6', border: '1px solid #ddd' }}
+           aria-label="TBS Hours (auto-filled)"
+           title="Auto-filled from work order times"
+         />
+       </td>
+     </tr>
+
+    </tbody>
   </table>
 
   {/* Totals block */}
