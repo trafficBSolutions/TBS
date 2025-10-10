@@ -660,6 +660,18 @@ const [foreman, setForeman] = useState('');
 const [location, setLocation] = useState('');
 const [crewsCount, setCrewsCount] = useState('');
 const [otHours, setOtHours]       = useState('');
+const STARTER_IDS = new Set(VERTEX42_STARTER_ROWS.map(r => r.id));
+// helper to know if we can remove (only rows beyond the starter set)
+const canRemoveLast = sheetRows.some(r => !STARTER_IDS.has(r.id));
+
+const removeLastAdded = () => {
+  setSheetRows(rows => {
+    // walk from end until you find a non-starter row and drop it
+    const idx = [...rows].map(r => STARTER_IDS.has(r.id)).lastIndexOf(false);
+    if (idx === -1) return rows;           // nothing to remove
+    return rows.slice(0, idx).concat(rows.slice(idx + 1));
+  });
+};
 
 const tbsHours = useMemo(() => {
   const s = billingJob?.basic?.startTime ? formatTime(billingJob.basic.startTime) : '';
@@ -1944,9 +1956,10 @@ const effectiveCurrentAmount = Number(
     </thead>
 <tbody>
   {/* Existing editable sheet rows */}
-  {sheetRows.map((row) => (
-    <tr key={row.id}>
-      <td className="v42-td-service">
+{sheetRows.map((row) => (
+  <tr key={row.id}>
+    <td className="v42-td-service">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <input
           type="text"
           className="v42-cell"
@@ -1954,27 +1967,42 @@ const effectiveCurrentAmount = Number(
           onChange={(e)=>updateRow(row.id, { service: e.target.value })}
           placeholder=""
         />
-      </td>
-      <td className="v42-td-taxed">
-        <input
-          type="checkbox"
-          className="v42-checkbox"
-          checked={row.taxed}
-          onChange={(e)=>updateRow(row.id, { taxed: e.target.checked })}
-          aria-label="Tax this line"
-        />
-      </td>
-      <td className="v42-td-amount">
-        <input
-          type="number"
-          step="0.01"
-          className="v42-cell v42-right"
-          value={row.amount}
-          onChange={(e)=>updateRow(row.id, { amount: Number(e.target.value || 0) })}
-        />
-      </td>
-    </tr>
-  ))}
+        {!STARTER_IDS.has(row.id) && (
+          <button
+            type="button"
+            className="btn btn--tiny"
+            onClick={() => removeRow(row.id)}
+            title="Remove this line"
+            style={{ padding: '2px 6px' }}
+          >
+            🗑 Remove
+          </button>
+        )}
+      </div>
+    </td>
+
+    <td className="v42-td-taxed">
+      <input
+        type="checkbox"
+        className="v42-checkbox"
+        checked={row.taxed}
+        onChange={(e)=>updateRow(row.id, { taxed: e.target.checked })}
+        aria-label="Tax this line"
+      />
+    </td>
+
+    <td className="v42-td-amount">
+      <input
+        type="number"
+        step="0.01"
+        className="v42-cell v42-right"
+        value={row.amount}
+        onChange={(e)=>updateRow(row.id, { amount: Number(e.target.value || 0) })}
+      />
+    </td>
+  </tr>
+))}
+
 
   {/* ⬇️ Move OT row here, ABOVE the Add Line button */}
   <tr>
@@ -2048,11 +2076,19 @@ const effectiveCurrentAmount = Number(
   </tr>
 
   {/* Add line button — now BELOW the OT/TBS rows */}
-  <tr>
-    <td colSpan={3} className="v42-addrow">
-      <button className="btn" onClick={addRow}>+ Add line</button>
-    </td>
-  </tr>
+<tr>
+  <td colSpan={3} className="v42-addrow" style={{ display: 'flex', gap: 8 }}>
+    <button className="btn" onClick={addRow}>+ Add line</button>
+    <button
+      className="btn"
+      onClick={removeLastAdded}
+      disabled={!canRemoveLast}
+      title={canRemoveLast ? 'Remove the last added line' : 'No added lines to remove'}
+    >
+      − Remove last
+    </button>
+  </td>
+</tr>
 
   {/* Grey note rows */}
   <tr className="v42-note">
