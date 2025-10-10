@@ -24,6 +24,7 @@ const companyList = [
   "Global Infrastructure",
   "HD Excavations & Utilities",
   "H and H Paving and Concrete",
+  "Hasbun Construction, LLC",
   "Hibbymo Properties-Cloudland",
   "J and A Grading",
   "Magnum Paving",
@@ -63,6 +64,7 @@ const BILLING_ADDRESSES = {
   'Fairway Electric': '7138 Keegan Ct, Covington GA 30014',
   'Global Infrastructure': 'PO Box 22756, Chattanooga, TN 37422',
   'HD Excavations & Utilities LLC': '516 Cole Creek Rd, Dallas, GA 30157',
+  'Hasbun Construction, LLC': '6110 McFarland Station Dr Unit 806, Alpharetta, GA 30004',
   'Hibbymo Properties-Cloudland': '443 Elm St, Calhoun, GA, 30701',
   'H and H Paving and Concrete': '8473 Earl D Lee Blvd Suite 300 Douglasville, GA 30134',
   'J and A Grading': '341 Liberty Dr, Dalton, GA 30721',
@@ -714,6 +716,7 @@ const VERTEX42_STARTER_ROWS = [
   { id:10, service: 'Arrow Board (qty × $)', taxed: false, amount: 0 },
   { id:11, service: 'Message Board (qty × $)', taxed: false, amount: 0 },
   { id:12, service: 'Mobilization (miles × $/mile/vehicle)', taxed: false, amount: 0 },
+  { id:13, service: 'Cones/Barrels', taxed: false, amount: 0 },
 ];
 
 const [sheetRows, setSheetRows] = useState(VERTEX42_STARTER_ROWS);
@@ -1942,6 +1945,7 @@ const effectiveCurrentAmount = Number(
         <th className="v42-th-service">SERVICE</th>
         <th className="v42-th-taxed">TAXED</th>
         <th className="v42-th-amount">AMOUNT</th>
+        <th style={{width: '40px'}}></th>
       </tr>
     </thead>
 <tbody>
@@ -1974,6 +1978,24 @@ const effectiveCurrentAmount = Number(
           value={row.amount}
           onChange={(e)=>updateRow(row.id, { amount: Number(e.target.value || 0) })}
         />
+      </td>
+      <td style={{textAlign: 'center'}}>
+        <button
+          type="button"
+          onClick={() => removeRow(row.id)}
+          style={{
+            backgroundColor: '#dc3545',
+            color: 'white',
+            border: 'none',
+            borderRadius: '3px',
+            padding: '2px 6px',
+            fontSize: '12px',
+            cursor: 'pointer'
+          }}
+          title="Remove this line"
+        >
+          ×
+        </button>
       </td>
     </tr>
   ))}
@@ -2032,11 +2054,12 @@ const effectiveCurrentAmount = Number(
         title="Computed: crews × otHours × $/hr"
       />
     </td>
+    <td></td>
   </tr>
 
   {/* ⬇️ Keep TBS HOURS note with it, still above Add Line */}
   <tr className="v42-note">
-    <td colSpan={3}>
+    <td colSpan={4}>
       TBS HOURS:&nbsp;
       <input
         type="text"
@@ -2051,32 +2074,32 @@ const effectiveCurrentAmount = Number(
 
   {/* Add line button — now BELOW the OT/TBS rows */}
   <tr>
-    <td colSpan={3} className="v42-addrow">
+    <td colSpan={4} className="v42-addrow">
       <button className="btn" onClick={addRow}>+ Add line</button>
     </td>
   </tr>
 
   {/* Grey note rows */}
   <tr className="v42-note">
-    <td colSpan={3}>
+    <td colSpan={4}>
       Per Secondary Street Intersections/Closing signs: {fmtUSD(noteValues.intersectionsPer)}
     </td>
   </tr>
   <tr className="v42-note">
-    <td colSpan={3}>
+    <td colSpan={4}>
       Signs and additional equipment left after hours: {noteValues.afterHoursPer > 0
         ? `${fmtUSD(noteValues.afterHoursPer)} per/sign`
         : '$- per/sign'}
     </td>
   </tr>
   <tr className="v42-note">
-    <td colSpan={3}>
+    <td colSpan={4}>
       Arrow Board {noteValues.arrowAmt > 0 ? fmtUSD(noteValues.arrowAmt) : '$-'} ({noteValues.arrowAmt > 0 ? 'Used' : '—'})
       &nbsp; Message Board {noteValues.messageAmt > 0 ? fmtUSD(noteValues.messageAmt) : '$-'} ({noteValues.messageAmt > 0 ? 'Used' : '—'})
     </td>
   </tr>
   <tr className="v42-note">
-    <td colSpan={3}>
+    <td colSpan={4}>
       Mobilization: If applicable: 25 miles from TBS's building &nbsp;
       {noteValues.mobilizationAmt > 0
         ? `${fmtUSD(noteValues.mobilizationAmt)} total`
