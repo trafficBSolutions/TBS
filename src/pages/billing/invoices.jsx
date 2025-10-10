@@ -667,6 +667,15 @@ const tbsHours = useMemo(() => {
   if (s && e) return `${s} – ${e}`;
   return s || e || '';
 }, [billingJob]);
+ const [otRate, setOtRate] = useState(0);
+
+ // NEW: computed overtime labor total = crews × OT hrs × $/hr
+ const otLaborTotal = useMemo(() => {
+   const crews = Number(crewsCount) || 0;
+   const hrs   = Number(otHours) || 0;
+   const rate  = Number(otRate) || 0;
+   return Math.round(crews * hrs * rate * 100) / 100;
+ }, [crewsCount, otHours, otRate]);
 // Email validation helper
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 // near other localStorage-backed state
@@ -728,26 +737,26 @@ const noteValues = useMemo(() => {
     mobilizationAmt:  Number(mobilization?.amount)  || 0,
   };
 }, [sheetRows]);
-const sheetSubtotal = useMemo(
-  () => sheetRows.reduce((s, r) => s + (Number(r.amount) || 0), 0),
-  [sheetRows]
-);
-const sheetTaxable = useMemo(() => {
-  return sheetRows.reduce(
-    (sum, r) => sum + (r.taxed ? (Number(r.amount) || 0) : 0),
-    0
-  );
-}, [sheetRows]);
+ const sheetSubtotal = useMemo(() => {
+   const base = sheetRows.reduce((s, r) => s + (Number(r.amount) || 0), 0);
+   return Math.round((base + otLaborTotal) * 100) / 100;
+ }, [sheetRows, otLaborTotal]);
+ const sheetTaxable = useMemo(() => {
+   return sheetRows.reduce(
+     (sum, r) => sum + (r.taxed ? (Number(r.amount) || 0) : 0),
+     0
+   );
+ }, [sheetRows]);
 
 const sheetTaxDue = useMemo(() => {
   const rate = Number(sheetTaxRate) || 0;       // percent, e.g. 7
   const due  = (sheetTaxable * rate) / 100;
   return Math.round(due * 100) / 100;           // round to cents
 }, [sheetTaxable, sheetTaxRate]);
-const sheetTotal = useMemo(
-  () => Number((sheetSubtotal + sheetTaxDue + (Number(sheetOther) || 0)).toFixed(2)),
-  [sheetSubtotal, sheetTaxDue, sheetOther]
-);
+ const sheetTotal = useMemo(
+   () => Number((sheetSubtotal + sheetTaxDue + (Number(sheetOther) || 0)).toFixed(2)),
+   [sheetSubtotal, sheetTaxDue, sheetOther]
+ );
 
 // tiny helpers
 const addRow = () =>
@@ -875,14 +884,25 @@ const handleDownloadXLSXStyled = async () => {
 
   // ===== Line Items as a styled Excel Table
   // Build raw rows (numbers, not $ strings)
-  const itemRows = breakdown.map(r => ([
-    r.label,
-    Number(r.qty) || 0,
-    r.unit || '',
-    Number(r.rate) || 0,
-    (Number(r.qty) || 0) * (Number(r.rate) || 0),
-  ]));
 
+ const serviceRows = sheetRows.map(r => [
+   r.service || '',
+   '',               // Qty (not used in your Vertex sheet)
+   '',               // Unit (not used)
+   '',               // Rate (not used)
+   Number(r.amount) || 0
+ ]);
+
+ // Append the computed OT line if any
+ if (otLaborTotal > 0) {
+   serviceRows.push([
+     `Overtime labor — ${crewsCount || 0} crew × ${otHours || 0} hr × $${(Number(otRate)||0).toFixed(2)}/hr`,
+     '',
+     '',
+     '',
+     otLaborTotal
+   ]);
+ }
   // Where to place the table
   const startRow = ws.lastRow.number + 1;
   const tableRef = `A${startRow}`;
@@ -900,13 +920,13 @@ const handleDownloadXLSXStyled = async () => {
       { name: 'Rate' },
       { name: 'Line total', totalsRowFunction: 'sum' },
     ],
-    rows: itemRows.length ? itemRows : [['(no items selected)', 0, '', 0, 0]],
+    rows: serviceRows.length ? serviceRows : [['(no items selected)', '', '', '', 0]],
   });
 
   // Currency number formats for Rate and Line total
   const headerOffset = 1; // header row inside table
   const dataStart = startRow + headerOffset;
-  const dataEnd   = dataStart + Math.max(1, itemRows.length) - 1;
+  const dataEnd   = dataStart + Math.max(1, serviceRows.length) - 1;
   for (let r = dataStart; r <= dataEnd; r++) {
     ws.getCell(`D${r}`).numFmt = '$#,##0.00';
     ws.getCell(`E${r}`).numFmt = '$#,##0.00';
@@ -1994,45 +2014,75 @@ const effectiveCurrentAmount = Number(
       : `${fmtUSD(rates.mileRate)} /mile/vehicle (-)`}
   </td>
 </tr>
+     <tr>
+      <td className="v42-td-service">
+         <div style={{ display:'flex', flexWrap:'wrap', gap:8, alignItems:'center' }}>
+           <span>Overtime labor —</span>
+           <label style={{ display:'flex', alignItems:'center', gap:4 }}>
+             Crews:
+             <input
+               type="number"
+               min="0"
+               value={crewsCount}
+               onChange={(e) => setCrewsCount(e.target.value)}
+               style={{ width: 60, textAlign: 'center' }}
+               aria-label="Crew size"
+             />
+           </label>
+           <label style={{ display:'flex', alignItems:'center', gap:4 }}>
+             OT hrs:
+             <input
+               type="number"
+               min="0"
+               step="0.1"
+               value={otHours}
+               onChange={(e) => setOtHours(e.target.value)}
+               style={{ width: 80, textAlign: 'center' }}
+               aria-label="Overtime hours"
+             />
+           </label>
+           <label style={{ display:'flex', alignItems:'center', gap:4 }}>
+             $/hr:
+             <input
+               type="number"
+               min="0"
+               step="0.01"
+               value={otRate}
+               onChange={(e) => setOtRate(e.target.value)}
+               style={{ width: 100, textAlign: 'right' }}
+               aria-label="OT rate per hour"
+             />
+           </label>
+         </div>
+       </td>
+       <td className="v42-td-taxed">
+         {/* If OT should be taxable, add a checkbox & include otLaborTotal in sheetTaxable */}
+         <input type="checkbox" className="v42-checkbox" disabled title="OT untaxed by default" />
+       </td>
+       <td className="v42-td-amount">
+         <input
+           readOnly
+           className="v42-cell v42-right"
+           value={otLaborTotal.toFixed(2)}
+           title="Computed: crews × otHours × $/hr"
+         />
+       </td>
+     </tr>
 
-      <tr className="v42-note">
-  <td colSpan={3}>
-    All quotes are based off a "TBS HR" – hour day, anything over 8 hours will be billed at $-/hr per crew member.
-    &nbsp;CREWS OF&nbsp;
-    <input
-      type="number"
-      min="0"
-      value={crewsCount}
-      onChange={(e) => setCrewsCount(e.target.value)}
-      style={{ width: 60, margin: '0 4px', textAlign: 'center' }}
-      aria-label="Crew size"
-    />
-    &nbsp;WORKED&nbsp;
-    <input
-      type="number"
-      min="0"
-      step="0.1"
-      value={otHours}
-      onChange={(e) => setOtHours(e.target.value)}
-      style={{ width: 80, margin: '0 4px', textAlign: 'center' }}
-      aria-label="Overtime hours"
-    />
-    &nbsp;HRS OT
-  </td>
-</tr>
-<tr className="v42-note">
-  <td colSpan={3}>
-    TBS HOURS:&nbsp;
-    <input
-      type="text"
-      value={tbsHours}
-      readOnly
-      style={{ width: 180, textAlign: 'center', background: '#f3f4f6', border: '1px solid #ddd' }}
-      aria-label="TBS Hours (auto-filled)"
-      title="Auto-filled from work order times"
-    />
-  </td>
-</tr>
+     {/* Keep TBS HOURS as an informational note row (not billed) */}
+     <tr className="v42-note">
+       <td colSpan={3}>
+         TBS HOURS:&nbsp;
+         <input
+           type="text"
+           value={tbsHours}
+           readOnly
+           style={{ width: 180, textAlign: 'center', background: '#f3f4f6', border: '1px solid #ddd' }}
+           aria-label="TBS Hours (auto-filled)"
+           title="Auto-filled from work order times"
+         />
+       </td>
+     </tr>
 
     </tbody>
   </table>
