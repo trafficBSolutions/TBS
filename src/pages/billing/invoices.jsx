@@ -2395,8 +2395,7 @@ const effectiveCurrentAmount = Number(
     )) : <p>No plans found.</p>}
 
   </div>
-
-
+</div>
       {/* Footer unchanged */}
       <footer className="footer">
   <div className="site-footer__inner">
@@ -2451,7 +2450,6 @@ const effectiveCurrentAmount = Number(
 <div className="footer-copyright">
       <p className="footer-copy-p">&copy; 2025 Traffic & Barrier Solutions, LLC - 
         Website Created & Deployed by <a className="footer-face"href="https://www.facebook.com/will.rowell.779" target="_blank" rel="noopener noreferrer">William Rowell</a> - All Rights Reserved.</p>
-    </div>
     </div>
     </div>
   );
