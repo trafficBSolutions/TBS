@@ -1468,7 +1468,9 @@ const handleUpdateInvoice = async () => {
         sheetTotal,
         crewsCount,        // << add
         otHours,           // << add
-        tbsHours           // << add (you already compute this with start/end time)
+        tbsHours,
+        otRate,                 // <— add
+        otLaborTotal              // << add (you already compute this with start/end time)
       }
     };
     await api.post('/api/billing/bill-workorder', payload);
