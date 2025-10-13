@@ -9,10 +9,6 @@ import '../../css/invoice.css';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import ExcelJS from 'exceljs';
-import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
-const STRIPE_PK = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
-const stripePromise = STRIPE_PK ? loadStripe(STRIPE_PK) : null;
 const companyList = [
  "Atlanta Gas Light",
   "Broadband Technical Resources",
@@ -662,6 +658,11 @@ const [foreman, setForeman] = useState('');
 const [location, setLocation] = useState('');
 const [crewsCount, setCrewsCount] = useState('');
 const [otHours, setOtHours]       = useState('');
+// ===== inside Invoice component (top-level hooks) =====
+const [attachedPdfs, setAttachedPdfs] = useState([]); // File[]
+const [detectingTotal, setDetectingTotal] = useState(false);
+const [detectedTotal, setDetectedTotal] = useState(null); // number | null
+const [detectError, setDetectError] = useState('');
 
 const tbsHours = useMemo(() => {
   const s = billingJob?.basic?.startTime ? formatTime(billingJob.basic.startTime) : '';
@@ -1305,6 +1306,15 @@ const fetchJobsForDay = async (date, companyName) => {
       await fetchJobsForDay(selectedDate, '');
     })();
   }, []); // run once
+async function extractTotalFromPdf(file) {
+  const form = new FormData();
+  form.append('file', file);
+  // server will return { total: number, currency?: 'USD', textSample?: '...' }
+  const { data } = await api.post('/api/billing/scan-invoice-pdf', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return Number(data?.total) || 0;
+}
 
   // Auto-refresh every 30 seconds to sync payment status across browsers
   useEffect(() => {
@@ -1410,6 +1420,10 @@ const handleUpdateInvoice = async () => {
     toast.success('Invoice updated and sent successfully!');
     setBillingOpen(false);
     setBillingJob(null);
+     setAttachedPdfs([]);
+ setDetectingTotal(false);
+ setDetectedTotal(null);
+ setDetectError('');
   } catch (err) {
     const msg =
       err?.response?.data?.message ||
@@ -1421,83 +1435,75 @@ const handleUpdateInvoice = async () => {
     setIsSubmitting(false);
   }
 };
-  const handleSendInvoice = async () => {
-  // reset any old messages
-  setSubmissionMessage('');
-  setSubmissionErrorMessage('');
-  setErrorMessage('');
+const handleSendInvoice = async () => {
+  setSubmissionMessage(''); setSubmissionErrorMessage(''); setErrorMessage('');
 
-  if (!readyToSend) {
-    const msg = 'Please check “Yes, it is ready to send.”';
-    setErrorMessage(msg);
-    toast.error(msg);
-    return;
-  }
-  if (!selectedEmail || !isValidEmail(selectedEmail)) {
-    const msg = 'Enter a valid email address.';
-    setErrorMessage(msg);
-    toast.error(msg);
-    return;
-  }
-  if (!billingJob) {
-    const msg = 'No work order selected.';
-    setErrorMessage(msg);
-    toast.error(msg);
-    return;
-  }
+  if (!readyToSend) return toast.error('Please check “Yes, it is ready to send.”');
+  if (!selectedEmail || !isValidEmail(selectedEmail)) return toast.error('Enter a valid email address.');
+  if (!billingJob) return toast.error('No work order selected.');
 
   setIsSubmitting(true);
   try {
-    const payload = {
-      workOrderId: billingJob._id,
-      manualAmount: Number(sheetTotal.toFixed(2)),
-      emailOverride: selectedEmail,
-      invoiceData: {
-        invoiceDate,
-        invoiceNumber,
-        workRequestNumber1,
-        workRequestNumber2,
+    const finalTotal = Number.isFinite(detectedTotal) ? detectedTotal : Number(sheetTotal.toFixed(2));
+
+    if (attachedPdfs.length > 0) {
+      // ---- multipart path
+      const form = new FormData();
+      form.append('workOrderId', billingJob._id);
+      form.append('manualAmount', String(finalTotal)); // dollars
+      form.append('emailOverride', selectedEmail);
+
+      // pack your invoiceData object
+      const invoicePayload = {
+        invoiceDate, invoiceNumber, workRequestNumber1, workRequestNumber2,
         dueDate,
         billToCompany: billToCompany === "Other(Specify if new in message to add to this list)" ? customCompanyName : billToCompany,
-        billToAddress,
-        workType,
-        foreman,
-        location,
-        sheetRows: sheetRows,
-        sheetSubtotal,
-        sheetTaxRate,
-        sheetTaxDue,
-        sheetOther,
-        sheetTotal,
-        crewsCount,        // << add
-        otHours,           // << add
-        tbsHours,
-        otRate,                 // <— add
-        otLaborTotal              // << add (you already compute this with start/end time)
-      }
-    };
-    await api.post('/api/billing/bill-workorder', payload);
+        billToAddress, workType, foreman, location,
+        sheetRows, sheetSubtotal, sheetTaxRate, sheetTaxDue, sheetOther, sheetTotal,
+        crewsCount, otHours, tbsHours, otRate, otLaborTotal
+      };
+      form.append('invoiceData', JSON.stringify(invoicePayload));
 
-    // Refetch server data to get updated billed status (no more localStorage)
+      // attach all PDFs
+      attachedPdfs.forEach((file) => form.append('attachments', file, file.name));
+
+      await api.post('/api/billing/bill-workorder-multipart', form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+    } else {
+      // ---- JSON path (no attachments)
+      await api.post('/api/billing/bill-workorder', {
+        workOrderId: billingJob._id,
+        manualAmount: finalTotal,
+        emailOverride: selectedEmail,
+        invoiceData: {
+          invoiceDate, invoiceNumber, workRequestNumber1, workRequestNumber2,
+          dueDate,
+          billToCompany: billToCompany === "Other(Specify if new in message to add to this list)" ? customCompanyName : billToCompany,
+          billToAddress, workType, foreman, location,
+          sheetRows, sheetSubtotal, sheetTaxRate, sheetTaxDue, sheetOther, sheetTotal,
+          crewsCount, otHours, tbsHours, otRate, otLaborTotal
+        }
+      });
+    }
+
     await fetchJobsForDay(selectedDate);
-
     setSubmissionMessage('Invoice sent!');
-    toast.success('Invoice sent with PDF attachment.');
-    // close the modal & reset controls
+    toast.success('Invoice sent with attachment(s).');
     setBillingOpen(false);
     setBillingJob(null);
     setReadyToSend(false);
+    setAttachedPdfs([]);
+    setDetectedTotal(null);
   } catch (err) {
-    const msg =
-      err?.response?.data?.message ||
-      err?.message ||
-      'Failed to send invoice.';
+    const msg = err?.response?.data?.message || err?.message || 'Failed to send invoice.';
     setSubmissionErrorMessage(msg);
     toast.error(msg);
   } finally {
     setIsSubmitting(false);
   }
 };
+
 
   return (
     <div>
@@ -1709,6 +1715,10 @@ const effectiveCurrentAmount = Number(
         setManualOverride(false);
         setManualAmount('');
         setQuote(null);
+         setAttachedPdfs([]);
+ setDetectingTotal(false);
+ setDetectedTotal(null);
+ setDetectError('');
          const saved = savedInvoices[workOrder._id];
  setCrewsCount(saved?.crewsCount ?? '');
  setOtHours(saved?.otHours ?? '');
@@ -2109,6 +2119,69 @@ const effectiveCurrentAmount = Number(
 </tbody>
 
   </table>
+{/* Attach PDFs — auto-detect total */}
+<div className="v42-bar" style={{ marginTop: 16 }}>ATTACHMENTS</div>
+<div className="v42-billto" style={{ alignItems: 'flex-start' }}>
+  <div className="v42-billto-left" style={{ gap: 8 }}>
+    <input
+      type="file"
+      accept="application/pdf"
+      multiple
+      onChange={async (e) => {
+        const files = Array.from(e.target.files || []);
+        setAttachedPdfs(files);
+        setDetectError('');
+        setDetectedTotal(null);
+
+        // if there is at least one file, try to detect total from the first one
+        if (files.length > 0) {
+          try {
+            setDetectingTotal(true);
+            const total = await extractTotalFromPdf(files[0]);
+            setDetectedTotal(Number.isFinite(total) ? Math.round(total * 100) / 100 : null);
+            if (!total) setDetectError('Could not find a total in the PDF.');
+          } catch (err) {
+            console.error(err);
+            setDetectError(err?.response?.data?.message || 'Failed to read the PDF.');
+          } finally {
+            setDetectingTotal(false);
+          }
+        }
+      }}
+    />
+
+    {/* List the selected files */}
+    {attachedPdfs?.length > 0 && (
+      <ul style={{ marginTop: 8, fontSize: 12 }}>
+        {attachedPdfs.map((f, i) => (
+          <li key={i}>{f.name} ({Math.ceil(f.size/1024)} KB)</li>
+        ))}
+      </ul>
+    )}
+  </div>
+
+  <div className="v42-billto-right">
+    {detectingTotal && <div className="pill">Scanning PDF for total…</div>}
+    {detectError && <div className="custom-toast error">{detectError}</div>}
+    {Number.isFinite(detectedTotal) && (
+      <div className="custom-toast success" style={{ display:'grid', gap:8 }}>
+        <div><b>Detected Total:</b> ${detectedTotal.toFixed(2)}</div>
+        <button
+          type="button"
+          className="btn"
+          onClick={() => {
+            // Push this into your sheet so the math stays consistent, or just override below.
+            setSheetOther(0);
+            // Replace sheet with a single “From PDF” line (optional UX)
+            setSheetRows([{ id: Date.now(), service: 'Total from attached PDF', taxed: false, amount: detectedTotal }]);
+          }}
+        >
+          Use this as the invoice total
+        </button>
+      </div>
+    )}
+  </div>
+</div>
 
   {/* Totals block */}
   <div className="v42-totals">
