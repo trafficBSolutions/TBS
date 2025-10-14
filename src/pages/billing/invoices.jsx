@@ -627,6 +627,54 @@ function buildBreakdown(sel, rates) {
 
   return rows;
 }
+const handlePdfAttachment = async (files, setAttachedPdfs, setDetectingTotal, setDetectError, setDetectedTotal, setSheetRows, toast) => {
+  if (!files || files.length === 0) {
+    setAttachedPdfs([]);
+    setDetectedTotal(null);
+    return;
+  }
+
+  setAttachedPdfs(Array.from(files));
+  setDetectingTotal(true);
+  setDetectError('');
+
+  try {
+    const formData = new FormData();
+    Array.from(files).forEach(file => {
+      formData.append('pdfs', file);
+    });
+
+    const response = await api.post('/api/billing/detect-pdf-total', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+
+    const total = response.data?.detectedTotal;
+    if (total && total > 0) {
+      setDetectedTotal(total);
+      // Auto-set the sheet total
+      setSheetRows(prev => {
+        const newRows = [...prev];
+        // Clear existing amounts and set one main service line
+        newRows.forEach(row => row.amount = 0);
+        if (newRows[0]) {
+          newRows[0].service = 'Services per attached invoice';
+          newRows[0].amount = total;
+        }
+        return newRows;
+      });
+      toast.success(`Auto-detected total: $${total.toFixed(2)}`);
+    } else {
+      setDetectError('Could not detect total from PDF');
+      toast.warning('Could not auto-detect total from PDF');
+    }
+  } catch (error) {
+    console.error('PDF detection error:', error);
+    setDetectError(error.response?.data?.message || 'Failed to process PDF');
+    toast.error('Failed to process PDF attachment');
+  } finally {
+    setDetectingTotal(false);
+  }
+};
 const Invoice = () => {
   // Companies (string[]) shown in the dropdown
   const [companyKey, setCompanyKey] = useState(''); // '' = All Companies
@@ -722,6 +770,10 @@ const VERTEX42_STARTER_ROWS = [
 const [sheetRows, setSheetRows] = useState(VERTEX42_STARTER_ROWS);
 const [sheetTaxRate, setSheetTaxRate] = useState(0); // percent
 const [sheetOther, setSheetOther] = useState(0);     // shipping/discount/etc. (can be negative)
+const [attachedPdfs, setAttachedPdfs] = useState([]);
+  const [detectingTotal, setDetectingTotal] = useState(false);
+  const [detectedTotal, setDetectedTotal] = useState(null);
+  const [detectError, setDetectError] = useState('');
 const noteValues = useMemo(() => {
   const findRow = (needle) =>
     sheetRows.find(r => r.service?.toLowerCase().includes(needle));
