@@ -1763,7 +1763,54 @@ const effectiveCurrentAmount = Number(
           </div>
         </div>
       </div>
-
+{billingOpen && billingJob && (
+        <div className="invoice-page container">
+          {/* Your existing invoice form with PDF attachment section */}
+          <div className="v42-bar" style={{ marginTop: 16 }}>ATTACH INVOICE PDF</div>
+          <div className="v42-billto" style={{ alignItems: 'flex-start', padding: '15px', border: '2px dashed #ccc', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
+            <div className="v42-billto-left" style={{ gap: 8, flex: 1 }}>
+              <input
+                type="file"
+                accept="application/pdf"
+                multiple
+                onChange={(e) => handlePdfAttachment(e.target.files, setAttachedPdfs, setDetectingTotal, setDetectError, setDetectedTotal, setSheetRows, toast)}
+                style={{ marginBottom: '10px' }}
+              />
+              
+              {detectingTotal && (
+                <div style={{ color: '#007bff', fontSize: '14px' }}>
+                  <span>🔍 Detecting total from PDF...</span>
+                </div>
+              )}
+              
+              {detectedTotal && (
+                <div style={{ color: '#28a745', fontSize: '16px', fontWeight: 'bold' }}>
+                  ✅ Auto-detected total: ${detectedTotal.toFixed(2)}
+                </div>
+              )}
+              
+              {detectError && (
+                <div style={{ color: '#dc3545', fontSize: '14px' }}>
+                  ❌ {detectError}
+                </div>
+              )}
+              
+              {attachedPdfs.length > 0 && (
+                <div style={{ marginTop: '10px' }}>
+                  <strong>Attached files:</strong>
+                  <ul style={{ margin: '5px 0', paddingLeft: '20px' }}>
+                    {attachedPdfs.map((file, idx) => (
+                      <li key={idx}>{file.name} ({(file.size / 1024).toFixed(1)} KB)</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Rest of your existing invoice form */}
+        </div>
+)}
   <div className="admin-plans">
   <h2 className="admin-plans-title">Traffic Control Plans</h2>
   <div className="plan-list">
