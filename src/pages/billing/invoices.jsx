@@ -1665,6 +1665,7 @@ const handleUpdateInvoice = async () => {
     const payload = {
       workOrderId: billingJob._id,
       invoiceId: billingJob._invoice._id,
+      mode: 'update', // <-- make the intent explicit
       manualAmount: Number(sheetTotal.toFixed(2)),
       emailOverride: selectedEmail,
       invoiceData: {
@@ -1693,16 +1694,13 @@ const handleUpdateInvoice = async () => {
         tbsHours
       }
     };
-   if (attachedPdfs?.length) {
-     const fd2 = new FormData();
-     fd2.append('payload', JSON.stringify(payload));
-     attachedPdfs.forEach(f => fd2.append('attachments', f));
-     await api.post('/api/billing/update-invoice', fd2, {
-       headers: { 'Content-Type': 'multipart/form-data' }
-     });
-   } else {
-     await api.post('/api/billing/update-invoice', payload); // JSON body
-   }
+   const fd2 = new FormData();
+   fd2.append('payload', JSON.stringify(payload));
+   // attach only if present; empty list is fine
+   (attachedPdfs || []).forEach(f => fd2.append('attachments', f));
+   await api.post('/api/billing/update-invoice', fd2, {
+     headers: { 'Content-Type': 'multipart/form-data' }
+   });
 
     await fetchJobsForDay(selectedDate, companyKey || '');
 
