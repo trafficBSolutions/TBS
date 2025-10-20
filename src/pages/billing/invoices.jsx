@@ -2084,9 +2084,22 @@ const isExpanded = billingJob?._id === workOrder._id;
             </div>
             
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button className="btn btn--primary" onClick={handleSendInvoice} disabled={isSubmitting || !readyToSend || !selectedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(selectedEmail) || Number(sheetTotal) <= 0}>
-                {isSubmitting ? 'Sending…' : `Send Invoice ($${sheetTotal.toFixed(2)})`}
-              </button>
+              {/* in the Bill Job panel actions */}
+<button
+  className="btn btn--primary"
+  onClick={handleSendInvoice}
+  disabled={isSubmitting || !readyToSend || !selectedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(selectedEmail) || Number(sheetTotal) <= 0}
+>
+  {isSubmitting ? 'Sending…' : `Send Invoice ($${sheetTotal.toFixed(2)})`}
+</button>
+
+{/* only show Update & Resend if the server already considers it billed */}
+{(billingJob?.billed || billingJob?._invoice) && (
+  <button className="btn" onClick={handleUpdateInvoice} disabled={isSubmitting}>
+    Update & Resend
+  </button>
+)}
+
               <button className="btn" onClick={saveInvoiceData} disabled={isSubmitting}>Save Draft</button>
               <button className="btn" onClick={handleUpdateInvoice} disabled={isSubmitting}>Update & Resend</button>
             </div>
