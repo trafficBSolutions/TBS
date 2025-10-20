@@ -1666,7 +1666,7 @@ const handleUpdateInvoice = async () => {
         invoiceNumber,
         workRequestNumber1,
         workRequestNumber2,
-        dueDate: billingJob.invoiceData?.dueDate, // Keep original due date
+        dueDate: dueDate || billingJob.invoiceData?.dueDate || invoiceDate,
         billToCompany: billToCompany === "Other(Specify if new in message to add to this list)" ? customCompanyName : billToCompany,
         billToAddress,
         workType,
@@ -2101,7 +2101,6 @@ const isExpanded = billingJob?._id === workOrder._id;
 )}
 
               <button className="btn" onClick={saveInvoiceData} disabled={isSubmitting}>Save Draft</button>
-              <button className="btn" onClick={handleUpdateInvoice} disabled={isSubmitting}>Update & Resend</button>
             </div>
             
             {errorMessage && <div style={{ color: '#b91c1c', marginTop: 8 }}>{errorMessage}</div>}
