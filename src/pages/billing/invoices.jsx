@@ -1661,7 +1661,12 @@ const handleUpdateInvoice = async () => {
         tbsHours
       }
     };
-    await api.post('/api/billing/update-invoice', payload);
+     const fd2 = new FormData();
+ fd2.append('payload', JSON.stringify(payload));
+ attachedPdfs.forEach(f => fd2.append('attachments', f));
+ await api.post('/api/billing/update-invoice', fd2, {
+   headers: { 'Content-Type': 'multipart/form-data' }
+ });
 
     await fetchJobsForDay(selectedDate);
 
@@ -1735,7 +1740,12 @@ const handleUpdateInvoice = async () => {
         otLaborTotal              // << add (you already compute this with start/end time)
       }
     };
-    await api.post('/api/billing/bill-workorder', payload);
+    const fd = new FormData();
+ fd.append('payload', JSON.stringify(payload));          // your existing JSON
+ attachedPdfs.forEach(f => fd.append('attachments', f)); // multiple allowed
+ await api.post('/api/billing/bill-workorder', fd, {
+   headers: { 'Content-Type': 'multipart/form-data' }
+ });
 
     // Refetch server data to get updated billed status (no more localStorage)
     await fetchJobsForDay(selectedDate);
