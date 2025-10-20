@@ -1683,12 +1683,7 @@ const handleUpdateInvoice = async () => {
         tbsHours
       }
     };
-     const fd2 = new FormData();
- fd2.append('payload', JSON.stringify(payload));
- attachedPdfs.forEach(f => fd2.append('attachments', f));
- await api.post('/api/billing/update-invoice', fd2, {
-   headers: { 'Content-Type': 'multipart/form-data' }
- });
+await api.post('/api/billing/update-invoice', payload);
 
     await fetchJobsForDay(selectedDate);
 
