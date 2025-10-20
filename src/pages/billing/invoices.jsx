@@ -13,6 +13,9 @@ import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-
 import { loadStripe } from '@stripe/stripe-js';
 const STRIPE_PK = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = STRIPE_PK ? loadStripe(STRIPE_PK) : null;
+import * as pdfjsLib from 'pdfjs-dist/build/pdf';
+import pdfjsWorker from 'pdfjs-dist/build/pdf.worker?url';
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 const companyList = [
  "Atlanta Gas Light",
   "Broadband Technical Resources",
@@ -627,7 +630,15 @@ function buildBreakdown(sel, rates) {
 
   return rows;
 }
-const handlePdfAttachment = async (files, setAttachedPdfs, setDetectingTotal, setDetectError, setDetectedTotal, setSheetRows, toast) => {
+const handlePdfAttachment = async (
+  files,
+  setAttachedPdfs,
+  setDetectingTotal,
+  setDetectError,
+  setDetectedTotal,
+  setSheetRows,
+  toast
+) => {
   if (!files || files.length === 0) {
     setAttachedPdfs([]);
     setDetectedTotal(null);
@@ -639,42 +650,58 @@ const handlePdfAttachment = async (files, setAttachedPdfs, setDetectingTotal, se
   setDetectError('');
 
   try {
-    const formData = new FormData();
-    Array.from(files).forEach(file => {
-      formData.append('pdfs', file);
-    });
+    // 1) Try in-browser detection with PDF.js
+    const localDetected = await detectTotalFromFiles(Array.from(files));
 
-    const response = await api.post('/api/billing/detect-pdf-total', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
-
-    const total = response.data?.detectedTotal;
-    if (total && total > 0) {
-      setDetectedTotal(total);
-      // Auto-set the sheet total
+    if (typeof localDetected === 'number' && localDetected > 0) {
+      setDetectedTotal(localDetected);
       setSheetRows(prev => {
         const newRows = [...prev];
-        // Clear existing amounts and set one main service line
-        newRows.forEach(row => row.amount = 0);
+        // Clear amounts; set one main line equal to detected total
+        newRows.forEach(r => (r.amount = 0));
         if (newRows[0]) {
           newRows[0].service = 'Services per attached invoice';
-          newRows[0].amount = total;
+          newRows[0].amount = localDetected;
         }
         return newRows;
       });
-      toast.success(`Auto-detected total: $${total.toFixed(2)}`);
+      toast.success(`Auto-detected total: $${localDetected.toFixed(2)}`);
     } else {
-      setDetectError('Could not detect total from PDF');
-      toast.warning('Could not auto-detect total from PDF');
+      // 2) Fallback to your server route if local detection fails
+      const formData = new FormData();
+      Array.from(files).forEach(file => formData.append('pdfs', file));
+
+      const response = await api.post('/api/billing/detect-pdf-total', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      const total = response.data?.detectedTotal;
+      if (typeof total === 'number' && total > 0) {
+        setDetectedTotal(total);
+        setSheetRows(prev => {
+          const newRows = [...prev];
+          newRows.forEach(r => (r.amount = 0));
+          if (newRows[0]) {
+            newRows[0].service = 'Services per attached invoice';
+            newRows[0].amount = total;
+          }
+          return newRows;
+        });
+        toast.success(`Auto-detected total: $${total.toFixed(2)}`);
+      } else {
+        setDetectError('Could not detect total from PDF');
+        toast.warning('Could not auto-detect total from PDF');
+      }
     }
-  } catch (error) {
-    console.error('PDF detection error:', error);
-    setDetectError(error.response?.data?.message || 'Failed to process PDF');
+  } catch (err) {
+    console.error('PDF detection error:', err);
+    setDetectError(err?.response?.data?.message || err.message || 'Failed to process PDF');
     toast.error('Failed to process PDF attachment');
   } finally {
     setDetectingTotal(false);
   }
 };
+
 const Invoice = () => {
   // Companies (string[]) shown in the dropdown
   const [companyKey, setCompanyKey] = useState(''); // '' = All Companies
@@ -710,6 +737,87 @@ const [foreman, setForeman] = useState('');
 const [location, setLocation] = useState('');
 const [crewsCount, setCrewsCount] = useState('');
 const [otHours, setOtHours]       = useState('');
+// Read a single File/Blob into an ArrayBuffer
+const fileToArrayBuffer = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error);
+    reader.onload = () => resolve(reader.result);
+    reader.readAsArrayBuffer(file);
+  });
+
+// Extract plain text from a PDF (all pages, joined with newlines)
+async function extractPdfText(file) {
+  const data = await fileToArrayBuffer(file);
+  const pdf = await pdfjsLib.getDocument({ data }).promise;
+  let out = [];
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const page = await pdf.getPage(p);
+    const content = await page.getTextContent();
+    const pageText = content.items.map(it => it.str).join('\n'); // preserve rough order
+    out.push(pageText);
+  }
+  return out.join('\n');
+}
+
+// Try to detect the grand total from free-form text
+function detectTotalFromText(txt) {
+  if (!txt) return null;
+
+  // Normalize
+  const t = txt
+    .replace(/\u00A0/g, ' ')             // nbsp → space
+    .replace(/[, ]+(?=\d{3}\b)/g, ',')   // normalize thousands a bit
+    .replace(/\s+/g, ' ')                // fold whitespace
+    .toLowerCase();
+
+  // 1) Strong pattern: the word "total" followed by a money/number
+  //    e.g., "total 1,245.00" or "TOTAL $1,245.00"
+  const totalAfterLabel = /total[^0-9$]{0,12}(\$?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/i.exec(txt);
+  if (totalAfterLabel && totalAfterLabel[1]) {
+    return Number(totalAfterLabel[1].replace(/[$,]/g, ''));
+  }
+
+  // 2) Look for the last "TOTAL" block line-ish (robust against extra spacing)
+  const lineMatch = txt.match(/TOTAL[^\n\r$]*([$]?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/gi);
+  if (lineMatch && lineMatch.length) {
+    const last = lineMatch[lineMatch.length - 1];
+    const num = last.match(/([$]?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/);
+    if (num) return Number(num[0].replace(/[$,]/g, ''));
+  }
+
+  // 3) Fallback: prefer a number that follows the word TOTAL anywhere
+  const loose = /total[\s:]*([$]?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/i.exec(txt);
+  if (loose && loose[1]) {
+    return Number(loose[1].replace(/[$,]/g, ''));
+  }
+
+  // 4) Absolute last resort: take the largest currency-looking number on the page
+  const allMoney = txt.match(/[$]?\d{1,3}(?:,\d{3})*(?:\.\d{2})?/g);
+  if (allMoney && allMoney.length) {
+    const biggest = allMoney
+      .map(s => Number(s.replace(/[$,]/g, '')))
+      .filter(n => !Number.isNaN(n))
+      .sort((a, b) => b - a)[0];
+    return biggest ?? null;
+  }
+
+  return null;
+}
+
+// Extract the highest-confidence total across multiple PDFs
+async function detectTotalFromFiles(files) {
+  let detected = null;
+  for (const f of files) {
+    const txt = await extractPdfText(f);
+    const val = detectTotalFromText(txt);
+    if (typeof val === 'number' && isFinite(val)) {
+      // If multiple PDFs, pick the largest (usually the grand total doc)
+      detected = detected == null ? val : Math.max(detected, val);
+    }
+  }
+  return detected;
+}
 
 const tbsHours = useMemo(() => {
   const s = billingJob?.basic?.startTime ? formatTime(billingJob.basic.startTime) : '';
