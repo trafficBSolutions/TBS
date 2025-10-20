@@ -1654,11 +1654,15 @@ const handleUpdateInvoice = async () => {
     toast.error(msg);
     return;
   }
-
+ if (!billingJob?._invoice?._id) {
+   toast.error('No existing invoice found on server for this work order. Send it first, then update.');
+   return;
+ }
   setIsSubmitting(true);
   try {
     const payload = {
       workOrderId: billingJob._id,
+      invoiceId: billingJob._invoice._id,
       manualAmount: Number(sheetTotal.toFixed(2)),
       emailOverride: selectedEmail,
       invoiceData: {
@@ -1666,7 +1670,9 @@ const handleUpdateInvoice = async () => {
         invoiceNumber,
         workRequestNumber1,
         workRequestNumber2,
-        dueDate: dueDate || billingJob.invoiceData?.dueDate || invoiceDate,
+        dueDate: dueDate || billingJob.invoiceData?.dueDate || new Date(
+         new Date(invoiceDate).getTime() + 30*24*60*60*1000
+       ).toISOString().slice(0,10),
         billToCompany: billToCompany === "Other(Specify if new in message to add to this list)" ? customCompanyName : billToCompany,
         billToAddress,
         workType,
@@ -1697,10 +1703,8 @@ const handleUpdateInvoice = async () => {
     setBillingOpen(false);
     setBillingJob(null);
   } catch (err) {
-    const msg =
-      err?.response?.data?.message ||
-      err?.message ||
-      'Failed to update invoice.';
+  console.error('Update invoice error:', err?.response?.data || err);
+  const msg = err?.response?.data?.message || err?.response?.data || err?.message || 'Failed to update invoice.';
     setSubmissionErrorMessage(msg);
     toast.error(msg);
   } finally {
