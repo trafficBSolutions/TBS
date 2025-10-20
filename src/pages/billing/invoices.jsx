@@ -2101,7 +2101,6 @@ const isExpanded = billingJob?._id === workOrder._id;
   if (isBilled && isPaid) {
     return <span className="pill" style={{ color: '#fff', backgroundColor: '#28a745' }}>Paid</span>;
   }
-
   if (isBilled) {
     const isPartial = (effectiveCurrentAmount ?? 0) < (effectiveBilledAmount ?? 0);
     return (
@@ -2117,7 +2116,7 @@ const isExpanded = billingJob?._id === workOrder._id;
           style={{ fontSize: '12px', padding: '4px 8px', marginLeft: '8px', backgroundColor: '#17365D', color: '#fff' }}
           onClick={() => {
             setBillingJob(workOrder);
-            setBillingOpen(true);
+            setBillingOpen(true);  
             if (workOrder.invoiceData) {
               setInvoiceDate(workOrder.invoiceData.invoiceDate || new Date().toISOString().slice(0,10));
               setInvoiceNumber(workOrder.invoiceData.invoiceNumber || '');
