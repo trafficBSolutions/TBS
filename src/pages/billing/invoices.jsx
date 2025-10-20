@@ -680,13 +680,18 @@ function detectTotalFromText(raw) {
 }
 
 async function detectTotalFromFiles(files) {
-  let detected = null;
+  let total = 0;
+  let foundAny = false;
+
   for (const f of files) {
     const txt = await extractPdfText(f);
     const val = detectTotalFromText(txt);
-    if (Number.isFinite(val)) detected = detected == null ? val : Math.max(detected, val);
+    if (Number.isFinite(val) && val > 0) {
+      total += val;
+      foundAny = true;
+    }
   }
-  return detected;
+  return foundAny ? total : null;
 }
 // --- end helpers ---
 
