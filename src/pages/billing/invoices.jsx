@@ -932,7 +932,8 @@ const [invoiceNumber, setInvoiceNumber] = useState('');
 const [workRequestNumber1, setWorkRequestNumber1] = useState('');
 const [workRequestNumber2, setWorkRequestNumber2] = useState('');
 const [dueDate, setDueDate] = useState('');
-const [savedInvoices, setSavedInvoices] = useState({});
+const [net30Auto, setNet30Auto] = useState(true); // keep due date = invoiceDate + 30 by default
+
 // ===== Spreadsheet editor state (replaces the fixed rates UI) =====
 const VERTEX42_STARTER_ROWS = [
   { id: 1, service: 'Flagging Operation — 1/2 day', taxed: false, amount: 0 },
@@ -995,7 +996,15 @@ const sheetTaxDue = useMemo(() => {
    () => Number((sheetSubtotal + sheetTaxDue + (Number(sheetOther) || 0)).toFixed(2)),
    [sheetSubtotal, sheetTaxDue, sheetOther]
  );
-
+ useEffect(() => {
+   if (!invoiceDate) return;
+   if (!net30Auto) return;
+   const base = new Date(invoiceDate);
+   if (Number.isNaN(base.getTime())) return;
+   const d = new Date(base);
+   d.setDate(d.getDate() + 30);
+   setDueDate(d.toISOString().slice(0, 10));
+ }, [invoiceDate, net30Auto]);
 // tiny helpers
 const addRow = () =>
   setSheetRows(rows => [...rows, { id: Date.now(), service: '', taxed: false, amount: 0 }]);
@@ -1921,6 +1930,7 @@ const effectiveCurrentAmount = Number(
           setForeman(workOrder.basic?.foremanName || '');
           setLocation([workOrder.basic?.address, workOrder.basic?.city, workOrder.basic?.state, workOrder.basic?.zip].filter(Boolean).join(', '));
           setInvoiceDate(new Date().toISOString().slice(0,10));
+          setNet30Auto(true);
           setInvoiceNumber('');
           setWorkRequestNumber1('');
           setWorkRequestNumber2('');
@@ -2048,7 +2058,39 @@ const effectiveCurrentAmount = Number(
               )}
             </div>
           </div>
-          
+          <div style={{ display:'grid', gridTemplateColumns:'auto auto', gap:12, alignItems:'end' }}>
+  <label style={{ display:'grid', gap:6 }}>
+    <span>Invoice Date</span>
+    <input
+      type="date"
+      value={invoiceDate}
+      onChange={(e) => setInvoiceDate(e.target.value)}
+    />
+  </label>
+
+  <label style={{ display:'grid', gap:6 }}>
+    <span>Due Date {net30Auto ? '(Net 30 auto)' : ''}</span>
+    <input
+      type="date"
+      value={dueDate}
+      onChange={(e) => {
+        setDueDate(e.target.value);
+        setNet30Auto(false); // user edited manually -> stop auto-sync
+      }}
+      disabled={net30Auto}
+    />
+  </label>
+
+  <label style={{ gridColumn:'1 / -1', display:'flex', gap:8, alignItems:'center' }}>
+    <input
+      type="checkbox"
+      checked={net30Auto}
+      onChange={(e) => setNet30Auto(e.target.checked)}
+    />
+    Keep Due Date = Invoice Date + 30 days (Net 30)
+  </label>
+</div>
+
           <div className="v42-billto" style={{ marginTop: 16 }}>
   <label style={{ display: 'block', marginBottom: 6 }}>Bill To Company</label>
 
