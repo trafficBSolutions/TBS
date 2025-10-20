@@ -1683,7 +1683,12 @@ const handleUpdateInvoice = async () => {
         tbsHours
       }
     };
-await api.post('/api/billing/update-invoice', payload);
+     const fd2 = new FormData();
+ fd2.append('payload', JSON.stringify(payload));
+ attachedPdfs.forEach(f => fd2.append('attachments', f));
+ await api.post('/api/billing/update-invoice', fd2, {
+   headers: { 'Content-Type': 'multipart/form-data' }
+ });
 
     await fetchJobsForDay(selectedDate);
 
@@ -2112,6 +2117,7 @@ const isExpanded = billingJob?._id === workOrder._id;
           style={{ fontSize: '12px', padding: '4px 8px', marginLeft: '8px', backgroundColor: '#17365D', color: '#fff' }}
           onClick={() => {
             setBillingJob(workOrder);
+            setBillingOpen(true);
             if (workOrder.invoiceData) {
               setInvoiceDate(workOrder.invoiceData.invoiceDate || new Date().toISOString().slice(0,10));
               setInvoiceNumber(workOrder.invoiceData.invoiceNumber || '');
