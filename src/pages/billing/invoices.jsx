@@ -805,6 +805,22 @@ const fileToArrayBuffer = (file) =>
     reader.onload = () => resolve(reader.result);
     reader.readAsArrayBuffer(file);
   });
+// derive a nice company name from the WO
+const woClient = (workOrder.basic?.client || '').trim();
+
+// if the client matches something in companyList, select it; otherwise blank/Other
+const inList = companyList.includes(woClient);
+setBillToCompany(inList ? woClient : '');  // or "Other..." if you want
+
+// auto-fill the billing email and address if we know them
+setSelectedEmail(COMPANY_TO_EMAIL[woClient] || workOrder.basic?.email || '');
+setBillToAddress(BILLING_ADDRESSES[woClient] || '');
+useEffect(() => {
+  if (!billToCompany) return;
+  // Only override if the user hasn't typed something custom
+  setSelectedEmail(prev => prev || COMPANY_TO_EMAIL[billToCompany] || '');
+  setBillToAddress(prev => prev || BILLING_ADDRESSES[billToCompany] || '');
+}, [billToCompany]);
 
 // Extract plain text from a PDF (all pages, joined with newlines)
 async function extractPdfText(file) {
@@ -2028,7 +2044,50 @@ const effectiveCurrentAmount = Number(
             </div>
           </div>
           
-          {/* Rest of your existing invoice form */}
+          <div className="v42-billto" style={{ marginTop: 16 }}>
+  <label style={{ display: 'block', marginBottom: 6 }}>Bill To Company</label>
+
+  <select
+    value={billToCompany}
+    onChange={(e) => setBillToCompany(e.target.value)}
+    style={{ width: 320, padding: 6, marginBottom: 8 }}
+  >
+    <option value="">Select company…</option>
+    {companyList.map(c => (
+      <option key={c} value={c}>{c}</option>
+    ))}
+  </select>
+
+  {billToCompany === 'Other(Specify if new in message to add to this list)' && (
+    <input
+      type="text"
+      placeholder="Enter custom company name"
+      value={customCompanyName}
+      onChange={(e) => setCustomCompanyName(e.target.value)}
+      style={{ width: 320, padding: 6, marginBottom: 8 }}
+    />
+  )}
+
+  <label style={{ display: 'block', marginTop: 8 }}>Billing Address</label>
+  <input
+    type="text"
+    value={billToAddress}
+    onChange={(e) => setBillToAddress(e.target.value)}
+    placeholder="Street, City, State ZIP"
+    style={{ width: 480, padding: 6 }}
+  />
+
+  <div style={{ marginTop: 8 }}>
+    <label style={{ display: 'block' }}>Send Invoice To (Email)</label>
+    <input
+      className="email-input"
+      type="email"
+      value={selectedEmail}
+      onChange={(e) => setSelectedEmail(e.target.value)}
+      style={{ width: 320, padding: 6 }}
+    />
+  </div>
+</div>
         </div>
 )}
   <div className="admin-plans">
