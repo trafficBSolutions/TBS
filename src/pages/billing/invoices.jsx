@@ -2001,120 +2001,7 @@ const isExpanded = billingJob?._id === workOrder._id;
           {isExpanded ? 'Close Billing' : 'Bill Job'}
         </button>
         {/* Shared billing/edit panel: shows for Bill Job OR Update Invoice */}
-{billingJob?._id === workOrder._id && billingOpen && (
-  <div style={{ marginTop: '15px', padding: '15px', border: '2px solid #007bff', borderRadius: '8px', backgroundColor: '#f8f9fa' }}>
-    {/* === ATTACH INVOICE PDF === */}
-    <div style={{ marginBottom: 16, fontWeight: 'bold', fontSize: '16px' }}>ATTACH INVOICE PDF</div>
-    <div style={{ padding: '15px', border: '2px dashed #ccc', borderRadius: '8px', backgroundColor: '#f9f9f9', marginBottom: '15px' }}>
-      <input
-        type="file"
-        accept="application/pdf"
-        multiple
-        onChange={(e) => {
-          const newFiles = Array.from(e.target.files || []);
-          const allFiles = [...(attachedPdfs || []), ...newFiles];
-          handlePdfAttachment(allFiles, setAttachedPdfs, setDetectingTotal, setDetectError, setDetectedTotal, setSheetRows, toast);
-          e.target.value = '';
-        }}
-        style={{ marginBottom: '10px' }}
-      />
-      {detectingTotal && <div style={{ color: '#007bff', fontSize: '14px' }}>🔍 Detecting total from PDF...</div>}
-      {detectedTotal && <div style={{ color: '#28a745', fontSize: '16px', fontWeight: 'bold' }}>✅ Auto-detected total: ${detectedTotal.toFixed(2)}</div>}
-      {detectError && <div style={{ color: '#dc3545', fontSize: '14px' }}>❌ {detectError}</div>}
-      {attachedPdfs.length > 0 && (
-        <div style={{ marginTop: '10px' }}>
-          <strong>Attached files ({attachedPdfs.length}):</strong>
-          <ul style={{ margin: '5px 0', paddingLeft: '20px' }}>
-            {attachedPdfs.map((file, idx) => (
-              <li key={idx}>
-                {file.name} ({(file.size / 1024).toFixed(1)} KB)
-                <button
-                  onClick={() => {
-                    const newFiles = attachedPdfs.filter((_, i) => i !== idx);
-                    handlePdfAttachment(newFiles, setAttachedPdfs, setDetectingTotal, setDetectError, setDetectedTotal, setSheetRows, toast);
-                  }}
-                  style={{ marginLeft: '8px', fontSize: '12px', padding: '2px 6px', color: '#dc3545', background: 'none', border: '1px solid #dc3545', borderRadius: '3px', cursor: 'pointer' }}
-                >
-                  Remove
-                </button>
-              </li>
-            ))}
-          </ul>
-          <div style={{ fontSize: '14px', color: '#666', marginTop: '5px' }}>💡 Tip: All PDF totals are automatically combined</div>
-        </div>
-      )}
-    </div>
 
-    {/* === DATES === */}
-    <div style={{ display:'grid', gridTemplateColumns:'auto auto', gap:12, alignItems:'end', marginBottom: '15px' }}>
-      <label style={{ display:'grid', gap:6 }}>
-        <span>Invoice Date</span>
-        <input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} />
-      </label>
-      <label style={{ display:'grid', gap:6 }}>
-        <span>Due Date {net30Auto ? '(Net 30 auto)' : ''}</span>
-        <input type="date" value={dueDate} onChange={(e) => { setDueDate(e.target.value); setNet30Auto(false); }} disabled={net30Auto} />
-      </label>
-    </div>
-
-    {/* === BILL TO === */}
-    <div style={{ marginBottom: '15px' }}>
-      <label>Bill To Company</label>
-      <select value={billToCompany} onChange={(e) => setBillToCompany(e.target.value)} style={{ width: '100%', padding: 6, marginBottom: 8 }}>
-        <option value="">Select company…</option>
-        {companyList.map(c => <option key={c} value={c}>{c}</option>)}
-      </select>
-      {billToCompany === 'Other(Specify if new in message to add to this list)' && (
-        <input type="text" placeholder="Enter custom company name" value={customCompanyName} onChange={(e) => setCustomCompanyName(e.target.value)} style={{ width: '100%', padding: 6, marginBottom: 8 }} />
-      )}
-
-      <label style={{ display: 'block', marginTop: 8 }}>Billing Address</label>
-      <input type="text" value={billToAddress} onChange={(e) => setBillToAddress(e.target.value)} placeholder="Street, City, State ZIP" style={{ width: '100%', padding: 6 }} />
-
-      <label style={{ display: 'block', marginTop: 8 }}>Send Invoice To (Email)</label>
-      <input type="email" value={selectedEmail} onChange={(e) => setSelectedEmail(e.target.value)} style={{ width: '100%', padding: 6 }} />
-    </div>
-
-    {/* === TOTALS SUMMARY === */}
-    <div style={{ padding: 12, border: '1px solid #e5e7eb', borderRadius: 8, background: '#f9fafb', marginBottom: 12 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Subtotal</span><b>${sheetSubtotal.toFixed(2)}</b></div>
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Tax ({Number(sheetTaxRate || 0)}%)</span><b>${sheetTaxDue.toFixed(2)}</b></div>
-      {Number(sheetOther || 0) !== 0 && <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Other</span><b>${Number(sheetOther).toFixed(2)}</b></div>}
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, paddingTop: 8, borderTop: '2px solid #e5e7eb', fontWeight: 700 }}><span>Total</span><span>${sheetTotal.toFixed(2)}</span></div>
-    </div>
-
-    {/* === CONFIRM + ACTIONS === */}
-    <div style={{ marginBottom: 12, padding: 12, border: '1px solid #f59e0b', background: '#fffbeb', borderRadius: 8 }}>
-      <h4 style={{ margin: 0, marginBottom: 6 }}>⚠️ Please review before sending</h4>
-      <p style={{ margin: 0, marginBottom: 8 }}>
-        Double-check line items, totals, billing address, and recipient email. <b>No cancelations after the invoice is sent.</b>
-      </p>
-      <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <input type="checkbox" checked={readyToSend} onChange={(e) => setReadyToSend(e.target.checked)} />
-        Yes, it is ready to send.
-      </label>
-    </div>
-
-    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-      {/* If it’s already billed, show Update; if not, show Send */}
-      {workOrder.billed || workOrder._invoice ? (
-        <button className="btn btn--primary" onClick={handleUpdateInvoice} disabled={isSubmitting}>
-          {isSubmitting ? 'Updating…' : 'Update & Resend'}
-        </button>
-      ) : (
-        <button className="btn btn--primary" onClick={handleSendInvoice} disabled={isSubmitting || !readyToSend || !selectedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(selectedEmail) || Number(sheetTotal) <= 0}>
-          {isSubmitting ? 'Sending…' : `Send Invoice ($${sheetTotal.toFixed(2)})`}
-        </button>
-      )}
-      <button className="btn" onClick={saveInvoiceData} disabled={isSubmitting}>Save Draft</button>
-      <button className="btn" onClick={() => { setBillingOpen(false); setBillingJob(null); }}>Cancel</button>
-    </div>
-
-    {errorMessage && <div style={{ color: '#b91c1c', marginTop: 8 }}>{errorMessage}</div>}
-    {submissionMessage && <div style={{ color: '#166534', marginTop: 8 }}>{submissionMessage}</div>}
-    {submissionErrorMessage && <div style={{ color: '#b91c1c', marginTop: 8 }}>{submissionErrorMessage}</div>}
-  </div>
-)}
 
         {isExpanded && (
           <div style={{ marginTop: '15px', padding: '15px', border: '2px solid #007bff', borderRadius: '8px', backgroundColor: '#f8f9fa' }}>
@@ -2252,6 +2139,120 @@ const isExpanded = billingJob?._id === workOrder._id;
         >
           Update Invoice
         </button>
+        {billingJob?._id === workOrder._id && billingOpen && (
+  <div style={{ marginTop: '15px', padding: '15px', border: '2px solid #007bff', borderRadius: '8px', backgroundColor: '#f8f9fa' }}>
+    {/* === ATTACH INVOICE PDF === */}
+    <div style={{ marginBottom: 16, fontWeight: 'bold', fontSize: '16px' }}>ATTACH INVOICE PDF</div>
+    <div style={{ padding: '15px', border: '2px dashed #ccc', borderRadius: '8px', backgroundColor: '#f9f9f9', marginBottom: '15px' }}>
+      <input
+        type="file"
+        accept="application/pdf"
+        multiple
+        onChange={(e) => {
+          const newFiles = Array.from(e.target.files || []);
+          const allFiles = [...(attachedPdfs || []), ...newFiles];
+          handlePdfAttachment(allFiles, setAttachedPdfs, setDetectingTotal, setDetectError, setDetectedTotal, setSheetRows, toast);
+          e.target.value = '';
+        }}
+        style={{ marginBottom: '10px' }}
+      />
+      {detectingTotal && <div style={{ color: '#007bff', fontSize: '14px' }}>🔍 Detecting total from PDF...</div>}
+      {detectedTotal && <div style={{ color: '#28a745', fontSize: '16px', fontWeight: 'bold' }}>✅ Auto-detected total: ${detectedTotal.toFixed(2)}</div>}
+      {detectError && <div style={{ color: '#dc3545', fontSize: '14px' }}>❌ {detectError}</div>}
+      {attachedPdfs.length > 0 && (
+        <div style={{ marginTop: '10px' }}>
+          <strong>Attached files ({attachedPdfs.length}):</strong>
+          <ul style={{ margin: '5px 0', paddingLeft: '20px' }}>
+            {attachedPdfs.map((file, idx) => (
+              <li key={idx}>
+                {file.name} ({(file.size / 1024).toFixed(1)} KB)
+                <button
+                  onClick={() => {
+                    const newFiles = attachedPdfs.filter((_, i) => i !== idx);
+                    handlePdfAttachment(newFiles, setAttachedPdfs, setDetectingTotal, setDetectError, setDetectedTotal, setSheetRows, toast);
+                  }}
+                  style={{ marginLeft: '8px', fontSize: '12px', padding: '2px 6px', color: '#dc3545', background: 'none', border: '1px solid #dc3545', borderRadius: '3px', cursor: 'pointer' }}
+                >
+                  Remove
+                </button>
+              </li>
+            ))}
+          </ul>
+          <div style={{ fontSize: '14px', color: '#666', marginTop: '5px' }}>💡 Tip: All PDF totals are automatically combined</div>
+        </div>
+      )}
+    </div>
+
+    {/* === DATES === */}
+    <div style={{ display:'grid', gridTemplateColumns:'auto auto', gap:12, alignItems:'end', marginBottom: '15px' }}>
+      <label style={{ display:'grid', gap:6 }}>
+        <span>Invoice Date</span>
+        <input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} />
+      </label>
+      <label style={{ display:'grid', gap:6 }}>
+        <span>Due Date {net30Auto ? '(Net 30 auto)' : ''}</span>
+        <input type="date" value={dueDate} onChange={(e) => { setDueDate(e.target.value); setNet30Auto(false); }} disabled={net30Auto} />
+      </label>
+    </div>
+
+    {/* === BILL TO === */}
+    <div style={{ marginBottom: '15px' }}>
+      <label>Bill To Company</label>
+      <select value={billToCompany} onChange={(e) => setBillToCompany(e.target.value)} style={{ width: '100%', padding: 6, marginBottom: 8 }}>
+        <option value="">Select company…</option>
+        {companyList.map(c => <option key={c} value={c}>{c}</option>)}
+      </select>
+      {billToCompany === 'Other(Specify if new in message to add to this list)' && (
+        <input type="text" placeholder="Enter custom company name" value={customCompanyName} onChange={(e) => setCustomCompanyName(e.target.value)} style={{ width: '100%', padding: 6, marginBottom: 8 }} />
+      )}
+
+      <label style={{ display: 'block', marginTop: 8 }}>Billing Address</label>
+      <input type="text" value={billToAddress} onChange={(e) => setBillToAddress(e.target.value)} placeholder="Street, City, State ZIP" style={{ width: '100%', padding: 6 }} />
+
+      <label style={{ display: 'block', marginTop: 8 }}>Send Invoice To (Email)</label>
+      <input type="email" value={selectedEmail} onChange={(e) => setSelectedEmail(e.target.value)} style={{ width: '100%', padding: 6 }} />
+    </div>
+
+    {/* === TOTALS SUMMARY === */}
+    <div style={{ padding: 12, border: '1px solid #e5e7eb', borderRadius: 8, background: '#f9fafb', marginBottom: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Subtotal</span><b>${sheetSubtotal.toFixed(2)}</b></div>
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Tax ({Number(sheetTaxRate || 0)}%)</span><b>${sheetTaxDue.toFixed(2)}</b></div>
+      {Number(sheetOther || 0) !== 0 && <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Other</span><b>${Number(sheetOther).toFixed(2)}</b></div>}
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, paddingTop: 8, borderTop: '2px solid #e5e7eb', fontWeight: 700 }}><span>Total</span><span>${sheetTotal.toFixed(2)}</span></div>
+    </div>
+
+    {/* === CONFIRM + ACTIONS === */}
+    <div style={{ marginBottom: 12, padding: 12, border: '1px solid #f59e0b', background: '#fffbeb', borderRadius: 8 }}>
+      <h4 style={{ margin: 0, marginBottom: 6 }}>⚠️ Please review before sending</h4>
+      <p style={{ margin: 0, marginBottom: 8 }}>
+        Double-check line items, totals, billing address, and recipient email. <b>No cancelations after the invoice is sent.</b>
+      </p>
+      <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <input type="checkbox" checked={readyToSend} onChange={(e) => setReadyToSend(e.target.checked)} />
+        Yes, it is ready to send.
+      </label>
+    </div>
+
+    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      {/* If it’s already billed, show Update; if not, show Send */}
+      {workOrder.billed || workOrder._invoice ? (
+        <button className="btn btn--primary" onClick={handleUpdateInvoice} disabled={isSubmitting}>
+          {isSubmitting ? 'Updating…' : 'Update & Resend'}
+        </button>
+      ) : (
+        <button className="btn btn--primary" onClick={handleSendInvoice} disabled={isSubmitting || !readyToSend || !selectedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(selectedEmail) || Number(sheetTotal) <= 0}>
+          {isSubmitting ? 'Sending…' : `Send Invoice ($${sheetTotal.toFixed(2)})`}
+        </button>
+      )}
+      <button className="btn" onClick={saveInvoiceData} disabled={isSubmitting}>Save Draft</button>
+      <button className="btn" onClick={() => { setBillingOpen(false); setBillingJob(null); }}>Cancel</button>
+    </div>
+
+    {errorMessage && <div style={{ color: '#b91c1c', marginTop: 8 }}>{errorMessage}</div>}
+    {submissionMessage && <div style={{ color: '#166534', marginTop: 8 }}>{submissionMessage}</div>}
+    {submissionErrorMessage && <div style={{ color: '#b91c1c', marginTop: 8 }}>{submissionErrorMessage}</div>}
+  </div>
+)}
         <PaymentForm
           workOrder={workOrder}
           onPaymentComplete={() => fetchJobsForDay(selectedDate, companyKey || '')}
