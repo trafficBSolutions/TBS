@@ -710,22 +710,22 @@ const handlePdfAttachment = async (
   setDetectError('');
 
   try {
-    // 1) Try in-browser detection with PDF.js
+    // 1) Try in-browser detection with PDF.js - now sums all PDFs
     const localDetected = await detectTotalFromFiles(Array.from(files));
 
     if (typeof localDetected === 'number' && localDetected > 0) {
       setDetectedTotal(localDetected);
       setSheetRows(prev => {
         const newRows = [...prev];
-        // Clear amounts; set one main line equal to detected total
+        // Clear amounts; set one main line equal to combined total
         newRows.forEach(r => (r.amount = 0));
         if (newRows[0]) {
-          newRows[0].service = 'Services per attached invoice';
+          newRows[0].service = `Services per ${files.length} attached invoice${files.length > 1 ? 's' : ''}`;
           newRows[0].amount = localDetected;
         }
         return newRows;
       });
-      toast.success(`Auto-detected total: $${localDetected.toFixed(2)}`);
+      toast.success(`Auto-detected combined total from ${files.length} PDF${files.length > 1 ? 's' : ''}: $${localDetected.toFixed(2)}`);
     } else {
       // 2) Fallback to your server route if local detection fails
       const formData = new FormData();
@@ -742,21 +742,21 @@ const handlePdfAttachment = async (
           const newRows = [...prev];
           newRows.forEach(r => (r.amount = 0));
           if (newRows[0]) {
-            newRows[0].service = 'Services per attached invoice';
+            newRows[0].service = `Services per ${files.length} attached invoice${files.length > 1 ? 's' : ''}`;
             newRows[0].amount = total;
           }
           return newRows;
         });
-        toast.success(`Auto-detected total: $${total.toFixed(2)}`);
+        toast.success(`Auto-detected combined total from ${files.length} PDF${files.length > 1 ? 's' : ''}: $${total.toFixed(2)}`);
       } else {
-        setDetectError('Could not detect total from PDF');
-        toast.warning('Could not auto-detect total from PDF');
+        setDetectError('Could not detect total from PDF(s)');
+        toast.warning(`Could not auto-detect total from ${files.length} PDF${files.length > 1 ? 's' : ''}`);
       }
     }
   } catch (err) {
     console.error('PDF detection error:', err);
-    setDetectError(err?.response?.data?.message || err.message || 'Failed to process PDF');
-    toast.error('Failed to process PDF attachment');
+    setDetectError(err?.response?.data?.message || err.message || 'Failed to process PDF attachments');
+    toast.error('Failed to process PDF attachments');
   } finally {
     setDetectingTotal(false);
   }
@@ -891,16 +891,19 @@ function detectTotalFromText(txt) {
 
 // Extract the highest-confidence total across multiple PDFs
 async function detectTotalFromFiles(files) {
-  let detected = null;
+  let totalSum = 0;
+  let hasValidTotal = false;
+  
   for (const f of files) {
     const txt = await extractPdfText(f);
     const val = detectTotalFromText(txt);
-    if (typeof val === 'number' && isFinite(val)) {
-      // If multiple PDFs, pick the largest (usually the grand total doc)
-      detected = detected == null ? val : Math.max(detected, val);
+    if (typeof val === 'number' && isFinite(val) && val > 0) {
+      totalSum += val;
+      hasValidTotal = true;
     }
   }
-  return detected;
+  
+  return hasValidTotal ? totalSum : null;
 }
 
 const tbsHours = useMemo(() => {
@@ -2067,12 +2070,26 @@ const effectiveCurrentAmount = Number(
               
               {attachedPdfs.length > 0 && (
                 <div style={{ marginTop: '10px' }}>
-                  <strong>Attached files:</strong>
+                  <strong>Attached files ({attachedPdfs.length}):</strong>
                   <ul style={{ margin: '5px 0', paddingLeft: '20px' }}>
                     {attachedPdfs.map((file, idx) => (
-                      <li key={idx}>{file.name} ({(file.size / 1024).toFixed(1)} KB)</li>
+                      <li key={idx}>
+                        {file.name} ({(file.size / 1024).toFixed(1)} KB)
+                        <button 
+                          onClick={() => {
+                            const newFiles = attachedPdfs.filter((_, i) => i !== idx);
+                            handlePdfAttachment(newFiles, setAttachedPdfs, setDetectingTotal, setDetectError, setDetectedTotal, setSheetRows, toast);
+                          }}
+                          style={{ marginLeft: '8px', fontSize: '12px', padding: '2px 6px', color: '#dc3545', background: 'none', border: '1px solid #dc3545', borderRadius: '3px', cursor: 'pointer' }}
+                        >
+                          Remove
+                        </button>
+                      </li>
                     ))}
                   </ul>
+                  <div style={{ fontSize: '14px', color: '#666', marginTop: '5px' }}>
+                    💡 Tip: All PDF totals are automatically combined
+                  </div>
                 </div>
               )}
             </div>
