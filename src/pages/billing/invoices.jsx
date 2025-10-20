@@ -1963,10 +1963,8 @@ const isExpanded = billingJob?._id === workOrder._id;
     return (
       <div>
         <button className="btn" onClick={() => {
-          if (isExpanded) {
             setBillingJob(null);
-            setBillingOpen(false);
-          } else {
+            setBillingOpen(false);  
             setBillingJob(workOrder);
             if (savedInvoices[workOrder._id]) {
               loadSavedInvoice(workOrder._id);
@@ -1996,12 +1994,10 @@ const isExpanded = billingJob?._id === workOrder._id;
             const saved = savedInvoices[workOrder._id];
             setCrewsCount(saved?.crewsCount ?? '');
             setOtHours(saved?.otHours ?? '');
-          }
+          
         }}>
-          {isExpanded ? 'Close Billing' : 'Bill Job'}
         </button>
         
-        {isExpanded && (
           <div style={{ marginTop: '15px', padding: '15px', border: '2px solid #007bff', borderRadius: '8px', backgroundColor: '#f8f9fa' }}>
             <div style={{ marginBottom: 16, fontWeight: 'bold', fontSize: '16px' }}>ATTACH INVOICE PDF</div>
             <div style={{ padding: '15px', border: '2px dashed #ccc', borderRadius: '8px', backgroundColor: '#f9f9f9', marginBottom: '15px' }}>
@@ -2093,7 +2089,7 @@ const isExpanded = billingJob?._id === workOrder._id;
             {submissionMessage && <div style={{ color: '#166534', marginTop: 8 }}>{submissionMessage}</div>}
             {submissionErrorMessage && <div style={{ color: '#b91c1c', marginTop: 8 }}>{submissionErrorMessage}</div>}
           </div>
-        )}
+    
       </div>
     );
   }
