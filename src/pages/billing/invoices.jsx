@@ -2112,6 +2112,31 @@ const isExpanded = billingJob?._id === workOrder._id;
         >
           {isPartial ? 'Partial' : 'Billed'}
         </span>
+        <button
+          className="btn"
+          style={{ fontSize: '12px', padding: '4px 8px', marginLeft: '8px', backgroundColor: '#17365D', color: '#fff' }}
+          onClick={() => {
+            setBillingJob(workOrder);
+            if (workOrder.invoiceData) {
+              setInvoiceDate(workOrder.invoiceData.invoiceDate || new Date().toISOString().slice(0,10));
+              setInvoiceNumber(workOrder.invoiceData.invoiceNumber || '');
+              setWorkRequestNumber1(workOrder.invoiceData.workRequestNumber1 || '');
+              setWorkRequestNumber2(workOrder.invoiceData.workRequestNumber2 || '');
+              setDueDate(workOrder.invoiceData.dueDate || '');
+              setBillToCompany(workOrder.invoiceData.billToCompany || '');
+              setBillToAddress(workOrder.invoiceData.billToAddress || '');
+              setWorkType(workOrder.invoiceData.workType || '');
+              setForeman(workOrder.invoiceData.foreman || '');
+              setLocation(workOrder.invoiceData.location || '');
+              setSheetRows(workOrder.invoiceData.sheetRows || VERTEX42_STARTER_ROWS);
+              setSheetTaxRate(workOrder.invoiceData.sheetTaxRate || 0);
+              setSheetOther(workOrder.invoiceData.sheetOther || 0);
+              setSelectedEmail(workOrder.invoiceData.selectedEmail || workOrder.basic?.email || '');
+            }
+          }}
+        >
+          Update Invoice
+        </button>
         <PaymentForm
           workOrder={workOrder}
           onPaymentComplete={() => fetchJobsForDay(selectedDate, companyKey || '')}
