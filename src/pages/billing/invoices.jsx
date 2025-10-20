@@ -798,6 +798,15 @@ const [location, setLocation] = useState('');
 const [crewsCount, setCrewsCount] = useState('');
 const [otHours, setOtHours]       = useState('');
 // Read a single File/Blob into an ArrayBuffer
+// --- inside Invoice component, with the other useState calls ---
+const [savedInvoices, setSavedInvoices] = useState(() => {
+  try {
+    return JSON.parse(localStorage.getItem('savedInvoices') || '{}');
+  } catch {
+    return {};
+  }
+});
+
 const fileToArrayBuffer = (file) =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
