@@ -1638,6 +1638,7 @@ const fetchJobsForDay = async (date, companyName) => {
   }, []);
 
 const handleUpdateInvoice = async () => {
+  console.log('[UI] Update & Resend clicked');
   setSubmissionMessage('');
   setSubmissionErrorMessage('');
   setErrorMessage('');
@@ -1655,7 +1656,8 @@ const handleUpdateInvoice = async () => {
     return;
   }
  if (!billingJob?._invoice?._id) {
-   toast.error('No existing invoice found on server for this work order. Send it first, then update.');
+      toast.error('No invoice ID on this work order. Send it first, then update.');
+   console.warn('Missing invoiceId for workOrder', billingJob?._id, billingJob?._invoice);
    return;
  }
   setIsSubmitting(true);
@@ -1670,9 +1672,11 @@ const handleUpdateInvoice = async () => {
         invoiceNumber,
         workRequestNumber1,
         workRequestNumber2,
-        dueDate: dueDate || billingJob.invoiceData?.dueDate || new Date(
-         new Date(invoiceDate).getTime() + 30*24*60*60*1000
-       ).toISOString().slice(0,10),
+           dueDate: (dueDate && /^\d{4}-\d{2}-\d{2}$/.test(dueDate))
+     ? dueDate
+     : (billingJob?.invoiceData?.dueDate && /^\d{4}-\d{2}-\d{2}$/.test(billingJob.invoiceData.dueDate))
+       ? billingJob.invoiceData.dueDate
+       : new Date(new Date(invoiceDate).getTime() + 30*24*60*60*1000).toISOString().slice(0,10),
         billToCompany: billToCompany === "Other(Specify if new in message to add to this list)" ? customCompanyName : billToCompany,
         billToAddress,
         workType,
@@ -1689,14 +1693,18 @@ const handleUpdateInvoice = async () => {
         tbsHours
       }
     };
+   if (attachedPdfs?.length) {
      const fd2 = new FormData();
- fd2.append('payload', JSON.stringify(payload));
- attachedPdfs.forEach(f => fd2.append('attachments', f));
- await api.post('/api/billing/update-invoice', fd2, {
-   headers: { 'Content-Type': 'multipart/form-data' }
- });
+     fd2.append('payload', JSON.stringify(payload));
+     attachedPdfs.forEach(f => fd2.append('attachments', f));
+     await api.post('/api/billing/update-invoice', fd2, {
+       headers: { 'Content-Type': 'multipart/form-data' }
+     });
+   } else {
+     await api.post('/api/billing/update-invoice', payload); // JSON body
+   }
 
-    await fetchJobsForDay(selectedDate);
+    await fetchJobsForDay(selectedDate, companyKey || '');
 
     setSubmissionMessage('Invoice updated and sent!');
     toast.success('Invoice updated and sent successfully!');
@@ -2098,7 +2106,7 @@ const isExpanded = billingJob?._id === workOrder._id;
 </button>
 
 {/* only show Update & Resend if the server already considers it billed */}
-{(billingJob?.billed || billingJob?._invoice) && (
+{Boolean(billingJob?._invoice?._id) && (
   <button className="btn" onClick={handleUpdateInvoice} disabled={isSubmitting}>
     Update & Resend
   </button>
@@ -2251,9 +2259,11 @@ const isExpanded = billingJob?._id === workOrder._id;
 
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
       {/* If it’s already billed, show Update; if not, show Send */}
-      {workOrder.billed || workOrder._invoice ? (
+      {Boolean(workOrder?._invoice?._id) ? (
         <button className="btn btn--primary" onClick={handleUpdateInvoice} disabled={isSubmitting}>
-          {isSubmitting ? 'Updating…' : 'Update & Resend'}
+           {isSubmitting ? (
+   <span className="spinner-button"><span className="spinner" /> Updating…</span>
+ ) : 'Update & Resend'}
         </button>
       ) : (
         <button className="btn btn--primary" onClick={handleSendInvoice} disabled={isSubmitting || !readyToSend || !selectedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(selectedEmail) || Number(sheetTotal) <= 0}>
