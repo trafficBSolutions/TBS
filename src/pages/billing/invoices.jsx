@@ -1044,7 +1044,15 @@ const planTotal = useMemo(
   () => planBreakdown.reduce((s, r) => s + (r.qty * r.rate), 0),
   [planBreakdown]
 );
-
+const dedupeFiles = (arr) => {
+  const seen = new Set();
+  return arr.filter(f => {
+    const key = [f.name, f.size, f.lastModified].join('|');
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
 const [rates, setRates] = useState({
   flagHalf: 0,
   flagFull: 0,
@@ -2043,13 +2051,30 @@ const effectiveCurrentAmount = Number(
           <div className="v42-billto" style={{ alignItems: 'flex-start', padding: '15px', border: '2px dashed #ccc', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
             <div className="v42-billto-left" style={{ gap: 8, flex: 1 }}>
               <input
-                type="file"
-                accept="application/pdf"
-                multiple
-                onChange={(e) => handlePdfAttachment(e.target.files, setAttachedPdfs, setDetectingTotal, setDetectError, setDetectedTotal, setSheetRows, toast)}
-                style={{ marginBottom: '10px' }}
-              />
-              
+  type="file"
+  accept="application/pdf"
+  multiple
+  onChange={(e) => {
+    const newlySelected = Array.from(e.target.files || []);
+    // merge with existing
+    const merged = dedupeFiles([...(attachedPdfs || []), ...newlySelected]);
+
+    // run your existing logic against the *merged* list
+    handlePdfAttachment(
+      merged,
+      setAttachedPdfs,
+      setDetectingTotal,
+      setDetectError,
+      setDetectedTotal,
+      setSheetRows,
+      toast
+    );
+
+    // allow selecting the same file again if needed
+    e.target.value = '';
+  }}
+  style={{ marginBottom: '10px' }}
+/>
               {detectingTotal && (
                 <div style={{ color: '#007bff', fontSize: '14px' }}>
                   <span>🔍 Detecting total from PDF...</span>
