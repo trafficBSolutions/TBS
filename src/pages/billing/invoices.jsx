@@ -2093,6 +2093,126 @@ const effectiveCurrentAmount = Number(
     />
   </div>
 </div>
+{/* --- Review & Send ----------------------------------------------------- */}
+<div className="v42-send" style={{ marginTop: 16 }}>
+  {/* quick total recap (optional) */}
+  <div
+    style={{
+      padding: 12,
+      border: '1px solid #e5e7eb',
+      borderRadius: 8,
+      background: '#f9fafb',
+      marginBottom: 12
+    }}
+  >
+    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+      <span>Subtotal</span>
+      <b>${sheetSubtotal.toFixed(2)}</b>
+    </div>
+    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+      <span>Tax ({Number(sheetTaxRate || 0)}%)</span>
+      <b>${sheetTaxDue.toFixed(2)}</b>
+    </div>
+    {Number(sheetOther || 0) !== 0 && (
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <span>Other (shipping/discount)</span>
+        <b>${Number(sheetOther).toFixed(2)}</b>
+      </div>
+    )}
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        marginTop: 8,
+        paddingTop: 8,
+        borderTop: '2px solid #e5e7eb'
+      }}
+    >
+      <span style={{ fontWeight: 700 }}>Total</span>
+      <span style={{ fontWeight: 700 }}>${sheetTotal.toFixed(2)}</span>
+    </div>
+  </div>
+
+  {/* confirm + actions */}
+  <div
+    className="send-warning"
+    style={{
+      marginTop: 8,
+      padding: 12,
+      border: '1px solid #f59e0b',
+      background: '#fffbeb',
+      borderRadius: 8
+    }}
+  >
+    <h4 style={{ margin: 0, marginBottom: 6 }}>⚠️ Please review before sending</h4>
+    <p style={{ margin: 0, marginBottom: 8 }}>
+      Double-check line items, totals, billing address, and recipient email. <b>No
+      cancelations after the invoice is sent.</b>
+    </p>
+    <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <input
+        type="checkbox"
+        checked={readyToSend}
+        onChange={(e) => setReadyToSend(e.target.checked)}
+      />
+      Yes, it is ready to send.
+    </label>
+  </div>
+
+  <div style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+    <button
+      className="btn btn--primary"
+      onClick={handleSendInvoice}
+      disabled={
+        isSubmitting ||
+        !readyToSend ||
+        !selectedEmail ||
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(selectedEmail) ||
+        Number(sheetTotal) <= 0
+      }
+      title={
+        !selectedEmail
+          ? 'Enter a recipient email first'
+          : Number(sheetTotal) <= 0
+          ? 'Total must be greater than $0.00'
+          : 'Send invoice'
+      }
+    >
+      {isSubmitting ? 'Sending…' : `Send Invoice ($${sheetTotal.toFixed(2)})`}
+    </button>
+
+    {/* optional helpers */}
+    <button className="btn" onClick={saveInvoiceData} disabled={isSubmitting}>
+      Save Draft
+    </button>
+    <button className="btn" onClick={handleUpdateInvoice} disabled={isSubmitting}>
+      Update & Resend
+    </button>
+    <button
+      className="btn"
+      onClick={() => {
+        setBillingOpen(false);
+        setBillingJob(null);
+        setReadyToSend(false);
+      }}
+      disabled={isSubmitting}
+    >
+      Cancel
+    </button>
+  </div>
+
+  {/* inline messages (you already manage these pieces of state) */}
+  {errorMessage && (
+    <div style={{ color: '#b91c1c', marginTop: 8 }}>{errorMessage}</div>
+  )}
+  {submissionMessage && (
+    <div style={{ color: '#166534', marginTop: 8 }}>{submissionMessage}</div>
+  )}
+  {submissionErrorMessage && (
+    <div style={{ color: '#b91c1c', marginTop: 8 }}>{submissionErrorMessage}</div>
+  )}
+</div>
+
         </div>
 )}
   <div className="admin-plans">
