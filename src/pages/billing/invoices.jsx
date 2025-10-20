@@ -805,22 +805,21 @@ const fileToArrayBuffer = (file) =>
     reader.onload = () => resolve(reader.result);
     reader.readAsArrayBuffer(file);
   });
-// derive a nice company name from the WO
-const woClient = (workOrder.basic?.client || '').trim();
-
-// if the client matches something in companyList, select it; otherwise blank/Other
-const inList = companyList.includes(woClient);
-setBillToCompany(inList ? woClient : '');  // or "Other..." if you want
-
-// auto-fill the billing email and address if we know them
-setSelectedEmail(COMPANY_TO_EMAIL[woClient] || workOrder.basic?.email || '');
-setBillToAddress(BILLING_ADDRESSES[woClient] || '');
+// Prefill Bill-To when a job is selected
 useEffect(() => {
-  if (!billToCompany) return;
-  // Only override if the user hasn't typed something custom
-  setSelectedEmail(prev => prev || COMPANY_TO_EMAIL[billToCompany] || '');
-  setBillToAddress(prev => prev || BILLING_ADDRESSES[billToCompany] || '');
-}, [billToCompany]);
+  if (!billingJob) return;
+
+  const clientName = (billingJob.basic?.client || '').trim();
+  const inList = companyList.includes(clientName);
+
+  // company dropdown
+  setBillToCompany(inList ? clientName : ''); // or "Other(Specify...)" if you prefer
+
+  // auto-fill email & address if we know them
+  setSelectedEmail(COMPANY_TO_EMAIL[clientName] || billingJob.basic?.email || '');
+  setBillToAddress(BILLING_ADDRESSES[clientName] || '');
+}, [billingJob]);
+
 
 // Extract plain text from a PDF (all pages, joined with newlines)
 async function extractPdfText(file) {
@@ -1345,6 +1344,12 @@ const pickList = (payload) => {
   if (Array.isArray(d)) return d;
   return [];
 };
+useEffect(() => {
+  if (!billToCompany) return;
+
+  setSelectedEmail(prev => prev || COMPANY_TO_EMAIL[billToCompany] || '');
+  setBillToAddress(prev => prev || BILLING_ADDRESSES[billToCompany] || '');
+}, [billToCompany]);
 
 // === live breakdown & total (DOLLARS) ===
 const breakdown = useMemo(() => buildBreakdown(sel, rates), [sel, rates]);
