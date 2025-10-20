@@ -900,14 +900,20 @@ async function detectTotalFromFiles(files) {
   let hasValidTotal = false;
   
   for (const f of files) {
-    const txt = await extractPdfText(f);
-    const val = detectTotalFromText(txt);
-    if (typeof val === 'number' && isFinite(val) && val > 0) {
-      totalSum += val;
-      hasValidTotal = true;
+    try {
+      const txt = await extractPdfText(f);
+      const val = detectTotalFromText(txt);
+      if (typeof val === 'number' && isFinite(val) && val > 0) {
+        totalSum += val;
+        hasValidTotal = true;
+        console.log(`Detected $${val} from ${f.name}`);
+      }
+    } catch (err) {
+      console.warn(`Failed to process ${f.name}:`, err);
     }
   }
   
+  console.log(`Total detected: $${totalSum} from ${files.length} files`);
   return hasValidTotal ? totalSum : null;
 }
 
@@ -1999,7 +2005,18 @@ const isExpanded = billingJob?._id === workOrder._id;
           <div style={{ marginTop: '15px', padding: '15px', border: '2px solid #007bff', borderRadius: '8px', backgroundColor: '#f8f9fa' }}>
             <div style={{ marginBottom: 16, fontWeight: 'bold', fontSize: '16px' }}>ATTACH INVOICE PDF</div>
             <div style={{ padding: '15px', border: '2px dashed #ccc', borderRadius: '8px', backgroundColor: '#f9f9f9', marginBottom: '15px' }}>
-              <input type="file" accept="application/pdf" multiple onChange={(e) => handlePdfAttachment(e.target.files, setAttachedPdfs, setDetectingTotal, setDetectError, setDetectedTotal, setSheetRows, toast)} style={{ marginBottom: '10px' }} />
+              <input 
+                type="file" 
+                accept="application/pdf" 
+                multiple 
+                onChange={(e) => {
+                  const newFiles = Array.from(e.target.files || []);
+                  const allFiles = [...(attachedPdfs || []), ...newFiles];
+                  handlePdfAttachment(allFiles, setAttachedPdfs, setDetectingTotal, setDetectError, setDetectedTotal, setSheetRows, toast);
+                  e.target.value = ''; // Reset input to allow re-selecting same files
+                }} 
+                style={{ marginBottom: '10px' }} 
+              />
               {detectingTotal && <div style={{ color: '#007bff', fontSize: '14px' }}>🔍 Detecting total from PDF...</div>}
               {detectedTotal && <div style={{ color: '#28a745', fontSize: '16px', fontWeight: 'bold' }}>✅ Auto-detected total: ${detectedTotal.toFixed(2)}</div>}
               {detectError && <div style={{ color: '#dc3545', fontSize: '14px' }}>❌ {detectError}</div>}
