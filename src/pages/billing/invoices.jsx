@@ -630,6 +630,66 @@ function buildBreakdown(sel, rates) {
 
   return rows;
 }
+// --- PDF helpers (module scope) ---
+const fileToArrayBuffer = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error);
+    reader.onload = () => resolve(reader.result);
+    reader.readAsArrayBuffer(file);
+  });
+
+async function extractPdfText(file) {
+  const data = await fileToArrayBuffer(file);
+  const pdf = await pdfjsLib.getDocument({ data }).promise;
+  const parts = [];
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const page = await pdf.getPage(p);
+    const content = await page.getTextContent();
+    parts.push(content.items.map(it => it.str).join('\n'));
+  }
+  return parts.join('\n');
+}
+
+function detectTotalFromText(raw) {
+  if (!raw) return null;
+  const txt = raw.replace(/\u00A0/g, ' ')
+                 .replace(/[, ]+(?=\d{3}\b)/g, ',')
+                 .replace(/\s+/g, ' ');
+  // TOTAL … $1,234.56
+  const a = /total[^0-9$]{0,12}(\$?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/i.exec(txt);
+  if (a?.[1]) return Number(a[1].replace(/[$,]/g, ''));
+
+  const b = txt.match(/total[^\n\r$]*([$]?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/gi);
+  if (b?.length) {
+    const last = b[b.length - 1].match(/([$]?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/);
+    if (last) return Number(last[0].replace(/[$,]/g, ''));
+  }
+
+  const c = /total[\s:]*([$]?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/i.exec(txt);
+  if (c?.[1]) return Number(c[1].replace(/[$,]/g, ''));
+
+  const all = txt.match(/[$]?\d{1,3}(?:,\d{3})*(?:\.\d{2})?/g);
+  if (all?.length) {
+    return all
+      .map(s => Number(s.replace(/[$,]/g, '')))
+      .filter(n => Number.isFinite(n))
+      .sort((x, y) => y - x)[0] ?? null;
+  }
+  return null;
+}
+
+async function detectTotalFromFiles(files) {
+  let detected = null;
+  for (const f of files) {
+    const txt = await extractPdfText(f);
+    const val = detectTotalFromText(txt);
+    if (Number.isFinite(val)) detected = detected == null ? val : Math.max(detected, val);
+  }
+  return detected;
+}
+// --- end helpers ---
+
 const handlePdfAttachment = async (
   files,
   setAttachedPdfs,
