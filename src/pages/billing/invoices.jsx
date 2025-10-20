@@ -1997,8 +1997,8 @@ const isExpanded = billingJob?._id === workOrder._id;
           
         }}>
         </button>
-        
-          <div style={{ marginTop: '15px', padding: '15px', border: '2px solid #007bff', borderRadius: '8px', backgroundColor: '#f8f9fa' }}>
+        {billingOpen && billingJob && (
+ <div style={{ marginTop: '15px', padding: '15px', border: '2px solid #007bff', borderRadius: '8px', backgroundColor: '#f8f9fa' }}>
             <div style={{ marginBottom: 16, fontWeight: 'bold', fontSize: '16px' }}>ATTACH INVOICE PDF</div>
             <div style={{ padding: '15px', border: '2px dashed #ccc', borderRadius: '8px', backgroundColor: '#f9f9f9', marginBottom: '15px' }}>
               <input 
@@ -2089,7 +2089,7 @@ const isExpanded = billingJob?._id === workOrder._id;
             {submissionMessage && <div style={{ color: '#166534', marginTop: 8 }}>{submissionMessage}</div>}
             {submissionErrorMessage && <div style={{ color: '#b91c1c', marginTop: 8 }}>{submissionErrorMessage}</div>}
           </div>
-    
+)}
       </div>
     );
   }
