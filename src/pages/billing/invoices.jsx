@@ -2325,7 +2325,9 @@ const isExpanded = billingJob?._id === workOrder._id;
     </button>
   </div>
 )}
-
+      <button className="btn" onClick={saveInvoiceData} disabled={isSubmitting}>Save Draft</button>
+      <button className="btn" onClick={() => { setBillingOpen(false); setBillingJob(null); }}>Cancel</button>
+    </div>
 
     {errorMessage && <div style={{ color: '#b91c1c', marginTop: 8 }}>{errorMessage}</div>}
     {submissionMessage && <div style={{ color: '#166534', marginTop: 8 }}>{submissionMessage}</div>}
