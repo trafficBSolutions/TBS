@@ -1655,8 +1655,9 @@ const handleUpdateInvoice = async () => {
     toast.error(msg);
     return;
   }
- if (!(billingJob?._invoice?.invoiceId || billingJob?._invoice?._id)) { toast.error('No invoice ID on this work order. Send it first, then update.');
-   console.warn('Missing invoiceId for workOrder', billingJob?._id, billingJob?._invoice);
+ // Check if this work order has been billed (has invoice data or is marked as billed)
+ if (!billingJob?.billed && !billingJob?.invoiceData && !billingJob?._invoice) {
+   toast.error('This work order has not been billed yet. Send an invoice first, then update.');
    return;
  }
   setIsSubmitting(true);
@@ -2093,21 +2094,24 @@ const isExpanded = billingJob?._id === workOrder._id;
             </div>
             
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {/* in the Bill Job panel actions */}
-<button
-  className="btn btn--primary"
-  onClick={handleSendInvoice}
-  disabled={isSubmitting || !readyToSend || !selectedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(selectedEmail) || Number(sheetTotal) <= 0}
->
-  {isSubmitting ? 'Sending…' : `Send Invoice ($${sheetTotal.toFixed(2)})`}
-</button>
-
-{/* only show Update & Resend if the server already considers it billed */}
-{Boolean(billingJob?._invoice?.invoiceId || billingJob?._invoice?._id) ? (
-  <button className="btn btn--primary" onClick={handleUpdateInvoice}>Update & Resend</button>
-  ) : (
-    <button className="btn btn--primary" onClick={handleSendInvoice}>Send Invoice</button>
-  )}
+              {/* Show Update & Resend if work order is already billed, otherwise Send Invoice */}
+              {(billingJob?.billed || billingJob?._invoice?.invoiceId || billingJob?._invoice?._id) ? (
+                <button 
+                  className="btn btn--primary" 
+                  onClick={handleUpdateInvoice}
+                  disabled={isSubmitting || !selectedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(selectedEmail) || Number(sheetTotal) <= 0}
+                >
+                  {isSubmitting ? 'Updating…' : `Update & Resend ($${sheetTotal.toFixed(2)})`}
+                </button>
+              ) : (
+                <button
+                  className="btn btn--primary"
+                  onClick={handleSendInvoice}
+                  disabled={isSubmitting || !readyToSend || !selectedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(selectedEmail) || Number(sheetTotal) <= 0}
+                >
+                  {isSubmitting ? 'Sending…' : `Send Invoice ($${sheetTotal.toFixed(2)})`}
+                </button>
+              )}
 
               <button className="btn" onClick={saveInvoiceData} disabled={isSubmitting}>Save Draft</button>
             </div>
@@ -2139,7 +2143,8 @@ const isExpanded = billingJob?._id === workOrder._id;
           style={{ fontSize: '12px', padding: '4px 8px', marginLeft: '8px', backgroundColor: '#17365D', color: '#fff' }}
           onClick={() => {
             setBillingJob(workOrder);
-            setBillingOpen(true);  
+            setBillingOpen(true);
+            // Load existing invoice data from workOrder.invoiceData
             if (workOrder.invoiceData) {
               setInvoiceDate(workOrder.invoiceData.invoiceDate || new Date().toISOString().slice(0,10));
               setInvoiceNumber(workOrder.invoiceData.invoiceNumber || '');
@@ -2155,7 +2160,20 @@ const isExpanded = billingJob?._id === workOrder._id;
               setSheetTaxRate(workOrder.invoiceData.sheetTaxRate || 0);
               setSheetOther(workOrder.invoiceData.sheetOther || 0);
               setSelectedEmail(workOrder.invoiceData.selectedEmail || workOrder.basic?.email || '');
+              setCrewsCount(workOrder.invoiceData.crewsCount || '');
+              setOtHours(workOrder.invoiceData.otHours || '');
+            } else {
+              // Fallback to basic work order data if no invoiceData
+              setSelectedEmail(workOrder.basic?.email || '');
+              setForeman(workOrder.basic?.foremanName || '');
+              setLocation([workOrder.basic?.address, workOrder.basic?.city, workOrder.basic?.state, workOrder.basic?.zip].filter(Boolean).join(', '));
+              setInvoiceDate(new Date().toISOString().slice(0,10));
+              setSheetRows(VERTEX42_STARTER_ROWS);
+              setSheetTaxRate(0);
+              setSheetOther(0);
             }
+            // Set ready to send to true for updates since it's already been sent once
+            setReadyToSend(true);
           }}
         >
           Update Invoice
@@ -2257,10 +2275,10 @@ const isExpanded = billingJob?._id === workOrder._id;
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
       {/* If it’s already billed, show Update; if not, show Send */}
       {Boolean(workOrder?._invoice?._id) ? (
-        <button className="btn btn--primary" onClick={handleUpdateInvoice} disabled={isSubmitting}>
+        <button className="btn btn--primary" onClick={handleUpdateInvoice} disabled={isSubmitting || !selectedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(selectedEmail) || Number(sheetTotal) <= 0}>
            {isSubmitting ? (
    <span className="spinner-button"><span className="spinner" /> Updating…</span>
- ) : 'Update & Resend'}
+ ) : `Update & Resend ($${sheetTotal.toFixed(2)})`}
         </button>
       ) : (
         <button className="btn btn--primary" onClick={handleSendInvoice} disabled={isSubmitting || !readyToSend || !selectedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(selectedEmail) || Number(sheetTotal) <= 0}>
