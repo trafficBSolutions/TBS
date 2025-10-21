@@ -1655,9 +1655,8 @@ const handleUpdateInvoice = async () => {
     toast.error(msg);
     return;
   }
- // Check if this work order has been billed (has invoice data or is marked as billed)
- if (!billingJob?.billed && !billingJob?.invoiceData && !billingJob?._invoice) {
-   toast.error('This work order has not been billed yet. Send an invoice first, then update.');
+ if (!billingJob?._invoice && !billingJob?.invoiceData) {
+   toast.error('No invoice found to update.');
    return;
  }
   setIsSubmitting(true);
@@ -2145,27 +2144,43 @@ const isExpanded = billingJob?._id === workOrder._id;
             setBillingJob(workOrder);
             setBillingOpen(true);
             
-            // Load invoice data from the Invoice model via _invoice
-            const invoiceData = workOrder._invoice?.invoiceData || workOrder.invoiceData;
-            if (invoiceData) {
-              setInvoiceDate(invoiceData.invoiceDate || new Date().toISOString().slice(0,10));
-              setInvoiceNumber(invoiceData.invoiceNumber || '');
-              setWorkRequestNumber1(invoiceData.workRequestNumber1 || '');
-              setWorkRequestNumber2(invoiceData.workRequestNumber2 || '');
-              setDueDate(invoiceData.dueDate || '');
-              setBillToCompany(invoiceData.billToCompany || '');
-              setBillToAddress(invoiceData.billToAddress || '');
-              setWorkType(invoiceData.workType || '');
-              setForeman(invoiceData.foreman || '');
-              setLocation(invoiceData.location || '');
-              setSheetRows(invoiceData.sheetRows || VERTEX42_STARTER_ROWS);
-              setSheetTaxRate(invoiceData.sheetTaxRate || 0);
-              setSheetOther(invoiceData.sheetOther || 0);
-              setSelectedEmail(invoiceData.selectedEmail || workOrder.basic?.email || '');
-              setCrewsCount(invoiceData.crewsCount || '');
-              setOtHours(invoiceData.otHours || '');
+            // Fetch the actual Invoice document from the database
+            try {
+              const invoiceId = workOrder._invoice?.invoiceId || workOrder._invoice?._id || workOrder.invoiceId;
+              if (invoiceId) {
+                const { data } = await api.get(`/api/billing/invoice/${invoiceId}`);
+                const invoiceData = data.invoiceData;
+                if (invoiceData) {
+                  setInvoiceDate(invoiceData.invoiceDate || new Date().toISOString().slice(0,10));
+                  setInvoiceNumber(invoiceData.invoiceNumber || '');
+                  setWorkRequestNumber1(invoiceData.workRequestNumber1 || '');
+                  setWorkRequestNumber2(invoiceData.workRequestNumber2 || '');
+                  setDueDate(invoiceData.dueDate || data.dueDate?.split('T')[0] || '');
+                  setBillToCompany(invoiceData.billToCompany || '');
+                  setBillToAddress(invoiceData.billToAddress || '');
+                  setWorkType(invoiceData.workType || '');
+                  setForeman(invoiceData.foreman || '');
+                  setLocation(invoiceData.location || '');
+                  setSheetRows(invoiceData.sheetRows || VERTEX42_STARTER_ROWS);
+                  setSheetTaxRate(invoiceData.sheetTaxRate || 0);
+                  setSheetOther(invoiceData.sheetOther || 0);
+                  setSelectedEmail(invoiceData.selectedEmail || workOrder.basic?.email || '');
+                  setCrewsCount(invoiceData.crewsCount || '');
+                  setOtHours(invoiceData.otHours || '');
+                }
+              }
+            } catch (err) {
+              console.error('Failed to fetch invoice data:', err);
+              // Fallback to workOrder data
+              const invoiceData = workOrder.invoiceData;
+              if (invoiceData) {
+                setDueDate(invoiceData.dueDate || '');
+                setSheetRows(invoiceData.sheetRows || VERTEX42_STARTER_ROWS);
+                setSelectedEmail(invoiceData.selectedEmail || workOrder.basic?.email || '');
+              }
             }
             setReadyToSend(true);
+            setNet30Auto(false); // Disable auto due date calculation for updates
           }}
         >
           Update Invoice
