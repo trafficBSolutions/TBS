@@ -2098,22 +2098,22 @@ const isExpanded = billingJob?._id === workOrder._id;
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {/* Show Update & Resend if in update mode, otherwise Send Invoice */}
               {isUpdateMode ? (
-                <button 
-                  className="btn btn--primary" 
-                  onClick={handleUpdateInvoice}
-                  disabled={isSubmitting || !selectedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(selectedEmail) || Number(sheetTotal) <= 0}
-                >
-                  {isSubmitting ? 'Updating…' : `Update & Resend ($${sheetTotal.toFixed(2)})`}
-                </button>
-              ) : (
-                <button
-                  className="btn btn--primary"
-                  onClick={handleSendInvoice}
-                  disabled={isSubmitting || !readyToSend || !selectedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(selectedEmail) || Number(sheetTotal) <= 0}
-                >
-                  {isSubmitting ? 'Sending…' : `Send Invoice ($${sheetTotal.toFixed(2)})`}
-                </button>
-              )}
+  <button
+    className="btn btn--primary"
+    onClick={handleUpdateInvoice}
+    disabled={isSubmitting || !selectedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(selectedEmail) || Number(sheetTotal) <= 0}
+  >
+    {isSubmitting ? 'Updating…' : `Update & Resend ($${sheetTotal.toFixed(2)})`}
+  </button>
+) : (
+  <button
+    className="btn btn--primary"
+    onClick={handleSendInvoice}
+    disabled={isSubmitting || !readyToSend || !selectedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(selectedEmail) || Number(sheetTotal) <= 0}
+  >
+    {isSubmitting ? 'Sending…' : `Send Invoice ($${sheetTotal.toFixed(2)})`}
+  </button>
+)}
 
               <button className="btn" onClick={saveInvoiceData} disabled={isSubmitting}>Save Draft</button>
             </div>
@@ -2285,20 +2285,47 @@ const isExpanded = billingJob?._id === workOrder._id;
 
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
       {/* If it’s already billed, show Update; if not, show Send */}
-      {Boolean(workOrder?._invoice?._id) ? (
-        <button className="btn btn--primary" onClick={handleUpdateInvoice} disabled={isSubmitting || !selectedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(selectedEmail) || Number(sheetTotal) <= 0}>
-           {isSubmitting ? (
-   <span className="spinner-button"><span className="spinner" /> Updating…</span>
- ) : `Update & Resend ($${sheetTotal.toFixed(2)})`}
-        </button>
+      {Boolean(workOrder?._invoice?._id) && (
+  <div className="button-group">
+    <button
+      className="btn btn--primary"
+      onClick={handleUpdateInvoice}
+      disabled={
+        isSubmitting ||
+        !selectedEmail ||
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(selectedEmail) ||
+        Number(sheetTotal) <= 0
+      }
+    >
+      {isSubmitting ? (
+        <span className="spinner-button">
+          <span className="spinner" /> Updating…
+        </span>
       ) : (
-        <button className="btn btn--primary" onClick={handleSendInvoice} disabled={isSubmitting || !readyToSend || !selectedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(selectedEmail) || Number(sheetTotal) <= 0}>
-          {isSubmitting ? 'Sending…' : `Send Invoice ($${sheetTotal.toFixed(2)})`}
-        </button>
+        `Update & Resend ($${sheetTotal.toFixed(2)})`
       )}
-      <button className="btn" onClick={saveInvoiceData} disabled={isSubmitting}>Save Draft</button>
-      <button className="btn" onClick={() => { setBillingOpen(false); setBillingJob(null); }}>Cancel</button>
-    </div>
+    </button>
+
+    <button
+      className="btn"
+      onClick={saveInvoiceData}
+      disabled={isSubmitting}
+    >
+      Save Draft
+    </button>
+
+    <button
+      className="btn"
+      onClick={() => {
+        setBillingOpen(false);
+        setBillingJob(null);
+      }}
+    >
+      Cancel
+    </button>
+  </div>
+)}
+
 
     {errorMessage && <div style={{ color: '#b91c1c', marginTop: 8 }}>{errorMessage}</div>}
     {submissionMessage && <div style={{ color: '#166534', marginTop: 8 }}>{submissionMessage}</div>}
