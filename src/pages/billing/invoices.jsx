@@ -2018,8 +2018,9 @@ const isExpanded = billingJob?._id === workOrder._id;
 
         {isExpanded && (
           <div style={{ marginTop: '15px', padding: '15px', border: '2px solid #007bff', borderRadius: '8px', backgroundColor: '#f8f9fa' }}>
-            <div style={{ marginBottom: 16, fontWeight: 'bold', fontSize: '16px' }}>ATTACH INVOICE PDF</div>
-            <div style={{ padding: '15px', border: '2px dashed #ccc', borderRadius: '8px', backgroundColor: '#f9f9f9', marginBottom: '15px' }}>
+            <div style={{ marginBottom: 16, fontWeight: 'bold', fontSize: '16px' }}>ATTACH INVOICE PDF (Required)</div>
+            <div style={{ padding: '15px', border: '2px dashed #007bff', borderRadius: '8px', backgroundColor: '#f0f8ff', marginBottom: '15px' }}>
+              <div style={{ color: '#007bff', fontSize: '14px', marginBottom: '10px', fontWeight: 'bold' }}>📎 Upload your invoice PDF(s) - these will be sent to the client</div>
               <input 
                 type="file" 
                 accept="application/pdf" 
@@ -2049,7 +2050,7 @@ const isExpanded = billingJob?._id === workOrder._id;
                       </li>
                     ))}
                   </ul>
-                  <div style={{ fontSize: '14px', color: '#666', marginTop: '5px' }}>💡 Tip: All PDF totals are automatically combined</div>
+                  <div style={{ fontSize: '14px', color: '#007bff', marginTop: '5px' }}>💡 These PDFs will be attached to the email instead of generating new ones</div>
                 </div>
               )}
             </div>
@@ -2110,7 +2111,7 @@ const isExpanded = billingJob?._id === workOrder._id;
   <button
     className="btn btn--primary"
     onClick={handleSendInvoice}
-    disabled={isSubmitting || !readyToSend || !selectedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(selectedEmail) || Number(sheetTotal) <= 0}
+    disabled={isSubmitting || !readyToSend || !selectedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(selectedEmail) || Number(sheetTotal) <= 0 || !attachedPdfs.length}
   >
     {isSubmitting ? 'Sending…' : `Send Invoice ($${sheetTotal.toFixed(2)})`}
   </button>
@@ -2200,8 +2201,9 @@ const isExpanded = billingJob?._id === workOrder._id;
   return (
     <div style={{ marginTop: '15px', padding: '15px', border: '2px solid #007bff', borderRadius: '8px', backgroundColor: '#f8f9fa' }}>
     {/* === ATTACH INVOICE PDF === */}
-    <div style={{ marginBottom: 16, fontWeight: 'bold', fontSize: '16px' }}>ATTACH INVOICE PDF</div>
-    <div style={{ padding: '15px', border: '2px dashed #ccc', borderRadius: '8px', backgroundColor: '#f9f9f9', marginBottom: '15px' }}>
+    <div style={{ marginBottom: 16, fontWeight: 'bold', fontSize: '16px' }}>ATTACH INVOICE PDF (Required)</div>
+    <div style={{ padding: '15px', border: '2px dashed #007bff', borderRadius: '8px', backgroundColor: '#f0f8ff', marginBottom: '15px' }}>
+      <div style={{ color: '#007bff', fontSize: '14px', marginBottom: '10px', fontWeight: 'bold' }}>📎 Upload your invoice PDF(s) - these will be sent to the client</div>
       <input
         type="file"
         accept="application/pdf"
@@ -2236,7 +2238,7 @@ const isExpanded = billingJob?._id === workOrder._id;
               </li>
             ))}
           </ul>
-          <div style={{ fontSize: '14px', color: '#666', marginTop: '5px' }}>💡 Tip: All PDF totals are automatically combined</div>
+          <div style={{ fontSize: '14px', color: '#007bff', marginTop: '5px' }}>💡 These PDFs will be attached to the email instead of generating new ones</div>
         </div>
       )}
     </div>
@@ -2302,7 +2304,8 @@ const isExpanded = billingJob?._id === workOrder._id;
         isSubmitting ||
         !selectedEmail ||
         !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(selectedEmail) ||
-        Number(sheetTotal) <= 0
+        Number(sheetTotal) <= 0 ||
+        !attachedPdfs.length
       }
     >
       {isSubmitting ? (
