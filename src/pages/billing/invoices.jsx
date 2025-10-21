@@ -1655,8 +1655,7 @@ const handleUpdateInvoice = async () => {
     toast.error(msg);
     return;
   }
- if (!billingJob?._invoice?._id) {
-      toast.error('No invoice ID on this work order. Send it first, then update.');
+ if (!(billingJob?._invoice?.invoiceId || billingJob?._invoice?._id)) { toast.error('No invoice ID on this work order. Send it first, then update.');
    console.warn('Missing invoiceId for workOrder', billingJob?._id, billingJob?._invoice);
    return;
  }
@@ -1664,7 +1663,7 @@ const handleUpdateInvoice = async () => {
   try {
     const payload = {
       workOrderId: billingJob._id,
-      invoiceId: billingJob._invoice._id,
+      invoiceId: billingJob._invoice?.invoiceId || billingJob._invoice?._id,
       mode: 'update', // <-- make the intent explicit
       manualAmount: Number(sheetTotal.toFixed(2)),
       emailOverride: selectedEmail,
@@ -2104,11 +2103,11 @@ const isExpanded = billingJob?._id === workOrder._id;
 </button>
 
 {/* only show Update & Resend if the server already considers it billed */}
-{Boolean(billingJob?._invoice?._id) && (
-  <button className="btn" onClick={handleUpdateInvoice} disabled={isSubmitting}>
-    Update & Resend
-  </button>
-)}
+{Boolean(billingJob?._invoice?.invoiceId || billingJob?._invoice?._id) ? (
+  <button className="btn btn--primary" onClick={handleUpdateInvoice}>Update & Resend</button>
+  ) : (
+    <button className="btn btn--primary" onClick={handleSendInvoice}>Send Invoice</button>
+  )}
 
               <button className="btn" onClick={saveInvoiceData} disabled={isSubmitting}>Save Draft</button>
             </div>
