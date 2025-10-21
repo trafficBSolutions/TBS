@@ -812,12 +812,7 @@ const [savedInvoices, setSavedInvoices] = useState(() => {
     return {};
   }
 });
-const hasInvoiceId =
-  Boolean(
-    workOrder?._invoice?._id ||
-    workOrder?._invoice?.invoiceId ||
-    workOrder?.invoiceId
-  );
+
 
 const fileToArrayBuffer = (file) =>
   new Promise((resolve, reject) => {
@@ -2195,8 +2190,15 @@ const isExpanded = billingJob?._id === workOrder._id;
         >
           Update Invoice
         </button>
-        {billingJob?._id === workOrder._id && billingOpen && (
-  <div style={{ marginTop: '15px', padding: '15px', border: '2px solid #007bff', borderRadius: '8px', backgroundColor: '#f8f9fa' }}>
+        {billingJob?._id === workOrder._id && billingOpen && (() => {
+  const hasInvoiceId = Boolean(
+    workOrder?._invoice?.invoiceId ||
+    workOrder?._invoice?._id ||
+    workOrder?.invoiceId
+  );
+
+  return (
+    <div style={{ marginTop: '15px', padding: '15px', border: '2px solid #007bff', borderRadius: '8px', backgroundColor: '#f8f9fa' }}>
     {/* === ATTACH INVOICE PDF === */}
     <div style={{ marginBottom: 16, fontWeight: 'bold', fontSize: '16px' }}>ATTACH INVOICE PDF</div>
     <div style={{ padding: '15px', border: '2px dashed #ccc', borderRadius: '8px', backgroundColor: '#f9f9f9', marginBottom: '15px' }}>
@@ -2334,7 +2336,9 @@ const isExpanded = billingJob?._id === workOrder._id;
     {submissionMessage && <div style={{ color: '#166534', marginTop: 8 }}>{submissionMessage}</div>}
     {submissionErrorMessage && <div style={{ color: '#b91c1c', marginTop: 8 }}>{submissionErrorMessage}</div>}
   </div>
-)}
+  );
+})()}
+        
         <PaymentForm
           workOrder={workOrder}
           onPaymentComplete={() => fetchJobsForDay(selectedDate, companyKey || '')}
