@@ -2094,8 +2094,8 @@ const isExpanded = billingJob?._id === workOrder._id;
             </div>
             
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {/* Show Update & Resend if work order is already billed, otherwise Send Invoice */}
-              {(billingJob?.billed || billingJob?._invoice?.invoiceId || billingJob?._invoice?._id) ? (
+              {/* Show Update & Resend if work order has invoice data, otherwise Send Invoice */}
+              {(billingJob?._invoice || billingJob?.invoiceData || billingJob?.billed) ? (
                 <button 
                   className="btn btn--primary" 
                   onClick={handleUpdateInvoice}
@@ -2141,38 +2141,30 @@ const isExpanded = billingJob?._id === workOrder._id;
         <button
           className="btn"
           style={{ fontSize: '12px', padding: '4px 8px', marginLeft: '8px', backgroundColor: '#17365D', color: '#fff' }}
-          onClick={() => {
+          onClick={async () => {
             setBillingJob(workOrder);
             setBillingOpen(true);
-            // Load existing invoice data from workOrder.invoiceData
-            if (workOrder.invoiceData) {
-              setInvoiceDate(workOrder.invoiceData.invoiceDate || new Date().toISOString().slice(0,10));
-              setInvoiceNumber(workOrder.invoiceData.invoiceNumber || '');
-              setWorkRequestNumber1(workOrder.invoiceData.workRequestNumber1 || '');
-              setWorkRequestNumber2(workOrder.invoiceData.workRequestNumber2 || '');
-              setDueDate(workOrder.invoiceData.dueDate || '');
-              setBillToCompany(workOrder.invoiceData.billToCompany || '');
-              setBillToAddress(workOrder.invoiceData.billToAddress || '');
-              setWorkType(workOrder.invoiceData.workType || '');
-              setForeman(workOrder.invoiceData.foreman || '');
-              setLocation(workOrder.invoiceData.location || '');
-              setSheetRows(workOrder.invoiceData.sheetRows || VERTEX42_STARTER_ROWS);
-              setSheetTaxRate(workOrder.invoiceData.sheetTaxRate || 0);
-              setSheetOther(workOrder.invoiceData.sheetOther || 0);
-              setSelectedEmail(workOrder.invoiceData.selectedEmail || workOrder.basic?.email || '');
-              setCrewsCount(workOrder.invoiceData.crewsCount || '');
-              setOtHours(workOrder.invoiceData.otHours || '');
-            } else {
-              // Fallback to basic work order data if no invoiceData
-              setSelectedEmail(workOrder.basic?.email || '');
-              setForeman(workOrder.basic?.foremanName || '');
-              setLocation([workOrder.basic?.address, workOrder.basic?.city, workOrder.basic?.state, workOrder.basic?.zip].filter(Boolean).join(', '));
-              setInvoiceDate(new Date().toISOString().slice(0,10));
-              setSheetRows(VERTEX42_STARTER_ROWS);
-              setSheetTaxRate(0);
-              setSheetOther(0);
+            
+            // Load invoice data from the Invoice model via _invoice
+            const invoiceData = workOrder._invoice?.invoiceData || workOrder.invoiceData;
+            if (invoiceData) {
+              setInvoiceDate(invoiceData.invoiceDate || new Date().toISOString().slice(0,10));
+              setInvoiceNumber(invoiceData.invoiceNumber || '');
+              setWorkRequestNumber1(invoiceData.workRequestNumber1 || '');
+              setWorkRequestNumber2(invoiceData.workRequestNumber2 || '');
+              setDueDate(invoiceData.dueDate || '');
+              setBillToCompany(invoiceData.billToCompany || '');
+              setBillToAddress(invoiceData.billToAddress || '');
+              setWorkType(invoiceData.workType || '');
+              setForeman(invoiceData.foreman || '');
+              setLocation(invoiceData.location || '');
+              setSheetRows(invoiceData.sheetRows || VERTEX42_STARTER_ROWS);
+              setSheetTaxRate(invoiceData.sheetTaxRate || 0);
+              setSheetOther(invoiceData.sheetOther || 0);
+              setSelectedEmail(invoiceData.selectedEmail || workOrder.basic?.email || '');
+              setCrewsCount(invoiceData.crewsCount || '');
+              setOtHours(invoiceData.otHours || '');
             }
-            // Set ready to send to true for updates since it's already been sent once
             setReadyToSend(true);
           }}
         >
