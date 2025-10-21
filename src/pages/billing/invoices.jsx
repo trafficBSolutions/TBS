@@ -778,6 +778,7 @@ const [readyToSend, setReadyToSend] = useState(false);
   const [jobsForDay, setJobsForDay] = useState([]);   // jobs for selected day
 const [billingOpen, setBillingOpen] = useState(false);
 const [billingJob, setBillingJob] = useState(null);
+const [isUpdateMode, setIsUpdateMode] = useState(false);
 // --- TCP (Traffic Control Plan) billing state ---
 const [plans, setPlans] = useState([]);
 const [selectedPlanIndex, setSelectedPlanIndex] = useState(null);
@@ -1975,8 +1976,10 @@ const isExpanded = billingJob?._id === workOrder._id;
           if (isExpanded) {
             setBillingJob(null);
             setBillingOpen(false);
+            setIsUpdateMode(false);
           } else {
             setBillingJob(workOrder);
+            setIsUpdateMode(false);
             if (savedInvoices[workOrder._id]) {
               loadSavedInvoice(workOrder._id);
             } else {
@@ -2093,8 +2096,8 @@ const isExpanded = billingJob?._id === workOrder._id;
             </div>
             
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {/* Show Update & Resend if work order has invoice data, otherwise Send Invoice */}
-              {(billingJob?._invoice || billingJob?.invoiceData || billingJob?.billed) ? (
+              {/* Show Update & Resend if in update mode, otherwise Send Invoice */}
+              {isUpdateMode ? (
                 <button 
                   className="btn btn--primary" 
                   onClick={handleUpdateInvoice}
@@ -2143,6 +2146,7 @@ const isExpanded = billingJob?._id === workOrder._id;
           onClick={async () => {
             setBillingJob(workOrder);
             setBillingOpen(true);
+            setIsUpdateMode(true);
             
             // Fetch the actual Invoice document from the database
             try {
