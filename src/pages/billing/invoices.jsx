@@ -812,6 +812,12 @@ const [savedInvoices, setSavedInvoices] = useState(() => {
     return {};
   }
 });
+const hasInvoiceId =
+  Boolean(
+    workOrder?._invoice?._id ||
+    workOrder?._invoice?.invoiceId ||
+    workOrder?.invoiceId
+  );
 
 const fileToArrayBuffer = (file) =>
   new Promise((resolve, reject) => {
@@ -2285,7 +2291,7 @@ const isExpanded = billingJob?._id === workOrder._id;
 
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
       {/* If it’s already billed, show Update; if not, show Send */}
-      {Boolean(workOrder?._invoice?._id) && (
+{hasInvoiceId && (
   <div className="button-group">
     <button
       className="btn btn--primary"
@@ -2306,11 +2312,7 @@ const isExpanded = billingJob?._id === workOrder._id;
       )}
     </button>
 
-    <button
-      className="btn"
-      onClick={saveInvoiceData}
-      disabled={isSubmitting}
-    >
+    <button className="btn" onClick={saveInvoiceData} disabled={isSubmitting}>
       Save Draft
     </button>
 
@@ -2325,6 +2327,7 @@ const isExpanded = billingJob?._id === workOrder._id;
     </button>
   </div>
 )}
+
     </div>
 
     {errorMessage && <div style={{ color: '#b91c1c', marginTop: 8 }}>{errorMessage}</div>}
