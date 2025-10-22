@@ -467,7 +467,7 @@ const EmployeeComplaintForm = () => {
                   name="print"
                   className="project-number-input"
                   type="text"
-                  placeholder="Enter your printed name"
+                  placeholder="Enter your full name"
                   value={formData.print}
                   onChange={handleChange}
                 />
