@@ -2488,36 +2488,35 @@ const isExpanded = billingJob?._id === workOrder._id;
 
         <div className="plan-actions">
           <button
-            className="btn"
-            onClick={async () => {
-  setPlanJob(plan);
-  setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
-  setPlanPhases(1);
-  setPlanRate(0);
-  setPlanReadyToSend(false);
-  setPlanBillingOpen(true);
-  setIsUpdateMode(false);
-            try {
-    const { data } = await api.get('/api/billing/plan-invoice-status', {
-      params: { planIds: plan._id }
-    });
-    const inv = data?.byPlan?.[plan._id];
-    if (inv?.invoiceId) {
-      setIsUpdateMode(true);
-      const snap = inv.invoiceData || {};
-      // Your stored snapshot keys from payload (define below)
-      setPlanPhases(Number(snap.planPhases || 1));
-      setPlanRate(Number(snap.planRate || 0));
-      setPlanEmail(snap.selectedEmail || plan.email || '');
-      // show UI note that previous PDFs were sent; user can attach more now
-    }
-  } catch (e) {
-    console.warn('No prior plan invoice or failed fetch:', e);
-  }
-}}
-          >
-            Bill Plan
-          </button>
+  className="btn"
+  onClick={(e) => {
+    e.stopPropagation();                // <— prevents same click from closing it
+    setPlanJob(plan);
+    setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
+    setPlanPhases(1);
+    setPlanRate(0);
+    setPlanReadyToSend(false);
+    setIsUpdateMode(false);
+    setPlanBillingOpen(true);
+
+    // Prefill: fire-and-forget so UI paints immediately
+    api.get('/api/billing/plan-invoice-status', { params: { planIds: plan._id } })
+      .then(({ data }) => {
+        const inv = data?.byPlan?.[plan._id];
+        if (inv?.invoiceId) {
+          setIsUpdateMode(true);
+          const snap = inv.invoiceData || {};
+          setPlanPhases(Number(snap.planPhases || 1));
+          setPlanRate(Number(snap.planRate || 0));
+          setPlanEmail(snap.selectedEmail || plan.email || '');
+        }
+      })
+      .catch(() => {});
+  }}
+>
+  Bill Plan
+</button>
+
           <button
             className="btn btn--secondary"
             onClick={() => {
