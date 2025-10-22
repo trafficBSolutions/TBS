@@ -2547,31 +2547,7 @@ const isExpanded = billingJob?._id === workOrder._id;
                   <p><strong>Coordinator:</strong> {planJob.name}</p>
                   <p><strong>Address:</strong> {planJob.address}, {planJob.city}, {planJob.state} {planJob.zip}</p>
                 </div>
-
                 <div className="billing-form">
-                  <div className="form-row">
-                    <label>Number of Phases:</label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={planPhases}
-                      onChange={e => setPlanPhases(Number(e.target.value))}
-                      placeholder="Enter phases"
-                    />
-                  </div>
-
-                  <div className="form-row">
-                    <label>Rate per Phase ($):</label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={planRate}
-                      onChange={e => setPlanRate(Number(e.target.value))}
-                      placeholder="Enter rate"
-                    />
-                  </div>
-
                   <div className="form-row">
                     <label>Total Amount:</label>
                     <div className="total-display">${(planPhases * planRate).toFixed(2)}</div>
