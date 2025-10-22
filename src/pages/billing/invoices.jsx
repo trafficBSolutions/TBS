@@ -796,6 +796,107 @@ const [planRate, setPlanRate] = useState(0);
 const [monthlyKey, setMonthlyKey] = useState(0);
 const [planEmail, setPlanEmail] = useState('');
 const [planReadyToSend, setPlanReadyToSend] = useState(false);
+const [planAttachedPdfs, setPlanAttachedPdfs] = useState([]);
+
+// Handle plan billing
+const handleBillPlan = async () => {
+  if (!planJob || !planEmail || !attachedPdfs.length) {
+    toast.error('Please fill all required fields and attach at least one PDF');
+    return;
+  }
+
+  setIsSubmitting(true);
+  try {
+    const formData = new FormData();
+    
+    const planData = {
+      planId: planJob._id,
+      phases: planPhases,
+      rate: planRate,
+      total: planPhases * planRate,
+      email: planEmail,
+      company: planJob.company,
+      project: planJob.project,
+      address: `${planJob.address}, ${planJob.city}, ${planJob.state} ${planJob.zip}`,
+      coordinator: planJob.name
+    };
+
+    formData.append('payload', JSON.stringify(planData));
+    attachedPdfs.forEach(file => formData.append('attachments', file));
+
+    await api.post('/api/billing/bill-plan', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+
+    toast.success('Traffic control plan billed successfully!');
+    setPlanBillingOpen(false);
+    setPlanJob(null);
+    setAttachedPdfs([]);
+    setPlanPhases(0);
+    setPlanRate(0);
+    setPlanEmail('');
+  } catch (err) {
+    toast.error(err?.response?.data?.message || 'Failed to bill plan');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+const handleUpdatePlan = async () => {
+  if (!planJob || !planEmail || !attachedPdfs.length) {
+    toast.error('Please fill all required fields and attach at least one PDF');
+    return;
+  }
+
+  setIsSubmitting(true);
+  try {
+    const formData = new FormData();
+    
+    const planData = {
+      planId: planJob._id,
+      phases: planPhases,
+      rate: planRate,
+      total: planPhases * planRate,
+      email: planEmail,
+      company: planJob.company,
+      project: planJob.project,
+      address: `${planJob.address}, ${planJob.city}, ${planJob.state} ${planJob.zip}`,
+      coordinator: planJob.name
+    };
+
+    formData.append('payload', JSON.stringify(planData));
+    attachedPdfs.forEach(file => formData.append('attachments', file));
+
+    await api.post('/api/billing/update-plan', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+
+    toast.success('Traffic control plan updated successfully!');
+    setPlanBillingOpen(false);
+    setPlanJob(null);
+    setAttachedPdfs([]);
+    setPlanPhases(0);
+    setPlanRate(0);
+    setPlanEmail('');
+  } catch (err) {
+    toast.error(err?.response?.data?.message || 'Failed to update plan');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+// Fetch plans on component mount
+useEffect(() => {
+  const fetchPlans = async () => {
+    try {
+      const res = await axios.get('/plan/all');
+      setPlans(res.data);
+    } catch (err) {
+      console.error('fetchPlans failed:', err);
+    }
+  };
+  fetchPlans();
+}, []);
 // Bill To form state
 const [billToCompany, setBillToCompany] = useState('');
 const [customCompanyName, setCustomCompanyName] = useState('');
@@ -2398,141 +2499,148 @@ const isExpanded = billingJob?._id === workOrder._id;
           </button>
         )}
 
-        {/* Bill plan */}
-        <button
-          className="btn"
-          onClick={() => {
-            setPlanJob(plan);
-            setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
-            setPlanPhases(1);         // seed one phase so a row shows once price is set
-            setPlanRate(0);
-            setPlanReadyToSend(false);
-            setPlanBillingOpen(true);
-          }}
-        >
-          Bill Plan
-        </button>
-              {planBillingOpen && planJob && (
-  <div className="billing-panel">
-    <h3>Bill Traffic Control Plan — {planJob.company}</h3>
-    <p><b>Project:</b> {planJob.project}</p>
-    <p><b>Address:</b> {[planJob.address, planJob.city, planJob.state, planJob.zip].filter(Boolean).join(', ')}</p>
-
-    {/* Simple: phases × price/phase */}
-    <div className="rates-grid">
-      <label>Phases (qty)
-        <input
-          type="number" min="0" value={planPhases}
-          onChange={(e)=>setPlanPhases(Number(e.target.value || 0))}
-        />
-      </label>
-      <label>Price per phase ($)
-        <input
-          type="number" step="0.01" value={planRate}
-          onChange={(e)=>setPlanRate(Number(e.target.value || 0))}
-        />
-      </label>
-    </div>
-
-    {/* Live breakdown */}
-    <div className="breakdown" style={{marginTop: 16}}>
-      <h4>Selected items</h4>
-      {planBreakdown.length === 0 ? (
-        <p>No items yet.</p>
-      ) : (
-        <table className="table">
-          <thead>
-          <tr>
-            <th style={{textAlign:'left'}}>Item</th>
-            <th>Qty</th>
-            <th>Unit</th>
-            <th>Rate</th>
-            <th>Line total</th>
-          </tr>
-          </thead>
-          <tbody>
-          {planBreakdown.map((r, i) => (
-            <tr key={i}>
-              <td style={{textAlign:'left'}}>{r.label}</td>
-              <td style={{textAlign:'center'}}>{r.qty}</td>
-              <td style={{textAlign:'center'}}>{r.unit}</td>
-              <td style={{textAlign:'right'}}>{fmtUSD(r.rate)}</td>
-              <td style={{textAlign:'right'}}>{fmtUSD(r.qty * r.rate)}</td>
-            </tr>
-          ))}
-          <tr>
-            <td colSpan={4} style={{textAlign:'right', fontWeight:700}}>Total</td>
-            <td style={{textAlign:'right', fontWeight:700}}>{fmtUSD(planTotal)}</td>
-          </tr>
-          </tbody>
-        </table>
-      )}
-    </div>
-
-    {/* Download */}
-    <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-      <button className="btn" onClick={handleDownloadPlanXLSXStyled}>
-        Download Plan Spreadsheet (XLSX)
-      </button>
-    </div>
-
-    {/* Email + confirm */}
-    <label style={{display:'block', marginTop:12}}>Send invoice to</label>
-    <input
-      className="email-input"
-      type="email"
-      value={planEmail}
-      onChange={(e)=>setPlanEmail(e.target.value)}
-    />
-
-    <div className="send-warning" style={{ marginTop:16, padding:12, border:'1px solid #f59e0b', background:'#fffbeb', borderRadius:8 }}>
-      <h4 className="warning-text">⚠️ WARNING</h4>
-      <p style={{ margin:0, marginBottom:8 }}>
-        Please review carefully. <b>No cancelations after the invoice is sent.</b>
-      </p>
-      <label style={{ display:'flex', alignItems:'center', gap:8 }}>
-        <input
-          type="checkbox"
-          checked={planReadyToSend}
-          onChange={(e)=>setPlanReadyToSend(e.target.checked)}
-        />
-        Yes, it is ready to send.
-      </label>
-    </div>
-
-    <div style={{ marginTop: 12 }}>
-      <button
-        className="btn btn--primary"
-        disabled={!planReadyToSend || planTotal <= 0}
-        onClick={async () => {
-          if (!planReadyToSend || planTotal <= 0) return;
-          await api.post('/billing/bill-plan', {
-            planId: planJob._id,
-            manualAmount: Number(planTotal.toFixed(2)), // dollars; server multiplies by 100
-            emailOverride: planEmail
-          });
-          setPlanReadyToSend(false);
-          setPlanBillingOpen(false);
-          setPlanJob(null);
-        }}
-      >
-        Send Plan Invoice
-      </button>
-      <button className="btn" onClick={()=>{
-        setPlanReadyToSend(false);
-        setPlanBillingOpen(false);
-        setPlanJob(null);
-      }}>
-        Cancel
-      </button>
-    </div>
-  </div>
-)}
+        <div className="plan-actions">
+          <button
+            className="btn"
+            onClick={() => {
+              setPlanJob(plan);
+              setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
+              setPlanPhases(1);
+              setPlanRate(0);
+              setPlanReadyToSend(false);
+              setPlanBillingOpen(true);
+              setIsUpdateMode(false);
+            }}
+          >
+            Bill Plan
+          </button>
+          <button
+            className="btn btn--secondary"
+            onClick={() => {
+              setPlanJob(plan);
+              setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
+              setPlanPhases(1);
+              setPlanRate(0);
+              setPlanReadyToSend(false);
+              setPlanBillingOpen(true);
+              setIsUpdateMode(true);
+            }}
+          >
+            Update Plan
+          </button>
+        </div>
       </div>
     )) : <p>No plans found.</p>}
 
   </div>
 </div>
+
+        {/* Plan Billing Modal */}
+        {planBillingOpen && planJob && (
+          <div className="modal-overlay" onClick={() => setPlanBillingOpen(false)}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>{isUpdateMode ? 'Update' : 'Bill'} Traffic Control Plan</h2>
+                <button className="modal-close" onClick={() => setPlanBillingOpen(false)}>×</button>
+              </div>
+              
+              <div className="modal-body">
+                <div className="plan-info">
+                  <h3>{planJob.company}</h3>
+                  <p><strong>Project:</strong> {planJob.project}</p>
+                  <p><strong>Coordinator:</strong> {planJob.name}</p>
+                  <p><strong>Address:</strong> {planJob.address}, {planJob.city}, {planJob.state} {planJob.zip}</p>
+                </div>
+
+                <div className="billing-form">
+                  <div className="form-row">
+                    <label>Number of Phases:</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={planPhases}
+                      onChange={e => setPlanPhases(Number(e.target.value))}
+                      placeholder="Enter phases"
+                    />
+                  </div>
+
+                  <div className="form-row">
+                    <label>Rate per Phase ($):</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={planRate}
+                      onChange={e => setPlanRate(Number(e.target.value))}
+                      placeholder="Enter rate"
+                    />
+                  </div>
+
+                  <div className="form-row">
+                    <label>Total Amount:</label>
+                    <div className="total-display">${(planPhases * planRate).toFixed(2)}</div>
+                  </div>
+
+                  <div className="form-row">
+                    <label>Email:</label>
+                    <input
+                      type="email"
+                      value={planEmail}
+                      onChange={e => setPlanEmail(e.target.value)}
+                      placeholder="Enter email address"
+                    />
+                  </div>
+
+                  <div className="form-row">
+                    <label>Attach Invoice PDFs: *</label>
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      multiple
+                      onChange={e => handlePdfAttachment(
+                        e.target.files,
+                        setAttachedPdfs,
+                        setDetectingTotal,
+                        setDetectError,
+                        setDetectedTotal,
+                        () => {}, // no sheet rows for plans
+                        toast
+                      )}
+                    />
+                    {attachedPdfs.length > 0 && (
+                      <div className="attached-files">
+                        <p>{attachedPdfs.length} PDF(s) attached</p>
+                        {detectedTotal && (
+                          <p className="detected-total">Detected total: ${detectedTotal.toFixed(2)}</p>
+                        )}
+                      </div>
+                    )}
+                    {!attachedPdfs.length && (
+                      <p className="validation-message">Please attach at least one PDF invoice</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button
+                  className="btn btn--primary"
+                  onClick={isUpdateMode ? handleUpdatePlan : handleBillPlan}
+                  disabled={isSubmitting || !planPhases || !planRate || !planEmail || !attachedPdfs.length}
+                >
+                  {isSubmitting ? 'Processing...' : (isUpdateMode ? 'Update Plan' : 'Bill Plan')}
+                </button>
+                <button
+                  className="btn"
+                  onClick={() => setPlanBillingOpen(false)}
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       {/* Footer unchanged */}
       <footer className="footer">
   <div className="site-footer__inner">
