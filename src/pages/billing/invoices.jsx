@@ -799,91 +799,78 @@ const [planReadyToSend, setPlanReadyToSend] = useState(false);
 const [planAttachedPdfs, setPlanAttachedPdfs] = useState([]);
 
 // Handle plan billing
-const handleBillPlan = async () => {
-  if (!planJob || !planEmail || !attachedPdfs.length) {
-    toast.error('Please fill all required fields and attach at least one PDF');
-    return;
-  }
+async function handleBillPlan() {
+  if (!planJob) return;
+  const total = Number((planPhases * planRate).toFixed(2));
+  if (!(total > 0)) return;
 
-  setIsSubmitting(true);
-  try {
-    const formData = new FormData();
-    
-    const planData = {
-      planId: planJob._id,
-      phases: planPhases,
-      rate: planRate,
-      total: planPhases * planRate,
-      email: planEmail,
-      company: planJob.company,
-      project: planJob.project,
-      address: `${planJob.address}, ${planJob.city}, ${planJob.state} ${planJob.zip}`,
-      coordinator: planJob.name
-    };
+  const payload = {
+    planId: planJob._id,
+    manualAmount: total,
+    emailOverride: planEmail,
+    invoiceData: {
+      invoiceDate: new Date().toISOString().slice(0,10),
+      dueDate: '', // or compute Net30 like jobs
+      invoiceNumber: '',
 
-    formData.append('payload', JSON.stringify(planData));
-    attachedPdfs.forEach(file => formData.append('attachments', file));
+      // TCP snapshot — so we can prefill on update
+      planPhases,
+      planRate,
+      sheetTotal: total,
+      selectedEmail: planEmail,
+    }
+  };
 
-    await api.post('/api/billing/bill-plan', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
+  const fd = new FormData();
+  fd.append('payload', JSON.stringify(payload));
+  (attachedPdfs || []).forEach(f => fd.append('attachments', f));
 
-    toast.success('Traffic control plan billed successfully!');
-    setPlanBillingOpen(false);
-    setPlanJob(null);
-    setAttachedPdfs([]);
-    setPlanPhases(0);
-    setPlanRate(0);
-    setPlanEmail('');
-  } catch (err) {
-    toast.error(err?.response?.data?.message || 'Failed to bill plan');
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  await api.post('/api/billing/bill-plan', fd, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
 
-const handleUpdatePlan = async () => {
-  if (!planJob || !planEmail || !attachedPdfs.length) {
-    toast.error('Please fill all required fields and attach at least one PDF');
-    return;
-  }
+  toast.success('Plan invoice sent!');
+  setPlanBillingOpen(false);
+  setAttachedPdfs([]);
+}
 
-  setIsSubmitting(true);
-  try {
-    const formData = new FormData();
-    
-    const planData = {
-      planId: planJob._id,
-      phases: planPhases,
-      rate: planRate,
-      total: planPhases * planRate,
-      email: planEmail,
-      company: planJob.company,
-      project: planJob.project,
-      address: `${planJob.address}, ${planJob.city}, ${planJob.state} ${planJob.zip}`,
-      coordinator: planJob.name
-    };
 
-    formData.append('payload', JSON.stringify(planData));
-    attachedPdfs.forEach(file => formData.append('attachments', file));
+async function handleUpdatePlan() {
+  if (!planJob) return;
+  const total = Number((planPhases * planRate).toFixed(2));
+  if (!(total > 0)) return;
 
-    await api.post('/api/billing/update-plan', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
+  const payload = {
+    planId: planJob._id,
+    manualAmount: total,
+    emailOverride: planEmail,
+    invoiceData: {
+      // keep/allow editing same header fields as job updates if you add inputs
+      invoiceDate: new Date().toISOString().slice(0,10),
+      dueDate: '',
+      invoiceNumber: '',
 
-    toast.success('Traffic control plan updated successfully!');
-    setPlanBillingOpen(false);
-    setPlanJob(null);
-    setAttachedPdfs([]);
-    setPlanPhases(0);
-    setPlanRate(0);
-    setPlanEmail('');
-  } catch (err) {
-    toast.error(err?.response?.data?.message || 'Failed to update plan');
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+      // snapshot again
+      planPhases,
+      planRate,
+      sheetTotal: total,
+      selectedEmail: planEmail,
+    }
+  };
+
+  const fd = new FormData();
+  fd.append('payload', JSON.stringify(payload));
+  (attachedPdfs || []).forEach(f => fd.append('attachments', f));
+
+  await api.post('/api/billing/update-plan', fd, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+
+  toast.success('Plan invoice updated and resent!');
+  setPlanBillingOpen(false);
+  setAttachedPdfs([]);
+}
+
 
 // Fetch plans on component mount
 useEffect(() => {
@@ -2502,15 +2489,32 @@ const isExpanded = billingJob?._id === workOrder._id;
         <div className="plan-actions">
           <button
             className="btn"
-            onClick={() => {
-              setPlanJob(plan);
-              setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
-              setPlanPhases(1);
-              setPlanRate(0);
-              setPlanReadyToSend(false);
-              setPlanBillingOpen(true);
-              setIsUpdateMode(false);
-            }}
+            onClick={async () => {
+  setPlanJob(plan);
+  setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
+  setPlanPhases(1);
+  setPlanRate(0);
+  setPlanReadyToSend(false);
+  setPlanBillingOpen(true);
+  setIsUpdateMode(false);
+            try {
+    const { data } = await api.get('/api/billing/plan-invoice-status', {
+      params: { planIds: plan._id }
+    });
+    const inv = data?.byPlan?.[plan._id];
+    if (inv?.invoiceId) {
+      setIsUpdateMode(true);
+      const snap = inv.invoiceData || {};
+      // Your stored snapshot keys from payload (define below)
+      setPlanPhases(Number(snap.planPhases || 1));
+      setPlanRate(Number(snap.planRate || 0));
+      setPlanEmail(snap.selectedEmail || plan.email || '');
+      // show UI note that previous PDFs were sent; user can attach more now
+    }
+  } catch (e) {
+    console.warn('No prior plan invoice or failed fetch:', e);
+  }
+}}
           >
             Bill Plan
           </button>
