@@ -970,7 +970,7 @@ const VERTEX42_STARTER_ROWS = [
   { id: 5, service: 'Officer (hrs × $/hr)', taxed: false, amount: 0 },
   { id: 6, service: 'Rolling road block (per crew)', taxed: false, amount: 0 },
   { id: 7, service: 'Lights for night/emergency', taxed: false, amount: 0 },
-  { id: 8, service: 'Secondary intersections/closing signs', taxed: false, amount: 25 },
+  { id: 8, service: 'Secondary intersections/closing signs', taxed: false, amount: 0 },
   { id: 9, service: 'After-hours signs (qty × $/sign)', taxed: false, amount: 0 },
   { id:10, service: 'Arrow Board (qty × $)', taxed: false, amount: 0 },
   { id:11, service: 'Message Board (qty × $)', taxed: false, amount: 0 },
@@ -996,7 +996,7 @@ const noteValues = useMemo(() => {
   const mobilization  = findRow('mobilization');       // row 12
 
   return {
-    intersectionsPer: Number(intersections?.amount) || 25,
+    intersectionsPer: Number(intersections?.amount) || 0,
     afterHoursPer:    Number(afterHours?.amount)    || 0,
     arrowAmt:         Number(arrowBoard?.amount)    || 0,
     messageAmt:       Number(messageBoard?.amount)  || 0,
