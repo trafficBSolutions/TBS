@@ -268,12 +268,12 @@ const EmployeeComplaintForm = () => {
                   <div className="first-name">
                     <div className="name-control-input">
                       <div className="first-name-control-container">
-                        <label className="first-control-label-name">Name *</label>
+                        <label className="first-control-label-name">Suspect Name *</label>
                         <input
                           name="name"
                           type="text"
                           className="first-control-name-input"
-                          placeholder="Enter First & Last Name"
+                          placeholder="Enter Suspect First & Last Name"
                           value={formData.name}
                           onChange={(e) => {
                             const v = e.target.value;
