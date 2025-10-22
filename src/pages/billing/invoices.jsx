@@ -2536,10 +2536,7 @@ const isExpanded = billingJob?._id === workOrder._id;
     )) : <p>No plans found.</p>}
 
   </div>
-</div>
-
-        {/* Plan Billing Modal */}
-        {planBillingOpen && planJob && (
+  {planBillingOpen && planJob && (
           <div className="modal-overlay" onClick={() => setPlanBillingOpen(false)}>
             <div className="modal-content" onClick={e => e.stopPropagation()}>
               <div className="modal-header">
@@ -2644,6 +2641,10 @@ const isExpanded = billingJob?._id === workOrder._id;
             </div>
           </div>
         )}
+</div>
+
+        {/* Plan Billing Modal */}
+        
       {/* Footer unchanged */}
       <footer className="footer">
   <div className="site-footer__inner">
