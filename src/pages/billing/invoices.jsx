@@ -1625,7 +1625,7 @@ const fetchJobsForDay = async (date, companyName) => {
   // Fetch plans
   const fetchPlans = async () => {
     try {
-      const res = await api.get('/plans/all');
+      const res = await api.get('/plan/all');
       const plansList = Array.isArray(res?.data) ? res.data : 
                        Array.isArray(res?.data?.plans) ? res.data.plans :
                        Array.isArray(res?.data?.data) ? res.data.data : [];
