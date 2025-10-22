@@ -222,8 +222,11 @@ const EmployeeComplaintForm = () => {
       };
 
       // Example POST (uncomment & set your endpoint):
-      await axios.post((import.meta.env.VITE_API_URL || 'https://tbs-server.onrender.com') + '/employee-complaint-form', payload, { withCredentials: true });
+      const response = await axios.post((import.meta.env.VITE_API_URL || 'https://tbs-server.onrender.com') + '/employee-complaint-form', payload, { withCredentials: true });
 
+      // Store the submitted ID for PDF download
+      setFormData(prev => ({ ...prev, submittedId: response.data.id }));
+      
       setSubmissionMessage('✅ Complaint has been successfully submitted! Thank you!');
       toast.success('Complaint submitted');
       // (optional) reset form except date fields if you prefer
@@ -528,7 +531,31 @@ const EmployeeComplaintForm = () => {
                     )}
                   </button>
 
-                  {submissionMessage && <div className="custom-toast success">{submissionMessage}</div>}
+                  {submissionMessage && (
+                    <div className="custom-toast success">
+                      {submissionMessage}
+                      <div style={{ marginTop: '10px' }}>
+                        <button 
+                          type="button" 
+                          className="btn"
+                          style={{
+                            backgroundColor: '#1e3a8a',
+                            color: 'white',
+                            padding: '10px 20px',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            fontWeight: 'bold'
+                          }}
+                          onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'https://tbs-server.onrender.com'}/employee-complaints/${formData.submittedId}/pdf`, '_blank')}
+                          disabled={!formData.submittedId}
+                        >
+                          📄 Download PDF
+                        </button>
+                      </div>
+                    </div>
+                  )}
                   {submissionErrorMessage && <div className="custom-toast error">{submissionErrorMessage}</div>}
                   {errorMessage && <div className="custom-toast error">{errorMessage}</div>}
                 </div>
