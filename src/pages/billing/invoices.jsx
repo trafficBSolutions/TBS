@@ -906,6 +906,110 @@ async function handleUpdatePlan() {
   }
 }
 
+async function handleBillPlan() {
+  const principal = Number(planPhases) * Number(planRate);
+
+  if (!(principal > 0)) {
+    toast.error('Enter phases and rate so total > 0');
+    return;
+  }
+  if (!isValidEmail(planEmail)) {
+    toast.error('Enter a valid email');
+    return;
+  }
+  if (!attachedPdfs?.length) {
+    toast.error('Attach at least one PDF');
+    return;
+  }
+
+  setIsSubmitting(true);
+  try {
+    const fd = new FormData();
+    fd.append('payload', JSON.stringify({
+      planId: planJob._id,
+      manualAmount: principal,               // <-- server uses this
+      emailOverride: planEmail,
+      invoiceData: {
+        planPhases,
+        planRate,
+        selectedEmail: planEmail,
+        // include any other fields you want to persist:
+        // invoiceNumber, dueDate, etc.
+      }
+    }));
+    attachedPdfs.forEach(f => fd.append('attachments', f)); // <-- field name matches server
+
+    await api.post('/api/billing/bill-plan', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+
+    toast.success('Plan invoiced!');
+    // collapse/reset
+    setPlanJob(null);
+    setIsUpdateMode(false);
+    setPlanBillingOpen(false);
+    setAttachedPdfs([]);
+    setDetectedTotal(null);
+    setDetectError('');
+  } catch (err) {
+    console.error(err);
+    toast.error(err?.response?.data?.message || 'Failed to bill plan');
+  } finally {
+    setIsSubmitting(false);
+  }
+}
+
+async function handleUpdatePlan() {
+  const principal = Number(planPhases) * Number(planRate);
+
+  if (!(principal > 0)) {
+    toast.error('Enter phases and rate so total > 0');
+    return;
+  }
+  if (!isValidEmail(planEmail)) {
+    toast.error('Enter a valid email');
+    return;
+  }
+  if (!attachedPdfs?.length) {
+    toast.error('Attach at least one PDF');
+    return;
+  }
+
+  setIsSubmitting(true);
+  try {
+    const fd = new FormData();
+    fd.append('payload', JSON.stringify({
+      planId: planJob._id,
+      manualAmount: principal,
+      emailOverride: planEmail,
+      invoiceData: {
+        planPhases,
+        planRate,
+        selectedEmail: planEmail,
+        // invoiceNumber, dueDate, etc.
+      }
+    }));
+    attachedPdfs.forEach(f => fd.append('attachments', f));
+
+    await api.post('/api/billing/update-plan', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+
+    toast.success('Plan invoice updated & resent!');
+    setPlanJob(null);
+    setIsUpdateMode(false);
+    setPlanBillingOpen(false);
+    setAttachedPdfs([]);
+    setDetectedTotal(null);
+    setDetectError('');
+  } catch (err) {
+    console.error(err);
+    toast.error(err?.response?.data?.message || 'Failed to update plan invoice');
+  } finally {
+    setIsSubmitting(false);
+  }
+}
+
 const amount = Number(planPhases) * Number(planRate);
 const canSubmit = !isSubmitting && isValidEmail(planEmail) && attachedPdfs.length > 0 && amount > 0;
 
