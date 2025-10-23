@@ -2568,6 +2568,75 @@ const isExpanded = billingJob?._id === workOrder._id;
 
           {/* Actions */}
           <div className="plan-actions">
+            {!status.billed && (
+              <button
+                className="btn btn--primary"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setPlanJob(plan);
+                  setIsUpdateMode(false);
+                  setPlanBillingOpen(true);
+                  setPlanAttachedPdfs([]);
+                  setPlanDetectedTotal(null);
+                  setPlanDetectError('');
+                  setPlanPhases(1);
+                  setPlanRate(0);
+                  setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
+                }}
+              >
+                Bill Plan
+              </button>
+            )}
+            {status.billed && !status.paid && (
+              <>
+                <button
+                  className="btn btn--secondary"
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    setPlanJob(plan);
+                    setIsUpdateMode(true);
+                    setPlanBillingOpen(true);
+                    setPlanAttachedPdfs([]);
+                    setPlanDetectedTotal(null);
+                    setPlanDetectError('');
+                    
+                    try {
+                      const statusRes = await api.get(`/api/billing/plan-invoice-status?planIds=${plan._id}`);
+                      const planStatus = statusRes.data[plan._id];
+                      if (planStatus?.invoiceData) {
+                        setPlanPhases(Number(planStatus.invoiceData.planPhases || 1));
+                        setPlanRate(Number(planStatus.invoiceData.planRate || 0));
+                        setPlanEmail(planStatus.invoiceData.selectedEmail || plan.email || '');
+                        setPlanDetectedTotal(planStatus.invoiceData.sheetTotal || null);
+                      }
+                    } catch (err) {
+                      console.error('Failed to load previous invoice data:', err);
+                      setPlanPhases(1);
+                      setPlanRate(0);
+                      setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
+                    }
+                  }}
+                >
+                  Update Plan
+                </button>
+                <button
+                  className="btn btn--success"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedPlanId(plan._id);
+                    setPlanPaymentEmail(status.invoiceData?.selectedEmail || plan.email || '');
+                    const due = status.computedTotalDue || status.principal || 0;
+                    setPlanPaymentAmount(String(due));
+                    setPlanMarkPaidOpen(true);
+                  }}
+                >
+                  Mark Paid
+                </button>
+              </>
+            )}
+            {status.billed && status.paid && (
+              <span className="badge badge--success">Paid</span>
+            )}
             <button
               className="btn"
               onClick={async (e) => {
@@ -2643,10 +2712,17 @@ const isExpanded = billingJob?._id === workOrder._id;
                 {isUpdateMode ? 'Update Traffic Control Plan Invoice' : 'Bill Traffic Control Plan'}
               </div>
 
-              {/* Example total area (if you keep phases/rate) */}
+              {/* Show previous invoice info if updating */}
+              {isUpdateMode && status.invoiceData && (
+                <div style={{ marginBottom: 16, padding: 12, backgroundColor: '#e3f2fd', borderRadius: 8 }}>
+                  <strong>Previous Invoice:</strong> ${status.invoiceData.sheetTotal?.toFixed(2) || '0.00'} 
+                  (sent to {status.invoiceData.selectedEmail})
+                </div>
+              )}
+              
               <div className="form-row">
                 <label>Total Amount:</label>
-                <div className="total-display">${(planPhases * planRate).toFixed(2)}</div>
+                <div className="total-display">${planDetectedTotal?.toFixed(2) || (planPhases * planRate).toFixed(2)}</div>
               </div>
 
               <div className="form-row">
