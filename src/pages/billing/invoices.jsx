@@ -797,6 +797,11 @@ const [monthlyKey, setMonthlyKey] = useState(0);
 const [planEmail, setPlanEmail] = useState('');
 const [planReadyToSend, setPlanReadyToSend] = useState(false);
 const [planAttachedPdfs, setPlanAttachedPdfs] = useState([]);
+// derive UI state
+const hasEmail = isValidEmail(planEmail);
+const hasPdfs  = (attachedPdfs?.length ?? 0) > 0;
+// if you also want a positive amount, include it in canSubmit:
+const canSubmit = hasEmail && hasPdfs && !isSubmitting; // && (planPhases * planRate) > 0
 
 // Handle plan billing
 async function handleBillPlan() {
@@ -2625,31 +2630,35 @@ const isExpanded = billingJob?._id === workOrder._id;
                   </div>
                 )}
               </div>
+<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+  <button
+    className="btn btn--primary"
+    onClick={() => {
+      if (!canSubmit) return;
+      return isUpdateMode ? handleUpdatePlan() : handleBillPlan();
+    }}
+    disabled={!canSubmit}
+    title={!hasEmail ? 'Enter a valid email' : !hasPdfs ? 'Attach at least one PDF' : undefined}
+  >
+    {isSubmitting ? 'Processing…' : (isUpdateMode ? 'Update Plan' : 'Bill Plan')}
+  </button>
 
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
-                <button
-                  className="btn btn--primary"
-                  onClick={isUpdateMode ? handleUpdatePlan : handleBillPlan}
-                  disabled={isSubmitting || !planEmail || !attachedPdfs.length || (planPhases * planRate) <= 0}
-                >
-                  {isSubmitting ? 'Processing…' : (isUpdateMode ? 'Update Plan' : 'Bill Plan')}
-                </button>
+  <button
+    className="btn"
+    onClick={() => {
+      setPlanJob(null);
+      setIsUpdateMode(false);
+      setPlanBillingOpen(false);
+      setAttachedPdfs([]);
+      setDetectedTotal(null);
+      setDetectError('');
+    }}
+    disabled={isSubmitting}
+  >
+    Cancel
+  </button>
+</div>
 
-                <button
-                  className="btn"
-                  onClick={() => {
-                    setPlanJob(null);
-                    setIsUpdateMode(false);
-                    setPlanBillingOpen(false);
-                    setAttachedPdfs([]);
-                    setDetectedTotal(null);
-                    setDetectError('');
-                  }}
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </button>
-              </div>
             </div>
           )}
         </div>
