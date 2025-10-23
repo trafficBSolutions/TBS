@@ -13,7 +13,6 @@ import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-
 import { loadStripe } from '@stripe/stripe-js';
 const STRIPE_PK = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = STRIPE_PK ? loadStripe(STRIPE_PK) : null;
-import { Modal } from 'react-modal';
 import * as pdfjsLib from 'pdfjs-dist/build/pdf';
 import pdfjsWorker from 'pdfjs-dist/build/pdf.worker?url';
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
@@ -109,82 +108,6 @@ function isGaPowerOnly(name) {
   const mentionsOther = NON_GA_PARTNERS.some(k => n.includes(k));
   return !mentionsOther;
 }
-const PlanMarkPaidModal = ({ planId, onClose, onSuccess }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('card');
-  const [paymentAmount, setPaymentAmount] = useState('');
-  const [paymentEmail, setPaymentEmail] = useState('');
-
-  const handleMarkPaid = async () => {
-    setIsSubmitting(true);
-
-    try {
-      // Call the API to mark the plan as paid
-      await api.post('/api/billing/mark-plan-paid', {
-        planId,
-        paymentMethod,
-        paymentAmount,
-        paymentEmail,
-      });
-
-      // Update the plan status
-      setIsPlanPaid(true);
-
-      // Call the interest bot to send reminder emails
-      await runInterestReminderCycle();
-
-      onSuccess();
-    } catch (error) {
-      // Handle error
-      console.error(error);
-    } finally {
-      setIsSubmitting(false);
-      onClose();
-    }
-  };
-
-  return (
-    <Modal open={true} onClose={onClose}>
-      <div className="modal-content">
-        <h2>Mark Plan Paid</h2>
-        <form onSubmit={handleMarkPaid}>
-          <div className="form-group">
-            <label htmlFor="paymentMethod">Payment Method</label>
-            <select
-              id="paymentMethod"
-              value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value)}
-            >
-              <option value="card">Card</option>
-              <option value="check">Check</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label htmlFor="paymentAmount">Payment Amount</label>
-            <input
-              type="text"
-              id="paymentAmount"
-              value={paymentAmount}
-              onChange={(e) => setPaymentAmount(e.target.value)}
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="paymentEmail">Payment Email</label>
-            <input
-              type="email"
-              id="paymentEmail"
-              value={paymentEmail}
-              onChange={(e) => setPaymentEmail(e.target.value)}
-            />
-          </div>
-          <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Marking Paid...' : 'Mark Paid'}
-          </button>
-        </form>
-      </div>
-    </Modal>
-  );
-};
 const formatTime = (timeStr) => {
   if (!timeStr) return '';
   const [hours, minutes] = timeStr.split(':');
@@ -883,7 +806,7 @@ const [planPaymentEmail, setPlanPaymentEmail] = useState('');
 const [planDetectingTotal, setPlanDetectingTotal] = useState(false);
 const [planDetectedTotal, setPlanDetectedTotal] = useState(null);
 const [planDetectError, setPlanDetectError] = useState('');
-const [isPlanPaid, setIsPlanPaid] = useState(false);
+
 // Handle plan billing
 async function handleBillPlan() {
   if (!planJob) return;
@@ -1141,7 +1064,7 @@ function detectTotalFromText(txt) {
 
   return null;
 }
-
+const status = planInvoiceStatus[plan._id]
 // Extract the highest-confidence total across multiple PDFs
 async function detectTotalFromFiles(files) {
   let totalSum = 0;
@@ -2692,28 +2615,7 @@ const isExpanded = billingJob?._id === workOrder._id;
             >
               {isExpanded ? 'Close Billing' : 'Bill Plan'}
             </button>
-<button
-  className="btn"
-  onClick={async (e) => {
-    e.stopPropagation();
 
-    if (isExpanded) {
-      // collapse this card
-      setPlanJob(null);
-      setIsUpdateMode(false);
-      setPlanBillingOpen(false);
-      setAttachedPdfs([]);
-      setDetectedTotal(null);
-      setDetectError('');
-      return;
-    }
-
-    setPlanMarkPaidOpen(true);
-    setSelectedPlanId(plan._id);
-  }}
->
-  {status.paid ? 'Mark Unpaid' : 'Mark Paid'}
-</button>
             <button
               className="btn btn--secondary"
               onClick={(e) => {
@@ -2804,32 +2706,65 @@ const isExpanded = billingJob?._id === workOrder._id;
               </div>
 
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
-                {isUpdateMode ? (
-                  <button
-                    className="btn btn--primary"
-                    onClick={handleUpdatePlan}
-                    disabled={isSubmitting || !planEmail || !planAttachedPdfs.length}
-                  >
-                    {isSubmitting ? 'Updating...' : 'Update Plan'}
-                  </button>
-                ) : (
-                  <button
-                    className="btn btn--primary"
-                    onClick={handleBillPlan}
-                    disabled={isSubmitting || !planEmail || !planAttachedPdfs.length}
-                  >
-                    {isSubmitting ? 'Sending...' : 'Bill Plan'}
-                  </button>
-                )}
-                <button
-                  className="btn"
-                  onClick={() => {
-                    setPlanBillingOpen(false);
-                    setPlanJob(null);
-                  }}
-                >
-                  Cancel
-                </button>
+               {!status.billed && (
+          <button
+            className="btn btn--primary"
+            onClick={(e) => {
+              e.stopPropagation();
+              setPlanJob(plan);
+              setIsUpdateMode(false);
+              setPlanBillingOpen(true);
+              setAttachedPdfs([]);
+              setDetectedTotal(null);
+              setDetectError('');
+              setPlanPhases(1);
+              setPlanRate(0);
+              setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
+            }}
+          >
+            Bill Plan
+          </button>
+        )}
+  {status.billed && !status.paid && (
+          <>
+            <button
+              className="btn btn--secondary"
+              onClick={(e) => {
+                e.stopPropagation();
+                setPlanJob(plan);
+                setIsUpdateMode(true);
+                setPlanBillingOpen(true);
+                setAttachedPdfs([]);
+                setDetectedTotal(null);
+                setDetectError('');
+                const snap = status.invoiceData || {};
+                setPlanPhases(Number(snap.planPhases || 1));
+                setPlanRate(Number(snap.planRate || 0));
+                setPlanEmail(snap.selectedEmail || plan.email || '');
+              }}
+            >
+              Update Plan
+            </button>
+
+            <button
+              className="btn btn--success"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedPlanId(plan._id);
+                setPlanPaymentEmail(status.invoiceData?.selectedEmail || plan.email || '');
+                const due = status.computedTotalDue || status.principal || 0;
+                setPlanPaymentAmount(String(due));
+                setPlanMarkPaidOpen(true);
+              }}
+            >
+              Mark Paid
+            </button>
+          </>
+        )}
+{status?.billed && status?.paid && (
+  // Fully paid => badge or disabled button
+  <span className="badge badge--success">Paid</span>
+)}
               </div>
             </div>
           )}
@@ -2838,14 +2773,7 @@ const isExpanded = billingJob?._id === workOrder._id;
     }) : <p>No plans found.</p>}
   </div>
 </div>
-<PlanMarkPaidModal
-  planId={selectedPlanId}
-  onClose={() => setPlanMarkPaidOpen(false)}
-  onSuccess={() => {
-    setPlanMarkPaidOpen(false);
-    setIsPlanPaid(true);
-  }}
-/>
+
         {/* Plan Mark Paid Modal */}
         {planMarkPaidOpen && (
           <div className="modal-overlay" onClick={() => setPlanMarkPaidOpen(false)}>
