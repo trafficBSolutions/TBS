@@ -791,6 +791,7 @@ const [submissionMessage, setSubmissionMessage] = useState('');
   const [submissionErrorMessage, setSubmissionErrorMessage] = useState('');
 const [planBillingOpen, setPlanBillingOpen] = useState(false);
 const [planJob, setPlanJob] = useState(null);
+const [selectedPlanId, setSelectedPlanId] = useState(null);
 const [planPhases, setPlanPhases] = useState(0);
 const [planRate, setPlanRate] = useState(0);
 const [monthlyKey, setMonthlyKey] = useState(0);
@@ -1894,6 +1895,20 @@ const handleUpdateInvoice = async () => {
   return (
     <div>
       <Header />
+      <div className="page-header">
+        <button 
+          className="btn btn--secondary back-button"
+          onClick={() => window.location.href = '/admin-dashboard'}
+          style={{
+            position: 'absolute',
+            top: '20px',
+            left: '20px',
+            zIndex: 1000
+          }}
+        >
+          ← Back to Dashboard
+        </button>
+      </div>
       <div className="invoice-page container">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <h1>Invoices</h1>
@@ -2490,8 +2505,9 @@ const isExpanded = billingJob?._id === workOrder._id;
           <button
   className="btn"
   onClick={(e) => {
-    e.stopPropagation();                // <— prevents same click from closing it
+    e.stopPropagation();
     setPlanJob(plan);
+    setSelectedPlanId(plan._id);
     setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
     setPlanPhases(1);
     setPlanRate(0);
@@ -2519,8 +2535,10 @@ const isExpanded = billingJob?._id === workOrder._id;
 
           <button
             className="btn btn--secondary"
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               setPlanJob(plan);
+              setSelectedPlanId(plan._id);
               setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
               setPlanPhases(1);
               setPlanRate(0);
@@ -2532,13 +2550,27 @@ const isExpanded = billingJob?._id === workOrder._id;
             Update Plan
           </button>
         </div>
-        {planBillingOpen && planJob && (
-          <div className="modal-overlay" onClick={() => setPlanBillingOpen(false)}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
-              <div className="modal-header">
-                <h2>{isUpdateMode ? 'Update' : 'Bill'} Traffic Control Plan</h2>
-                <button className="modal-close" onClick={() => setPlanBillingOpen(false)}>×</button>
-              </div>
+      </div>
+    )) : <p>No plans found.</p>}
+
+  </div>
+
+</div>
+
+{/* Plan Billing Modal - moved outside the map loop */}
+{planBillingOpen && planJob && (
+  <div className="modal-overlay" onClick={() => {
+    setPlanBillingOpen(false);
+    setSelectedPlanId(null);
+  }}>
+    <div className="modal-content" onClick={e => e.stopPropagation()}>
+      <div className="modal-header">
+        <h2>{isUpdateMode ? 'Update' : 'Bill'} Traffic Control Plan</h2>
+        <button className="modal-close" onClick={() => {
+          setPlanBillingOpen(false);
+          setSelectedPlanId(null);
+        }}>×</button>
+      </div>
               
               <div className="modal-body">
                 <div className="plan-info">
@@ -2602,25 +2634,22 @@ const isExpanded = billingJob?._id === workOrder._id;
                 >
                   {isSubmitting ? 'Processing...' : (isUpdateMode ? 'Update Plan' : 'Bill Plan')}
                 </button>
-                <button
-                  className="btn"
-                  onClick={() => setPlanBillingOpen(false)}
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <button
+          className="btn"
+          onClick={() => {
+            setPlanBillingOpen(false);
+            setSelectedPlanId(null);
+          }}
+          disabled={isSubmitting}
+        >
+          Cancel
+        </button>
       </div>
-    )) : <p>No plans found.</p>}
-
+    </div>
   </div>
+)}
 
-</div>
 
-        {/* Plan Billing Modal */}
         
       {/* Footer unchanged */}
       <footer className="footer">
