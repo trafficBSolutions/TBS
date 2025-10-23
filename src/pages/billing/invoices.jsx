@@ -801,74 +801,92 @@ const [planAttachedPdfs, setPlanAttachedPdfs] = useState([]);
 // Handle plan billing
 async function handleBillPlan() {
   if (!planJob) return;
-  const total = Number((planPhases * planRate).toFixed(2));
-  if (!(total > 0)) return;
-
-  const payload = {
-    planId: planJob._id,
-    manualAmount: total,
-    emailOverride: planEmail,
-    invoiceData: {
-      invoiceDate: new Date().toISOString().slice(0,10),
-      dueDate: '', // or compute Net30 like jobs
-      invoiceNumber: '',
-
-      // TCP snapshot — so we can prefill on update
-      planPhases,
-      planRate,
-      sheetTotal: total,
-      selectedEmail: planEmail,
+  setIsSubmitting(true);
+  
+  try {
+    const total = detectedTotal || Number((planPhases * planRate).toFixed(2));
+    if (!(total > 0)) {
+      toast.error('Please enter valid phases and rate, or attach PDF with detectable total');
+      return;
     }
-  };
 
-  const fd = new FormData();
-  fd.append('payload', JSON.stringify(payload));
-  (attachedPdfs || []).forEach(f => fd.append('attachments', f));
+    const payload = {
+      planId: planJob._id,
+      manualAmount: total,
+      emailOverride: planEmail,
+      invoiceData: {
+        invoiceDate: new Date().toISOString().slice(0,10),
+        dueDate: new Date(Date.now() + 30*24*60*60*1000).toISOString().slice(0,10),
+        invoiceNumber: '',
+        planPhases,
+        planRate,
+        sheetTotal: total,
+        selectedEmail: planEmail,
+      }
+    };
 
-  await api.post('/api/billing/bill-plan', fd, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  });
+    const fd = new FormData();
+    fd.append('payload', JSON.stringify(payload));
+    (attachedPdfs || []).forEach(f => fd.append('attachments', f));
 
-  toast.success('Plan invoice sent!');
-  setPlanBillingOpen(false);
-  setAttachedPdfs([]);
+    await api.post('/api/billing/bill-plan', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+
+    toast.success('Plan invoice sent!');
+    setPlanBillingOpen(false);
+    setAttachedPdfs([]);
+    setDetectedTotal(null);
+  } catch (err) {
+    toast.error(err?.response?.data?.message || 'Failed to send plan invoice');
+  } finally {
+    setIsSubmitting(false);
+  }
 }
-
 
 async function handleUpdatePlan() {
   if (!planJob) return;
-  const total = Number((planPhases * planRate).toFixed(2));
-  if (!(total > 0)) return;
-
-  const payload = {
-    planId: planJob._id,
-    manualAmount: total,
-    emailOverride: planEmail,
-    invoiceData: {
-      // keep/allow editing same header fields as job updates if you add inputs
-      invoiceDate: new Date().toISOString().slice(0,10),
-      dueDate: '',
-      invoiceNumber: '',
-
-      // snapshot again
-      planPhases,
-      planRate,
-      sheetTotal: total,
-      selectedEmail: planEmail,
+  setIsSubmitting(true);
+  
+  try {
+    const total = detectedTotal || Number((planPhases * planRate).toFixed(2));
+    if (!(total > 0)) {
+      toast.error('Please enter valid phases and rate, or attach PDF with detectable total');
+      return;
     }
-  };
 
-  const fd = new FormData();
-  fd.append('payload', JSON.stringify(payload));
-  (attachedPdfs || []).forEach(f => fd.append('attachments', f));
+    const payload = {
+      planId: planJob._id,
+      manualAmount: total,
+      emailOverride: planEmail,
+      invoiceData: {
+        invoiceDate: new Date().toISOString().slice(0,10),
+        dueDate: new Date(Date.now() + 30*24*60*60*1000).toISOString().slice(0,10),
+        invoiceNumber: '',
+        planPhases,
+        planRate,
+        sheetTotal: total,
+        selectedEmail: planEmail,
+      }
+    };
 
-  await api.post('/api/billing/update-plan', fd, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  });
+    const fd = new FormData();
+    fd.append('payload', JSON.stringify(payload));
+    (attachedPdfs || []).forEach(f => fd.append('attachments', f));
 
-  toast.success('Plan invoice updated and resent!');
-  setPlanBillingOpen(false);
-  setAttachedPdfs([]);
+    await api.post('/api/billing/update-plan', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+
+    toast.success('Plan invoice updated and resent!');
+    setPlanBillingOpen(false);
+    setAttachedPdfs([]);
+    setDetectedTotal(null);
+  } catch (err) {
+    toast.error(err?.response?.data?.message || 'Failed to update plan invoice');
+  } finally {
+    setIsSubmitting(false);
+  }
 }
 
 
