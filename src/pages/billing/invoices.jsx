@@ -99,7 +99,6 @@ const COMPANY_TO_EMAIL = {
 
 // helpers (keep above component to avoid TDZ issues)
 const fmtUSD = (n) => `$${Number(n || 0).toFixed(2)}`;
-const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 function isGaPowerOnly(name) {
   if (!name) return false;
   const n = String(name).toLowerCase();
@@ -799,219 +798,79 @@ const [planEmail, setPlanEmail] = useState('');
 const [planReadyToSend, setPlanReadyToSend] = useState(false);
 const [planAttachedPdfs, setPlanAttachedPdfs] = useState([]);
 
-// helper
-const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
+// Handle plan billing
 async function handleBillPlan() {
-  const principal = Number(planPhases) * Number(planRate);
+  if (!planJob) return;
+  const total = Number((planPhases * planRate).toFixed(2));
+  if (!(total > 0)) return;
 
-  if (!(principal > 0)) {
-    toast.error('Enter phases and rate so total > 0');
-    return;
-  }
-  if (!isValidEmail(planEmail)) {
-    toast.error('Enter a valid email');
-    return;
-  }
-  if (!attachedPdfs?.length) {
-    toast.error('Attach at least one PDF');
-    return;
-  }
+  const payload = {
+    planId: planJob._id,
+    manualAmount: total,
+    emailOverride: planEmail,
+    invoiceData: {
+      invoiceDate: new Date().toISOString().slice(0,10),
+      dueDate: '', // or compute Net30 like jobs
+      invoiceNumber: '',
 
-  setIsSubmitting(true);
-  try {
-    const fd = new FormData();
-    fd.append('payload', JSON.stringify({
-      planId: planJob._id,
-      manualAmount: principal,               // <-- server uses this
-      emailOverride: planEmail,
-      invoiceData: {
-        planPhases,
-        planRate,
-        selectedEmail: planEmail,
-        // include any other fields you want to persist:
-        // invoiceNumber, dueDate, etc.
-      }
-    }));
-    attachedPdfs.forEach(f => fd.append('attachments', f)); // <-- field name matches server
+      // TCP snapshot — so we can prefill on update
+      planPhases,
+      planRate,
+      sheetTotal: total,
+      selectedEmail: planEmail,
+    }
+  };
 
-    await api.post('/api/billing/bill-plan', fd, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
+  const fd = new FormData();
+  fd.append('payload', JSON.stringify(payload));
+  (attachedPdfs || []).forEach(f => fd.append('attachments', f));
 
-    toast.success('Plan invoiced!');
-    // collapse/reset
-    setPlanJob(null);
-    setIsUpdateMode(false);
-    setPlanBillingOpen(false);
-    setAttachedPdfs([]);
-    setDetectedTotal(null);
-    setDetectError('');
-  } catch (err) {
-    console.error(err);
-    toast.error(err?.response?.data?.message || 'Failed to bill plan');
-  } finally {
-    setIsSubmitting(false);
-  }
+  await api.post('/api/billing/bill-plan', fd, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+
+  toast.success('Plan invoice sent!');
+  setPlanBillingOpen(false);
+  setAttachedPdfs([]);
 }
+
 
 async function handleUpdatePlan() {
-  const principal = Number(planPhases) * Number(planRate);
+  if (!planJob) return;
+  const total = Number((planPhases * planRate).toFixed(2));
+  if (!(total > 0)) return;
 
-  if (!(principal > 0)) {
-    toast.error('Enter phases and rate so total > 0');
-    return;
-  }
-  if (!isValidEmail(planEmail)) {
-    toast.error('Enter a valid email');
-    return;
-  }
-  if (!attachedPdfs?.length) {
-    toast.error('Attach at least one PDF');
-    return;
-  }
+  const payload = {
+    planId: planJob._id,
+    manualAmount: total,
+    emailOverride: planEmail,
+    invoiceData: {
+      // keep/allow editing same header fields as job updates if you add inputs
+      invoiceDate: new Date().toISOString().slice(0,10),
+      dueDate: '',
+      invoiceNumber: '',
 
-  setIsSubmitting(true);
-  try {
-    const fd = new FormData();
-    fd.append('payload', JSON.stringify({
-      planId: planJob._id,
-      manualAmount: principal,
-      emailOverride: planEmail,
-      invoiceData: {
-        planPhases,
-        planRate,
-        selectedEmail: planEmail,
-        // invoiceNumber, dueDate, etc.
-      }
-    }));
-    attachedPdfs.forEach(f => fd.append('attachments', f));
+      // snapshot again
+      planPhases,
+      planRate,
+      sheetTotal: total,
+      selectedEmail: planEmail,
+    }
+  };
 
-    await api.post('/api/billing/update-plan', fd, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
+  const fd = new FormData();
+  fd.append('payload', JSON.stringify(payload));
+  (attachedPdfs || []).forEach(f => fd.append('attachments', f));
 
-    toast.success('Plan invoice updated & resent!');
-    setPlanJob(null);
-    setIsUpdateMode(false);
-    setPlanBillingOpen(false);
-    setAttachedPdfs([]);
-    setDetectedTotal(null);
-    setDetectError('');
-  } catch (err) {
-    console.error(err);
-    toast.error(err?.response?.data?.message || 'Failed to update plan invoice');
-  } finally {
-    setIsSubmitting(false);
-  }
+  await api.post('/api/billing/update-plan', fd, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+
+  toast.success('Plan invoice updated and resent!');
+  setPlanBillingOpen(false);
+  setAttachedPdfs([]);
 }
 
-async function handleBillPlan() {
-  const principal = Number(planPhases) * Number(planRate);
-
-  if (!(principal > 0)) {
-    toast.error('Enter phases and rate so total > 0');
-    return;
-  }
-  if (!isValidEmail(planEmail)) {
-    toast.error('Enter a valid email');
-    return;
-  }
-  if (!attachedPdfs?.length) {
-    toast.error('Attach at least one PDF');
-    return;
-  }
-
-  setIsSubmitting(true);
-  try {
-    const fd = new FormData();
-    fd.append('payload', JSON.stringify({
-      planId: planJob._id,
-      manualAmount: principal,               // <-- server uses this
-      emailOverride: planEmail,
-      invoiceData: {
-        planPhases,
-        planRate,
-        selectedEmail: planEmail,
-        // include any other fields you want to persist:
-        // invoiceNumber, dueDate, etc.
-      }
-    }));
-    attachedPdfs.forEach(f => fd.append('attachments', f)); // <-- field name matches server
-
-    await api.post('/api/billing/bill-plan', fd, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
-
-    toast.success('Plan invoiced!');
-    // collapse/reset
-    setPlanJob(null);
-    setIsUpdateMode(false);
-    setPlanBillingOpen(false);
-    setAttachedPdfs([]);
-    setDetectedTotal(null);
-    setDetectError('');
-  } catch (err) {
-    console.error(err);
-    toast.error(err?.response?.data?.message || 'Failed to bill plan');
-  } finally {
-    setIsSubmitting(false);
-  }
-}
-
-async function handleUpdatePlan() {
-  const principal = Number(planPhases) * Number(planRate);
-
-  if (!(principal > 0)) {
-    toast.error('Enter phases and rate so total > 0');
-    return;
-  }
-  if (!isValidEmail(planEmail)) {
-    toast.error('Enter a valid email');
-    return;
-  }
-  if (!attachedPdfs?.length) {
-    toast.error('Attach at least one PDF');
-    return;
-  }
-
-  setIsSubmitting(true);
-  try {
-    const fd = new FormData();
-    fd.append('payload', JSON.stringify({
-      planId: planJob._id,
-      manualAmount: principal,
-      emailOverride: planEmail,
-      invoiceData: {
-        planPhases,
-        planRate,
-        selectedEmail: planEmail,
-        // invoiceNumber, dueDate, etc.
-      }
-    }));
-    attachedPdfs.forEach(f => fd.append('attachments', f));
-
-    await api.post('/api/billing/update-plan', fd, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
-
-    toast.success('Plan invoice updated & resent!');
-    setPlanJob(null);
-    setIsUpdateMode(false);
-    setPlanBillingOpen(false);
-    setAttachedPdfs([]);
-    setDetectedTotal(null);
-    setDetectError('');
-  } catch (err) {
-    console.error(err);
-    toast.error(err?.response?.data?.message || 'Failed to update plan invoice');
-  } finally {
-    setIsSubmitting(false);
-  }
-}
-
-const amount = Number(planPhases) * Number(planRate);
-const canSubmit = !isSubmitting && isValidEmail(planEmail) && attachedPdfs.length > 0 && amount > 0;
 
 // Fetch plans on component mount
 useEffect(() => {
@@ -1166,6 +1025,7 @@ const tbsHours = useMemo(() => {
    return Math.round(crews * hrs * rate * 100) / 100;
  }, [crewsCount, otHours, otRate]);
 // Email validation helper
+const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 // near other localStorage-backed state
 const [locallyPaid, setLocallyPaid] = useState(() => {
   try { return new Set(JSON.parse(localStorage.getItem('locallyPaid') || '[]')); }
@@ -2765,31 +2625,35 @@ const isExpanded = billingJob?._id === workOrder._id;
                   </div>
                 )}
               </div>
+<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+  <button
+    className="btn btn--primary"
+    onClick={() => {
+      if (!canSubmit) return;
+      return isUpdateMode ? handleUpdatePlan() : handleBillPlan();
+    }}
+    disabled={!canSubmit}
+    title={!hasEmail ? 'Enter a valid email' : !hasPdfs ? 'Attach at least one PDF' : undefined}
+  >
+    {isSubmitting ? 'Processing…' : (isUpdateMode ? 'Update Plan' : 'Bill Plan')}
+  </button>
 
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
-                <button
-                  className="btn btn--primary"
-                  onClick={isUpdateMode ? handleUpdatePlan : handleBillPlan}
-                  disabled={isSubmitting || !planEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(planEmail) || !attachedPdfs.length}
-                >
-                  {isSubmitting ? 'Processing…' : (isUpdateMode ? 'Update Plan' : 'Bill Plan')}
-                </button>
+  <button
+    className="btn"
+    onClick={() => {
+      setPlanJob(null);
+      setIsUpdateMode(false);
+      setPlanBillingOpen(false);
+      setAttachedPdfs([]);
+      setDetectedTotal(null);
+      setDetectError('');
+    }}
+    disabled={isSubmitting}
+  >
+    Cancel
+  </button>
+</div>
 
-                <button
-                  className="btn"
-                  onClick={() => {
-                    setPlanJob(null);
-                    setIsUpdateMode(false);
-                    setPlanBillingOpen(false);
-                    setAttachedPdfs([]);
-                    setDetectedTotal(null);
-                    setDetectError('');
-                  }}
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </button>
-              </div>
             </div>
           )}
         </div>
