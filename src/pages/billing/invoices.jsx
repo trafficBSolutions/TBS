@@ -1064,7 +1064,7 @@ function detectTotalFromText(txt) {
 
   return null;
 }
-const status = planInvoiceStatus[plan._id]
+
 // Extract the highest-confidence total across multiple PDFs
 async function detectTotalFromFiles(files) {
   let totalSum = 0;
