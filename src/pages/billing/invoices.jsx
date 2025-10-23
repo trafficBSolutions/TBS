@@ -2458,20 +2458,19 @@ const isExpanded = billingJob?._id === workOrder._id;
           </div>
         </div>
       </div>
-
 <div className="admin-plans">
   <h2 className="admin-plans-title">Traffic Control Plans</h2>
 
   <div className="plan-list">
-    {plans.length > 0 ? (
-      plans.map((plan, index) => (
+    {plans.length > 0 ? plans.map((plan, index) => {
+      const isExpanded = planJob?._id === plan._id; // 👈 just like jobs
+
+      return (
         <div key={plan._id || index} className="plan-card">
           <h4 className="job-company">{plan.company}</h4>
           <p><strong>Coordinator:</strong> {plan.name}</p>
           <p><strong>Email:</strong> {plan.email}</p>
-          {plan.phone && (
-            <p><strong>Phone:</strong> <a href={`tel:${plan.phone}`}>{plan.phone}</a></p>
-          )}
+          {plan.phone && <p><strong>Phone:</strong> <a href={`tel:${plan.phone}`}>{plan.phone}</a></p>}
           <p><strong>Project/Task Number:</strong> {plan.project}</p>
           <p><strong>Address:</strong> {plan.address}, {plan.city}, {plan.state} {plan.zip}</p>
           {plan.message && <p><strong>Message:</strong> {plan.message}</p>}
@@ -2488,21 +2487,38 @@ const isExpanded = billingJob?._id === workOrder._id;
             </button>
           )}
 
-          {/* ONE set of action buttons per card */}
+          {/* Actions */}
           <div className="plan-actions">
             <button
               className="btn"
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.stopPropagation();
+
+                if (isExpanded) {
+                  // collapse this card
+                  setPlanJob(null);
+                  setIsUpdateMode(false);
+                  setPlanBillingOpen(false);
+                  setAttachedPdfs([]);
+                  setDetectedTotal(null);
+                  setDetectError('');
+                  return;
+                }
+
+                // expand this card
                 setPlanJob(plan);
-                setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
-                setPlanPhases(1);
-                setPlanRate(0);
-                setPlanReadyToSend(false);
                 setIsUpdateMode(false);
                 setPlanBillingOpen(true);
 
-                // Prefill status (fire-and-forget)
+                // reset per-open state
+                setAttachedPdfs([]);
+                setDetectedTotal(null);
+                setDetectError('');
+                setPlanPhases(1);
+                setPlanRate(0);
+                setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
+
+                // fire-and-forget: if there’s a prior invoice for this plan, flip to update mode & prefill
                 api.get('/api/billing/plan-invoice-status', { params: { planIds: plan._id } })
                   .then(({ data }) => {
                     const inv = data?.byPlan?.[plan._id];
@@ -2512,127 +2528,135 @@ const isExpanded = billingJob?._id === workOrder._id;
                       setPlanPhases(Number(snap.planPhases || 1));
                       setPlanRate(Number(snap.planRate || 0));
                       setPlanEmail(snap.selectedEmail || plan.email || '');
+                      // You could also surface "previous PDFs already on file" in UI if you store that
                     }
                   })
                   .catch(() => {});
               }}
             >
-              Bill Plan
+              {isExpanded ? 'Close Billing' : 'Bill Plan'}
             </button>
 
             <button
               className="btn btn--secondary"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
+                // force update mode open
                 setPlanJob(plan);
-                setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
+                setIsUpdateMode(true);
+                setPlanBillingOpen(true);
+                setAttachedPdfs([]);
+                setDetectedTotal(null);
+                setDetectError('');
                 setPlanPhases(1);
                 setPlanRate(0);
-                setPlanReadyToSend(false);
-                setPlanBillingOpen(true);
-                setIsUpdateMode(true);
+                setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
               }}
             >
               Update Plan
             </button>
           </div>
-        </div>
-      ))
-    ) : (
-      <p>No plans found.</p>
-    )}
-  </div>
 
-  {/* SINGLE MODAL outside the map */}
-  {planBillingOpen && planJob && (
-    <div
-      className="modal-overlay"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) setPlanBillingOpen(false);
-      }}
-    >
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>{isUpdateMode ? 'Update' : 'Bill'} Traffic Control Plan</h2>
-          <button className="modal-close" onClick={() => setPlanBillingOpen(false)}>×</button>
-        </div>
+          {/* Inline billing panel — only for the selected plan */}
+          {isExpanded && (
+            <div style={{ marginTop: 15, padding: 15, border: '2px solid #007bff', borderRadius: 8, backgroundColor: '#f8f9fa' }}>
+              <div style={{ marginBottom: 16, fontWeight: 'bold', fontSize: 16 }}>
+                {isUpdateMode ? 'Update Traffic Control Plan Invoice' : 'Bill Traffic Control Plan'}
+              </div>
 
-        <div className="modal-body">
-          <div className="plan-info">
-            <h3>{planJob.company}</h3>
-            <p><strong>Project:</strong> {planJob.project}</p>
-            <p><strong>Coordinator:</strong> {planJob.name}</p>
-            <p><strong>Address:</strong> {planJob.address}, {planJob.city}, {planJob.state} {planJob.zip}</p>
-          </div>
+              {/* Example total area (if you keep phases/rate) */}
+              <div className="form-row">
+                <label>Total Amount:</label>
+                <div className="total-display">${(planPhases * planRate).toFixed(2)}</div>
+              </div>
 
-          <div className="billing-form">
-            {/* if you need phases/rate inputs, put them back here */}
-            <div className="form-row">
-              <label>Total Amount:</label>
-              <div className="total-display">${(planPhases * planRate).toFixed(2)}</div>
-            </div>
+              <div className="form-row">
+                <label>Email:</label>
+                <input
+                  type="email"
+                  value={planEmail}
+                  onChange={e => setPlanEmail(e.target.value)}
+                  placeholder="Enter email address"
+                />
+              </div>
 
-            <div className="form-row">
-              <label>Email:</label>
-              <input
-                type="email"
-                value={planEmail}
-                onChange={e => setPlanEmail(e.target.value)}
-                placeholder="Enter email address"
-              />
-            </div>
-
-            <div className="form-row">
-              <label>Attach Invoice PDFs: *</label>
-              <input
-                type="file"
-                accept=".pdf"
-                multiple
-                onChange={e => handlePdfAttachment(
-                  e.target.files,
-                  setAttachedPdfs,
-                  setDetectingTotal,
-                  setDetectError,
-                  setDetectedTotal,
-                  () => {},
-                  toast
-                )}
-              />
-              {attachedPdfs.length > 0 && (
-                <div className="attached-files">
-                  <p>{attachedPdfs.length} PDF(s) attached</p>
-                  {detectedTotal && (
-                    <p className="detected-total">Detected total: ${detectedTotal.toFixed(2)}</p>
+              <div className="form-row">
+                <label>Attach Invoice PDFs: *</label>
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  multiple
+                  onChange={e => handlePdfAttachment(
+                    e.target.files,
+                    setAttachedPdfs,
+                    setDetectingTotal,
+                    setDetectError,
+                    setDetectedTotal,
+                    () => {}, // no sheetRows for plans
+                    toast
                   )}
-                </div>
-              )}
-              {!attachedPdfs.length && (
-                <p className="validation-message">Please attach at least one PDF invoice</p>
-              )}
+                />
+                {detectingTotal && <div style={{ color: '#007bff', fontSize: 14 }}>🔍 Detecting total from PDF…</div>}
+                {detectedTotal && <div style={{ color: '#28a745', fontSize: 16, fontWeight: 'bold' }}>✅ Auto-detected total: ${detectedTotal.toFixed(2)}</div>}
+                {detectError && <div style={{ color: '#dc3545', fontSize: 14 }}>❌ {detectError}</div>}
+
+                {attachedPdfs.length > 0 && (
+                  <div style={{ marginTop: 10 }}>
+                    <strong>Attached files ({attachedPdfs.length}):</strong>
+                    <ul style={{ margin: '5px 0', paddingLeft: 20 }}>
+                      {attachedPdfs.map((file, idx) => (
+                        <li key={idx}>
+                          {file.name} ({(file.size / 1024).toFixed(1)} KB)
+                          <button
+                            onClick={() => {
+                              const next = attachedPdfs.filter((_, i) => i !== idx);
+                              handlePdfAttachment(next, setAttachedPdfs, setDetectingTotal, setDetectError, setDetectedTotal, () => {}, toast);
+                            }}
+                            style={{ marginLeft: 8, fontSize: 12, padding: '2px 6px', color: '#dc3545', background: 'none', border: '1px solid #dc3545', borderRadius: 3, cursor: 'pointer' }}
+                          >
+                            Remove
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                    <div style={{ fontSize: 14, color: '#007bff', marginTop: 5 }}>
+                      💡 These PDFs will be attached to the email; adding more will include them too.
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+                <button
+                  className="btn btn--primary"
+                  onClick={isUpdateMode ? handleUpdatePlan : handleBillPlan}
+                  disabled={isSubmitting || !planEmail || !attachedPdfs.length || (planPhases * planRate) <= 0}
+                >
+                  {isSubmitting ? 'Processing…' : (isUpdateMode ? 'Update Plan' : 'Bill Plan')}
+                </button>
+
+                <button
+                  className="btn"
+                  onClick={() => {
+                    setPlanJob(null);
+                    setIsUpdateMode(false);
+                    setPlanBillingOpen(false);
+                    setAttachedPdfs([]);
+                    setDetectedTotal(null);
+                    setDetectError('');
+                  }}
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
-
-        <div className="modal-footer">
-          <button
-            className="btn btn--primary"
-            onClick={isUpdateMode ? handleUpdatePlan : handleBillPlan}
-            disabled={isSubmitting || !planEmail || !attachedPdfs.length || (planPhases * planRate) <= 0}
-          >
-            {isSubmitting ? 'Processing...' : (isUpdateMode ? 'Update Plan' : 'Bill Plan')}
-          </button>
-          <button
-            className="btn"
-            onClick={() => setPlanBillingOpen(false)}
-            disabled={isSubmitting}
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  )}
+      );
+    }) : <p>No plans found.</p>}
+  </div>
 </div>
-
 
         {/* Plan Billing Modal */}
         
