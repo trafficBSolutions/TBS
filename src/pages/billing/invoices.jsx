@@ -2630,7 +2630,7 @@ const isExpanded = billingJob?._id === workOrder._id;
                 <button
                   className="btn btn--primary"
                   onClick={isUpdateMode ? handleUpdatePlan : handleBillPlan}
-                  disabled={isSubmitting || !planEmail || !attachedPdfs.length || (planPhases * planRate) <= 0}
+                  disabled={isSubmitting || !planEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(planEmail) || !attachedPdfs.length}
                 >
                   {isSubmitting ? 'Processing…' : (isUpdateMode ? 'Update Plan' : 'Bill Plan')}
                 </button>
