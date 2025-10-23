@@ -824,9 +824,11 @@ async function handleBillPlan() {
       manualAmount: total,
       emailOverride: planEmail,
       invoiceData: {
-        invoiceDate: new Date().toISOString().slice(0,10),
-        dueDate: new Date(Date.now() + 30*24*60*60*1000).toISOString().slice(0,10),
+        invoiceDate,
+        dueDate,
         invoiceNumber: '',
+        billToCompany: billToCompany === "Other(Specify if new in message to add to this list)" ? customCompanyName : billToCompany,
+        billToAddress,
         planPhases,
         planRate,
         sheetTotal: total,
@@ -873,9 +875,11 @@ async function handleUpdatePlan() {
       manualAmount: total,
       emailOverride: planEmail,
       invoiceData: {
-        invoiceDate: new Date().toISOString().slice(0,10),
-        dueDate: new Date(Date.now() + 30*24*60*60*1000).toISOString().slice(0,10),
+        invoiceDate,
+        dueDate,
         invoiceNumber: '',
+        billToCompany: billToCompany === "Other(Specify if new in message to add to this list)" ? customCompanyName : billToCompany,
+        billToAddress,
         planPhases,
         planRate,
         sheetTotal: total,
@@ -2582,6 +2586,13 @@ const isExpanded = billingJob?._id === workOrder._id;
                   setPlanPhases(1);
                   setPlanRate(0);
                   setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
+                  setInvoiceDate(new Date().toISOString().slice(0,10));
+                  const dueDateCalc = new Date();
+                  dueDateCalc.setDate(dueDateCalc.getDate() + 30);
+                  setDueDate(dueDateCalc.toISOString().slice(0,10));
+                  setBillToCompany(plan.company || '');
+                  setBillToAddress(BILLING_ADDRESSES[plan.company] || '');
+                  setNet30Auto(true);
                 }}
               >
                 Bill Plan
@@ -2608,12 +2619,22 @@ const isExpanded = billingJob?._id === workOrder._id;
                         setPlanRate(Number(planStatus.invoiceData.planRate || 0));
                         setPlanEmail(planStatus.invoiceData.selectedEmail || plan.email || '');
                         setPlanDetectedTotal(planStatus.invoiceData.sheetTotal || null);
+                        setInvoiceDate(planStatus.invoiceData.invoiceDate || new Date().toISOString().slice(0,10));
+                        setDueDate(planStatus.invoiceData.dueDate || new Date(Date.now() + 30*24*60*60*1000).toISOString().slice(0,10));
+                        setBillToCompany(planStatus.invoiceData.billToCompany || plan.company || '');
+                        setBillToAddress(planStatus.invoiceData.billToAddress || BILLING_ADDRESSES[plan.company] || '');
                       }
                     } catch (err) {
                       console.error('Failed to load previous invoice data:', err);
                       setPlanPhases(1);
                       setPlanRate(0);
                       setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
+                      setInvoiceDate(new Date().toISOString().slice(0,10));
+                      const dueDateCalc = new Date();
+                      dueDateCalc.setDate(dueDateCalc.getDate() + 30);
+                      setDueDate(dueDateCalc.toISOString().slice(0,10));
+                      setBillToCompany(plan.company || '');
+                      setBillToAddress(BILLING_ADDRESSES[plan.company] || '');
                     }
                   }}
                 >
@@ -2665,6 +2686,13 @@ const isExpanded = billingJob?._id === workOrder._id;
                 setPlanPhases(1);
                 setPlanRate(0);
                 setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
+                setInvoiceDate(new Date().toISOString().slice(0,10));
+                const dueDateCalc = new Date();
+                dueDateCalc.setDate(dueDateCalc.getDate() + 30);
+                setDueDate(dueDateCalc.toISOString().slice(0,10));
+                setBillToCompany(plan.company || '');
+                setBillToAddress(BILLING_ADDRESSES[plan.company] || '');
+                setNet30Auto(true);
 
                 // fire-and-forget: if there’s a prior invoice for this plan, flip to update mode & prefill
                 api.get('/api/billing/plan-invoice-status', { params: { planIds: plan._id } })
@@ -2720,19 +2748,47 @@ const isExpanded = billingJob?._id === workOrder._id;
                 </div>
               )}
               
-              <div className="form-row">
-                <label>Total Amount:</label>
-                <div className="total-display">${planDetectedTotal?.toFixed(2) || (planPhases * planRate).toFixed(2)}</div>
+              {/* Invoice Date & Due Date */}
+              <div style={{ display:'grid', gridTemplateColumns:'auto auto', gap:12, alignItems:'end', marginBottom: '15px' }}>
+                <label style={{ display:'grid', gap:6 }}>
+                  <span>Invoice Date</span>
+                  <input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} />
+                </label>
+                <label style={{ display:'grid', gap:6 }}>
+                  <span>Due Date (Net 30 auto)</span>
+                  <input type="date" value={dueDate} onChange={(e) => { setDueDate(e.target.value); setNet30Auto(false); }} disabled={net30Auto} />
+                </label>
               </div>
-
+              
+              {/* Bill To Company & Address */}
+              <div style={{ marginBottom: '15px' }}>
+                <label>Bill To Company</label>
+                <select value={billToCompany} onChange={(e) => setBillToCompany(e.target.value)} style={{ width: '100%', padding: 6, marginBottom: 8 }}>
+                  <option value="">Select company…</option>
+                  {companyList.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+                {billToCompany === 'Other(Specify if new in message to add to this list)' && (
+                  <input type="text" placeholder="Enter custom company name" value={customCompanyName} onChange={(e) => setCustomCompanyName(e.target.value)} style={{ width: '100%', padding: 6, marginBottom: 8 }} />
+                )}
+                <label style={{ display: 'block', marginTop: 8 }}>Billing Address</label>
+                <input type="text" value={billToAddress} onChange={(e) => setBillToAddress(e.target.value)} placeholder="Street, City, State ZIP" style={{ width: '100%', padding: 6 }} />
+              </div>
+              
               <div className="form-row">
-                <label>Email:</label>
+                <label>Send Invoice To (Email):</label>
                 <input
                   type="email"
                   value={planEmail}
                   onChange={e => setPlanEmail(e.target.value)}
                   placeholder="Enter email address"
+                  style={{ width: '100%', padding: 6 }}
                 />
+              </div>
+              
+              {/* Subtotal & Total Summary */}
+              <div style={{ padding: 12, border: '1px solid #e5e7eb', borderRadius: 8, background: '#f9fafb', marginBottom: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Subtotal</span><b>${planDetectedTotal?.toFixed(2) || (planPhases * planRate).toFixed(2)}</b></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, paddingTop: 8, borderTop: '2px solid #e5e7eb', fontWeight: 700 }}><span>Total</span><span>${planDetectedTotal?.toFixed(2) || (planPhases * planRate).toFixed(2)}</span></div>
               </div>
 
               <div className="form-row">
