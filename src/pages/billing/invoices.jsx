@@ -99,6 +99,7 @@ const COMPANY_TO_EMAIL = {
 
 // helpers (keep above component to avoid TDZ issues)
 const fmtUSD = (n) => `$${Number(n || 0).toFixed(2)}`;
+const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 function isGaPowerOnly(name) {
   if (!name) return false;
   const n = String(name).toLowerCase();
