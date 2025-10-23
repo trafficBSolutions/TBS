@@ -783,12 +783,13 @@ const [billingJob, setBillingJob] = useState(null);
 const [isUpdateMode, setIsUpdateMode] = useState(false);
 // --- TCP (Traffic Control Plan) billing state ---
 const [plans, setPlans] = useState([]);
+const [planInvoiceStatus, setPlanInvoiceStatus] = useState({}); // { planId: { billed: true, paid: false, invoiceId: '...' } }
 const [selectedPlanIndex, setSelectedPlanIndex] = useState(null);
 const [previewPlan, setPreviewPlan] = useState(null);
 const [isSubmitting, setIsSubmitting] = useState(false); 
 const [errorMessage, setErrorMessage] = useState('');
 const [submissionMessage, setSubmissionMessage] = useState('');
-  const [submissionErrorMessage, setSubmissionErrorMessage] = useState('');
+const [submissionErrorMessage, setSubmissionErrorMessage] = useState('');
 const [planBillingOpen, setPlanBillingOpen] = useState(false);
 const [planJob, setPlanJob] = useState(null);
 const [planPhases, setPlanPhases] = useState(0);
@@ -797,6 +798,11 @@ const [monthlyKey, setMonthlyKey] = useState(0);
 const [planEmail, setPlanEmail] = useState('');
 const [planReadyToSend, setPlanReadyToSend] = useState(false);
 const [planAttachedPdfs, setPlanAttachedPdfs] = useState([]);
+const [selectedPlanId, setSelectedPlanId] = useState(null);
+const [planMarkPaidOpen, setPlanMarkPaidOpen] = useState(false);
+const [planPaymentMethod, setPlanPaymentMethod] = useState('card');
+const [planPaymentAmount, setPlanPaymentAmount] = useState('');
+const [planPaymentEmail, setPlanPaymentEmail] = useState('');
 
 // Handle plan billing
 async function handleBillPlan() {
@@ -827,15 +833,19 @@ async function handleBillPlan() {
 
     const fd = new FormData();
     fd.append('payload', JSON.stringify(payload));
-    (attachedPdfs || []).forEach(f => fd.append('attachments', f));
+    (planAttachedPdfs || []).forEach(f => fd.append('attachments', f));
 
     await api.post('/api/billing/bill-plan', fd, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
 
+    // Refresh plan invoice status
+    const statusRes = await api.get(`/api/billing/plan-invoice-status?planIds=${planJob._id}`);
+    setPlanInvoiceStatus(prev => ({ ...prev, ...statusRes.data }));
+
     toast.success('Plan invoice sent!');
     setPlanBillingOpen(false);
-    setAttachedPdfs([]);
+    setPlanAttachedPdfs([]);
     setDetectedTotal(null);
   } catch (err) {
     toast.error(err?.response?.data?.message || 'Failed to send plan invoice');
@@ -872,15 +882,19 @@ async function handleUpdatePlan() {
 
     const fd = new FormData();
     fd.append('payload', JSON.stringify(payload));
-    (attachedPdfs || []).forEach(f => fd.append('attachments', f));
+    (planAttachedPdfs || []).forEach(f => fd.append('attachments', f));
 
     await api.post('/api/billing/update-plan', fd, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
 
+    // Refresh plan invoice status
+    const statusRes = await api.get(`/api/billing/plan-invoice-status?planIds=${planJob._id}`);
+    setPlanInvoiceStatus(prev => ({ ...prev, ...statusRes.data }));
+
     toast.success('Plan invoice updated and resent!');
     setPlanBillingOpen(false);
-    setAttachedPdfs([]);
+    setPlanAttachedPdfs([]);
     setDetectedTotal(null);
   } catch (err) {
     toast.error(err?.response?.data?.message || 'Failed to update plan invoice');
@@ -889,13 +903,57 @@ async function handleUpdatePlan() {
   }
 }
 
+// Handle plan mark paid
+async function handlePlanMarkPaid() {
+  if (!selectedPlanId) return;
+  setIsSubmitting(true);
+  
+  try {
+    const planStatus = planInvoiceStatus[selectedPlanId];
+    if (!planStatus?.invoiceId) {
+      toast.error('No invoice found for this plan');
+      return;
+    }
 
-// Fetch plans on component mount
+    const payload = {
+      invoiceId: planStatus.invoiceId,
+      paymentMethod: planPaymentMethod,
+      paymentAmount: Number(planPaymentAmount),
+      emailOverride: planPaymentEmail
+    };
+
+    await api.post('/api/billing/mark-plan-paid', payload);
+
+    // Refresh plan invoice status
+    const statusRes = await api.get(`/api/billing/plan-invoice-status?planIds=${selectedPlanId}`);
+    setPlanInvoiceStatus(prev => ({ ...prev, ...statusRes.data }));
+
+    toast.success('Plan payment recorded!');
+    setPlanMarkPaidOpen(false);
+    setSelectedPlanId(null);
+    setPlanPaymentAmount('');
+    setPlanPaymentEmail('');
+  } catch (err) {
+    toast.error(err?.response?.data?.message || 'Failed to record plan payment');
+  } finally {
+    setIsSubmitting(false);
+  }
+}
+
+
+// Fetch plans and their invoice status on component mount
 useEffect(() => {
   const fetchPlans = async () => {
     try {
       const res = await axios.get('/plan/all');
       setPlans(res.data);
+      
+      // Fetch invoice status for all plans
+      if (res.data.length > 0) {
+        const planIds = res.data.map(p => p._id).join(',');
+        const statusRes = await api.get(`/api/billing/plan-invoice-status?planIds=${planIds}`);
+        setPlanInvoiceStatus(statusRes.data || {});
+      }
     } catch (err) {
       console.error('fetchPlans failed:', err);
     }
@@ -1088,9 +1146,6 @@ const [sheetRows, setSheetRows] = useState(VERTEX42_STARTER_ROWS);
 const [sheetTaxRate, setSheetTaxRate] = useState(0); // percent
 const [sheetOther, setSheetOther] = useState(0);     // shipping/discount/etc. (can be negative)
 const [attachedPdfs, setAttachedPdfs] = useState([]);
-  const [detectingTotal, setDetectingTotal] = useState(false);
-  const [detectedTotal, setDetectedTotal] = useState(null);
-  const [detectError, setDetectError] = useState('');
 const noteValues = useMemo(() => {
   const findRow = (needle) =>
     sheetRows.find(r => r.service?.toLowerCase().includes(needle));
@@ -2676,7 +2731,72 @@ const isExpanded = billingJob?._id === workOrder._id;
   </div>
 </div>
 
-        {/* Plan Billing Modal */}
+        {/* Plan Mark Paid Modal */}
+        {planMarkPaidOpen && (
+          <div className="modal-overlay" onClick={() => setPlanMarkPaidOpen(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <h3>Mark Plan as Paid</h3>
+              
+              <div style={{ marginBottom: '15px' }}>
+                <label>Payment Method:</label>
+                <select 
+                  value={planPaymentMethod} 
+                  onChange={(e) => setPlanPaymentMethod(e.target.value)}
+                  style={{ width: '100%', padding: '6px', marginTop: '5px' }}
+                >
+                  <option value="card">Card</option>
+                  <option value="check">Check</option>
+                </select>
+              </div>
+              
+              <div style={{ marginBottom: '15px' }}>
+                <label>Payment Amount:</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={planPaymentAmount}
+                  onChange={(e) => setPlanPaymentAmount(e.target.value)}
+                  style={{ width: '100%', padding: '6px', marginTop: '5px' }}
+                  placeholder="Enter payment amount"
+                />
+              </div>
+              
+              <div style={{ marginBottom: '15px' }}>
+                <label>Receipt Email:</label>
+                <input
+                  type="email"
+                  value={planPaymentEmail}
+                  onChange={(e) => setPlanPaymentEmail(e.target.value)}
+                  style={{ width: '100%', padding: '6px', marginTop: '5px' }}
+                  placeholder="Enter email for receipt"
+                />
+              </div>
+              
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                <button
+                  className="btn"
+                  onClick={() => {
+                    setPlanMarkPaidOpen(false);
+                    setSelectedPlanId(null);
+                    setPlanPaymentAmount('');
+                    setPlanPaymentEmail('');
+                  }}
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn btn--primary"
+                  onClick={handlePlanMarkPaid}
+                  disabled={isSubmitting || !planPaymentAmount || !planPaymentEmail}
+                >
+                  {isSubmitting ? 'Recording...' : 'Mark Paid'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         
       {/* Footer unchanged */}
       <footer className="footer">
