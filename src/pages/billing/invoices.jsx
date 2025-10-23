@@ -1064,7 +1064,7 @@ function detectTotalFromText(txt) {
 
   return null;
 }
-
+const status = planInvoiceStatus[plan._id]
 // Extract the highest-confidence total across multiple PDFs
 async function detectTotalFromFiles(files) {
   let totalSum = 0;
@@ -2706,28 +2706,66 @@ const isExpanded = billingJob?._id === workOrder._id;
               </div>
 
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
-                <button
-                  className="btn btn--primary"
-                  onClick={isUpdateMode ? handleUpdatePlan : handleBillPlan}
-                  disabled={isSubmitting || !planEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(planEmail) || !planAttachedPdfs.length}
-                >
-                  {isSubmitting ? 'Processing…' : (isUpdateMode ? 'Update Plan' : 'Bill Plan')}
-                </button>
+                {!status?.billed && (
+  // Not billed yet => show primary "Bill Plan"
+  <button
+    className="btn btn--primary"
+    onClick={(e) => {
+      e.stopPropagation();
+      setPlanJob(plan);
+      setIsUpdateMode(false);
+      setPlanBillingOpen(true);
+      setAttachedPdfs([]);
+      setDetectedTotal(null);
+      setDetectError('');
+      setPlanPhases(1);
+      setPlanRate(0);
+      setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
+    }}
+  >
+    Bill Plan
+  </button>
+)}
 
-                <button
-                  className="btn"
-                  onClick={() => {
-                    setPlanJob(null);
-                    setIsUpdateMode(false);
-                    setPlanBillingOpen(false);
-                    setPlanAttachedPdfs([]);
-                    setPlanDetectedTotal(null);
-                    setPlanDetectError('');
-                  }}
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </button>
+{status?.billed && !status?.paid && (
+  <>
+    {/* Already billed but unpaid => "Update Plan" + "Mark Paid" */}
+    <button
+      className="btn btn--secondary"
+      onClick={(e) => {
+        e.stopPropagation();
+        setPlanJob(plan);
+        setIsUpdateMode(true);
+        setPlanBillingOpen(true);
+        setAttachedPdfs([]);
+        setDetectedTotal(null);
+        setDetectError('');
+        setPlanPhases(Number(status.invoiceData?.planPhases || 1));
+        setPlanRate(Number(status.invoiceData?.planRate || 0));
+        setPlanEmail(status.invoiceData?.selectedEmail || plan.email || '');
+      }}
+    >
+      Update Plan
+    </button>
+
+    <button
+      className="btn btn--success"
+      onClick={(e) => {
+        e.stopPropagation();
+        setSelectedPlanId(plan._id);
+        setPlanPaymentEmail(status.invoiceData?.selectedEmail || plan.email || '');
+        setPlanPaymentAmount(String(status.computedTotalDue || status.principal || ''));
+        setPlanMarkPaidOpen(true);
+      }}
+    >
+      Mark Paid
+    </button>
+  </>
+)}
+{status?.billed && status?.paid && (
+  // Fully paid => badge or disabled button
+  <span className="badge badge--success">Paid</span>
+)}
               </div>
             </div>
           )}
