@@ -2706,65 +2706,32 @@ const isExpanded = billingJob?._id === workOrder._id;
               </div>
 
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
-               {!status.billed && (
-          <button
-            className="btn btn--primary"
-            onClick={(e) => {
-              e.stopPropagation();
-              setPlanJob(plan);
-              setIsUpdateMode(false);
-              setPlanBillingOpen(true);
-              setAttachedPdfs([]);
-              setDetectedTotal(null);
-              setDetectError('');
-              setPlanPhases(1);
-              setPlanRate(0);
-              setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
-            }}
-          >
-            Bill Plan
-          </button>
-        )}
-  {status.billed && !status.paid && (
-          <>
-            <button
-              className="btn btn--secondary"
-              onClick={(e) => {
-                e.stopPropagation();
-                setPlanJob(plan);
-                setIsUpdateMode(true);
-                setPlanBillingOpen(true);
-                setAttachedPdfs([]);
-                setDetectedTotal(null);
-                setDetectError('');
-                const snap = status.invoiceData || {};
-                setPlanPhases(Number(snap.planPhases || 1));
-                setPlanRate(Number(snap.planRate || 0));
-                setPlanEmail(snap.selectedEmail || plan.email || '');
-              }}
-            >
-              Update Plan
-            </button>
-
-            <button
-              className="btn btn--success"
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedPlanId(plan._id);
-                setPlanPaymentEmail(status.invoiceData?.selectedEmail || plan.email || '');
-                const due = status.computedTotalDue || status.principal || 0;
-                setPlanPaymentAmount(String(due));
-                setPlanMarkPaidOpen(true);
-              }}
-            >
-              Mark Paid
-            </button>
-          </>
-        )}
-{status?.billed && status?.paid && (
-  // Fully paid => badge or disabled button
-  <span className="badge badge--success">Paid</span>
-)}
+                {isUpdateMode ? (
+                  <button
+                    className="btn btn--primary"
+                    onClick={handleUpdatePlan}
+                    disabled={isSubmitting || !planEmail || !planAttachedPdfs.length}
+                  >
+                    {isSubmitting ? 'Updating...' : 'Update Plan'}
+                  </button>
+                ) : (
+                  <button
+                    className="btn btn--primary"
+                    onClick={handleBillPlan}
+                    disabled={isSubmitting || !planEmail || !planAttachedPdfs.length}
+                  >
+                    {isSubmitting ? 'Sending...' : 'Bill Plan'}
+                  </button>
+                )}
+                <button
+                  className="btn"
+                  onClick={() => {
+                    setPlanBillingOpen(false);
+                    setPlanJob(null);
+                  }}
+                >
+                  Cancel
+                </button>
               </div>
             </div>
           )}
