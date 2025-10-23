@@ -803,6 +803,9 @@ const [planMarkPaidOpen, setPlanMarkPaidOpen] = useState(false);
 const [planPaymentMethod, setPlanPaymentMethod] = useState('card');
 const [planPaymentAmount, setPlanPaymentAmount] = useState('');
 const [planPaymentEmail, setPlanPaymentEmail] = useState('');
+const [planDetectingTotal, setPlanDetectingTotal] = useState(false);
+const [planDetectedTotal, setPlanDetectedTotal] = useState(null);
+const [planDetectError, setPlanDetectError] = useState('');
 
 // Handle plan billing
 async function handleBillPlan() {
@@ -810,7 +813,7 @@ async function handleBillPlan() {
   setIsSubmitting(true);
   
   try {
-    const total = detectedTotal || Number((planPhases * planRate).toFixed(2));
+    const total = planDetectedTotal || Number((planPhases * planRate).toFixed(2));
     if (!(total > 0)) {
       toast.error('Please enter valid phases and rate, or attach PDF with detectable total');
       return;
@@ -846,7 +849,7 @@ async function handleBillPlan() {
     toast.success('Plan invoice sent!');
     setPlanBillingOpen(false);
     setPlanAttachedPdfs([]);
-    setDetectedTotal(null);
+    setPlanDetectedTotal(null);
   } catch (err) {
     toast.error(err?.response?.data?.message || 'Failed to send plan invoice');
   } finally {
@@ -859,7 +862,7 @@ async function handleUpdatePlan() {
   setIsSubmitting(true);
   
   try {
-    const total = detectedTotal || Number((planPhases * planRate).toFixed(2));
+    const total = planDetectedTotal || Number((planPhases * planRate).toFixed(2));
     if (!(total > 0)) {
       toast.error('Please enter valid phases and rate, or attach PDF with detectable total');
       return;
@@ -895,7 +898,7 @@ async function handleUpdatePlan() {
     toast.success('Plan invoice updated and resent!');
     setPlanBillingOpen(false);
     setPlanAttachedPdfs([]);
-    setDetectedTotal(null);
+    setPlanDetectedTotal(null);
   } catch (err) {
     toast.error(err?.response?.data?.message || 'Failed to update plan invoice');
   } finally {
@@ -1146,6 +1149,9 @@ const [sheetRows, setSheetRows] = useState(VERTEX42_STARTER_ROWS);
 const [sheetTaxRate, setSheetTaxRate] = useState(0); // percent
 const [sheetOther, setSheetOther] = useState(0);     // shipping/discount/etc. (can be negative)
 const [attachedPdfs, setAttachedPdfs] = useState([]);
+const [detectedTotal, setDetectedTotal] = useState(null);
+const [detectingTotal, setDetectingTotal] = useState(false);
+const [detectError, setDetectError] = useState('');
 const noteValues = useMemo(() => {
   const findRow = (needle) =>
     sheetRows.find(r => r.service?.toLowerCase().includes(needle));
@@ -2661,29 +2667,29 @@ const isExpanded = billingJob?._id === workOrder._id;
                   multiple
                   onChange={e => handlePdfAttachment(
                     e.target.files,
-                    setAttachedPdfs,
-                    setDetectingTotal,
-                    setDetectError,
-                    setDetectedTotal,
+                    setPlanAttachedPdfs,
+                    setPlanDetectingTotal,
+                    setPlanDetectError,
+                    setPlanDetectedTotal,
                     () => {}, // no sheetRows for plans
                     toast
                   )}
                 />
-                {detectingTotal && <div style={{ color: '#007bff', fontSize: 14 }}>🔍 Detecting total from PDF…</div>}
-                {detectedTotal && <div style={{ color: '#28a745', fontSize: 16, fontWeight: 'bold' }}>✅ Auto-detected total: ${detectedTotal.toFixed(2)}</div>}
-                {detectError && <div style={{ color: '#dc3545', fontSize: 14 }}>❌ {detectError}</div>}
+                {planDetectingTotal && <div style={{ color: '#007bff', fontSize: 14 }}>🔍 Detecting total from PDF…</div>}
+                {planDetectedTotal && <div style={{ color: '#28a745', fontSize: 16, fontWeight: 'bold' }}>✅ Auto-detected total: ${planDetectedTotal.toFixed(2)}</div>}
+                {planDetectError && <div style={{ color: '#dc3545', fontSize: 14 }}>❌ {planDetectError}</div>}
 
-                {attachedPdfs.length > 0 && (
+                {planAttachedPdfs.length > 0 && (
                   <div style={{ marginTop: 10 }}>
-                    <strong>Attached files ({attachedPdfs.length}):</strong>
+                    <strong>Attached files ({planAttachedPdfs.length}):</strong>
                     <ul style={{ margin: '5px 0', paddingLeft: 20 }}>
-                      {attachedPdfs.map((file, idx) => (
+                      {planAttachedPdfs.map((file, idx) => (
                         <li key={idx}>
                           {file.name} ({(file.size / 1024).toFixed(1)} KB)
                           <button
                             onClick={() => {
-                              const next = attachedPdfs.filter((_, i) => i !== idx);
-                              handlePdfAttachment(next, setAttachedPdfs, setDetectingTotal, setDetectError, setDetectedTotal, () => {}, toast);
+                              const next = planAttachedPdfs.filter((_, i) => i !== idx);
+                              handlePdfAttachment(next, setPlanAttachedPdfs, setPlanDetectingTotal, setPlanDetectError, setPlanDetectedTotal, () => {}, toast);
                             }}
                             style={{ marginLeft: 8, fontSize: 12, padding: '2px 6px', color: '#dc3545', background: 'none', border: '1px solid #dc3545', borderRadius: 3, cursor: 'pointer' }}
                           >
@@ -2703,7 +2709,7 @@ const isExpanded = billingJob?._id === workOrder._id;
                 <button
                   className="btn btn--primary"
                   onClick={isUpdateMode ? handleUpdatePlan : handleBillPlan}
-                  disabled={isSubmitting || !planEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(planEmail) || !attachedPdfs.length}
+                  disabled={isSubmitting || !planEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(planEmail) || !planAttachedPdfs.length}
                 >
                   {isSubmitting ? 'Processing…' : (isUpdateMode ? 'Update Plan' : 'Bill Plan')}
                 </button>
@@ -2714,9 +2720,9 @@ const isExpanded = billingJob?._id === workOrder._id;
                     setPlanJob(null);
                     setIsUpdateMode(false);
                     setPlanBillingOpen(false);
-                    setAttachedPdfs([]);
-                    setDetectedTotal(null);
-                    setDetectError('');
+                    setPlanAttachedPdfs([]);
+                    setPlanDetectedTotal(null);
+                    setPlanDetectError('');
                   }}
                   disabled={isSubmitting}
                 >
