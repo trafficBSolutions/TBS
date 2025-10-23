@@ -2458,6 +2458,8 @@ const isExpanded = billingJob?._id === workOrder._id;
           </div>
         </div>
       </div>
+
+
 <div className="admin-plans">
   <h2 className="admin-plans-title">Traffic Control Plans</h2>
 
@@ -2625,35 +2627,31 @@ const isExpanded = billingJob?._id === workOrder._id;
                   </div>
                 )}
               </div>
-<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
-  <button
-    className="btn btn--primary"
-    onClick={() => {
-      if (!canSubmit) return;
-      return isUpdateMode ? handleUpdatePlan() : handleBillPlan();
-    }}
-    disabled={!canSubmit}
-    title={!hasEmail ? 'Enter a valid email' : !hasPdfs ? 'Attach at least one PDF' : undefined}
-  >
-    {isSubmitting ? 'Processing…' : (isUpdateMode ? 'Update Plan' : 'Bill Plan')}
-  </button>
 
-  <button
-    className="btn"
-    onClick={() => {
-      setPlanJob(null);
-      setIsUpdateMode(false);
-      setPlanBillingOpen(false);
-      setAttachedPdfs([]);
-      setDetectedTotal(null);
-      setDetectError('');
-    }}
-    disabled={isSubmitting}
-  >
-    Cancel
-  </button>
-</div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+                <button
+                  className="btn btn--primary"
+                  onClick={isUpdateMode ? handleUpdatePlan : handleBillPlan}
+                  disabled={isSubmitting || !planEmail || !attachedPdfs.length || (planPhases * planRate) <= 0}
+                >
+                  {isSubmitting ? 'Processing…' : (isUpdateMode ? 'Update Plan' : 'Bill Plan')}
+                </button>
 
+                <button
+                  className="btn"
+                  onClick={() => {
+                    setPlanJob(null);
+                    setIsUpdateMode(false);
+                    setPlanBillingOpen(false);
+                    setAttachedPdfs([]);
+                    setDetectedTotal(null);
+                    setDetectError('');
+                  }}
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           )}
         </div>
