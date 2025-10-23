@@ -801,16 +801,6 @@ const [planAttachedPdfs, setPlanAttachedPdfs] = useState([]);
 // helper
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-/*************  ✨ Windsurf Command ⭐  *************/
-/**
- * Bills a traffic control plan (TCP) by creating a new invoice for the provided plan.
- * The function sends a POST request to the server with the planId, manualAmount, emailOverride, and invoiceData.
- * The invoiceData includes the planPhases, planRate, and selectedEmail.
- * The function also attaches the uploaded PDFs to the request.
- * If the request is successful, the function shows a success toast and resets the state.
- * If the request fails, the function shows an error toast.
- */
-/*******  4355c8c5-b53b-4147-8871-c21a7982b241  *******/
 async function handleBillPlan() {
   const principal = Number(planPhases) * Number(planRate);
 
@@ -2673,18 +2663,12 @@ const isExpanded = billingJob?._id === workOrder._id;
 
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
                 <button
-  className="btn btn--primary"
-  onClick={isUpdateMode ? handleUpdatePlan : handleBillPlan}
-  disabled={!canSubmit}
-  title={
-    !isValidEmail(planEmail) ? 'Enter a valid email' :
-    !attachedPdfs.length ? 'Attach at least one PDF' :
-    !(amount > 0) ? 'Enter phases & rate (amount must be > 0)' :
-    undefined
-  }
->
-  {isSubmitting ? 'Processing…' : (isUpdateMode ? 'Update Plan' : 'Bill Plan')}
-</button>
+                  className="btn btn--primary"
+                  onClick={isUpdateMode ? handleUpdatePlan : handleBillPlan}
+                  disabled={isSubmitting || !planEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(planEmail) || !attachedPdfs.length}
+                >
+                  {isSubmitting ? 'Processing…' : (isUpdateMode ? 'Update Plan' : 'Bill Plan')}
+                </button>
 
                 <button
                   className="btn"
