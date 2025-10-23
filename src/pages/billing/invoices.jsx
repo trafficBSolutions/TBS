@@ -2459,166 +2459,180 @@ const isExpanded = billingJob?._id === workOrder._id;
         </div>
       </div>
 
-  <div className="admin-plans">
+<div className="admin-plans">
   <h2 className="admin-plans-title">Traffic Control Plans</h2>
+
   <div className="plan-list">
-    {plans.length > 0 ? plans.map((plan, index) => (
-      <div key={plan._id || index} className="plan-card">
-        <h4 className="job-company">{plan.company}</h4>
-        <p><strong>Coordinator:</strong> {plan.name}</p>
-        <p><strong>Email:</strong> {plan.email}</p>
-        {plan.phone && <p><strong>Phone:</strong> <a href={`tel:${plan.phone}`}>{plan.phone}</a></p>}
-        <p><strong>Project/Task Number:</strong> {plan.project}</p>
-        <p><strong>Address:</strong> {plan.address}, {plan.city}, {plan.state} {plan.zip}</p>
-        {plan.message && <p><strong>Message:</strong> {plan.message}</p>}
+    {plans.length > 0 ? (
+      plans.map((plan, index) => (
+        <div key={plan._id || index} className="plan-card">
+          <h4 className="job-company">{plan.company}</h4>
+          <p><strong>Coordinator:</strong> {plan.name}</p>
+          <p><strong>Email:</strong> {plan.email}</p>
+          {plan.phone && (
+            <p><strong>Phone:</strong> <a href={`tel:${plan.phone}`}>{plan.phone}</a></p>
+          )}
+          <p><strong>Project/Task Number:</strong> {plan.project}</p>
+          <p><strong>Address:</strong> {plan.address}, {plan.city}, {plan.state} {plan.zip}</p>
+          {plan.message && <p><strong>Message:</strong> {plan.message}</p>}
 
+          {plan.structure && (
+            <button
+              className="pdf-link"
+              onClick={() => {
+                setSelectedPlanIndex(index);
+                setPreviewPlan(`/plans/${plan.structure}`);
+              }}
+            >
+              View Traffic Control Plan Structure
+            </button>
+          )}
 
-        {/* View structure (preview) */}
-        {plan.structure && (
-          <button
-            className="pdf-link"
-            onClick={() => {
-              setSelectedPlanIndex(index);
-              setPreviewPlan(`/plans/${plan.structure}`);
-            }}
-          >
-            View Traffic Control Plan Structure
-          </button>
-        )}
+          {/* ONE set of action buttons per card */}
+          <div className="plan-actions">
+            <button
+              className="btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                setPlanJob(plan);
+                setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
+                setPlanPhases(1);
+                setPlanRate(0);
+                setPlanReadyToSend(false);
+                setIsUpdateMode(false);
+                setPlanBillingOpen(true);
 
-        <div className="plan-actions">
-          <button
-  className="btn"
-  onClick={(e) => {
-    e.stopPropagation();                // <— prevents same click from closing it
-    setPlanJob(plan);
-    setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
-    setPlanPhases(1);
-    setPlanRate(0);
-    setPlanReadyToSend(false);
-    setIsUpdateMode(false);
-    setPlanBillingOpen(true);
+                // Prefill status (fire-and-forget)
+                api.get('/api/billing/plan-invoice-status', { params: { planIds: plan._id } })
+                  .then(({ data }) => {
+                    const inv = data?.byPlan?.[plan._id];
+                    if (inv?.invoiceId) {
+                      setIsUpdateMode(true);
+                      const snap = inv.invoiceData || {};
+                      setPlanPhases(Number(snap.planPhases || 1));
+                      setPlanRate(Number(snap.planRate || 0));
+                      setPlanEmail(snap.selectedEmail || plan.email || '');
+                    }
+                  })
+                  .catch(() => {});
+              }}
+            >
+              Bill Plan
+            </button>
 
-    // Prefill: fire-and-forget so UI paints immediately
-    api.get('/api/billing/plan-invoice-status', { params: { planIds: plan._id } })
-      .then(({ data }) => {
-        const inv = data?.byPlan?.[plan._id];
-        if (inv?.invoiceId) {
-          setIsUpdateMode(true);
-          const snap = inv.invoiceData || {};
-          setPlanPhases(Number(snap.planPhases || 1));
-          setPlanRate(Number(snap.planRate || 0));
-          setPlanEmail(snap.selectedEmail || plan.email || '');
-        }
-      })
-      .catch(() => {});
-  }}
->
-  Bill Plan
-</button>
-
-          <button
-            className="btn btn--secondary"
-            onClick={() => {
-              setPlanJob(plan);
-              setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
-              setPlanPhases(1);
-              setPlanRate(0);
-              setPlanReadyToSend(false);
-              setPlanBillingOpen(true);
-              setIsUpdateMode(true);
-            }}
-          >
-            Update Plan
-          </button>
-        </div>
-        {planBillingOpen && planJob && (
-          <div className="modal-overlay" onClick={() => setPlanBillingOpen(false)}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
-              <div className="modal-header">
-                <h2>{isUpdateMode ? 'Update' : 'Bill'} Traffic Control Plan</h2>
-                <button className="modal-close" onClick={() => setPlanBillingOpen(false)}>×</button>
-              </div>
-              
-              <div className="modal-body">
-                <div className="plan-info">
-                  <h3>{planJob.company}</h3>
-                  <p><strong>Project:</strong> {planJob.project}</p>
-                  <p><strong>Coordinator:</strong> {planJob.name}</p>
-                  <p><strong>Address:</strong> {planJob.address}, {planJob.city}, {planJob.state} {planJob.zip}</p>
-                </div>
-                <div className="billing-form">
-                  <div className="form-row">
-                    <label>Total Amount:</label>
-                    <div className="total-display">${(planPhases * planRate).toFixed(2)}</div>
-                  </div>
-
-                  <div className="form-row">
-                    <label>Email:</label>
-                    <input
-                      type="email"
-                      value={planEmail}
-                      onChange={e => setPlanEmail(e.target.value)}
-                      placeholder="Enter email address"
-                    />
-                  </div>
-
-                  <div className="form-row">
-                    <label>Attach Invoice PDFs: *</label>
-                    <input
-                      type="file"
-                      accept=".pdf"
-                      multiple
-                      onChange={e => handlePdfAttachment(
-                        e.target.files,
-                        setAttachedPdfs,
-                        setDetectingTotal,
-                        setDetectError,
-                        setDetectedTotal,
-                        () => {}, // no sheet rows for plans
-                        toast
-                      )}
-                    />
-                    {attachedPdfs.length > 0 && (
-                      <div className="attached-files">
-                        <p>{attachedPdfs.length} PDF(s) attached</p>
-                        {detectedTotal && (
-                          <p className="detected-total">Detected total: ${detectedTotal.toFixed(2)}</p>
-                        )}
-                      </div>
-                    )}
-                    {!attachedPdfs.length && (
-                      <p className="validation-message">Please attach at least one PDF invoice</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="modal-footer">
-                <button
-                  className="btn btn--primary"
-                  onClick={isUpdateMode ? handleUpdatePlan : handleBillPlan}
-                  disabled={isSubmitting || !planPhases || !planRate || !planEmail || !attachedPdfs.length}
-                >
-                  {isSubmitting ? 'Processing...' : (isUpdateMode ? 'Update Plan' : 'Bill Plan')}
-                </button>
-                <button
-                  className="btn"
-                  onClick={() => setPlanBillingOpen(false)}
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
+            <button
+              className="btn btn--secondary"
+              onClick={() => {
+                setPlanJob(plan);
+                setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
+                setPlanPhases(1);
+                setPlanRate(0);
+                setPlanReadyToSend(false);
+                setPlanBillingOpen(true);
+                setIsUpdateMode(true);
+              }}
+            >
+              Update Plan
+            </button>
           </div>
-        )}
-      </div>
-    )) : <p>No plans found.</p>}
-
+        </div>
+      ))
+    ) : (
+      <p>No plans found.</p>
+    )}
   </div>
 
+  {/* SINGLE MODAL outside the map */}
+  {planBillingOpen && planJob && (
+    <div
+      className="modal-overlay"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) setPlanBillingOpen(false);
+      }}
+    >
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>{isUpdateMode ? 'Update' : 'Bill'} Traffic Control Plan</h2>
+          <button className="modal-close" onClick={() => setPlanBillingOpen(false)}>×</button>
+        </div>
+
+        <div className="modal-body">
+          <div className="plan-info">
+            <h3>{planJob.company}</h3>
+            <p><strong>Project:</strong> {planJob.project}</p>
+            <p><strong>Coordinator:</strong> {planJob.name}</p>
+            <p><strong>Address:</strong> {planJob.address}, {planJob.city}, {planJob.state} {planJob.zip}</p>
+          </div>
+
+          <div className="billing-form">
+            {/* if you need phases/rate inputs, put them back here */}
+            <div className="form-row">
+              <label>Total Amount:</label>
+              <div className="total-display">${(planPhases * planRate).toFixed(2)}</div>
+            </div>
+
+            <div className="form-row">
+              <label>Email:</label>
+              <input
+                type="email"
+                value={planEmail}
+                onChange={e => setPlanEmail(e.target.value)}
+                placeholder="Enter email address"
+              />
+            </div>
+
+            <div className="form-row">
+              <label>Attach Invoice PDFs: *</label>
+              <input
+                type="file"
+                accept=".pdf"
+                multiple
+                onChange={e => handlePdfAttachment(
+                  e.target.files,
+                  setAttachedPdfs,
+                  setDetectingTotal,
+                  setDetectError,
+                  setDetectedTotal,
+                  () => {},
+                  toast
+                )}
+              />
+              {attachedPdfs.length > 0 && (
+                <div className="attached-files">
+                  <p>{attachedPdfs.length} PDF(s) attached</p>
+                  {detectedTotal && (
+                    <p className="detected-total">Detected total: ${detectedTotal.toFixed(2)}</p>
+                  )}
+                </div>
+              )}
+              {!attachedPdfs.length && (
+                <p className="validation-message">Please attach at least one PDF invoice</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="modal-footer">
+          <button
+            className="btn btn--primary"
+            onClick={isUpdateMode ? handleUpdatePlan : handleBillPlan}
+            disabled={isSubmitting || !planEmail || !attachedPdfs.length || (planPhases * planRate) <= 0}
+          >
+            {isSubmitting ? 'Processing...' : (isUpdateMode ? 'Update Plan' : 'Bill Plan')}
+          </button>
+          <button
+            className="btn"
+            onClick={() => setPlanBillingOpen(false)}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  )}
 </div>
+
 
         {/* Plan Billing Modal */}
         
