@@ -2639,25 +2639,6 @@ const isExpanded = billingJob?._id === workOrder._id;
             {status.billed && status.paid && (
               <span className="badge badge--success">Paid</span>
             )}
-
-            <button
-              className="btn btn--secondary"
-              onClick={(e) => {
-                e.stopPropagation();
-                // force update mode open
-                setPlanJob(plan);
-                setIsUpdateMode(true);
-                setPlanBillingOpen(true);
-                setAttachedPdfs([]);
-                setDetectedTotal(null);
-                setDetectError('');
-                setPlanPhases(1);
-                setPlanRate(0);
-                setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
-              }}
-            >
-              Update Plan
-            </button>
           </div>
 
           {/* Inline billing panel — only for the selected plan */}
