@@ -2639,53 +2639,6 @@ const isExpanded = billingJob?._id === workOrder._id;
             {status.billed && status.paid && (
               <span className="badge badge--success">Paid</span>
             )}
-            <button
-              className="btn"
-              onClick={async (e) => {
-                e.stopPropagation();
-
-                if (isExpanded) {
-                  // collapse this card
-                  setPlanJob(null);
-                  setIsUpdateMode(false);
-                  setPlanBillingOpen(false);
-                  setAttachedPdfs([]);
-                  setDetectedTotal(null);
-                  setDetectError('');
-                  return;
-                }
-
-                // expand this card
-                setPlanJob(plan);
-                setIsUpdateMode(false);
-                setPlanBillingOpen(true);
-
-                // reset per-open state
-                setAttachedPdfs([]);
-                setDetectedTotal(null);
-                setDetectError('');
-                setPlanPhases(1);
-                setPlanRate(0);
-                setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
-
-                // fire-and-forget: if there’s a prior invoice for this plan, flip to update mode & prefill
-                api.get('/api/billing/plan-invoice-status', { params: { planIds: plan._id } })
-                  .then(({ data }) => {
-                    const inv = data?.byPlan?.[plan._id];
-                    if (inv?.invoiceId) {
-                      setIsUpdateMode(true);
-                      const snap = inv.invoiceData || {};
-                      setPlanPhases(Number(snap.planPhases || 1));
-                      setPlanRate(Number(snap.planRate || 0));
-                      setPlanEmail(snap.selectedEmail || plan.email || '');
-                      // You could also surface "previous PDFs already on file" in UI if you store that
-                    }
-                  })
-                  .catch(() => {});
-              }}
-            >
-              {isExpanded ? 'Close Billing' : 'Bill Plan'}
-            </button>
 
             <button
               className="btn btn--secondary"
