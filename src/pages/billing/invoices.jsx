@@ -2674,12 +2674,41 @@ const isExpanded = billingJob?._id === workOrder._id;
                 <select value={billToCompany} onChange={(e) => setBillToCompany(e.target.value)} style={{ width: '100%', padding: 6, marginBottom: 8 }}>
                   <option value="">Select company…</option>
                   {companyList.map(c => <option key={c} value={c}>{c}</option>)}
+                  <option value="__NEW__">+ Add New Company</option>
                 </select>
-                {billToCompany === 'Other(Specify if new in message to add to this list)' && (
-                  <input type="text" placeholder="Enter custom company name" value={customCompanyName} onChange={(e) => setCustomCompanyName(e.target.value)} style={{ width: '100%', padding: 6, marginBottom: 8 }} />
+                {billToCompany === '__NEW__' && (
+                  <>
+                    <input 
+                      type="text" 
+                      placeholder="Enter new company name" 
+                      value={customCompanyName} 
+                      onChange={(e) => setCustomCompanyName(e.target.value)} 
+                      style={{ width: '100%', padding: 6, marginBottom: 8 }} 
+                      required
+                    />
+                    <label style={{ display: 'block', marginBottom: 4 }}>Billing Address *</label>
+                    <input 
+                      type="text" 
+                      value={billToAddress} 
+                      onChange={(e) => setBillToAddress(e.target.value)} 
+                      placeholder="Street, City, State ZIP" 
+                      style={{ width: '100%', padding: 6 }} 
+                      required
+                    />
+                  </>
                 )}
-                <label style={{ display: 'block', marginTop: 8 }}>Billing Address</label>
-                <input type="text" value={billToAddress} onChange={(e) => setBillToAddress(e.target.value)} placeholder="Street, City, State ZIP" style={{ width: '100%', padding: 6 }} />
+                {billToCompany && billToCompany !== '__NEW__' && (
+                  <>
+                    <label style={{ display: 'block', marginTop: 8, marginBottom: 4 }}>Billing Address</label>
+                    <input 
+                      type="text" 
+                      value={billToAddress} 
+                      onChange={(e) => setBillToAddress(e.target.value)} 
+                      placeholder="Street, City, State ZIP" 
+                      style={{ width: '100%', padding: 6 }} 
+                    />
+                  </>
+                )}
               </div>
               
               <div className="form-row">
