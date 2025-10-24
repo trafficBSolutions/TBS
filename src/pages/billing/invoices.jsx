@@ -2574,7 +2574,7 @@ const isExpanded = billingJob?._id === workOrder._id;
           <div className="plan-actions">
             {!status.billed && (
               <button
-                className="btn btn--primary"
+                className="btn"
                 onClick={(e) => {
                   e.stopPropagation();
                   setPlanJob(plan);
@@ -2600,8 +2600,10 @@ const isExpanded = billingJob?._id === workOrder._id;
             )}
             {status.billed && !status.paid && (
               <>
+                <span className="pill">Billed</span>
                 <button
-                  className="btn btn--secondary"
+                  className="btn"
+                  style={{ fontSize: '12px', padding: '4px 8px', marginLeft: '8px', backgroundColor: '#17365D', color: '#fff' }}
                   onClick={async (e) => {
                     e.stopPropagation();
                     setPlanJob(plan);
@@ -2641,7 +2643,8 @@ const isExpanded = billingJob?._id === workOrder._id;
                   Update Plan
                 </button>
                 <button
-                  className="btn btn--success"
+                  className="btn"
+                  style={{ fontSize: '12px', padding: '4px 8px', marginLeft: '8px', backgroundColor: '#28a745', color: '#fff' }}
                   onClick={(e) => {
                     e.stopPropagation();
                     setSelectedPlanId(plan._id);
@@ -2656,17 +2659,9 @@ const isExpanded = billingJob?._id === workOrder._id;
               </>
             )}
             {status.billed && status.paid && (
-              <span className="badge badge--success">Paid</span>
+              <span className="pill" style={{ color: '#fff', backgroundColor: '#28a745' }}>Paid</span>
             )}
-            <button
-              className="btn"
-              onClick={async (e) => {
-                e.stopPropagation();
 
-                if (isExpanded) {
-                  // collapse this card
-                  setPlanJob(null);
-                  setIsUpdateMode(false);
                   setPlanBillingOpen(false);
                   setAttachedPdfs([]);
                   setDetectedTotal(null);
