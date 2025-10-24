@@ -875,11 +875,9 @@ async function handleUpdatePlan() {
       manualAmount: total,
       emailOverride: planEmail,
       invoiceData: {
-        invoiceDate,
-        dueDate,
+        invoiceDate: new Date().toISOString().slice(0,10),
+        dueDate: new Date(Date.now() + 30*24*60*60*1000).toISOString().slice(0,10),
         invoiceNumber: '',
-        billToCompany: billToCompany === "Other(Specify if new in message to add to this list)" ? customCompanyName : billToCompany,
-        billToAddress,
         planPhases,
         planRate,
         sheetTotal: total,
@@ -2574,7 +2572,7 @@ const isExpanded = billingJob?._id === workOrder._id;
           <div className="plan-actions">
             {!status.billed && (
               <button
-                className="btn"
+                className="btn btn--primary"
                 onClick={(e) => {
                   e.stopPropagation();
                   setPlanJob(plan);
@@ -2586,13 +2584,6 @@ const isExpanded = billingJob?._id === workOrder._id;
                   setPlanPhases(1);
                   setPlanRate(0);
                   setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
-                  setInvoiceDate(new Date().toISOString().slice(0,10));
-                  const dueDateCalc = new Date();
-                  dueDateCalc.setDate(dueDateCalc.getDate() + 30);
-                  setDueDate(dueDateCalc.toISOString().slice(0,10));
-                  setBillToCompany(plan.company || '');
-                  setBillToAddress(BILLING_ADDRESSES[plan.company] || '');
-                  setNet30Auto(true);
                 }}
               >
                 Bill Plan
@@ -2600,10 +2591,8 @@ const isExpanded = billingJob?._id === workOrder._id;
             )}
             {status.billed && !status.paid && (
               <>
-                <span className="pill">Billed</span>
                 <button
-                  className="btn"
-                  style={{ fontSize: '12px', padding: '4px 8px', marginLeft: '8px', backgroundColor: '#17365D', color: '#fff' }}
+                  className="btn btn--secondary"
                   onClick={async (e) => {
                     e.stopPropagation();
                     setPlanJob(plan);
@@ -2621,30 +2610,19 @@ const isExpanded = billingJob?._id === workOrder._id;
                         setPlanRate(Number(planStatus.invoiceData.planRate || 0));
                         setPlanEmail(planStatus.invoiceData.selectedEmail || plan.email || '');
                         setPlanDetectedTotal(planStatus.invoiceData.sheetTotal || null);
-                        setInvoiceDate(planStatus.invoiceData.invoiceDate || new Date().toISOString().slice(0,10));
-                        setDueDate(planStatus.invoiceData.dueDate || new Date(Date.now() + 30*24*60*60*1000).toISOString().slice(0,10));
-                        setBillToCompany(planStatus.invoiceData.billToCompany || plan.company || '');
-                        setBillToAddress(planStatus.invoiceData.billToAddress || BILLING_ADDRESSES[plan.company] || '');
                       }
                     } catch (err) {
                       console.error('Failed to load previous invoice data:', err);
                       setPlanPhases(1);
                       setPlanRate(0);
                       setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
-                      setInvoiceDate(new Date().toISOString().slice(0,10));
-                      const dueDateCalc = new Date();
-                      dueDateCalc.setDate(dueDateCalc.getDate() + 30);
-                      setDueDate(dueDateCalc.toISOString().slice(0,10));
-                      setBillToCompany(plan.company || '');
-                      setBillToAddress(BILLING_ADDRESSES[plan.company] || '');
                     }
                   }}
                 >
                   Update Plan
                 </button>
                 <button
-                  className="btn"
-                  style={{ fontSize: '12px', padding: '4px 8px', marginLeft: '8px', backgroundColor: '#28a745', color: '#fff' }}
+                  className="btn btn--success"
                   onClick={(e) => {
                     e.stopPropagation();
                     setSelectedPlanId(plan._id);
@@ -2659,9 +2637,17 @@ const isExpanded = billingJob?._id === workOrder._id;
               </>
             )}
             {status.billed && status.paid && (
-              <span className="pill" style={{ color: '#fff', backgroundColor: '#28a745' }}>Paid</span>
+              <span className="badge badge--success">Paid</span>
             )}
+            <button
+              className="btn"
+              onClick={async (e) => {
+                e.stopPropagation();
 
+                if (isExpanded) {
+                  // collapse this card
+                  setPlanJob(null);
+                  setIsUpdateMode(false);
                   setPlanBillingOpen(false);
                   setAttachedPdfs([]);
                   setDetectedTotal(null);
@@ -2681,13 +2667,6 @@ const isExpanded = billingJob?._id === workOrder._id;
                 setPlanPhases(1);
                 setPlanRate(0);
                 setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
-                setInvoiceDate(new Date().toISOString().slice(0,10));
-                const dueDateCalc = new Date();
-                dueDateCalc.setDate(dueDateCalc.getDate() + 30);
-                setDueDate(dueDateCalc.toISOString().slice(0,10));
-                setBillToCompany(plan.company || '');
-                setBillToAddress(BILLING_ADDRESSES[plan.company] || '');
-                setNet30Auto(true);
 
                 // fire-and-forget: if there’s a prior invoice for this plan, flip to update mode & prefill
                 api.get('/api/billing/plan-invoice-status', { params: { planIds: plan._id } })
