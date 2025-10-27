@@ -2828,11 +2828,7 @@ const isExpanded = billingJob?._id === workOrder._id;
         </div>
       );
     }) : <p>No plans found.</p>}
-  </div>
-</div>
-
-        {/* Plan Mark Paid Modal */}
-        {planMarkPaidOpen && (
+    {planMarkPaidOpen && (
           <div className="modal-overlay" onClick={() => setPlanMarkPaidOpen(false)}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <h3>Mark Plan as Paid</h3>
@@ -2897,6 +2893,11 @@ const isExpanded = billingJob?._id === workOrder._id;
             </div>
           </div>
         )}
+  </div>
+</div>
+
+        {/* Plan Mark Paid Modal */}
+        
         
       {/* Footer unchanged */}
       <footer className="footer">
