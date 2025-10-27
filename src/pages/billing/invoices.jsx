@@ -2619,7 +2619,7 @@ const isExpanded = billingJob?._id === workOrder._id;
               <>
                 <button
                   className="btn btn--secondary"
-                  style={{ fontSize: '12px', padding: '4px 8px', marginLeft: '8px', backgroundColor: '#17365D', color: '#fff' }}
+                  style={{ backgroundColor: '#17365D', color: '#fff' }}
                   onClick={async (e) => {
                     e.stopPropagation();
                     setPlanJob(plan);
@@ -2837,6 +2837,7 @@ const isExpanded = billingJob?._id === workOrder._id;
     }) : <p>No plans found.</p>}
   </div>
 </div>
+
         {/* Plan Mark Paid Modal */}
         {planMarkPaidOpen && (
           <div className="modal-overlay" onClick={() => setPlanMarkPaidOpen(false)}>
