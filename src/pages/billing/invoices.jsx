@@ -2657,7 +2657,7 @@ const isExpanded = billingJob?._id === workOrder._id;
                 </button>
                 <button
                   className="btn btn--success"
-                  style={{backgroundColor: '#28a745'}}
+                  style={{backgroundColor: '#28a745', color: '#fff', fontSize: '1.4rem'}}
                   onClick={(e) => {
   e.stopPropagation();
   setSelectedPlanId(plan._id);            // <- important
