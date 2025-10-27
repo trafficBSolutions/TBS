@@ -850,6 +850,7 @@ async function handleBillPlan() {
 
     toast.success('Plan invoice sent!');
     setPlanBillingOpen(false);
+    setPlanJob(null); // Clear selected plan
     setPlanAttachedPdfs([]);
     setPlanDetectedTotal(null);
   } catch (err) {
@@ -899,6 +900,7 @@ async function handleUpdatePlan() {
 
     toast.success('Plan invoice updated and resent!');
     setPlanBillingOpen(false);
+    setPlanJob(null); // Clear selected plan
     setPlanAttachedPdfs([]);
     setPlanDetectedTotal(null);
   } catch (err) {
