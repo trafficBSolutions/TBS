@@ -2619,6 +2619,7 @@ const isExpanded = billingJob?._id === workOrder._id;
               <>
                 <button
                   className="btn btn--secondary"
+                  style={{ fontSize: '12px', padding: '4px 8px', marginLeft: '8px', backgroundColor: '#17365D', color: '#fff' }}
                   onClick={async (e) => {
                     e.stopPropagation();
                     setPlanJob(plan);
@@ -2649,6 +2650,7 @@ const isExpanded = billingJob?._id === workOrder._id;
                 </button>
                 <button
                   className="btn btn--success"
+                  style={{backgroundColor: '#28a745'}}
                   onClick={(e) => {
                     e.stopPropagation();
                     setSelectedPlanId(plan._id);
@@ -2663,7 +2665,7 @@ const isExpanded = billingJob?._id === workOrder._id;
               </>
             )}
             {status.billed && status.paid && (
-              <span className="badge badge--success">Paid</span>
+              <span style={{backgroundColor: '#28a745'}} className="badge badge--success">Paid</span>
             )}
           </div>
 
@@ -2835,7 +2837,6 @@ const isExpanded = billingJob?._id === workOrder._id;
     }) : <p>No plans found.</p>}
   </div>
 </div>
-
         {/* Plan Mark Paid Modal */}
         {planMarkPaidOpen && (
           <div className="modal-overlay" onClick={() => setPlanMarkPaidOpen(false)}>
