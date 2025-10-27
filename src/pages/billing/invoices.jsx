@@ -803,6 +803,9 @@ const [planMarkPaidOpen, setPlanMarkPaidOpen] = useState(false);
 const [planPaymentMethod, setPlanPaymentMethod] = useState('card');
 const [planPaymentAmount, setPlanPaymentAmount] = useState('');
 const [planPaymentEmail, setPlanPaymentEmail] = useState('');
+const [planCardType, setPlanCardType] = useState('');
+const [planCardLast4, setPlanCardLast4] = useState('');
+const [planCheckNumber, setPlanCheckNumber] = useState('');
 const [planDetectingTotal, setPlanDetectingTotal] = useState(false);
 const [planDetectedTotal, setPlanDetectedTotal] = useState(null);
 const [planDetectError, setPlanDetectError] = useState('');
@@ -922,11 +925,16 @@ async function handlePlanMarkPaid() {
       return;
     }
 
+    const paymentDetails = planPaymentMethod === 'card' 
+      ? { cardType: planCardType, cardLast4: planCardLast4 }
+      : { checkNumber: planCheckNumber };
+
     const payload = {
       invoiceId: planStatus.invoiceId,
       paymentMethod: planPaymentMethod,
       paymentAmount: Number(planPaymentAmount),
-      emailOverride: planPaymentEmail
+      emailOverride: planPaymentEmail,
+      ...paymentDetails
     };
 
     await api.post('/api/billing/mark-plan-paid', payload);
@@ -940,6 +948,9 @@ async function handlePlanMarkPaid() {
     setSelectedPlanId(null);
     setPlanPaymentAmount('');
     setPlanPaymentEmail('');
+    setPlanCardType('');
+    setPlanCardLast4('');
+    setPlanCheckNumber('');
   } catch (err) {
     toast.error(err?.response?.data?.message || 'Failed to record plan payment');
   } finally {
@@ -2845,6 +2856,49 @@ const isExpanded = billingJob?._id === workOrder._id;
         </select>
       </div>
 
+      {planPaymentMethod === 'card' && (
+        <>
+          <div style={{ marginBottom: '15px' }}>
+            <label>Card Type:</label>
+            <select
+              value={planCardType}
+              onChange={(e) => setPlanCardType(e.target.value)}
+              style={{ width: '100%', padding: '6px', marginTop: '5px' }}
+            >
+              <option value="">Select card type</option>
+              <option value="Visa">Visa</option>
+              <option value="MasterCard">MasterCard</option>
+              <option value="American Express">American Express</option>
+              <option value="Discover">Discover</option>
+            </select>
+          </div>
+          <div style={{ marginBottom: '15px' }}>
+            <label>Last 4 Digits:</label>
+            <input
+              type="text"
+              maxLength="4"
+              value={planCardLast4}
+              onChange={(e) => setPlanCardLast4(e.target.value.replace(/\D/g, ''))}
+              style={{ width: '100%', padding: '6px', marginTop: '5px' }}
+              placeholder="1234"
+            />
+          </div>
+        </>
+      )}
+
+      {planPaymentMethod === 'check' && (
+        <div style={{ marginBottom: '15px' }}>
+          <label>Check Number:</label>
+          <input
+            type="text"
+            value={planCheckNumber}
+            onChange={(e) => setPlanCheckNumber(e.target.value)}
+            style={{ width: '100%', padding: '6px', marginTop: '5px' }}
+            placeholder="Enter check number"
+          />
+        </div>
+      )}
+
       <div style={{ marginBottom: '15px' }}>
         <label>Payment Amount:</label>
         <input
@@ -2875,6 +2929,9 @@ const isExpanded = billingJob?._id === workOrder._id;
             setSelectedPlanId(null);
             setPlanPaymentAmount('');
             setPlanPaymentEmail('');
+            setPlanCardType('');
+            setPlanCardLast4('');
+            setPlanCheckNumber('');
           }}
           disabled={isSubmitting}
         >
