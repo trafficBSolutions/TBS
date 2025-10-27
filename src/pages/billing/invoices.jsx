@@ -2648,13 +2648,13 @@ const isExpanded = billingJob?._id === workOrder._id;
                   className="btn btn--success"
                   style={{backgroundColor: '#28a745'}}
                   onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedPlanId(plan._id);
-                    setPlanPaymentEmail(status.invoiceData?.selectedEmail || plan.email || '');
-                    const due = status.computedTotalDue || status.principal || 0;
-                    setPlanPaymentAmount(String(due));
-                    setPlanMarkPaidOpen(true);
-                  }}
+  e.stopPropagation();
+  setSelectedPlanId(plan._id);            // <- important
+  setPlanPaymentEmail(status.invoiceData?.selectedEmail || plan.email || '');
+  const due = status.computedTotalDue || status.principal || 0;
+  setPlanPaymentAmount(String(due));
+  setPlanMarkPaidOpen(true);
+}}
                 >
                   Mark Paid
                 </button>
@@ -2828,7 +2828,7 @@ const isExpanded = billingJob?._id === workOrder._id;
               </div>
             </div>
           )}
-          {planMarkPaidOpen && selectedPlan && (
+          {planMarkPaidOpen && selectedPlanId === plan._id && (
   <div className="modal-overlay" onClick={() => setPlanMarkPaidOpen(false)}>
     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
       <h3>Mark Plan as Paid — {selectedPlan.company}</h3>
