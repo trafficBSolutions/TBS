@@ -809,6 +809,8 @@ const [planCheckNumber, setPlanCheckNumber] = useState('');
 const [planDetectingTotal, setPlanDetectingTotal] = useState(false);
 const [planDetectedTotal, setPlanDetectedTotal] = useState(null);
 const [planDetectError, setPlanDetectError] = useState('');
+const [planCurrentPage, setPlanCurrentPage] = useState(0);
+const PLANS_PER_PAGE = 2;
 
 // Handle plan billing
 async function handleBillPlan() {
@@ -2576,9 +2578,41 @@ const isExpanded = billingJob?._id === workOrder._id;
   <h2 className="admin-plans-title">Traffic Control Plans</h2>
 
   <div className="plan-list">
-    {plans.length > 0 ? plans.map((plan, index) => {
-  const isExpanded = planJob?._id === plan._id;
-  const status = planInvoiceStatus?.[plan._id] || { billed: false, paid: false };
+    {plans.length > 0 ? (() => {
+      const unbilledPlans = plans.filter(plan => {
+        const status = planInvoiceStatus?.[plan._id] || { billed: false, paid: false };
+        return !status.billed;
+      });
+      
+      const startIndex = planCurrentPage * PLANS_PER_PAGE;
+      const endIndex = startIndex + PLANS_PER_PAGE;
+      const currentPlans = unbilledPlans.slice(startIndex, endIndex);
+      const totalPages = Math.ceil(unbilledPlans.length / PLANS_PER_PAGE);
+      
+      return (
+        <>
+          {unbilledPlans.length > PLANS_PER_PAGE && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', padding: '10px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+              <button 
+                onClick={() => setPlanCurrentPage(prev => Math.max(0, prev - 1))}
+                disabled={planCurrentPage === 0}
+                style={{ padding: '8px 12px', backgroundColor: planCurrentPage === 0 ? '#ccc' : '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: planCurrentPage === 0 ? 'not-allowed' : 'pointer' }}
+              >
+                ← Previous
+              </button>
+              <span>Page {planCurrentPage + 1} of {totalPages} ({unbilledPlans.length} plans need billing)</span>
+              <button 
+                onClick={() => setPlanCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+                disabled={planCurrentPage >= totalPages - 1}
+                style={{ padding: '8px 12px', backgroundColor: planCurrentPage >= totalPages - 1 ? '#ccc' : '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: planCurrentPage >= totalPages - 1 ? 'not-allowed' : 'pointer' }}
+              >
+                Next →
+              </button>
+            </div>
+          )}
+          {currentPlans.map((plan, index) => {
+            const isExpanded = planJob?._id === plan._id;
+            const status = planInvoiceStatus?.[plan._id] || { billed: false, paid: false };
       return (
         <div key={plan._id || index} className="plan-card">
           <h4 className="job-company">{plan.company}</h4>
@@ -2950,7 +2984,10 @@ const isExpanded = billingJob?._id === workOrder._id;
 )}
         </div>
       );
-    }) : <p>No plans found.</p>}
+    })}
+        </>
+      );
+    })() : <p>No plans found.</p>}
  
   </div>
   
