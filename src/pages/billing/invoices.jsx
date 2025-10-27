@@ -2514,13 +2514,6 @@ const isExpanded = billingJob?._id === workOrder._id;
   </div>
   );
 })()}
-        
-        <PaymentForm
-          workOrder={workOrder}
-          onPaymentComplete={() => fetchJobsForDay(selectedDate, companyKey || '')}
-          onLocalPaid={() => markLocallyPaid(workOrder._id)}
-        />
-        
         {/* PDF Receipt Download Button */}
         {(workOrder.paid || workOrder.lastPaymentAmount) && (
           <button
