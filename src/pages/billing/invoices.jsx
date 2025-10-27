@@ -2657,7 +2657,7 @@ const isExpanded = billingJob?._id === workOrder._id;
                 </button>
                 <button
                   className="btn btn--success"
-                  style={{backgroundColor: '#28a745', color: '#fff', fontSize: '1.4rem'}}
+                  style={{backgroundColor: '#28a745'}}
                   onClick={(e) => {
   e.stopPropagation();
   setSelectedPlanId(plan._id);            // <- important
@@ -2672,7 +2672,7 @@ const isExpanded = billingJob?._id === workOrder._id;
               </>
             )}
             {status.billed && status.paid && (
-              <span style={{backgroundColor: '#28a745'}} className="badge badge--success">Paid</span>
+              <span style={{backgroundColor: '#28a745', color: '#fff', fontSize: '1.4rem'}} className="badge badge--success">Paid</span>
             )}
           </div>
 
