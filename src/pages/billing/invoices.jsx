@@ -2518,6 +2518,30 @@ const isExpanded = billingJob?._id === workOrder._id;
           onPaymentComplete={() => fetchJobsForDay(selectedDate, companyKey || '')}
           onLocalPaid={() => markLocallyPaid(workOrder._id)}
         />
+        
+        {/* PDF Receipt Download Button */}
+        {(workOrder.paid || workOrder.lastPaymentAmount) && (
+          <button
+            className="btn"
+            style={{
+              backgroundColor: '#28a745',
+              color: 'white',
+              fontSize: '12px',
+              padding: '4px 8px',
+              marginLeft: '8px',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+            onClick={() => {
+              const apiUrl = import.meta.env.VITE_API_URL || 'https://tbs-server.onrender.com';
+              window.open(`${apiUrl}/api/billing/receipt/${workOrder._id}/pdf`, '_blank');
+            }}
+            title="Download payment receipt PDF"
+          >
+            📄 Receipt PDF
+          </button>
+        )}
       </>
     );
   }
