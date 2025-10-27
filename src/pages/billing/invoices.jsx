@@ -985,7 +985,10 @@ const [savedInvoices, setSavedInvoices] = useState(() => {
     return {};
   }
 });
-
+const selectedPlan = useMemo(
+  () => plans.find(p => p._id === selectedPlanId),
+  [plans, selectedPlanId]
+);
 
 const fileToArrayBuffer = (file) =>
   new Promise((resolve, reject) => {
@@ -2825,76 +2828,74 @@ const isExpanded = billingJob?._id === workOrder._id;
               </div>
             </div>
           )}
-          {planMarkPaidOpen && (
-          <div className="modal-overlay" onClick={() => setPlanMarkPaidOpen(false)}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <h3>Mark Plan as Paid</h3>
-              
-              <div style={{ marginBottom: '15px' }}>
-                <label>Payment Method:</label>
-                <select 
-                  value={planPaymentMethod} 
-                  onChange={(e) => setPlanPaymentMethod(e.target.value)}
-                  style={{ width: '100%', padding: '6px', marginTop: '5px' }}
-                >
-                  <option value="card">Card</option>
-                  <option value="check">Check</option>
-                </select>
-              </div>
-              
-              <div style={{ marginBottom: '15px' }}>
-                <label>Payment Amount:</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={planPaymentAmount}
-                  onChange={(e) => setPlanPaymentAmount(e.target.value)}
-                  style={{ width: '100%', padding: '6px', marginTop: '5px' }}
-                  placeholder="Enter payment amount"
-                />
-              </div>
-              
-              <div style={{ marginBottom: '15px' }}>
-                <label>Receipt Email:</label>
-                <input
-                  type="email"
-                  value={planPaymentEmail}
-                  onChange={(e) => setPlanPaymentEmail(e.target.value)}
-                  style={{ width: '100%', padding: '6px', marginTop: '5px' }}
-                  placeholder="Enter email for receipt"
-                />
-              </div>
-              
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-                <button
-                  className="btn"
-                  onClick={() => {
-                    setPlanMarkPaidOpen(false);
-                    setSelectedPlanId(null);
-                    setPlanPaymentAmount('');
-                    setPlanPaymentEmail('');
-                  }}
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="btn btn--primary"
-                  onClick={handlePlanMarkPaid}
-                  disabled={isSubmitting || !planPaymentAmount || !planPaymentEmail}
-                >
-                  {isSubmitting ? 'Recording...' : 'Mark Paid'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+          
         </div>
       );
     }) : <p>No plans found.</p>}
-    
   </div>
+  {planMarkPaidOpen && selectedPlan && (
+  <div className="modal-overlay" onClick={() => setPlanMarkPaidOpen(false)}>
+    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <h3>Mark Plan as Paid — {selectedPlan.company}</h3>
+
+      <div style={{ marginBottom: '15px' }}>
+        <label>Payment Method:</label>
+        <select
+          value={planPaymentMethod}
+          onChange={(e) => setPlanPaymentMethod(e.target.value)}
+          style={{ width: '100%', padding: '6px', marginTop: '5px' }}
+        >
+          <option value="card">Card</option>
+          <option value="check">Check</option>
+        </select>
+      </div>
+
+      <div style={{ marginBottom: '15px' }}>
+        <label>Payment Amount:</label>
+        <input
+          type="number"
+          step="0.01"
+          min="0"
+          value={planPaymentAmount}
+          onChange={(e) => setPlanPaymentAmount(e.target.value)}
+          style={{ width: '100%', padding: '6px', marginTop: '5px' }}
+        />
+      </div>
+
+      <div style={{ marginBottom: '15px' }}>
+        <label>Receipt Email:</label>
+        <input
+          type="email"
+          value={planPaymentEmail}
+          onChange={(e) => setPlanPaymentEmail(e.target.value)}
+          style={{ width: '100%', padding: '6px', marginTop: '5px' }}
+        />
+      </div>
+
+      <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+        <button
+          className="btn"
+          onClick={() => {
+            setPlanMarkPaidOpen(false);
+            setSelectedPlanId(null);
+            setPlanPaymentAmount('');
+            setPlanPaymentEmail('');
+          }}
+          disabled={isSubmitting}
+        >
+          Cancel
+        </button>
+        <button
+          className="btn btn--primary"
+          onClick={handlePlanMarkPaid}
+          disabled={isSubmitting || !planPaymentAmount || !planPaymentEmail}
+        >
+          {isSubmitting ? 'Recording...' : 'Mark Paid'}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 </div>
 
         {/* Plan Mark Paid Modal */}
