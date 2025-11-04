@@ -2507,7 +2507,7 @@ const isExpanded = billingJob?._id === workOrder._id;
       disabled={
         isSubmitting ||
         !selectedEmail ||
-        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(selectedEmail) ||
+        !selectedEmail.split(',').map(e => e.trim()).filter(e => e).every(email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) ||
         Number(sheetTotal) <= 0 ||
         !attachedPdfs.length
       }
