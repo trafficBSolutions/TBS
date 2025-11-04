@@ -145,6 +145,7 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
   const [cardLast4, setCardLast4] = useState('');
   const [checkNumber, setCheckNumber] = useState('');
   const [email, setEmail] = useState(workOrder.invoiceData?.selectedEmail || workOrder.basic?.email || '');
+  const [tbsInvoiceNumber, setTbsInvoiceNumber] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [totalOwedInput, setTotalOwedInput] = useState('');
@@ -368,6 +369,7 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
                totalOwed: Number(totalOwedInput) || authoritativeTotalOwed,
                stripePaymentIntentId: pi.id,
                emailOverride: email,
+               tbsInvoiceNumber,
              });
              toast.success('Payment recorded and receipt sent!');
              onLocalPaid();
@@ -478,6 +480,15 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
             />
           </div>
           
+          <div style={{marginBottom: '8px'}}>
+            <input
+              placeholder="TBS Invoice Number"
+              value={tbsInvoiceNumber}
+              onChange={(e) => setTbsInvoiceNumber(e.target.value)}
+              style={{width: '200px', padding: '4px'}}
+            />
+          </div>
+          
           {remainingBalance > 0 ? (
             <div style={{fontSize: '12px', color: '#666', fontStyle: 'italic'}}>
               Auto-saving partial payments...
@@ -503,6 +514,7 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
                   workOrderId: workOrder._id,
                   paymentMethod,
                   emailOverride: email,
+                  tbsInvoiceNumber,
                   paymentAmount: Number(paymentAmount),
                   totalOwed: Number(totalOwedInput) || (invoiceData ? invoiceData.principal : 0) || currentBalance,
                   ...paymentDetails
@@ -520,6 +532,7 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
                 // Call onPaymentComplete to refresh data from server (including Invoice status)
                 await onPaymentComplete();
                 setShowForm(false);            // close form after data refresh completes
+                setTbsInvoiceNumber('');
                 }).catch(err => {
                   toast.error('Failed to record payment: ' + (err.response?.data?.message || err.message));
                 }).finally(() => {
@@ -810,6 +823,8 @@ const [planDetectingTotal, setPlanDetectingTotal] = useState(false);
 const [planDetectedTotal, setPlanDetectedTotal] = useState(null);
 const [planDetectError, setPlanDetectError] = useState('');
 const [planCurrentPage, setPlanCurrentPage] = useState(0);
+const [planTbsInvoiceNumber, setPlanTbsInvoiceNumber] = useState('');
+const [workOrderTbsInvoiceNumber, setWorkOrderTbsInvoiceNumber] = useState('');
 const PLANS_PER_PAGE = 2;
 
 // Handle plan billing
@@ -828,6 +843,7 @@ async function handleBillPlan() {
       planId: planJob._id,
       manualAmount: total,
       emailOverride: planEmail,
+      tbsInvoiceNumber: planTbsInvoiceNumber,
       invoiceData: {
         invoiceDate,
         dueDate,
@@ -858,6 +874,7 @@ async function handleBillPlan() {
     setPlanJob(null); // Clear selected plan
     setPlanAttachedPdfs([]);
     setPlanDetectedTotal(null);
+    setPlanTbsInvoiceNumber('');
   } catch (err) {
     toast.error(err?.response?.data?.message || 'Failed to send plan invoice');
   } finally {
@@ -880,6 +897,7 @@ async function handleUpdatePlan() {
       planId: planJob._id,
       manualAmount: total,
       emailOverride: planEmail,
+      tbsInvoiceNumber: planTbsInvoiceNumber,
       invoiceData: {
         invoiceDate: new Date().toISOString().slice(0,10),
         dueDate: new Date(Date.now() + 30*24*60*60*1000).toISOString().slice(0,10),
@@ -908,6 +926,7 @@ async function handleUpdatePlan() {
     setPlanJob(null); // Clear selected plan
     setPlanAttachedPdfs([]);
     setPlanDetectedTotal(null);
+    setPlanTbsInvoiceNumber('');
   } catch (err) {
     toast.error(err?.response?.data?.message || 'Failed to update plan invoice');
   } finally {
@@ -936,6 +955,7 @@ async function handlePlanMarkPaid() {
       paymentMethod: planPaymentMethod,
       paymentAmount: Number(planPaymentAmount),
       emailOverride: planPaymentEmail,
+      tbsInvoiceNumber: planTbsInvoiceNumber,
       ...paymentDetails
     };
 
@@ -1858,6 +1878,7 @@ const handleUpdateInvoice = async () => {
       mode: 'update', // <-- make the intent explicit
       manualAmount: Number(sheetTotal.toFixed(2)),
       emailOverride: selectedEmail,
+      tbsInvoiceNumber: workOrderTbsInvoiceNumber,
       invoiceData: {
         invoiceDate,
         invoiceNumber,
@@ -1938,6 +1959,7 @@ const handleUpdateInvoice = async () => {
       workOrderId: billingJob._id,
       manualAmount: Number(sheetTotal.toFixed(2)),
       emailOverride: selectedEmail,
+      tbsInvoiceNumber: workOrderTbsInvoiceNumber,
       invoiceData: {
         invoiceDate,
         invoiceNumber,
@@ -1978,6 +2000,7 @@ const handleUpdateInvoice = async () => {
     setBillingOpen(false);
     setBillingJob(null);
     setReadyToSend(false);
+    setWorkOrderTbsInvoiceNumber('');
   } catch (err) {
     const msg =
       err?.response?.data?.message ||
@@ -2167,6 +2190,7 @@ const isExpanded = billingJob?._id === workOrder._id;
             setBillingJob(null);
             setBillingOpen(false);
             setIsUpdateMode(false);
+            setWorkOrderTbsInvoiceNumber('');
           } else {
             setBillingJob(workOrder);
             setIsUpdateMode(false);
@@ -2268,6 +2292,8 @@ const isExpanded = billingJob?._id === workOrder._id;
               <input type="text" value={billToAddress} onChange={(e) => setBillToAddress(e.target.value)} placeholder="Street, City, State ZIP" style={{ width: '100%', padding: 6 }} />
               <label style={{ display: 'block', marginTop: 8 }}>Send Invoice To (Email)</label>
               <input type="email" value={selectedEmail} onChange={(e) => setSelectedEmail(e.target.value)} style={{ width: '100%', padding: 6 }} />
+              <label style={{ display: 'block', marginTop: 8 }}>TBS Invoice Number</label>
+              <input type="text" value={workOrderTbsInvoiceNumber} onChange={(e) => setWorkOrderTbsInvoiceNumber(e.target.value)} placeholder="Enter TBS invoice number" style={{ width: '100%', padding: 6 }} />
             </div>
             
             <div style={{ padding: 12, border: '1px solid #e5e7eb', borderRadius: 8, background: '#f9fafb', marginBottom: 12 }}>
@@ -2460,6 +2486,9 @@ const isExpanded = billingJob?._id === workOrder._id;
 
       <label style={{ display: 'block', marginTop: 8 }}>Send Invoice To (Email)</label>
       <input type="email" value={selectedEmail} onChange={(e) => setSelectedEmail(e.target.value)} style={{ width: '100%', padding: 6 }} />
+      
+      <label style={{ display: 'block', marginTop: 8 }}>TBS Invoice Number</label>
+      <input type="text" value={workOrderTbsInvoiceNumber} onChange={(e) => setWorkOrderTbsInvoiceNumber(e.target.value)} placeholder="Enter TBS invoice number" style={{ width: '100%', padding: 6 }} />
     </div>
 
     {/* === TOTALS SUMMARY === */}
@@ -2651,6 +2680,7 @@ const isExpanded = billingJob?._id === workOrder._id;
                   setPlanPhases(1);
                   setPlanRate(0);
                   setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
+                  setPlanTbsInvoiceNumber('');
                 }}
               >
                 Bill Plan
@@ -2791,6 +2821,17 @@ const isExpanded = billingJob?._id === workOrder._id;
                 />
               </div>
               
+              <div className="form-row">
+                <label>TBS Invoice Number:</label>
+                <input
+                  type="text"
+                  value={planTbsInvoiceNumber}
+                  onChange={e => setPlanTbsInvoiceNumber(e.target.value)}
+                  placeholder="Enter TBS invoice number"
+                  style={{ width: '100%', padding: 6 }}
+                />
+              </div>
+              
               {/* Subtotal & Total Summary */}
               <div style={{ padding: 12, border: '1px solid #e5e7eb', borderRadius: 8, background: '#f9fafb', marginBottom: 12 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Subtotal</span><b>${planDetectedTotal?.toFixed(2) || (planPhases * planRate).toFixed(2)}</b></div>
@@ -2866,6 +2907,7 @@ const isExpanded = billingJob?._id === workOrder._id;
                   onClick={() => {
                     setPlanBillingOpen(false);
                     setPlanJob(null);
+                    setPlanTbsInvoiceNumber('');
                   }}
                 >
                   Cancel
