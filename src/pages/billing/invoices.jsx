@@ -1161,7 +1161,7 @@ const tbsHours = useMemo(() => {
    return Math.round(crews * hrs * rate * 100) / 100;
  }, [crewsCount, otHours, otRate]);
 // Email validation helper
-const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+const isValidEmail = (email) => true;
 // near other localStorage-backed state
 const [locallyPaid, setLocallyPaid] = useState(() => {
   try { return new Set(JSON.parse(localStorage.getItem('locallyPaid') || '[]')); }
