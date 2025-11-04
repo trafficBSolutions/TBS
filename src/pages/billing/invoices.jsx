@@ -145,7 +145,7 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
   const [cardLast4, setCardLast4] = useState('');
   const [checkNumber, setCheckNumber] = useState('');
   const [email, setEmail] = useState(workOrder.invoiceData?.selectedEmail || workOrder.basic?.email || '');
-  const [tbsInvoiceNumber, setTbsInvoiceNumber] = useState('');
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [totalOwedInput, setTotalOwedInput] = useState('');
@@ -369,7 +369,6 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
                totalOwed: Number(totalOwedInput) || authoritativeTotalOwed,
                stripePaymentIntentId: pi.id,
                emailOverride: email,
-               tbsInvoiceNumber,
              });
              toast.success('Payment recorded and receipt sent!');
              onLocalPaid();
@@ -480,14 +479,7 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
             />
           </div>
           
-          <div style={{marginBottom: '8px'}}>
-            <input
-              placeholder="TBS Invoice Number"
-              value={tbsInvoiceNumber}
-              onChange={(e) => setTbsInvoiceNumber(e.target.value)}
-              style={{width: '200px', padding: '4px'}}
-            />
-          </div>
+
           
           {remainingBalance > 0 ? (
             <div style={{fontSize: '12px', color: '#666', fontStyle: 'italic'}}>
@@ -514,7 +506,6 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
                   workOrderId: workOrder._id,
                   paymentMethod,
                   emailOverride: email,
-                  tbsInvoiceNumber,
                   paymentAmount: Number(paymentAmount),
                   totalOwed: Number(totalOwedInput) || (invoiceData ? invoiceData.principal : 0) || currentBalance,
                   ...paymentDetails
@@ -532,7 +523,7 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
                 // Call onPaymentComplete to refresh data from server (including Invoice status)
                 await onPaymentComplete();
                 setShowForm(false);            // close form after data refresh completes
-                setTbsInvoiceNumber('');
+
                 }).catch(err => {
                   toast.error('Failed to record payment: ' + (err.response?.data?.message || err.message));
                 }).finally(() => {
