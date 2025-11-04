@@ -2351,12 +2351,7 @@ const isExpanded = billingJob?._id === workOrder._id;
     const isPartial = (effectiveCurrentAmount ?? 0) < (effectiveBilledAmount ?? 0);
     return (
       <>
-        <span
-          className="pill"
-          style={{ backgroundColor: isPartial ? '#ffc107' : undefined, color: isPartial ? '#000' : undefined }}
-        >
-          {isPartial ? 'Partial' : 'Billed'}
-        </span>
+        <PaymentForm workOrder={workOrder} onPaymentComplete={() => fetchJobsForDay(selectedDate, companyKey || '')} onLocalPaid={markLocallyPaid} />
         <button
           className="btn"
           style={{ fontSize: '12px', padding: '4px 8px', marginLeft: '8px', backgroundColor: '#17365D', color: '#fff' }}
