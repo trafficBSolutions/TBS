@@ -2335,7 +2335,7 @@ const isExpanded = billingJob?._id === workOrder._id;
   <button
     className="btn btn--primary"
     onClick={handleUpdateInvoice}
-    disabled={isSubmitting || !selectedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(selectedEmail) || Number(sheetTotal) <= 0}
+    disabled={isSubmitting || !selectedEmail.trim() || Number(sheetTotal) <= 0}
   >
     {isSubmitting ? 'Updating…' : `Update & Resend ($${sheetTotal.toFixed(2)})`}
   </button>
@@ -2343,7 +2343,7 @@ const isExpanded = billingJob?._id === workOrder._id;
   <button
     className="btn btn--primary"
     onClick={handleSendInvoice}
-    disabled={isSubmitting || !readyToSend || !selectedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(selectedEmail) || Number(sheetTotal) <= 0 || !attachedPdfs.length}
+    disabled={isSubmitting || !readyToSend || !selectedEmail.trim() || Number(sheetTotal) <= 0 || !attachedPdfs.length}
   >
     {isSubmitting ? 'Sending…' : `Send Invoice ($${sheetTotal.toFixed(2)})`}
   </button>
