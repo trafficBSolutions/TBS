@@ -144,7 +144,7 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
   const [cardType, setCardType] = useState('');
   const [cardLast4, setCardLast4] = useState('');
   const [checkNumber, setCheckNumber] = useState('');
-  const [email, setEmail] = useState(workOrder.invoiceData?.selectedEmail || workOrder.basic?.email || '');
+  const [emails, setEmails] = useState([workOrder.invoiceData?.selectedEmail || workOrder.basic?.email || '']);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState('');
@@ -358,7 +358,7 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
      <Elements stripe={stripePromise} options={{ clientSecret }} key={clientSecret}>
        <StripeCheckoutInner
          clientSecret={clientSecret}
-         email={email}
+         email={emails.filter(e => e.trim())[0] || ''}
          onSucceeded={async (pi) => {
            // mark paid on your server once Stripe confirms
            try {
@@ -471,12 +471,38 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
   )}
 </div>
           <div style={{marginBottom: '8px'}}>
-            <textarea
-              placeholder="Receipt emails (separate multiple emails with commas)"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              style={{width: '200px', padding: '4px', minHeight: '40px', resize: 'vertical'}}
-            />
+            <label>Receipt Emails:</label>
+            {emails.map((email, index) => (
+              <div key={index} style={{display: 'flex', gap: '4px', marginBottom: '4px'}}>
+                <input
+                  type="email"
+                  placeholder="Enter email address"
+                  value={email}
+                  onChange={(e) => {
+                    const newEmails = [...emails];
+                    newEmails[index] = e.target.value;
+                    setEmails(newEmails);
+                  }}
+                  style={{flex: 1, padding: '4px'}}
+                />
+                {emails.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => setEmails(emails.filter((_, i) => i !== index))}
+                    style={{padding: '4px 8px', fontSize: '12px', color: '#dc3545', border: '1px solid #dc3545', background: 'none', borderRadius: '3px'}}
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => setEmails([...emails, ''])}
+              style={{padding: '4px 8px', fontSize: '12px', color: '#007bff', border: '1px solid #007bff', background: 'none', borderRadius: '3px', marginTop: '4px'}}
+            >
+              Add Email
+            </button>
           </div>
           
 
@@ -489,7 +515,7 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
             <button
               className="btn btn--primary"
               style={{fontSize: '12px', padding: '4px 8px', marginRight: '5px'}}
-              disabled={isSubmitting || !(Number(paymentAmount) > 0) || !email.trim()}
+              disabled={isSubmitting || !(Number(paymentAmount) > 0) || !emails.some(e => e.trim())}
               onClick={() => {
                  if (paymentMethod === 'card' && processStripe) {
                   toast.info('Use the secure card form above to complete payment.');
@@ -505,7 +531,7 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
                 api.post('/api/billing/mark-paid', {
                   workOrderId: workOrder._id,
                   paymentMethod,
-                  emailOverride: email,
+                  emailOverride: emails.filter(e => e.trim()).join(','),
                   paymentAmount: Number(paymentAmount),
                   totalOwed: Number(totalOwedInput) || (invoiceData ? invoiceData.principal : 0) || currentBalance,
                   ...paymentDetails
