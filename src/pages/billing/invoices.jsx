@@ -471,11 +471,11 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
   )}
 </div>
           <div style={{marginBottom: '8px'}}>
-            <input
-              placeholder="Receipt email"
+            <textarea
+              placeholder="Receipt emails (separate multiple emails with commas)"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              style={{width: '200px', padding: '4px'}}
+              style={{width: '200px', padding: '4px', minHeight: '40px', resize: 'vertical'}}
             />
           </div>
           
@@ -2281,8 +2281,8 @@ const isExpanded = billingJob?._id === workOrder._id;
               )}
               <label style={{ display: 'block', marginTop: 8 }}>Billing Address</label>
               <input type="text" value={billToAddress} onChange={(e) => setBillToAddress(e.target.value)} placeholder="Street, City, State ZIP" style={{ width: '100%', padding: 6 }} />
-              <label style={{ display: 'block', marginTop: 8 }}>Send Invoice To (Email)</label>
-              <input type="email" value={selectedEmail} onChange={(e) => setSelectedEmail(e.target.value)} style={{ width: '100%', padding: 6 }} />
+              <label style={{ display: 'block', marginTop: 8 }}>Send Invoice To (Emails - separate with commas)</label>
+              <textarea value={selectedEmail} onChange={(e) => setSelectedEmail(e.target.value)} placeholder="email1@company.com, email2@company.com" style={{ width: '100%', padding: 6, minHeight: '60px', resize: 'vertical' }} />
               <label style={{ display: 'block', marginTop: 8 }}>TBS Invoice Number</label>
               <input type="text" value={workOrderTbsInvoiceNumber} onChange={(e) => setWorkOrderTbsInvoiceNumber(e.target.value)} placeholder="Enter TBS invoice number" style={{ width: '100%', padding: 6 }} />
             </div>
@@ -2470,8 +2470,8 @@ const isExpanded = billingJob?._id === workOrder._id;
       <label style={{ display: 'block', marginTop: 8 }}>Billing Address</label>
       <input type="text" value={billToAddress} onChange={(e) => setBillToAddress(e.target.value)} placeholder="Street, City, State ZIP" style={{ width: '100%', padding: 6 }} />
 
-      <label style={{ display: 'block', marginTop: 8 }}>Send Invoice To (Email)</label>
-      <input type="email" value={selectedEmail} onChange={(e) => setSelectedEmail(e.target.value)} style={{ width: '100%', padding: 6 }} />
+      <label style={{ display: 'block', marginTop: 8 }}>Send Invoice To (Emails - separate with commas)</label>
+      <textarea value={selectedEmail} onChange={(e) => setSelectedEmail(e.target.value)} placeholder="email1@company.com, email2@company.com" style={{ width: '100%', padding: 6, minHeight: '60px', resize: 'vertical' }} />
       
       <label style={{ display: 'block', marginTop: 8 }}>TBS Invoice Number</label>
       <input type="text" value={workOrderTbsInvoiceNumber} onChange={(e) => setWorkOrderTbsInvoiceNumber(e.target.value)} placeholder="Enter TBS invoice number" style={{ width: '100%', padding: 6 }} />
