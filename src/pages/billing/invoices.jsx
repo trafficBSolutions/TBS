@@ -489,7 +489,7 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
             <button
               className="btn btn--primary"
               style={{fontSize: '12px', padding: '4px 8px', marginRight: '5px'}}
-              disabled={isSubmitting || !paymentAmount}
+              disabled={isSubmitting || !(Number(paymentAmount) > 0)}
               onClick={() => {
                  if (paymentMethod === 'card' && processStripe) {
                   toast.info('Use the secure card form above to complete payment.');
