@@ -24,7 +24,14 @@ function Header() {
       try {
         await fetch(
           (import.meta.env.VITE_API_URL || 'https://tbs-server.onrender.com') + '/employee/logout',
-          { method: 'POST', credentials: 'include' }
+          { 
+            method: 'POST', 
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          }
         );
       } catch {}
       localStorage.removeItem('employeeUser');
