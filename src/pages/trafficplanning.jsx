@@ -439,7 +439,7 @@ Together, we can create safer roads, smoother traffic flow, and more resilient c
             ) : (
               <span>Choose Structure File</span>
             )}
-            <input type="file" name="structure" accept=".pdf,.doc,.docx,.txt,.page" onChange={(e) => {
+            <input type="file" name="structure" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.txt,.page" onChange={(e) => {
                         handleFileChange(e, 'structure');
                           if (e.target.files[0]) {
                             setErrors((prevErrors) => ({ ...prevErrors, structure: '' })); // Clear the error
@@ -602,3 +602,4 @@ Together, we can create safer roads, smoother traffic flow, and more resilient c
         </div>
     )
 };
+
