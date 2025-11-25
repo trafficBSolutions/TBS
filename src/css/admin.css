@@ -484,6 +484,9 @@
   .react-datepicker__day-name {
     font-size: 1.03rem;
   }
+  .month-summary {
+    font-size: 1.8rem;
+  }
 }
 @media screen and (max-width: 320px) and (orientation: portrait) {
   .admin-job-calendar h3 {
