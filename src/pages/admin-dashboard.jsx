@@ -92,46 +92,6 @@ const fetchMonthlyDiscipline = async (date) => {
     setDisciplineMonthly({});
   }
 };
-const fetchMonthlyJobs = async (date) => {
-  try {
-    const month = date.getMonth() + 1;
-    const year = date.getFullYear();
-    console.log(`Fetching jobs for ${month}/${year}`);
-
-    const res = await axios.get(`/jobs/month?month=${month}&year=${year}`);
-    console.log("Jobs received:", res.data);
-
-    // Group jobs by date (active jobs only)
-    const grouped = {};
-
-    res.data.forEach(job => {
-      (job.jobDates || []).forEach(jobDateObj => {
-        const dateStr = new Date(jobDateObj.date).toISOString().split('T')[0];
-
-        if (!jobDateObj.cancelled && !job.cancelled) {
-          if (!grouped[dateStr]) {
-            grouped[dateStr] = [];
-          }
-          grouped[dateStr].push(job);
-        }
-      });
-    });
-
-    // 👉 Count *job dates* for the month (multi-day job counts multiple times)
-    const totalJobsForMonth = Object.values(grouped).reduce(
-      (sum, jobsOnDate) => sum + jobsOnDate.length,
-      0
-    );
-
-    setMonthlyJobs(grouped);
-    setMonthlyTotalJobs(totalJobsForMonth); // <-- new
-    setMonthlyKey(prev => prev + 1);
-  } catch (err) {
-    console.error("Failed to fetch monthly jobs:", err);
-    setMonthlyJobs({});
-    setMonthlyTotalJobs(0);
-  }
-};
 
 const fetchDisciplineForDay = async (date) => {
   if (!date) return;
@@ -284,12 +244,22 @@ const fetchMonthlyJobs = async (date) => {
       });
     });
 
+    // 👉 Count *job dates* for the month (multi-day job counts multiple times)
+    const totalJobsForMonth = Object.values(grouped).reduce(
+      (sum, jobsOnDate) => sum + jobsOnDate.length,
+      0
+    );
+
     setMonthlyJobs(grouped);
+    setMonthlyTotalJobs(totalJobsForMonth); // <-- new
     setMonthlyKey(prev => prev + 1);
   } catch (err) {
     console.error("Failed to fetch monthly jobs:", err);
+    setMonthlyJobs({});
+    setMonthlyTotalJobs(0);
   }
 };
+
 
 useEffect(() => {
   console.log('All cancelled jobs:', cancelledJobs);
