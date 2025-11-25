@@ -59,7 +59,7 @@ const [disciplineDate, setDisciplineDate] = useState(new Date());
 const [disciplineMonthly, setDisciplineMonthly] = useState({});
 const [disciplineList,   setDisciplineList]   = useState([]);
 const [monthlyTotalJobs, setMonthlyTotalJobs] = useState(0);
-
+const [monthlyTotalWorkOrders, setMonthlyTotalWorkOrders] = useState(0);
 // Modify your fetchMonthlyJobs function to include better logging
 // Add this useEffect to fetch cancelled jobs specifically
 useEffect(() => {
@@ -178,11 +178,22 @@ const fetchMonthlyWorkOrders = async (date) => {
       const dateStr = new Date(wo.scheduledDate).toISOString().split('T')[0];
       (grouped[dateStr] ||= []).push(wo);
     });
+
+    // 👉 Count all work orders in this month
+    const totalWorkOrdersForMonth = Object.values(grouped).reduce(
+      (sum, list) => sum + list.length,
+      0
+    );
+
     setWoMonthly(grouped);
+    setMonthlyTotalWorkOrders(totalWorkOrdersForMonth); // NEW
   } catch (e) {
     console.error('Failed to fetch monthly work orders:', e);
+    setWoMonthly({});
+    setMonthlyTotalWorkOrders(0); // reset on error
   }
 };
+
 
 const fetchWorkOrdersForDay = async (date) => {
   if (!date) return;
@@ -368,6 +379,15 @@ useEffect(() => {
     {monthlyTotalJobs}
   </div>
 )}
+{viewMode === 'workorders' && (
+  <div className="month-summary">
+    <strong>
+      Total Work Orders in {calendarViewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}:
+    </strong>{' '}
+    {monthlyTotalWorkOrders}
+  </div>
+)}
+
     <DatePicker
 selected={
   viewMode === 'traffic' ? selectedDate
