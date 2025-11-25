@@ -374,7 +374,7 @@ useEffect(() => {
     {viewMode === 'traffic' && (
   <div className="month-summary">
     <strong>
-      Total Jobs in {calendarViewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}:
+      Total Jobs Scheduled for {calendarViewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}:
     </strong>{' '}
     {monthlyTotalJobs}
   </div>
@@ -382,7 +382,7 @@ useEffect(() => {
 {viewMode === 'workorders' && (
   <div className="month-summary">
     <strong>
-      Total Work Orders in {calendarViewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}:
+      Total Jobs Completed for {calendarViewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}:
     </strong>{' '}
     {monthlyTotalWorkOrders}
   </div>
