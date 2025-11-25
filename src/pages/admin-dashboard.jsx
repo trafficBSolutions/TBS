@@ -58,6 +58,7 @@ const [selectedPdfId, setSelectedPdfId] = useState(null);
 const [disciplineDate, setDisciplineDate] = useState(new Date());
 const [disciplineMonthly, setDisciplineMonthly] = useState({});
 const [disciplineList,   setDisciplineList]   = useState([]);
+const [monthlyTotalJobs, setMonthlyTotalJobs] = useState(0);
 
 // Modify your fetchMonthlyJobs function to include better logging
 // Add this useEffect to fetch cancelled jobs specifically
@@ -89,6 +90,46 @@ const fetchMonthlyDiscipline = async (date) => {
   } catch (e) {
     console.error('Failed to fetch monthly discipline:', e);
     setDisciplineMonthly({});
+  }
+};
+const fetchMonthlyJobs = async (date) => {
+  try {
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+    console.log(`Fetching jobs for ${month}/${year}`);
+
+    const res = await axios.get(`/jobs/month?month=${month}&year=${year}`);
+    console.log("Jobs received:", res.data);
+
+    // Group jobs by date (active jobs only)
+    const grouped = {};
+
+    res.data.forEach(job => {
+      (job.jobDates || []).forEach(jobDateObj => {
+        const dateStr = new Date(jobDateObj.date).toISOString().split('T')[0];
+
+        if (!jobDateObj.cancelled && !job.cancelled) {
+          if (!grouped[dateStr]) {
+            grouped[dateStr] = [];
+          }
+          grouped[dateStr].push(job);
+        }
+      });
+    });
+
+    // 👉 Count *job dates* for the month (multi-day job counts multiple times)
+    const totalJobsForMonth = Object.values(grouped).reduce(
+      (sum, jobsOnDate) => sum + jobsOnDate.length,
+      0
+    );
+
+    setMonthlyJobs(grouped);
+    setMonthlyTotalJobs(totalJobsForMonth); // <-- new
+    setMonthlyKey(prev => prev + 1);
+  } catch (err) {
+    console.error("Failed to fetch monthly jobs:", err);
+    setMonthlyJobs({});
+    setMonthlyTotalJobs(0);
   }
 };
 
@@ -349,6 +390,14 @@ useEffect(() => {
 </button>
 
     </div>
+    {viewMode === 'traffic' && (
+  <div className="month-summary">
+    <strong>
+      Total Jobs in {calendarViewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}:
+    </strong>{' '}
+    {monthlyTotalJobs}
+  </div>
+)}
     <DatePicker
 selected={
   viewMode === 'traffic' ? selectedDate
