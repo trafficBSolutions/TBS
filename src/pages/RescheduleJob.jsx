@@ -7,6 +7,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import 'react-toastify/dist/ReactToastify.css';
 import '../css/trafficcontrol.css';
 import Header from '../components/headerviews/HeaderRe';
+import images from '../utils/tbsImages';
 export default function RescheduleJob() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
