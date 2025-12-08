@@ -445,6 +445,16 @@ border-radius: 5px;
 .terms-text {
   font-size: 1.3rem;
 }
+.job-actual-reschedule-box h3 {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  text-align: center;
+}
+.job-actual-reschedule-box ul {
+  list-style-type: none;
+  padding: 0;
+  font-size: 1.5rem;
+}
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -474,123 +484,6 @@ border-radius: 5px;
   text-align: center;
   font-size: 3rem;
   font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-}
-
-/* Radio button options for flaggers */
-.flagger-options, .ga-power-options {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin: 15px 0;
-}
-
-.radio-option {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 1.2rem;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-}
-
-.radio-option:hover {
-  background-color: #f5f5f5;
-}
-
-.radio-option input[type="radio"] {
-  margin: 0;
-  transform: scale(1.2);
-}
-
-/* Georgia Power TA Images Section */
-.ga-power-helper {
-  background-color: #fff3cd;
-  border: 2px solid #ffc107;
-  border-radius: 8px;
-  padding: 15px;
-  margin: 15px 0;
-  text-align: center;
-}
-
-.ga-power-helper .helper-note {
-  color: #856404;
-  font-weight: bold;
-  margin-bottom: 15px;
-  font-size: 1.3rem;
-}
-
-.ta-images-container {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  flex-wrap: wrap;
-  margin-top: 10px;
-}
-.ga-help {
-  margin-top: 12px;
-  padding: 12px 14px;
-  border-left: 4px solid #ffbf69;   /* warm accent */
-  background: #fff7ec;               /* soft background */
-  border-radius: 8px;
-}
-
-.ga-help .helper-note {
-  margin: 0 0 10px 0;
-  font-weight: 600;
-  color: #4b5563;                    /* slate-ish text */
-}
-
-.ta-gallery {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 12px;
-}
-
-.ta-card {
-  margin: 0;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-  transition: transform 120ms ease, box-shadow 120ms ease;
-}
-
-.ta-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
-}
-
-.ta-img {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-.ta-card figcaption {
-  padding: 8px 10px;
-  text-align: center;
-  font-size: 1.3rem;
-  color: #374151;
-  background: #f9fafb;
-  border-top: 1px solid #f1f5f9;
-}
-
-.ta-10, .ta-33, .ta-37 {
-  width: 120px;
-  height: 120px;
-  object-fit: cover;
-  border-radius: 8px;
-  border: 2px solid #ffc107;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  transition: transform 0.2s ease;
-}
-
-.ta-10:hover, .ta-33:hover, .ta-37:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 @media screen and (max-width: 1200px) and (orientation: landscape) {
   .traffic-control-head {
@@ -665,21 +558,6 @@ border-radius: 5px;
   }
 }
 @media screen and (min-width: 320px) and (max-width: 640px) and (orientation: portrait) {
-  .ta-images-container {
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-  }
-  
-  .ta-10, .ta-33, .ta-37 {
-    width: 100px;
-    height: 100px;
-  }
-  
-  .ga-power-helper .helper-note {
-    font-size: 1.1rem;
-  }
-  
   .traffic-control-head {
     font-size: 4rem;
   }
@@ -727,24 +605,6 @@ border-radius: 5px;
   }
   .terms-text {
     font-size: 1.2rem;
-  }
-  
-  .recaptcha-wrap {
-    width: 100%;
-    overflow: hidden;
-    display: flex;
-    justify-content: center;
-  }
-  
-  .recaptcha-wrap > div {
-    transform: scale(0.77);
-    transform-origin: 0 0;
-    width: 130% !important;
-  }
-  
-  .recaptcha-wrap iframe {
-    max-width: 100% !important;
-    width: 304px !important;
   }
 }
 
@@ -868,4 +728,3 @@ border-radius: 5px;
   line-height: 1.4rem;
 }
 }
-
