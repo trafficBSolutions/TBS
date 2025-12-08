@@ -156,7 +156,7 @@ export default function RescheduleJob() {
               <div className="datepicker-container">
                 <label className="job-control-label">Select New Date *</label>
                 <p className="date-picker-note">
-                  <b>NOTE:</b> Disabled dates are fully booked or you have already scheduled a job on this date. Choose an available date.
+                  <b>NOTE:</b> Disabled dates are either already fully booked or you have already scheduled the same job on this date. Choose an available date.
                 </p>
                 <DatePicker
                   selected={newDate}
