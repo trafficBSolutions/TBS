@@ -20,6 +20,13 @@ export default function RescheduleJob() {
   const [fullDates, setFullDates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+// Put this near the top of the file, outside the component:
+const toDateOnlyFromISO = (isoString) => {
+  if (!isoString) return null;
+  const d = new Date(isoString); // may be UTC-based
+  // Use UTC parts so timezone can't shift the day
+  return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+};
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -56,23 +63,34 @@ export default function RescheduleJob() {
     fetchFullDates();
   }, [id, oldDateParam]);
 
-  const getExcludedDates = () => {
-    if (!job) return fullDates;
-    
-    const jobDatesExcludingOld = job.jobDates
-      .filter(d => {
-        if (d.cancelled) return false;
-        const jobDate = new Date(d.date);
-        const localJobDate = new Date(jobDate.getFullYear(), jobDate.getMonth(), jobDate.getDate());
-        return localJobDate.toDateString() !== oldDate?.toDateString();
-      })
-      .map(d => {
-        const jobDate = new Date(d.date);
-        return new Date(jobDate.getFullYear(), jobDate.getMonth(), jobDate.getDate());
-      });
-    
-    return [...fullDates, ...jobDatesExcludingOld];
-  };
+const getExcludedDates = () => {
+  if (!job) return fullDates;
+
+  // Normalize oldDate to a date-only object
+  const normalizedOldDate = oldDate
+    ? new Date(oldDate.getFullYear(), oldDate.getMonth(), oldDate.getDate())
+    : null;
+
+  const jobDatesExcludingOld = (job.jobDates || [])
+    .filter(d => {
+      if (d.cancelled) return false;
+
+      const jobDateOnly = toDateOnlyFromISO(d.date);
+
+      if (!normalizedOldDate) return true;
+
+      // Compare by time value (date-only)
+      return jobDateOnly.getTime() !== normalizedOldDate.getTime();
+    })
+    .map(d => {
+      // Return normalized date-only objects
+      return toDateOnlyFromISO(d.date);
+    });
+
+  // Combine full dates from backend and this job's other dates
+  return [...fullDates, ...jobDatesExcludingOld];
+};
+
 
   const handleReschedule = async (e) => {
     e.preventDefault();
