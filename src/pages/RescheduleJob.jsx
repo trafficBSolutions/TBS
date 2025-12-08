@@ -28,7 +28,8 @@ export default function RescheduleJob() {
         setJob(res.data);
         
         if (oldDateParam) {
-          setOldDate(new Date(oldDateParam));
+          const [year, month, day] = oldDateParam.split('-').map(Number);
+          setOldDate(new Date(year, month - 1, day));
         }
       } catch (err) {
         console.error('Error fetching job:', err);
