@@ -1,6 +1,6 @@
-import { useParams, useSearchParams, useNavigate} from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -38,6 +38,7 @@ export default function RescheduleJob() {
         setLoading(false);
       }
     };
+
     const fetchFullDates = async () => {
       try {
         const res = await axios.get('https://tbs-server.onrender.com/jobs/full-dates');
@@ -57,20 +58,19 @@ export default function RescheduleJob() {
 
   const getExcludedDates = () => {
     if (!job) return fullDates;
-
+    
     const jobDatesExcludingOld = job.jobDates
       .filter(d => {
         if (d.cancelled) return false;
-        const utcDate = new Date(d.date);
-        const jobDateLocal = new Date(utcDate.getUTCFullYear(), utcDate.getUTCMonth(), utcDate.getUTCDate());
-        const oldDateLocal = oldDate ? new Date(oldDate.getFullYear(), oldDate.getMonth(), oldDate.getDate()) : null;
-        return !oldDateLocal || jobDateLocal.getTime() !== oldDateLocal.getTime();
+        const jobDate = new Date(d.date);
+        const localJobDate = new Date(jobDate.getFullYear(), jobDate.getMonth(), jobDate.getDate());
+        return localJobDate.toDateString() !== oldDate?.toDateString();
       })
       .map(d => {
-        const utcDate = new Date(d.date);
-        return new Date(utcDate.getUTCFullYear(), utcDate.getUTCMonth(), utcDate.getUTCDate());
+        const jobDate = new Date(d.date);
+        return new Date(jobDate.getFullYear(), jobDate.getMonth(), jobDate.getDate());
       });
-
+    
     return [...fullDates, ...jobDatesExcludingOld];
   };
 
