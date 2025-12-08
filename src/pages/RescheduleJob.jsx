@@ -141,7 +141,7 @@ export default function RescheduleJob() {
             <p>Move your job from <strong>{oldDate?.toLocaleDateString('en-US')}</strong> to a new date.</p>
           </div>
 
-          <div className="job-actual">
+          <div className="job-actual-reschedule-box">
             <h3>Job Details:</h3>
             <ul>
               <li><strong>Company:</strong> {job.company}</li>
