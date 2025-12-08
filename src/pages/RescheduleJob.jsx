@@ -54,26 +54,33 @@ export default function RescheduleJob() {
     fetchJob();
     fetchFullDates();
   }, [id, oldDateParam]);
+const toDateOnlyFromISO = (isoString) => {
+  if (!isoString) return null;
+  const d = new Date(isoString);
+  return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+};
+ const getExcludedDates = () => {
+  if (!job) return fullDates;
 
-  const getExcludedDates = () => {
-    if (!job) return fullDates;
+  // Normalize oldDate to date-only
+  const oldDateLocal = oldDate
+    ? new Date(oldDate.getFullYear(), oldDate.getMonth(), oldDate.getDate())
+    : null;
 
-    const jobDatesExcludingOld = job.jobDates
-      .filter(d => {
-        if (d.cancelled) return false;
-        const utcDate = new Date(d.date);
-        const jobDateLocal = new Date(utcDate.getUTCFullYear(), utcDate.getUTCMonth(), utcDate.getUTCDate());
-        const oldDateLocal = oldDate ? new Date(oldDate.getFullYear(), oldDate.getMonth(), oldDate.getDate()) : null;
-        return !oldDateLocal || jobDateLocal.getTime() !== oldDateLocal.getTime();
-      })
-      .map(d => {
-        const utcDate = new Date(d.date);
-        return new Date(utcDate.getUTCFullYear(), utcDate.getUTCMonth(), utcDate.getUTCDate());
-      });
+  // Take *all* jobDates (even cancelled ones), except the one we're rescheduling from
+  const jobDatesExcludingOld = (job.jobDates || [])
+    .map(d => toDateOnlyFromISO(d.date))
+    .filter(jobDateLocal => {
+      if (!jobDateLocal) return false;
+      if (!oldDateLocal) return true;
+      return jobDateLocal.getTime() !== oldDateLocal.getTime();
+    });
 
-    return [...fullDates, ...jobDatesExcludingOld];
-  };
-
+  // Merge:
+  // - dates that are fully booked for everyone (from backend)
+  // - this job's other scheduled dates (so user can't move to them)
+  return [...fullDates, ...jobDatesExcludingOld];
+};
 
   const handleReschedule = async (e) => {
     e.preventDefault();
