@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate} from 'react-router-dom'
 import { About, ConfirmAdditionalFlagger, EmployeeDiscipline, Invoice, Work, ManageJobTest, CancelJobTest, ManageJob, CancelJob, AdminLog, AdminDashboard, Contact, Apply, Home, TrafficControl, TrafficPlan, Rentals, PPE, Signs, BollardsWheels, Error, TService, Product, TrafficControlTest, EmployeeDashboard, EmployeeComplaintForm } from './pages';
 import axios from 'axios';
+import RescheduleJob from './pages/RescheduleJob';
 import Navbar from './components/Navbar';
 import { Toaster } from 'react-hot-toast'
 import RequireAdmin from './utils/requireAdmin';
@@ -87,7 +88,7 @@ function App() {
     }
   />
     <Route path="/trafficcontrol" element={<TrafficControl/>}/>
-    
+    <Route path="/reschedule-job/:id" element={<RescheduleJob />} />
     <Route path="/trafficplanning" element={<TrafficPlan/>}/>
     <Route path="/rentals" element={<Rentals/>}/>
     <Route path="/ppe" element={<PPE/>}/>
