@@ -58,19 +58,20 @@ export default function RescheduleJob() {
 
   const getExcludedDates = () => {
     if (!job) return fullDates;
-    
+
     const jobDatesExcludingOld = job.jobDates
       .filter(d => {
         if (d.cancelled) return false;
-        const jobDate = new Date(d.date);
-        const localJobDate = new Date(jobDate.getFullYear(), jobDate.getMonth(), jobDate.getDate());
-        return localJobDate.toDateString() !== oldDate?.toDateString();
+        const utcDate = new Date(d.date);
+        const jobDateLocal = new Date(utcDate.getUTCFullYear(), utcDate.getUTCMonth(), utcDate.getUTCDate());
+        const oldDateLocal = oldDate ? new Date(oldDate.getFullYear(), oldDate.getMonth(), oldDate.getDate()) : null;
+        return !oldDateLocal || jobDateLocal.getTime() !== oldDateLocal.getTime();
       })
       .map(d => {
-        const jobDate = new Date(d.date);
-        return new Date(jobDate.getFullYear(), jobDate.getMonth(), jobDate.getDate());
+        const utcDate = new Date(d.date);
+        return new Date(utcDate.getUTCFullYear(), utcDate.getUTCMonth(), utcDate.getUTCDate());
       });
-    
+
     return [...fullDates, ...jobDatesExcludingOld];
   };
 
@@ -155,7 +156,7 @@ export default function RescheduleJob() {
               <div className="datepicker-container">
                 <label className="job-control-label">Select New Date *</label>
                 <p className="date-picker-note">
-                  <b>NOTE:</b> Disabled dates are fully booked. Choose an available date.
+                  <b>NOTE:</b> Disabled dates are fully booked or you have already scheduled a job on this date. Choose an available date.
                 </p>
                 <DatePicker
                   selected={newDate}
