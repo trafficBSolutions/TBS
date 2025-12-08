@@ -60,8 +60,16 @@ export default function RescheduleJob() {
     if (!job) return fullDates;
     
     const jobDatesExcludingOld = job.jobDates
-      .filter(d => !d.cancelled && new Date(d.date).toDateString() !== oldDate?.toDateString())
-      .map(d => new Date(d.date));
+      .filter(d => {
+        if (d.cancelled) return false;
+        const jobDate = new Date(d.date);
+        const localJobDate = new Date(jobDate.getFullYear(), jobDate.getMonth(), jobDate.getDate());
+        return localJobDate.toDateString() !== oldDate?.toDateString();
+      })
+      .map(d => {
+        const jobDate = new Date(d.date);
+        return new Date(jobDate.getFullYear(), jobDate.getMonth(), jobDate.getDate());
+      });
     
     return [...fullDates, ...jobDatesExcludingOld];
   };
