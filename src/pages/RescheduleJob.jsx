@@ -38,7 +38,6 @@ export default function RescheduleJob() {
         setLoading(false);
       }
     };
-
     const fetchFullDates = async () => {
       try {
         const res = await axios.get('https://tbs-server.onrender.com/jobs/full-dates');
@@ -55,24 +54,37 @@ export default function RescheduleJob() {
     fetchJob();
     fetchFullDates();
   }, [id, oldDateParam]);
+// Normalize an ISO date string to a local date-only object (no time)
+const toDateOnlyFromISO = (isoString) => {
+  if (!isoString) return null;
+  const d = new Date(isoString); // may be UTC-based
+  return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+};
 
-  const getExcludedDates = () => {
-    if (!job) return fullDates;
-    
-    const jobDatesExcludingOld = job.jobDates
-      .filter(d => {
-        if (d.cancelled) return false;
-        const jobDate = new Date(d.date);
-        const localJobDate = new Date(jobDate.getFullYear(), jobDate.getMonth(), jobDate.getDate());
-        return localJobDate.toDateString() !== oldDate?.toDateString();
-      })
-      .map(d => {
-        const jobDate = new Date(d.date);
-        return new Date(jobDate.getFullYear(), jobDate.getMonth(), jobDate.getDate());
-      });
-    
-    return [...fullDates, ...jobDatesExcludingOld];
-  };
+const getExcludedDates = () => {
+  if (!job) return fullDates;
+
+  // Normalize oldDate to a date-only object
+  const normalizedOldDate = oldDate
+    ? new Date(oldDate.getFullYear(), oldDate.getMonth(), oldDate.getDate())
+    : null;
+
+  const jobDatesExcludingOld = (job.jobDates || [])
+    .map(d => toDateOnlyFromISO(d.date))
+    .filter(jobDateOnly => {
+      if (!jobDateOnly) return false;
+      if (!normalizedOldDate) return true;
+
+      // Remove only the original date you're rescheduling from
+      return jobDateOnly.getTime() !== normalizedOldDate.getTime();
+    });
+
+  // Combine:
+  // - fully-booked dates from backend
+  // - all other dates this job has ever used
+  return [...fullDates, ...jobDatesExcludingOld];
+};
+
 
   const handleReschedule = async (e) => {
     e.preventDefault();
