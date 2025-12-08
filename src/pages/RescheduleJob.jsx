@@ -1,254 +1,593 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import DatePicker from 'react-datepicker';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-datepicker/dist/react-datepicker.css';
-import 'react-toastify/dist/ReactToastify.css';
-import '../css/trafficcontrol.css';
-import Header from '../components/headerviews/HeaderRe';
-import images from '../utils/tbsImages';
-export default function RescheduleJob() {
-  const { id } = useParams();
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const oldDateParam = searchParams.get('date');
+const express = require('express');
+const router = express.Router();
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const { submitTrafficControlJob, confirmAdditionalFlagger } = require('../controllers/autoControlControler');
+const { transporter } = require('../utils/emailConfig'); // uses EMAIL_USER
+const myEmail = 'tbsolutions9@gmail.com';
+const ControlUser = require('../models/controluser'); // Import your model
 
-  const [job, setJob] = useState(null);
-  const [oldDate, setOldDate] = useState(null);
-  const [newDate, setNewDate] = useState(null);
-  const [fullDates, setFullDates] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+const userEmail = 'tbsolutions4@gmail.com';
+const mainEmail = 'tbsolutions3@gmail.com';
+const foreemail = 'tbsolutions55@gmail.com';
+const formanmail = 'tbsolutions77@gmail.com';
+const damienemail = 'tbsolutions14@gmail.com';
 
-  useEffect(() => {
-    const fetchJob = async () => {
-      try {
-        const res = await axios.get(`https://tbs-server.onrender.com/trafficcontrol/${id}`);
-        setJob(res.data);
-        
-        if (oldDateParam) {
-          const [year, month, day] = oldDateParam.split('-').map(Number);
-          setOldDate(new Date(year, month - 1, day));
+// Middleware
+router.use(
+    cors({
+        credentials: true,
+        /* origin: 'http://localhost:5173' // Make sure this matches your frontend*/
+        origin: ['https://www.trafficbarriersolutions.com']
+    })
+);
+
+router.use(bodyParser.urlencoded({ extended: true }));
+router.use(bodyParser.json());
+
+// 🚦 Job Submission
+router.post('/trafficcontrol', submitTrafficControlJob);
+
+// Additional Flagger Confirmation
+router.get('/confirm-additional-flagger', confirmAdditionalFlagger);
+// PATCH /manage-job/:id – update jobDates only
+// ✅ Get a specific job by ID
+// Add this route to fetch a specific job by ID
+router.get('/trafficcontrol/:id', async (req, res) => {
+  try {
+    const job = await ControlUser.findById(req.params.id);
+    if (!job) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+    res.json(job);
+  } catch (err) {
+    console.error('Error fetching job:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Add this route to update a job
+router.patch('/manage-job/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { updatedJob } = req.body;
+
+    if (!updatedJob || typeof updatedJob !== 'object') {
+      return res.status(400).json({ error: 'Invalid or missing job data' });
+    }
+
+    const job = await ControlUser.findById(id);
+    if (!job) return res.status(404).json({ error: 'Job not found' });
+
+    // ✅ Safely update job fields
+    Object.keys(updatedJob).forEach(key => {
+      if (key !== '_id') {
+        job[key] = updatedJob[key];
+      }
+    });
+job.updatedAt = new Date();
+await job.save();
+
+
+    // Email logic here (optional)
+// Format updated job dates
+const formattedDates = job.jobDates.map(d =>
+  new Date(d.date).toLocaleDateString('en-US')
+).join(', ');
+
+/*
+// Dynamic links for update & cancel
+const cancelLink = `http://localhost:5173/cancel-job/${job._id}`;
+const updateLink = `http://localhost:5173/manage-job/${job._id}`;
+*/
+const cancelLink = `https://www.trafficbarriersolutions.com/cancel-job/${job._id}`;
+const updateLink = `https://www.trafficbarriersolutions.com/manage-job/${job._id}`;
+
+const mailOptions = {
+  from: 'Traffic & Barrier Solutions LLC <tbsolutions9@gmail.com>',
+  to: job.email,
+  bcc: [
+          { name: 'Traffic & Barrier Solutions, LLC', address: myEmail },
+           
+          { name: 'Carson Speer', address: userEmail }, // Add the second Gmail address to BCC
+          { name: 'Bryson Davis', address: mainEmail },
+          { name: 'Jonkell Tolbert', address: foreemail },
+          { name: 'Salvador Gonzalez', address: formanmail},
+          { name: 'Damien Diskey', address: damienemail}
+           
+      ],
+  subject: 'TRAFFIC CONTROL JOB UPDATED',
+html: `
+  <h2>Updated Traffic Control Job</h2>
+  <p>Dear ${job.name},</p>
+  <p>Your job has been successfully updated. Here is the current job info:</p>
+
+  <h3>Updated Date(s):</h3>
+  <ul>
+    ${job.jobDates.map(jobDateObj => {
+      const dateStr = new Date(jobDateObj.date).toLocaleDateString('en-US');
+      const isoStr = new Date(jobDateObj.date).toISOString().split('T')[0];
+      const cancelDateLink = `https://www.trafficbarriersolutions.com/cancel-job/${job._id}?date=${isoStr}`;
+      return `<li>${dateStr} – <a href="${cancelDateLink}">Cancel this date</a></li>`;
+    }).join('')}
+  </ul>
+
+  <p><strong>Company:</strong> ${job.company}</p>
+  <p><strong>Coordinator:</strong> ${job.coordinator}</p>
+  <p><strong>Phone:</strong> ${job.phone}</p>
+  <p><strong>Project/Task:</strong> ${job.project}</p>
+  <p><strong>Job Site:</strong> ${job.address}, ${job.city}, ${job.state} ${job.zip}</p>
+
+  <h3>Need to update again or cancel the whole job?</h3>
+  <ul>
+    <li><a href="${updateLink}">Update Entire Job</a></li>
+    <li><a href="${cancelLink}">Cancel Entire Job</a></li>
+  </ul>
+
+  <p>If anything looks incorrect, please call (706) 263-0175 immediately.</p>
+  <p>— TBS Admin Team</p>
+`
+};
+
+transporter.sendMail(mailOptions, (err, info) => {
+  if (err) {
+    console.error('Error sending update email:', err);
+  } else {
+    console.log('Update email sent:', info.response);
+  }
+});
+
+    res.status(200).json({ message: 'Job updated successfully', job });
+  } catch (err) {
+    console.error('Error updating job:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// 🔄 Reschedule a job date
+router.patch('/reschedule-job/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { oldDate, newDate } = req.body;
+
+    if (!oldDate || !newDate) {
+      return res.status(400).json({ error: 'Both old and new dates are required' });
+    }
+
+    const job = await ControlUser.findById(id);
+    if (!job) return res.status(404).json({ error: 'Job not found' });
+
+    // Parse dates
+    const oldDateObj = new Date(oldDate);
+    const newDateObj = new Date(newDate);
+
+    // Find the old date in jobDates array
+    const dateIndex = job.jobDates.findIndex(d =>
+      new Date(d.date).toDateString() === oldDateObj.toDateString()
+    );
+
+    if (dateIndex === -1) {
+      return res.status(404).json({ error: 'Original job date not found' });
+    }
+
+    // Check if the new date is already full
+    const [year, month, day] = [newDateObj.getFullYear(), newDateObj.getMonth(), newDateObj.getDate()];
+    const estMidnight = new Date(Date.UTC(year, month, day));
+    const startOfDay = new Date(estMidnight);
+    const endOfDay = new Date(estMidnight);
+    endOfDay.setUTCDate(endOfDay.getUTCDate() + 1);
+
+    const pipeline = [
+      { $match: { cancelled: { $ne: true } } },
+      { $unwind: "$jobDates" },
+      {
+        $match: {
+          "jobDates.date": { $gte: startOfDay, $lt: endOfDay },
+          "jobDates.cancelled": { $ne: true }
         }
-      } catch (err) {
-        console.error('Error fetching job:', err);
-        toast.error('Failed to load job details');
-      } finally {
-        setLoading(false);
-      }
-    };
+      },
+      { $count: "count" }
+    ];
 
-    const fetchFullDates = async () => {
-      try {
-        const res = await axios.get('https://tbs-server.onrender.com/jobs/full-dates');
-        const fullDateObjects = res.data.map(dateStr => {
-          const [year, month, day] = dateStr.split('-').map(Number);
-          return new Date(year, month - 1, day);
-        });
-        setFullDates(fullDateObjects);
-      } catch (err) {
-        console.error('Error loading full dates:', err);
-      }
-    };
+    const result = await ControlUser.aggregate(pipeline);
+    const jobCount = result[0]?.count || 0;
 
-    fetchJob();
-    fetchFullDates();
-  }, [id, oldDateParam]);
-
-  const getExcludedDates = () => {
-    if (!job) return fullDates;
-
-    const jobDatesExcludingOld = job.jobDates
-      .filter(d => {
-        if (d.cancelled) return false;
-        const utcDate = new Date(d.date);
-        const jobDateLocal = new Date(utcDate.getUTCFullYear(), utcDate.getUTCMonth(), utcDate.getUTCDate());
-        const oldDateLocal = oldDate ? new Date(oldDate.getFullYear(), oldDate.getMonth(), oldDate.getDate()) : null;
-        return !oldDateLocal || jobDateLocal.getTime() !== oldDateLocal.getTime();
-      })
-      .map(d => {
-        const utcDate = new Date(d.date);
-        return new Date(utcDate.getUTCFullYear(), utcDate.getUTCMonth(), utcDate.getUTCDate());
-      });
-
-    return [...fullDates, ...jobDatesExcludingOld];
-  };
-
-  const handleReschedule = async (e) => {
-    e.preventDefault();
-    
-    if (!newDate) {
-      toast.error('Please select a new date');
-      return;
+    if (jobCount >= 10) {
+      return res.status(400).json({ error: 'The new date is already fully booked. Please choose another date.' });
     }
 
-    if (!oldDate) {
-      toast.error('Original date not specified');
-      return;
-    }
+    // Update the date
+    job.jobDates[dateIndex].date = estMidnight;
+    job.jobDates[dateIndex].rescheduled = true;
+    job.jobDates[dateIndex].rescheduledAt = new Date();
+    job.jobDates[dateIndex].originalDate = oldDateObj;
 
-    setSubmitting(true);
+    await job.save();
 
-    try {
-      const res = await axios.patch(`https://tbs-server.onrender.com/reschedule-job/${id}`, {
-        oldDate: oldDate.toISOString(),
-        newDate: newDate.toISOString()
-      });
+    const oldFormatted = oldDateObj.toLocaleDateString('en-US');
+    const newFormatted = newDateObj.toLocaleDateString('en-US');
 
-      toast.success(res.data.message);
-      setTimeout(() => {
-        navigate('/');
-      }, 2000);
-    } catch (err) {
-      console.error('Error rescheduling:', err);
-      toast.error(err.response?.data?.error || 'Failed to reschedule job');
-    } finally {
-      setSubmitting(false);
-    }
-  };
+    // Send reschedule confirmation email
+    const rescheduleEmail = {
+      from: 'Traffic & Barrier Solutions LLC <tbsolutions9@gmail.com>',
+      to: job.email,
+      bcc: [
+        { name: 'Traffic & Barrier Solutions, LLC', address: myEmail },
+        { name: 'Carson Speer', address: userEmail },
+        { name: 'Bryson Davis', address: mainEmail },
+        { name: 'Jonkell Tolbert', address: foreemail },
+        { name: 'Salvador Gonzalez', address: formanmail },
+        { name: 'Damien Diskey', address: damienemail }
+      ],
+      subject: job.additionalFlaggers ? 'TRAFFIC CONTROL JOB WITH ADDITIONAL FLAGGERS RESCHEDULED' : 'TRAFFIC CONTROL JOB RESCHEDULED',
+      html: `
+        <html>
+          <body style="margin: 0; padding: 20px; font-family: Arial, sans-serif; background-color: #e7e7e7; color: #000;">
+            <div style="max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 8px;">
+              <h1 style="text-align: center; background-color: #efad76; padding: 15px; border-radius: 6px;">TRAFFIC CONTROL JOB RESCHEDULED</h1>
+              
+              <p>Hi <strong>${job.name}</strong>,</p>
+              <p>Your traffic control job${job.additionalFlaggers ? ' with additional flaggers' : ''} has been successfully rescheduled:</p>
+              <ul>
+                <li><strong>Original Date:</strong> ${oldFormatted}</li>
+                <li><strong>New Date:</strong> ${newFormatted}</li>
+              </ul>
 
-  if (loading) {
-    return (
-      <div className="control-main">
-        <div className="apply-container">
-          <h1>Loading...</h1>
-        </div>
-      </div>
-    );
-  }
-
-  if (!job) {
-    return (
-      <div className="control-main">
-        <div className="apply-container">
-          <h1>Job not found</h1>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div>
-      <Header />
-    <div className="control-main">
-      <ToastContainer />
-      <div className="apply-container">
-        <h1 className="traffic-control-head">RESCHEDULE JOB</h1>
-        <div className="control-container container--narrow page-section">
-          <div className="control-box">
-            <h2>Reschedule Your Traffic Control Job</h2>
-            <p>Move your job from <strong>{oldDate?.toLocaleDateString('en-US')}</strong> to a new date.</p>
-          </div>
-
-          <div className="job-actual-reschedule-box">
-            <h3>Job Details:</h3>
-            <ul>
-              <li><strong>Company:</strong> {job.company}</li>
-              <li><strong>Coordinator:</strong> {job.coordinator}</li>
-              <li><strong>Project:</strong> {job.project}</li>
-              <li><strong>Location:</strong> {job.address}, {job.city}, {job.state}</li>
-              <li><strong>Time:</strong> {job.time}</li>
-              <li><strong>Flaggers:</strong> {job.flagger}</li>
-            </ul>
-
-            <form onSubmit={handleReschedule}>
-              <div className="datepicker-container">
-                <label className="job-control-label">Select New Date *</label>
-                <p className="date-picker-note">
-                  <b>NOTE:</b> Disabled dates are either already fully booked or you have already scheduled the same job on this date. Choose an available date.
-                </p>
-                <DatePicker
-                  selected={newDate}
-                  onChange={(date) => setNewDate(date)}
-                  minDate={new Date(new Date().setDate(new Date().getDate() + 1))}
-                  excludeDates={getExcludedDates()}
-                  inline
-                  calendarClassName="custom-datepicker"
-                />
-                {newDate && (
-                  <div className="selected-date-display">
-                    <strong>New Date Selected:</strong> {newDate.toLocaleDateString('en-US')}
-                  </div>
-                )}
+              <h3>Summary:</h3>
+              <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                <ul style="flex: 1; min-width: 250px; margin: 0; padding-left: 20px;">
+                  <li><strong>Company:</strong> ${job.company}</li>
+                  <li><strong>Coordinator:</strong> ${job.coordinator}</li>
+                  <li><strong>Coordinator Phone:</strong> ${job.phone}</li>
+                  <li><strong>On-Site Contact:</strong> ${job.siteContact}</li>
+                  <li><strong>On-Site Phone:</strong> ${job.site}</li>
+                </ul>
+                <ul style="flex: 1; min-width: 250px; margin: 0; padding-left: 20px;">
+                  <li><strong>Time:</strong> ${job.time}</li>
+                  <li><strong>Project/Task:</strong> ${job.project}</li>
+                  <li><strong>Flaggers:</strong> ${job.flagger}${job.additionalFlaggers ? ` + Additional: ${job.additionalFlaggerCount}` : ''}</li>
+                  <li><strong>Equipment:</strong> ${job.equipment.join(', ')}</li>
+                  <li><strong>Job Site Address:</strong> ${job.address}, ${job.city}, ${job.state} ${job.zip}</li>
+                </ul>
               </div>
+              ${job.additionalFlaggers ? '<p><strong>Note:</strong> The additional flagger charges still apply to this rescheduled date.</p>' : ''}
 
-              <div className="submit-button-wrapper" style={{ marginTop: '20px' }}>
-                <button
-                  type="submit"
-                  className="btn btn--full submit-control"
-                  disabled={submitting || !newDate}
-                >
-                  {submitting ? 'Rescheduling...' : 'CONFIRM RESCHEDULE'}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn--cancel"
-                  onClick={() => navigate('/')}
-                  style={{ marginTop: '10px' }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-          <footer className="footer">
-  <div className="site-footer__inner">
-    <img className="tbs-logo" alt="TBS logo" src={images["../assets/tbs_companies/tbs white.svg"].default} />
-    <div className="footer-navigation-content">
-      <h2 className="footer-title">Navigation</h2>
-    <ul className="footer-navigate">
-      <li><a className="footer-nav-link" href="/about-us">About Us</a></li>
-      <li><a className="footer-nav-link" href="/traffic-control-services">Traffic Control Services</a></li>
-      <li><a className="footer-nav-link" href="/product-services">Product Services</a></li>
-      <li><a className="footer-nav-link" href="/contact-us">Contact Us</a></li>
-      <li><a className="footer-nav-link" href="/applynow">Careers</a></li>
-    </ul>
-    </div>
-    <div className="footer-contact">
-      <h2 className="footer-title">Contact</h2>
-      <p className="contact-info">
-        <a className="will-phone" href="tel:+17062630175">Call: 706-263-0175</a>
-        <a className="will-email" href="mailto: tbsolutions1999@gmail.com">Email: tbsolutions1999@gmail.com</a>
-        <a className="will-address" href="https://www.google.com/maps/place/Traffic+and+Barrier+Solutions,+LLC/@34.5025307,-84.899317,660m/data=!3m1!1e3!4m6!3m5!1s0x482edab56d5b039b:0x94615ce25483ace6!8m2!3d34.5018691!4d-84.8994308!16s%2Fg%2F11pl8d7p4t?entry=ttu&g_ep=EgoyMDI1MDEyMC4wIKXMDSoASAFQAw%3D%3D"
-      >
-        1995 Dews Pond Rd, Calhoun, GA 30701</a>
-      </p>
-    </div>
-
-    <div className="social-icons">
-      <h2 className="footer-title">Follow Us</h2>
-      <a className="social-icon" href="https://www.facebook.com/tbssigns2022/" target="_blank" rel="noopener noreferrer">
-                    <img className="facebook-img" src={images["../assets/social media/facebook.png"].default} alt="Facebook" />
-                </a>
-                <a className="social-icon" href="https://www.tiktok.com/@tbsmaterialworx?_t=8lf08Hc9T35&_r=1" target="_blank" rel="noopener noreferrer">
-                    <img className="tiktok-img" src={images["../assets/social media/tiktok.png"].default} alt="TikTok" />
-                </a>
-                <a className="social-icon" href="https://www.instagram.com/tbsmaterialworx?igsh=YzV4b3doaTExcjN4&utm_source=qr" target="_blank" rel="noopener noreferrer">
-                    <img className="insta-img" src={images["../assets/social media/instagram.png"].default} alt="Instagram" />
-                </a>
-    </div>
-    <div className="statement-box">
-                <p className="statement">
-                    <b className="safety-b">Safety Statement: </b>
-                    At TBS, safety is our top priority. We are dedicated to ensuring the well-being of our employees, clients, 
-                    and the general public in every aspect of our operations. Through comprehensive safety training, 
-                    strict adherence to regulatory standards, and continuous improvement initiatives, 
-                    we strive to create a work environment where accidents and injuries are preventable. 
-                    Our commitment to safety extends beyond compliance—it's a fundamental value embedded in everything we do. 
-                    Together, we work tirelessly to promote a culture of safety, 
-                    accountability, and excellence, because when it comes to traffic control, there's no compromise on safety.
-                </p>
+              <h3>Manage Your Job Dates:</h3>
+              <p>You can reschedule or cancel individual dates using the links below:</p>
+              <ul>
+                ${job.jobDates.map(jobDateObj => {
+                  const dateStr = new Date(jobDateObj.date).toLocaleDateString('en-US');
+                  const isoStr = new Date(jobDateObj.date).toISOString().split('T')[0];
+                  const rescheduleLink = `https://www.trafficbarriersolutions.com/reschedule-job/${job._id}?date=${isoStr}`;
+                  const cancelDateLink = `https://www.trafficbarriersolutions.com/cancel-job/${job._id}?date=${isoStr}`;
+                  return `<li>${dateStr} – <a href="${rescheduleLink}">Reschedule</a> | <a href="${cancelDateLink}">Cancel</a></li>`;
+                }).join('')}
+              </ul>
+              <p style="font-size: 14px;">If you have any concerns for how your job needs to be set up, please call Carson Speer (706) 581-4465 or Salvador Gonzalez (706) 659-5468 to note to the crew.</p>
+              <hr style="margin: 20px 0;">
+              <p style="font-size: 14px;">Traffic & Barrier Solutions, LLC<br>1995 Dews Pond Rd SE, Calhoun, GA 30701<br>Phone: (706) 263-0175<br><a href="http://www.trafficbarriersolutions.com">www.trafficbarriersolutions.com</a></p>
             </div>
-  </div>
-</footer>
-<div className="footer-copyright">
-      <p className="footer-copy-p">&copy; 2025 Traffic & Barrier Solutions, LLC - 
-        Website Created & Deployed by <a className="footer-face"href="https://www.facebook.com/will.rowell.779" target="_blank" rel="noopener noreferrer">William Rowell</a> - All Rights Reserved.</p>
-    </div>
-    </div>
-  );
-} 
+          </body>
+        </html>
+      `
+    };
+
+    transporter.sendMail(rescheduleEmail, (err, info) => {
+      if (err) {
+        console.error('Error sending reschedule email:', err);
+      } else {
+        console.log('Reschedule email sent:', info.response);
+      }
+    });
+
+    res.status(200).json({ 
+      message: `Job rescheduled from ${oldFormatted} to ${newFormatted}`,
+      job 
+    });
+
+  } catch (err) {
+    console.error('Error rescheduling job:', err);
+    res.status(500).json({ error: 'Failed to reschedule job' });
+  }
+});
+
+// 🗑️ Cancel a job by ID
+router.delete('/cancel-job/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { date } = req.query;
+
+    const job = await ControlUser.findById(id);
+    if (!job) return res.status(404).json({ error: 'Job not found' });
+
+    // If no ?date provided, cancel the whole job (existing logic)
+if (!date) {
+  job.cancelled = true;
+  job.cancelledAt = new Date();
+  await job.save();
+
+  const formattedDates = job.jobDates.map(d =>
+    new Date(d.date).toLocaleDateString('en-US')
+  ).join(', ');
+
+  const fullCancelEmail = {
+    from: 'Traffic & Barrier Solutions LLC <tbsolutions9@gmail.com>',
+    to: job.email,
+    bcc: [
+          { name: 'Traffic & Barrier Solutions, LLC', address: myEmail },
+           
+          { name: 'Carson Speer', address: userEmail }, // Add the second Gmail address to BCC
+          { name: 'Bryson Davis', address: mainEmail },
+          { name: 'Jonkell Tolbert', address: foreemail },
+          { name: 'Salvador Gonzalez', address: formanmail},
+          { name: 'Damien Diskey', address: damienemail}
+        
+      ],
+    subject: job.additionalFlaggers ? 'TRAFFIC CONTROL JOB WITH ADDITIONAL FLAGGERS CANCELLED' : 'TRAFFIC CONTROL JOB CANCELLED',
+    html: `
+      <h2>Traffic Control Job Cancelled${job.additionalFlaggers ? ' - With Additional Flaggers' : ''}</h2>
+      <p>Dear ${job.name},</p>
+      <p>Your traffic control job${job.additionalFlaggers ? ' with additional flaggers' : ''} scheduled for the following date(s) has been cancelled:</p>
+      <ul>${job.jobDates.map(d => `<li>${new Date(d.date).toLocaleDateString('en-US')}</li>`).join('')}</ul>
+      <p><strong>Project/Task Number:</strong> ${job.project}</p>
+      <p><strong>Coordinator:</strong> ${job.coordinator}</p>
+      <p><strong>Company:</strong> ${job.company}</p>
+      <p><strong>Flaggers:</strong> ${job.flagger}${job.additionalFlaggers ? ` + Additional: ${job.additionalFlaggerCount}` : ''}</p>
+      <p><strong>Location:</strong> ${job.address}, ${job.city}, ${job.state} ${job.zip}</p>
+      ${job.additionalFlaggers ? '<p><strong>Note:</strong> The additional flagger charges have been cancelled along with this job.</p>' : ''}
+      <p>— TBS Admin Team</p>
+    `
+  };
+
+  transporter.sendMail(fullCancelEmail, (err, info) => {
+    if (err) {
+      console.error('Error sending full cancellation email:', err);
+    } else {
+      console.log('Full cancellation email sent:', info.response);
+    }
+  });
+
+  return res.status(200).json({ message: 'Entire job cancelled' });
+}
+
+
+// ✅ Parse ISO string date
+const targetDate = new Date(date);
+const dateIndex = job.jobDates.findIndex(d =>
+  new Date(d.date).toDateString() === targetDate.toDateString()
+);
+
+if (dateIndex === -1) {
+  return res.status(404).json({ error: 'Job date not found in record' });
+}
+
+// Cancel just the one date
+job.jobDates[dateIndex].cancelled = true;
+job.jobDates[dateIndex].cancelledAt = new Date();
+
+// Check if all dates are now cancelled
+const allCancelled = job.jobDates.every(d => d.cancelled);
+job.cancelled = allCancelled;
+job.cancelledAt = allCancelled ? new Date() : null;
+
+await job.save();
+
+// Use the correct date object from the array
+const formatted = new Date(job.jobDates[dateIndex].date).toLocaleDateString('en-US');
+    // ✉️ Email notification for single-date cancel
+    const cancelDateMail = {
+      from: 'Traffic & Barrier Solutions LLC <tbsolutions9@gmail.com>',
+      to: job.email,
+      bcc: [
+          { name: 'Traffic & Barrier Solutions, LLC', address: myEmail },
+           
+          { name: 'Carson Speer', address: userEmail }, // Add the second Gmail address to BCC
+          { name: 'Bryson Davis', address: mainEmail },
+          { name: 'Jonkell Tolbert', address: foreemail },
+          { name: 'Salvador Gonzalez', address: formanmail},
+          { name: 'Damien Diskey', address: damienemail}
+           
+      ],
+      subject: job.additionalFlaggers ? 'TRAFFIC CONTROL DATE WITH ADDITIONAL FLAGGERS CANCELLED' : 'TRAFFIC CONTROL DATE CANCELLED',
+      html: `
+        <h2>Job Date Cancelled${job.additionalFlaggers ? ' - With Additional Flaggers' : ''}</h2>
+        <p>Dear ${job.name},</p>
+        <p>The following job date${job.additionalFlaggers ? ' with additional flaggers' : ''} has been cancelled:</p>
+        <ul><li><strong>${formatted}</strong></li></ul>
+
+        <p><strong>Project/Task Number:</strong> ${job.project}</p>
+        <p><strong>Company:</strong> ${job.company}</p>
+        <p><strong>Coordinator:</strong> ${job.coordinator}</p>
+        <p><strong>Flaggers:</strong> ${job.flagger}${job.additionalFlaggers ? ` + Additional: ${job.additionalFlaggerCount}` : ''}</p>
+        <p><strong>Location:</strong> ${job.address}, ${job.city}, ${job.state} ${job.zip}</p>
+        ${job.additionalFlaggers ? '<p><strong>Note:</strong> The additional flagger charges for this date have been cancelled.</p>' : ''}
+
+        <p>If this was a mistake, please <a href="https://www.trafficbarriersolutions.com/manage-job/${job._id}">update your job again</a> or call (706) 263-0175.</p>
+        <p>— TBS Admin Team</p>
+      `
+    };
+
+    transporter.sendMail(cancelDateMail, (err, info) => {
+      if (err) {
+        console.error('Error sending partial cancel email:', err);
+      } else {
+        console.log('Single date cancel email sent:', info.response);
+      }
+    });
+
+    res.status(200).json({ message: `Cancelled job date: ${formatted}` });
+
+  } catch (err) {
+    console.error('Error cancelling date:', err);
+    res.status(500).json({ error: 'Failed to cancel job date' });
+  }
+});
+
+
+// 📅 Fetch Fully Booked Job Dates (10 or more)
+// 📋 Fetch jobs for a specific date (in EST)
+router.get('/jobs', async (req, res) => {
+  try {
+    const { date } = req.query; // Expected format: YYYY-MM-DD
+
+    if (!date) {
+      return res.status(400).json({ error: 'Date is required' });
+    }
+
+    const [year, month, day] = date.split('-').map(Number);
+    const estMidnight = new Date(Date.UTC(year, month - 1, day));
+
+    const startOfDay = new Date(estMidnight);
+    const endOfDay = new Date(estMidnight);
+    endOfDay.setUTCDate(endOfDay.getUTCDate() + 1);
+
+    const jobs = await ControlUser.find({
+      jobDates: {
+        $elemMatch: {
+          date: { $gte: startOfDay, $lt: endOfDay },
+          cancelled: false
+        }
+      }      
+    });
+
+    res.json(jobs);
+  } catch (err) {
+    console.error("Error fetching jobs for selected date:", err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+// 📅 Get all jobs for a given month and year
+router.get('/jobs/month', async (req, res) => {
+  try {
+    const { month, year } = req.query;
+
+    if (!month || !year) {
+      return res.status(400).json({ error: 'Month and year are required' });
+    }
+
+    const monthInt = parseInt(month, 10) - 1; // JS months are 0-indexed
+    const yearInt = parseInt(year, 10);
+
+    const start = new Date(Date.UTC(yearInt, monthInt, 1));
+    const end = new Date(Date.UTC(yearInt, monthInt + 1, 1));
+
+    const jobs = await ControlUser.find({
+      jobDates: {
+        $elemMatch: {
+          date: { $gte: start, $lt: end },
+          cancelled: false
+        }
+      }      
+    });
+
+    res.json(jobs);
+  } catch (err) {
+    console.error("Error fetching monthly jobs:", err);
+    res.status(500).json({ error: 'Failed to fetch monthly jobs' });
+  }
+});
+// Add this route to fetch fully booked dates
+router.get('/jobs/full-dates', async (req, res) => {
+  try {
+const pipeline = [
+  { $match: { cancelled: { $ne: true } } },  // Exclude jobs that are entirely cancelled
+  { $unwind: "$jobDates" },
+  {
+    $match: {
+      "jobDates.date": { $exists: true },
+      "jobDates.cancelled": { $ne: true }    // Exclude cancelled dates
+    }
+  },
+  {
+    $group: {
+      _id: "$jobDates.date",
+      count: { $sum: 1 }
+    }
+  },
+  { $match: { count: { $gte: 10 } } }
+];
+    const result = await ControlUser.aggregate(pipeline);
+    const fullDates = result.map(r =>
+      new Date(r._id).toISOString().split('T')[0] // Format: YYYY-MM-DD
+    );
+
+    res.json(fullDates);
+  } catch (err) {
+    console.error("Failed to fetch full dates:", err);
+    res.status(500).json({ error: 'Failed to fetch full dates' });
+  }
+});
+router.get('/jobs/cancelled', async (req, res) => {
+  try {
+    const { year } = req.query;
+    
+    let matchCondition = {};
+    
+    if (year) {
+      const yearInt = parseInt(year, 10);
+      const startOfYear = new Date(Date.UTC(yearInt, 0, 1));
+      const endOfYear = new Date(Date.UTC(yearInt + 1, 0, 1));
+      
+      matchCondition = {
+        $or: [
+          // Jobs that are entirely cancelled
+          {
+            cancelled: true,
+            cancelledAt: { $gte: startOfYear, $lt: endOfYear }
+          },
+          // Jobs with specific cancelled dates
+          {
+            jobDates: {
+              $elemMatch: {
+                cancelled: true,
+                cancelledAt: { $gte: startOfYear, $lt: endOfYear }
+              }
+            }
+          }
+        ]
+      };
+    } else {
+      // Get all cancelled jobs if no year specified
+      matchCondition = {
+        $or: [
+          { cancelled: true },
+          { 'jobDates.cancelled': true }
+        ]
+      };
+    }
+
+    const cancelledJobs = await ControlUser.find(matchCondition);
+    
+    // Process the results to extract individual cancelled dates
+    const processedCancelledJobs = [];
+    
+    cancelledJobs.forEach(job => {
+      if (job.cancelled) {
+        // Entire job was cancelled
+        processedCancelledJobs.push({
+          ...job.toObject(),
+          cancelledDate: job.cancelledAt,
+          cancelledType: 'entire_job'
+        });
+      } else {
+        // Check for individual cancelled dates
+        job.jobDates.forEach(jobDate => {
+          if (jobDate.cancelled) {
+            processedCancelledJobs.push({
+              ...job.toObject(),
+              cancelledDate: jobDate.cancelledAt || jobDate.date,
+              originalJobDate: jobDate.date,
+              cancelledType: 'single_date'
+            });
+          }
+        });
+      }
+    });
+
+    res.json(processedCancelledJobs);
+  } catch (err) {
+    console.error("Error fetching cancelled jobs:", err);
+    res.status(500).json({ error: 'Failed to fetch cancelled jobs' });
+  }
+});
+module.exports = router;
