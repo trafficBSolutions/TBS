@@ -439,12 +439,6 @@ useEffect(() => {
     Switch to Complaints
   </button>
   <button 
-  className={`btn ${viewMode === 'discipline' ? 'active' : ''}`}
-  onClick={() => setViewMode('discipline')}
->
-  Switch to Discipline
-</button>
-  <button 
   className={`btn ${viewMode === 'tasks' ? 'active' : ''}`}
   onClick={() => setViewMode('tasks')}
 >
