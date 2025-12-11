@@ -554,33 +554,32 @@ selected={
   viewMode === 'traffic' ? monthlyJobs
   : viewMode === 'workorders' ? woMonthly
   : viewMode === 'complaints' ? complaintsMonthly
-  : disciplineMonthly;
+  : viewMode === 'discipline' ? disciplineMonthly
+  : tasks;
     const hasItems = dataSource[dateStr] && dataSource[dateStr].length > 0;
-    const hasTasks = tasks[dateStr] && tasks[dateStr].length > 0;
-    return (hasItems || hasTasks) ? 'has-jobs' : '';
+    return hasItems ? 'has-jobs' : '';
   }}
   renderDayContents={(day, date) => {
     const dateStr = date.toISOString().split('T')[0];
         const dataSource =
       viewMode === 'traffic' ? monthlyJobs
       : viewMode === 'workorders' ? woMonthly
-      : complaintsMonthly;
+      : viewMode === 'complaints' ? complaintsMonthly
+      : viewMode === 'discipline' ? disciplineMonthly
+      : tasks;
     const itemsOnDate = dataSource[dateStr];
     const itemCount = itemsOnDate ? itemsOnDate.length : 0;
-    const tasksOnDate = tasks[dateStr] || [];
-    const taskCount = tasksOnDate.length;
 
     return (
       <div className="calendar-day-kiss">
         <div className="day-number">{day}</div>
         {itemCount > 0 && (
-                    <div className="job-count">
-            {viewMode === 'traffic' ? 'Jobs' : viewMode === 'workorders' ? 'Work Orders' : 'Complaints'} {itemCount}
-          </div>
-        )}
-        {taskCount > 0 && (
-          <div className="task-count">
-            Tasks {taskCount}
+                    <div className={viewMode === 'tasks' ? 'task-count' : 'job-count'}>
+            {viewMode === 'traffic' ? 'Jobs' 
+            : viewMode === 'workorders' ? 'Work Orders' 
+            : viewMode === 'complaints' ? 'Complaints'
+            : viewMode === 'discipline' ? 'Discipline'
+            : 'Tasks'} {itemCount}
           </div>
         )}
       </div>
@@ -842,58 +841,35 @@ selected={
     </div>
   </>
 )}
-{viewMode === 'discipline' && (
+{viewMode === 'tasks' && (
   <>
-    <h3>Disciplinary Actions on {disciplineDate?.toLocaleDateString()}</h3>
-    {disciplineDate && tasks[disciplineDate.toISOString().split('T')[0]] && (
-      <div className="selected-date-tasks">
-        <h4>📋 Tasks for {disciplineDate.toLocaleDateString()}</h4>
-        <div className="tasks-list">
-          {tasks[disciplineDate.toISOString().split('T')[0]].map(task => (
-            <div key={task._id} className={`task-item ${task.completed ? 'completed' : ''}`}>
-              <div className="task-header">
-                <span className="task-author">{task.author}</span>
-                <span className="task-timestamp">{new Date(task.createdAt).toLocaleString()}</span>
-                <span className={`task-visibility ${task.isPublic ? 'public' : 'private'}`}>
-                  {task.isPublic ? '🌐 Public' : '🔒 Private'}
-                </span>
-              </div>
-              <div className="task-content">
-                <label className="task-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={task.completed}
-                    onChange={() => toggleTaskCompletion(disciplineDate.toISOString().split('T')[0], task._id)}
-                  />
-                  <span className={task.completed ? 'completed-text' : ''}>{task.text}</span>
-                </label>
-              </div>
-              <button className="delete-task" onClick={() => deleteTask(disciplineDate.toISOString().split('T')[0], task._id)}>🗑️</button>
-            </div>
-          ))}
-        </div>
-      </div>
-    )}
+    <h3>Tasks on {taskDate?.toLocaleDateString()}</h3>
     <div className="job-info-list">
-      {disciplineList.map((d, i) => (
-        <div key={d._id || i} className="job-card">
-          <h4 className="job-company">{d.employeeName}</h4>
-          <p><strong>Department:</strong> {d.department || '—'}</p>
-          <p><strong>Incident:</strong> {new Date(d.incidentDate).toLocaleDateString()} {d.incidentTime ? `@ ${d.incidentTime}` : ''}</p>
-          <p><strong>Place:</strong> {d.incidentPlace || '—'}</p>
-          {d.violationTypes?.length > 0 && <p><strong>Violations:</strong> {d.violationTypes.join(', ')}{d.otherViolationText ? ` (Other: ${d.otherViolationText})` : ''}</p>}
-          {d.decision && <p><strong>Decision:</strong> {d.decision}</p>}
-          {d.meetingDate && <p><strong>Meeting:</strong> {new Date(d.meetingDate).toLocaleDateString()}</p>}
-          <p><strong>Issued By:</strong> {d.issuedByName} {d.issuedByTitle ? `(${d.issuedByTitle})` : ''}</p>
-          <p><strong>Supervisor:</strong> {d.supervisorName} {d.supervisorTitle ? `(${d.supervisorTitle})` : ''}</p>
-          <div className="job-actions">
-            <button className="btn workorder-btn" onClick={() => window.open(`/discipline/${d._id}/pdf`, '_blank', 'noopener')}>
-              Open Printable PDF
-            </button>
+      {tasks[taskDate?.toISOString().split('T')[0]]?.map(task => (
+        <div key={task._id} className={`task-item ${task.completed ? 'completed' : ''}`}>
+          <div className="task-header">
+            <span className="task-author">{task.author}</span>
+            <span className="task-timestamp">{new Date(task.createdAt).toLocaleString()}</span>
+            <span className={`task-visibility ${task.isPublic ? 'public' : 'private'}`}>
+              {task.isPublic ? '🌐 Public' : '🔒 Private'}
+            </span>
           </div>
+          <div className="task-content">
+            <label className="task-checkbox">
+              <input
+                type="checkbox"
+                checked={task.completed}
+                onChange={() => toggleTaskCompletion(taskDate.toISOString().split('T')[0], task._id)}
+              />
+              <span className={task.completed ? 'completed-text' : ''}>{task.text}</span>
+            </label>
+          </div>
+          <button className="delete-task" onClick={() => deleteTask(taskDate.toISOString().split('T')[0], task._id)}>🗑️</button>
         </div>
-      ))}
-      {disciplineList.length === 0 && <p>No disciplinary actions on this day.</p>}
+      )) || []}
+      {(!tasks[taskDate?.toISOString().split('T')[0]] || tasks[taskDate?.toISOString().split('T')[0]].length === 0) && (
+        <p>No tasks on this day.</p>
+      )}
     </div>
   </>
 )}
