@@ -61,10 +61,11 @@ const [disciplineMonthly, setDisciplineMonthly] = useState({});
 const [disciplineList,   setDisciplineList]   = useState([]);
 const [monthlyTotalJobs, setMonthlyTotalJobs] = useState(0);
 const [monthlyTotalWorkOrders, setMonthlyTotalWorkOrders] = useState(0);
-const [notes, setNotes] = useState([]);
-const [noteText, setNoteText] = useState('');
-const [isNotePublic, setIsNotePublic] = useState(false);
-const [showNotes, setShowNotes] = useState(false);
+const [tasks, setTasks] = useState({});
+const [taskText, setTaskText] = useState('');
+const [isTaskPublic, setIsTaskPublic] = useState(false);
+const [showTasks, setShowTasks] = useState(false);
+const [taskDate, setTaskDate] = useState(new Date());
 // Modify your fetchMonthlyJobs function to include better logging
 // Add this useEffect to fetch cancelled jobs specifically
 useEffect(() => {
@@ -110,29 +111,40 @@ const fetchDisciplineForDay = async (date) => {
   }
 };
 
-const addNote = () => {
-  if (!noteText.trim()) return;
-  const newNote = {
+const addTask = () => {
+  if (!taskText.trim()) return;
+  const dateStr = taskDate.toISOString().split('T')[0];
+  const newTask = {
     id: Date.now(),
-    text: noteText,
+    text: taskText,
     timestamp: new Date().toLocaleString(),
     completed: false,
-    isPublic: isNotePublic,
-    author: adminName
+    isPublic: isTaskPublic,
+    author: adminName,
+    date: dateStr
   };
-  setNotes(prev => [newNote, ...prev]);
-  setNoteText('');
-  setIsNotePublic(false);
+  setTasks(prev => ({
+    ...prev,
+    [dateStr]: [...(prev[dateStr] || []), newTask]
+  }));
+  setTaskText('');
+  setIsTaskPublic(false);
 };
 
-const deleteNote = (id) => {
-  setNotes(prev => prev.filter(note => note.id !== id));
+const deleteTask = (date, id) => {
+  setTasks(prev => ({
+    ...prev,
+    [date]: prev[date]?.filter(task => task.id !== id) || []
+  }));
 };
 
-const toggleNoteCompletion = (id) => {
-  setNotes(prev => prev.map(note => 
-    note.id === id ? { ...note, completed: !note.completed } : note
-  ));
+const toggleTaskCompletion = (date, id) => {
+  setTasks(prev => ({
+    ...prev,
+    [date]: prev[date]?.map(task => 
+      task.id === id ? { ...task, completed: !task.completed } : task
+    ) || []
+  }));
 };
 useEffect(() => {
   if (isAdmin) {
@@ -402,59 +414,93 @@ useEffect(() => {
 
     </div>
     
-    <div className="notes-section">
+    <div className="tasks-section">
       <button 
-        className={`btn ${showNotes ? 'active' : ''}`}
-        onClick={() => setShowNotes(!showNotes)}
+        className={`btn ${showTasks ? 'active' : ''}`}
+        onClick={() => setShowTasks(!showTasks)}
       >
-        {showNotes ? 'Hide Notes' : 'Show Notes'}
+        {showTasks ? 'Hide To Do Lists' : 'Show To Do Lists'}
       </button>
       
-      {showNotes && (
-        <div className="notes-container">
-          <div className="add-note">
+      {showTasks && (
+        <div className="tasks-container">
+          <div className="add-task">
+            <div className="task-date-picker">
+              <label>Select Date for Task:</label>
+              <DatePicker
+                selected={taskDate}
+                onChange={setTaskDate}
+                dateFormat="MMMM d, yyyy"
+                className="task-date-input"
+              />
+            </div>
             <textarea
-              value={noteText}
-              onChange={(e) => setNoteText(e.target.value)}
-              placeholder="Add a note..."
+              value={taskText}
+              onChange={(e) => setTaskText(e.target.value)}
+              placeholder="Add a task..."
               rows="3"
             />
-            <div className="note-options">
+            <div className="task-options">
               <label>
                 <input
                   type="checkbox"
-                  checked={isNotePublic}
-                  onChange={(e) => setIsNotePublic(e.target.checked)}
+                  checked={isTaskPublic}
+                  onChange={(e) => setIsTaskPublic(e.target.checked)}
                 />
                 Public (visible to all)
               </label>
-              <button className="btn" onClick={addNote}>Add Note</button>
+              <button className="btn" onClick={addTask}>Add Task</button>
             </div>
           </div>
           
-          <div className="notes-list">
-            {notes.map(note => (
-              <div key={note.id} className={`note-item ${note.completed ? 'completed' : ''}`}>
-                <div className="note-header">
-                  <span className="note-author">{note.author}</span>
-                  <span className="note-timestamp">{note.timestamp}</span>
-                  <span className={`note-visibility ${note.isPublic ? 'public' : 'private'}`}>
-                    {note.isPublic ? '🌐 Public' : '🔒 Private'}
-                  </span>
-                </div>
-                <div className="note-content">
-                  <label className="note-checkbox">
-                    <input
-                      type="checkbox"
-                      checked={note.completed}
-                      onChange={() => toggleNoteCompletion(note.id)}
-                    />
-                    <span className={note.completed ? 'completed-text' : ''}>{note.text}</span>
-                  </label>
-                </div>
-                <button className="delete-note" onClick={() => deleteNote(note.id)}>🗑️</button>
-              </div>
-            ))}
+          <div className="tasks-by-date">
+            {Object.keys(tasks)
+              .sort((a, b) => new Date(a) - new Date(b))
+              .map(dateStr => {
+                const dateTasks = tasks[dateStr] || [];
+                if (dateTasks.length === 0) return null;
+                
+                return (
+                  <div key={dateStr} className="date-tasks-group">
+                    <h4 className="task-date-header">
+                      📅 {new Date(dateStr).toLocaleDateString('en-US', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })}
+                    </h4>
+                    <div className="tasks-list">
+                      {dateTasks.map(task => (
+                        <div key={task.id} className={`task-item ${task.completed ? 'completed' : ''}`}>
+                          <div className="task-header">
+                            <span className="task-author">{task.author}</span>
+                            <span className="task-timestamp">{task.timestamp}</span>
+                            <span className={`task-visibility ${task.isPublic ? 'public' : 'private'}`}>
+                              {task.isPublic ? '🌐 Public' : '🔒 Private'}
+                            </span>
+                          </div>
+                          <div className="task-content">
+                            <label className="task-checkbox">
+                              <input
+                                type="checkbox"
+                                checked={task.completed}
+                                onChange={() => toggleTaskCompletion(dateStr, task.id)}
+                              />
+                              <span className={task.completed ? 'completed-text' : ''}>{task.text}</span>
+                            </label>
+                          </div>
+                          <button className="delete-task" onClick={() => deleteTask(dateStr, task.id)}>🗑️</button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })
+            }
+            {Object.keys(tasks).length === 0 && (
+              <p className="no-tasks">No tasks created yet. Add your first task above!</p>
+            )}
           </div>
         </div>
       )}
