@@ -444,6 +444,12 @@ useEffect(() => {
 >
   Switch to Discipline
 </button>
+  <button 
+  className={`btn ${viewMode === 'tasks' ? 'active' : ''}`}
+  onClick={() => setViewMode('tasks')}
+>
+  Switch to Tasks
+</button>
 
     </div>
     
@@ -509,20 +515,23 @@ selected={
   viewMode === 'traffic' ? selectedDate
     : viewMode === 'workorders' ? woSelectedDate
     : viewMode === 'complaints' ? complaintsDate
-    : disciplineDate
+    : viewMode === 'discipline' ? disciplineDate
+    : taskDate
 }
   onChange={(date) => {
   if (viewMode === 'traffic') setSelectedDate(date);
   else if (viewMode === 'workorders') setWoSelectedDate(date);
   else if (viewMode === 'complaints') setComplaintsDate(date);
-  else setDisciplineDate(date);
+  else if (viewMode === 'discipline') setDisciplineDate(date);
+  else setTaskDate(date);
 }}
   onMonthChange={(date) => {
   setCalendarViewDate(date);
   if (viewMode === 'traffic') fetchMonthlyJobs(date);
   else if (viewMode === 'workorders') fetchMonthlyWorkOrders(date);
   else if (viewMode === 'complaints') fetchMonthlyComplaints(date);
-  else fetchMonthlyDiscipline(date);
+  else if (viewMode === 'discipline') fetchMonthlyDiscipline(date);
+  else fetchTasks();
 }}
   calendarClassName="admin-date-picker"
   dateFormat="MMMM d, yyyy"
