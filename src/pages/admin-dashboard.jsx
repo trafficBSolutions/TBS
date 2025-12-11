@@ -123,28 +123,34 @@ const addTask = () => {
     author: adminName,
     date: dateStr
   };
-  setTasks(prev => ({
-    ...prev,
-    [dateStr]: [...(prev[dateStr] || []), newTask]
-  }));
+  const updatedTasks = {
+    ...tasks,
+    [dateStr]: [...(tasks[dateStr] || []), newTask]
+  };
+  setTasks(updatedTasks);
+  localStorage.setItem('adminTasks', JSON.stringify(updatedTasks));
   setTaskText('');
   setIsTaskPublic(false);
 };
 
 const deleteTask = (date, id) => {
-  setTasks(prev => ({
-    ...prev,
-    [date]: prev[date]?.filter(task => task.id !== id) || []
-  }));
+  const updatedTasks = {
+    ...tasks,
+    [date]: tasks[date]?.filter(task => task.id !== id) || []
+  };
+  setTasks(updatedTasks);
+  localStorage.setItem('adminTasks', JSON.stringify(updatedTasks));
 };
 
 const toggleTaskCompletion = (date, id) => {
-  setTasks(prev => ({
-    ...prev,
-    [date]: prev[date]?.map(task => 
+  const updatedTasks = {
+    ...tasks,
+    [date]: tasks[date]?.map(task => 
       task.id === id ? { ...task, completed: !task.completed } : task
     ) || []
-  }));
+  };
+  setTasks(updatedTasks);
+  localStorage.setItem('adminTasks', JSON.stringify(updatedTasks));
 };
 useEffect(() => {
   if (isAdmin) {
@@ -152,6 +158,12 @@ useEffect(() => {
     setDisciplineDate(d);
     fetchMonthlyDiscipline(d);
     fetchDisciplineForDay(d);
+    
+    // Load tasks from localStorage
+    const savedTasks = localStorage.getItem('adminTasks');
+    if (savedTasks) {
+      setTasks(JSON.parse(savedTasks));
+    }
   }
 }, [isAdmin]);
 
@@ -566,7 +578,8 @@ selected={
   : viewMode === 'complaints' ? complaintsMonthly
   : disciplineMonthly;
     const hasItems = dataSource[dateStr] && dataSource[dateStr].length > 0;
-    return hasItems ? 'has-jobs' : '';
+    const hasTasks = tasks[dateStr] && tasks[dateStr].length > 0;
+    return (hasItems || hasTasks) ? 'has-jobs' : '';
   }}
   renderDayContents={(day, date) => {
     const dateStr = date.toISOString().split('T')[0];
@@ -576,6 +589,8 @@ selected={
       : complaintsMonthly;
     const itemsOnDate = dataSource[dateStr];
     const itemCount = itemsOnDate ? itemsOnDate.length : 0;
+    const tasksOnDate = tasks[dateStr] || [];
+    const taskCount = tasksOnDate.length;
 
     return (
       <div className="calendar-day-kiss">
@@ -583,6 +598,11 @@ selected={
         {itemCount > 0 && (
                     <div className="job-count">
             {viewMode === 'traffic' ? 'Jobs' : viewMode === 'workorders' ? 'Work Orders' : 'Complaints'} {itemCount}
+          </div>
+        )}
+        {taskCount > 0 && (
+          <div className="task-count">
+            Tasks {taskCount}
           </div>
         )}
       </div>
