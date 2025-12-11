@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import images from '../utils/tbsImages';
 import DatePicker from 'react-datepicker';
@@ -60,6 +61,10 @@ const [disciplineMonthly, setDisciplineMonthly] = useState({});
 const [disciplineList,   setDisciplineList]   = useState([]);
 const [monthlyTotalJobs, setMonthlyTotalJobs] = useState(0);
 const [monthlyTotalWorkOrders, setMonthlyTotalWorkOrders] = useState(0);
+const [notes, setNotes] = useState([]);
+const [noteText, setNoteText] = useState('');
+const [isNotePublic, setIsNotePublic] = useState(false);
+const [showNotes, setShowNotes] = useState(false);
 // Modify your fetchMonthlyJobs function to include better logging
 // Add this useEffect to fetch cancelled jobs specifically
 useEffect(() => {
@@ -103,6 +108,31 @@ const fetchDisciplineForDay = async (date) => {
     console.error('Failed to fetch daily discipline:', e);
     setDisciplineList([]);
   }
+};
+
+const addNote = () => {
+  if (!noteText.trim()) return;
+  const newNote = {
+    id: Date.now(),
+    text: noteText,
+    timestamp: new Date().toLocaleString(),
+    completed: false,
+    isPublic: isNotePublic,
+    author: adminName
+  };
+  setNotes(prev => [newNote, ...prev]);
+  setNoteText('');
+  setIsNotePublic(false);
+};
+
+const deleteNote = (id) => {
+  setNotes(prev => prev.filter(note => note.id !== id));
+};
+
+const toggleNoteCompletion = (id) => {
+  setNotes(prev => prev.map(note => 
+    note.id === id ? { ...note, completed: !note.completed } : note
+  ));
 };
 useEffect(() => {
   if (isAdmin) {
@@ -371,6 +401,65 @@ useEffect(() => {
 </button>
 
     </div>
+    
+    <div className="notes-section">
+      <button 
+        className={`btn ${showNotes ? 'active' : ''}`}
+        onClick={() => setShowNotes(!showNotes)}
+      >
+        {showNotes ? 'Hide Notes' : 'Show Notes'}
+      </button>
+      
+      {showNotes && (
+        <div className="notes-container">
+          <div className="add-note">
+            <textarea
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              placeholder="Add a note..."
+              rows="3"
+            />
+            <div className="note-options">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={isNotePublic}
+                  onChange={(e) => setIsNotePublic(e.target.checked)}
+                />
+                Public (visible to all)
+              </label>
+              <button className="btn" onClick={addNote}>Add Note</button>
+            </div>
+          </div>
+          
+          <div className="notes-list">
+            {notes.map(note => (
+              <div key={note.id} className={`note-item ${note.completed ? 'completed' : ''}`}>
+                <div className="note-header">
+                  <span className="note-author">{note.author}</span>
+                  <span className="note-timestamp">{note.timestamp}</span>
+                  <span className={`note-visibility ${note.isPublic ? 'public' : 'private'}`}>
+                    {note.isPublic ? '🌐 Public' : '🔒 Private'}
+                  </span>
+                </div>
+                <div className="note-content">
+                  <label className="note-checkbox">
+                    <input
+                      type="checkbox"
+                      checked={note.completed}
+                      onChange={() => toggleNoteCompletion(note.id)}
+                    />
+                    <span className={note.completed ? 'completed-text' : ''}>{note.text}</span>
+                  </label>
+                </div>
+                <button className="delete-note" onClick={() => deleteNote(note.id)}>🗑️</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+    
     {viewMode === 'traffic' && (
   <div className="month-summary">
     <strong>
