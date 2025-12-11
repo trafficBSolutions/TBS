@@ -583,3 +583,162 @@
   }
 }
 
+/* Notes Section Styles */
+.notes-section {
+  margin: 1rem 0;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.notes-container {
+  margin-top: 1rem;
+}
+
+.add-note {
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  margin-bottom: 1rem;
+}
+
+.add-note textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1.4rem;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.note-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.note-options label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.4rem;
+}
+
+.notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.note-item {
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  position: relative;
+}
+
+.note-item.completed {
+  background-color: #f8f9fa;
+  opacity: 0.8;
+}
+
+.note-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.note-author {
+  font-weight: bold;
+  color: #333;
+}
+
+.note-timestamp {
+  font-size: 1.1rem;
+}
+
+.note-visibility {
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.note-visibility.public {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.note-visibility.private {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.note-content {
+  margin: 0.5rem 0;
+}
+
+.note-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 1.4rem;
+}
+
+.note-checkbox input[type="checkbox"] {
+  margin-top: 0.2rem;
+  transform: scale(1.2);
+}
+
+.completed-text {
+  text-decoration: line-through;
+  color: #666;
+}
+
+.delete-note {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.2rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.delete-note:hover {
+  background-color: #f8d7da;
+}
+
+@media screen and (max-width: 640px) {
+  .note-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.3rem;
+  }
+  
+  .note-options {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+  
+  .add-note textarea {
+    font-size: 1.2rem;
+  }
+  
+  .note-checkbox {
+    font-size: 1.2rem;
+  }
+}
