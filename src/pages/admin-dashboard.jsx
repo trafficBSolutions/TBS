@@ -111,46 +111,72 @@ const fetchDisciplineForDay = async (date) => {
   }
 };
 
-const addTask = () => {
+const fetchTasks = async () => {
+  try {
+    const res = await axios.get('/tasks');
+    const grouped = {};
+    res.data.forEach(task => {
+      const dateStr = task.date;
+      (grouped[dateStr] ||= []).push(task);
+    });
+    setTasks(grouped);
+  } catch (e) {
+    console.error('Failed to fetch tasks:', e);
+  }
+};
+
+const addTask = async () => {
   if (!taskText.trim()) return;
   const dateStr = taskDate.toISOString().split('T')[0];
   const newTask = {
-    id: Date.now(),
     text: taskText,
-    timestamp: new Date().toLocaleString(),
     completed: false,
     isPublic: isTaskPublic,
     author: adminName,
     date: dateStr
   };
-  const updatedTasks = {
-    ...tasks,
-    [dateStr]: [...(tasks[dateStr] || []), newTask]
-  };
-  setTasks(updatedTasks);
-  localStorage.setItem('adminTasks', JSON.stringify(updatedTasks));
-  setTaskText('');
-  setIsTaskPublic(false);
+  try {
+    const res = await axios.post('/tasks', newTask);
+    const updatedTasks = {
+      ...tasks,
+      [dateStr]: [...(tasks[dateStr] || []), res.data]
+    };
+    setTasks(updatedTasks);
+    setTaskText('');
+    setIsTaskPublic(false);
+  } catch (e) {
+    console.error('Failed to add task:', e);
+  }
 };
 
-const deleteTask = (date, id) => {
-  const updatedTasks = {
-    ...tasks,
-    [date]: tasks[date]?.filter(task => task.id !== id) || []
-  };
-  setTasks(updatedTasks);
-  localStorage.setItem('adminTasks', JSON.stringify(updatedTasks));
+const deleteTask = async (date, id) => {
+  try {
+    await axios.delete(`/tasks/${id}`);
+    const updatedTasks = {
+      ...tasks,
+      [date]: tasks[date]?.filter(task => task._id !== id) || []
+    };
+    setTasks(updatedTasks);
+  } catch (e) {
+    console.error('Failed to delete task:', e);
+  }
 };
 
-const toggleTaskCompletion = (date, id) => {
-  const updatedTasks = {
-    ...tasks,
-    [date]: tasks[date]?.map(task => 
-      task.id === id ? { ...task, completed: !task.completed } : task
-    ) || []
-  };
-  setTasks(updatedTasks);
-  localStorage.setItem('adminTasks', JSON.stringify(updatedTasks));
+const toggleTaskCompletion = async (date, id) => {
+  try {
+    const task = tasks[date]?.find(t => t._id === id);
+    if (!task) return;
+    const res = await axios.put(`/tasks/${id}`, { completed: !task.completed });
+    const updatedTasks = {
+      ...tasks,
+      [date]: tasks[date]?.map(task => 
+        task._id === id ? res.data : task
+      ) || []
+    };
+    setTasks(updatedTasks);
+  } catch (e) {
+    console.error('Failed to update task:', e);
+  }
 };
 useEffect(() => {
   if (isAdmin) {
@@ -158,12 +184,7 @@ useEffect(() => {
     setDisciplineDate(d);
     fetchMonthlyDiscipline(d);
     fetchDisciplineForDay(d);
-    
-    // Load tasks from localStorage
-    const savedTasks = localStorage.getItem('adminTasks');
-    if (savedTasks) {
-      setTasks(JSON.parse(savedTasks));
-    }
+    fetchTasks();
   }
 }, [isAdmin]);
 
@@ -566,10 +587,10 @@ selected={
         <h4>📋 Tasks for {selectedDate.toLocaleDateString()}</h4>
         <div className="tasks-list">
           {tasks[selectedDate.toISOString().split('T')[0]].map(task => (
-            <div key={task.id} className={`task-item ${task.completed ? 'completed' : ''}`}>
+            <div key={task._id} className={`task-item ${task.completed ? 'completed' : ''}`}>
               <div className="task-header">
                 <span className="task-author">{task.author}</span>
-                <span className="task-timestamp">{task.timestamp}</span>
+                <span className="task-timestamp">{new Date(task.createdAt).toLocaleString()}</span>
                 <span className={`task-visibility ${task.isPublic ? 'public' : 'private'}`}>
                   {task.isPublic ? '🌐 Public' : '🔒 Private'}
                 </span>
@@ -579,12 +600,12 @@ selected={
                   <input
                     type="checkbox"
                     checked={task.completed}
-                    onChange={() => toggleTaskCompletion(selectedDate.toISOString().split('T')[0], task.id)}
+                    onChange={() => toggleTaskCompletion(selectedDate.toISOString().split('T')[0], task._id)}
                   />
                   <span className={task.completed ? 'completed-text' : ''}>{task.text}</span>
                 </label>
               </div>
-              <button className="delete-task" onClick={() => deleteTask(selectedDate.toISOString().split('T')[0], task.id)}>🗑️</button>
+              <button className="delete-task" onClick={() => deleteTask(selectedDate.toISOString().split('T')[0], task._id)}>🗑️</button>
             </div>
           ))}
         </div>
@@ -640,10 +661,10 @@ selected={
         <h4>📋 Tasks for {woSelectedDate.toLocaleDateString()}</h4>
         <div className="tasks-list">
           {tasks[woSelectedDate.toISOString().split('T')[0]].map(task => (
-            <div key={task.id} className={`task-item ${task.completed ? 'completed' : ''}`}>
+            <div key={task._id} className={`task-item ${task.completed ? 'completed' : ''}`}>
               <div className="task-header">
                 <span className="task-author">{task.author}</span>
-                <span className="task-timestamp">{task.timestamp}</span>
+                <span className="task-timestamp">{new Date(task.createdAt).toLocaleString()}</span>
                 <span className={`task-visibility ${task.isPublic ? 'public' : 'private'}`}>
                   {task.isPublic ? '🌐 Public' : '🔒 Private'}
                 </span>
@@ -653,12 +674,12 @@ selected={
                   <input
                     type="checkbox"
                     checked={task.completed}
-                    onChange={() => toggleTaskCompletion(woSelectedDate.toISOString().split('T')[0], task.id)}
+                    onChange={() => toggleTaskCompletion(woSelectedDate.toISOString().split('T')[0], task._id)}
                   />
                   <span className={task.completed ? 'completed-text' : ''}>{task.text}</span>
                 </label>
               </div>
-              <button className="delete-task" onClick={() => deleteTask(woSelectedDate.toISOString().split('T')[0], task.id)}>🗑️</button>
+              <button className="delete-task" onClick={() => deleteTask(woSelectedDate.toISOString().split('T')[0], task._id)}>🗑️</button>
             </div>
           ))}
         </div>
@@ -752,10 +773,10 @@ selected={
         <h4>📋 Tasks for {complaintsDate.toLocaleDateString()}</h4>
         <div className="tasks-list">
           {tasks[complaintsDate.toISOString().split('T')[0]].map(task => (
-            <div key={task.id} className={`task-item ${task.completed ? 'completed' : ''}`}>
+            <div key={task._id} className={`task-item ${task.completed ? 'completed' : ''}`}>
               <div className="task-header">
                 <span className="task-author">{task.author}</span>
-                <span className="task-timestamp">{task.timestamp}</span>
+                <span className="task-timestamp">{new Date(task.createdAt).toLocaleString()}</span>
                 <span className={`task-visibility ${task.isPublic ? 'public' : 'private'}`}>
                   {task.isPublic ? '🌐 Public' : '🔒 Private'}
                 </span>
@@ -765,12 +786,12 @@ selected={
                   <input
                     type="checkbox"
                     checked={task.completed}
-                    onChange={() => toggleTaskCompletion(complaintsDate.toISOString().split('T')[0], task.id)}
+                    onChange={() => toggleTaskCompletion(complaintsDate.toISOString().split('T')[0], task._id)}
                   />
                   <span className={task.completed ? 'completed-text' : ''}>{task.text}</span>
                 </label>
               </div>
-              <button className="delete-task" onClick={() => deleteTask(complaintsDate.toISOString().split('T')[0], task.id)}>🗑️</button>
+              <button className="delete-task" onClick={() => deleteTask(complaintsDate.toISOString().split('T')[0], task._id)}>🗑️</button>
             </div>
           ))}
         </div>
@@ -820,10 +841,10 @@ selected={
         <h4>📋 Tasks for {disciplineDate.toLocaleDateString()}</h4>
         <div className="tasks-list">
           {tasks[disciplineDate.toISOString().split('T')[0]].map(task => (
-            <div key={task.id} className={`task-item ${task.completed ? 'completed' : ''}`}>
+            <div key={task._id} className={`task-item ${task.completed ? 'completed' : ''}`}>
               <div className="task-header">
                 <span className="task-author">{task.author}</span>
-                <span className="task-timestamp">{task.timestamp}</span>
+                <span className="task-timestamp">{new Date(task.createdAt).toLocaleString()}</span>
                 <span className={`task-visibility ${task.isPublic ? 'public' : 'private'}`}>
                   {task.isPublic ? '🌐 Public' : '🔒 Private'}
                 </span>
@@ -833,12 +854,12 @@ selected={
                   <input
                     type="checkbox"
                     checked={task.completed}
-                    onChange={() => toggleTaskCompletion(disciplineDate.toISOString().split('T')[0], task.id)}
+                    onChange={() => toggleTaskCompletion(disciplineDate.toISOString().split('T')[0], task._id)}
                   />
                   <span className={task.completed ? 'completed-text' : ''}>{task.text}</span>
                 </label>
               </div>
-              <button className="delete-task" onClick={() => deleteTask(disciplineDate.toISOString().split('T')[0], task.id)}>🗑️</button>
+              <button className="delete-task" onClick={() => deleteTask(disciplineDate.toISOString().split('T')[0], task._id)}>🗑️</button>
             </div>
           ))}
         </div>
