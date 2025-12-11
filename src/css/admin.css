@@ -960,3 +960,31 @@
     font-size: 1.4rem;
   }
 }
+/* Task count display on calendar */
+.calendar-day-kiss .task-count {
+  margin-top: 0.2rem;
+  font-size: 1rem;
+  color: #444;
+  font-weight: bold;
+  background-color: rgba(52, 152, 219, 0.3);
+  border-radius: 4px;
+  padding: 2px 4px;
+  width: 80%;
+  text-align: center;
+}
+
+@media screen and (max-width: 640px) {
+  .calendar-day-kiss .task-count {
+    font-size: 0.9rem;
+    padding: 1px 2px;
+    width: 90%;
+  }
+}
+
+@media screen and (max-width: 320px) {
+  .calendar-day-kiss .task-count {
+    font-size: 0.7rem;
+    padding: 1px 2px;
+    width: auto;
+  }
+}
