@@ -431,88 +431,36 @@ useEffect(() => {
         className={`btn ${showTasks ? 'active' : ''}`}
         onClick={() => setShowTasks(!showTasks)}
       >
-        {showTasks ? 'Hide To Do Lists' : 'Show To Do Lists'}
+        {showTasks ? 'Hide Add Task' : 'Add Task'}
       </button>
       
       {showTasks && (
-        <div className="tasks-container">
-          <div className="add-task">
-            <div className="task-date-picker">
-              <label>Select Date for Task:</label>
-              <DatePicker
-                selected={taskDate}
-                onChange={setTaskDate}
-                dateFormat="MMMM d, yyyy"
-                className="task-date-input"
-              />
-            </div>
-            <textarea
-              value={taskText}
-              onChange={(e) => setTaskText(e.target.value)}
-              placeholder="Add a task..."
-              rows="3"
+        <div className="add-task">
+          <div className="task-date-picker">
+            <label>Select Date for Task:</label>
+            <DatePicker
+              selected={taskDate}
+              onChange={setTaskDate}
+              dateFormat="MMMM d, yyyy"
+              className="task-date-input"
             />
-            <div className="task-options">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={isTaskPublic}
-                  onChange={(e) => setIsTaskPublic(e.target.checked)}
-                />
-                Public (visible to all)
-              </label>
-              <button className="btn" onClick={addTask}>Add Task</button>
-            </div>
           </div>
-          
-          <div className="tasks-by-date">
-            {Object.keys(tasks)
-              .sort((a, b) => new Date(a) - new Date(b))
-              .map(dateStr => {
-                const dateTasks = tasks[dateStr] || [];
-                if (dateTasks.length === 0) return null;
-                
-                return (
-                  <div key={dateStr} className="date-tasks-group">
-                    <h4 className="task-date-header">
-                      📅 {new Date(dateStr).toLocaleDateString('en-US', { 
-                        weekday: 'long', 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
-                      })}
-                    </h4>
-                    <div className="tasks-list">
-                      {dateTasks.map(task => (
-                        <div key={task.id} className={`task-item ${task.completed ? 'completed' : ''}`}>
-                          <div className="task-header">
-                            <span className="task-author">{task.author}</span>
-                            <span className="task-timestamp">{task.timestamp}</span>
-                            <span className={`task-visibility ${task.isPublic ? 'public' : 'private'}`}>
-                              {task.isPublic ? '🌐 Public' : '🔒 Private'}
-                            </span>
-                          </div>
-                          <div className="task-content">
-                            <label className="task-checkbox">
-                              <input
-                                type="checkbox"
-                                checked={task.completed}
-                                onChange={() => toggleTaskCompletion(dateStr, task.id)}
-                              />
-                              <span className={task.completed ? 'completed-text' : ''}>{task.text}</span>
-                            </label>
-                          </div>
-                          <button className="delete-task" onClick={() => deleteTask(dateStr, task.id)}>🗑️</button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })
-            }
-            {Object.keys(tasks).length === 0 && (
-              <p className="no-tasks">No tasks created yet. Add your first task above!</p>
-            )}
+          <textarea
+            value={taskText}
+            onChange={(e) => setTaskText(e.target.value)}
+            placeholder="Add a task..."
+            rows="3"
+          />
+          <div className="task-options">
+            <label>
+              <input
+                type="checkbox"
+                checked={isTaskPublic}
+                onChange={(e) => setIsTaskPublic(e.target.checked)}
+              />
+              Public (visible to all)
+            </label>
+            <button className="btn" onClick={addTask}>Add Task</button>
           </div>
         </div>
       )}
@@ -613,6 +561,35 @@ selected={
 {viewMode === 'traffic' ? (
   <>
     <h3>Traffic Control Jobs on {selectedDate?.toLocaleDateString()}</h3>
+    {selectedDate && tasks[selectedDate.toISOString().split('T')[0]] && (
+      <div className="selected-date-tasks">
+        <h4>📋 Tasks for {selectedDate.toLocaleDateString()}</h4>
+        <div className="tasks-list">
+          {tasks[selectedDate.toISOString().split('T')[0]].map(task => (
+            <div key={task.id} className={`task-item ${task.completed ? 'completed' : ''}`}>
+              <div className="task-header">
+                <span className="task-author">{task.author}</span>
+                <span className="task-timestamp">{task.timestamp}</span>
+                <span className={`task-visibility ${task.isPublic ? 'public' : 'private'}`}>
+                  {task.isPublic ? '🌐 Public' : '🔒 Private'}
+                </span>
+              </div>
+              <div className="task-content">
+                <label className="task-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={task.completed}
+                    onChange={() => toggleTaskCompletion(selectedDate.toISOString().split('T')[0], task.id)}
+                  />
+                  <span className={task.completed ? 'completed-text' : ''}>{task.text}</span>
+                </label>
+              </div>
+              <button className="delete-task" onClick={() => deleteTask(selectedDate.toISOString().split('T')[0], task.id)}>🗑️</button>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
     <div className="job-info-list">
       {jobs.map((job, index) => {
         const dateStr = selectedDate ? selectedDate.toISOString().split('T')[0] : '';
@@ -658,6 +635,35 @@ selected={
 ) : (
   <>
     <h3>Work Orders on {woSelectedDate?.toLocaleDateString()}</h3>
+    {woSelectedDate && tasks[woSelectedDate.toISOString().split('T')[0]] && (
+      <div className="selected-date-tasks">
+        <h4>📋 Tasks for {woSelectedDate.toLocaleDateString()}</h4>
+        <div className="tasks-list">
+          {tasks[woSelectedDate.toISOString().split('T')[0]].map(task => (
+            <div key={task.id} className={`task-item ${task.completed ? 'completed' : ''}`}>
+              <div className="task-header">
+                <span className="task-author">{task.author}</span>
+                <span className="task-timestamp">{task.timestamp}</span>
+                <span className={`task-visibility ${task.isPublic ? 'public' : 'private'}`}>
+                  {task.isPublic ? '🌐 Public' : '🔒 Private'}
+                </span>
+              </div>
+              <div className="task-content">
+                <label className="task-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={task.completed}
+                    onChange={() => toggleTaskCompletion(woSelectedDate.toISOString().split('T')[0], task.id)}
+                  />
+                  <span className={task.completed ? 'completed-text' : ''}>{task.text}</span>
+                </label>
+              </div>
+              <button className="delete-task" onClick={() => deleteTask(woSelectedDate.toISOString().split('T')[0], task.id)}>🗑️</button>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
     <div className="job-info-list">
       {woList.map((wo, index) => (
         <div key={index} className="job-card">
@@ -741,6 +747,35 @@ selected={
 {viewMode === 'complaints' && (
   <>
     <h3>Employee Complaints on {complaintsDate?.toLocaleDateString()}</h3>
+    {complaintsDate && tasks[complaintsDate.toISOString().split('T')[0]] && (
+      <div className="selected-date-tasks">
+        <h4>📋 Tasks for {complaintsDate.toLocaleDateString()}</h4>
+        <div className="tasks-list">
+          {tasks[complaintsDate.toISOString().split('T')[0]].map(task => (
+            <div key={task.id} className={`task-item ${task.completed ? 'completed' : ''}`}>
+              <div className="task-header">
+                <span className="task-author">{task.author}</span>
+                <span className="task-timestamp">{task.timestamp}</span>
+                <span className={`task-visibility ${task.isPublic ? 'public' : 'private'}`}>
+                  {task.isPublic ? '🌐 Public' : '🔒 Private'}
+                </span>
+              </div>
+              <div className="task-content">
+                <label className="task-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={task.completed}
+                    onChange={() => toggleTaskCompletion(complaintsDate.toISOString().split('T')[0], task.id)}
+                  />
+                  <span className={task.completed ? 'completed-text' : ''}>{task.text}</span>
+                </label>
+              </div>
+              <button className="delete-task" onClick={() => deleteTask(complaintsDate.toISOString().split('T')[0], task.id)}>🗑️</button>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
     <div className="job-info-list">
       {complaintsList.map((c, i) => (
         <div key={c._id || i} className="job-card">
@@ -780,6 +815,35 @@ selected={
 {viewMode === 'discipline' && (
   <>
     <h3>Disciplinary Actions on {disciplineDate?.toLocaleDateString()}</h3>
+    {disciplineDate && tasks[disciplineDate.toISOString().split('T')[0]] && (
+      <div className="selected-date-tasks">
+        <h4>📋 Tasks for {disciplineDate.toLocaleDateString()}</h4>
+        <div className="tasks-list">
+          {tasks[disciplineDate.toISOString().split('T')[0]].map(task => (
+            <div key={task.id} className={`task-item ${task.completed ? 'completed' : ''}`}>
+              <div className="task-header">
+                <span className="task-author">{task.author}</span>
+                <span className="task-timestamp">{task.timestamp}</span>
+                <span className={`task-visibility ${task.isPublic ? 'public' : 'private'}`}>
+                  {task.isPublic ? '🌐 Public' : '🔒 Private'}
+                </span>
+              </div>
+              <div className="task-content">
+                <label className="task-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={task.completed}
+                    onChange={() => toggleTaskCompletion(disciplineDate.toISOString().split('T')[0], task.id)}
+                  />
+                  <span className={task.completed ? 'completed-text' : ''}>{task.text}</span>
+                </label>
+              </div>
+              <button className="delete-task" onClick={() => deleteTask(disciplineDate.toISOString().split('T')[0], task.id)}>🗑️</button>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
     <div className="job-info-list">
       {disciplineList.map((d, i) => (
         <div key={d._id || i} className="job-card">
