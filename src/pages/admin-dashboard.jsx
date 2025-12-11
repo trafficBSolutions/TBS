@@ -555,20 +555,28 @@ selected={
   }}
   renderDayContents={(day, date) => {
     const dateStr = date.toISOString().split('T')[0];
-        const dataSource =
-      viewMode === 'traffic' ? monthlyJobs
-      : viewMode === 'workorders' ? woMonthly
-      : viewMode === 'complaints' ? complaintsMonthly
-      : viewMode === 'discipline' ? disciplineMonthly
-      : tasks;
-    const itemsOnDate = dataSource[dateStr];
-    const itemCount = itemsOnDate ? itemsOnDate.length : 0;
+    let dataSource, itemCount = 0;
+    
+    if (viewMode === 'traffic') {
+      dataSource = monthlyJobs;
+    } else if (viewMode === 'workorders') {
+      dataSource = woMonthly;
+    } else if (viewMode === 'complaints') {
+      dataSource = complaintsMonthly;
+    } else if (viewMode === 'discipline') {
+      dataSource = disciplineMonthly;
+    } else if (viewMode === 'tasks') {
+      dataSource = tasks;
+    }
+    
+    const itemsOnDate = dataSource?.[dateStr];
+    itemCount = itemsOnDate ? itemsOnDate.length : 0;
 
     return (
       <div className="calendar-day-kiss">
         <div className="day-number">{day}</div>
         {itemCount > 0 && (
-                    <div className={viewMode === 'tasks' ? 'task-count' : 'job-count'}>
+          <div className={viewMode === 'tasks' ? 'task-count' : 'job-count'}>
             {viewMode === 'traffic' ? 'Jobs' 
             : viewMode === 'workorders' ? 'Work Orders' 
             : viewMode === 'complaints' ? 'Complaints'
