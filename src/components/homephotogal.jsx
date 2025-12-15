@@ -3,6 +3,11 @@ import images from '../utils/tbsImages';
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 const photos = [
   {
+    src: images['../assets/buffer and tapers/interstate.jpg']?.default || '',
+    width: 4032,
+    height: 3024
+  },
+  {
     src: images['../assets/buffer and tapers/trafficset.jpg']?.default || '',
     width: 4032,
     height: 3024
@@ -210,4 +215,5 @@ export default function HomePhotoGallery() {
       </div>
     </div>
   );
+
 }
