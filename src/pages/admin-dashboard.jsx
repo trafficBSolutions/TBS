@@ -71,7 +71,7 @@ const [taskDate, setTaskDate] = useState(new Date());
 useEffect(() => {
   const fetchCancelledJobs = async () => {
     try {
-      const res = await axios.get('/jobs/cancelled?year=2025');
+      const res = await axios.get('/jobs/cancelled?year=2026');
       console.log('Fetched cancelled jobs:', res.data);
       setCancelledJobs(res.data);
     } catch (err) {
@@ -903,68 +903,37 @@ selected={
     className="btn view-cancelled-btn"
     onClick={() => setShowCancelledJobs(prev => !prev)}
   >
-    {showCancelledJobs ? 'Hide 2025 Cancelled Jobs' : `View 2025 Cancelled Jobs (${cancelledJobs.length})`}
+    {showCancelledJobs ? 'Hide 2026 Cancelled Jobs' : `View 2026 Cancelled Jobs (${cancelledJobs.length})`}
   </button>
 
 {showCancelledJobs && (
   <div className="cancelled-jobs-section">
-    <h2>❌ Cancelled Jobs in 2025</h2>
+    <h2>❌ Cancelled Jobs in 2026</h2>
     {cancelledJobs.length === 0 ? (
-      <p>No cancelled jobs found for 2025.</p>
+      <p>No cancelled jobs found for 2026.</p>
     ) : (
       <div className="cancelled-jobs-list">
-        {(() => {
-          // Group cancelled jobs by month
-          const jobsByMonth = cancelledJobs.reduce((acc, job) => {
-            const cancelledDate = new Date(job.cancelledDate);
-            const monthYear = cancelledDate.toLocaleString('default', { 
-              month: 'long', 
-              year: 'numeric' 
-            });
-            
-            if (!acc[monthYear]) {
-              acc[monthYear] = [];
-            }
-            acc[monthYear].push(job);
-            return acc;
-          }, {});
-
-          // Sort months chronologically
-          const sortedMonths = Object.keys(jobsByMonth).sort((a, b) => {
-            const dateA = new Date(a + ' 1');
-            const dateB = new Date(b + ' 1');
-            return dateA - dateB;
-          });
-
-          return sortedMonths.map(monthYear => (
-            <div key={monthYear} className="month-group">
-              <h3 className="month-header">{monthYear}</h3>
-              <div className="month-jobs">
-                {jobsByMonth[monthYear].map((job, index) => (
-                  <div key={`cancelled-${monthYear}-${index}`} className="job-card cancelled-job">
-                    <h4 className="job-company">{job.company || 'Unknown Company'}</h4>
-                    <p className="cancellation-type">
-                      <strong>Cancellation Type:</strong> {job.cancelledType === 'entire_job' ? 'Entire Job Cancelled' : 'Single Date Cancelled'}
-                    </p>
-                    <p>
-                      <strong>Cancelled Date:</strong> {new Date(job.cancelledDate).toLocaleDateString()}
-                    </p>
-                    {job.originalJobDate && job.cancelledType === 'single_date' && (
-                      <p><strong>Original Job Date:</strong> {new Date(job.originalJobDate).toLocaleDateString()}</p>
-                    )}
-                    <p><strong>Coordinator:</strong> {job.coordinator || 'N/A'}</p>
-                    {job.phone && (
-                      <p><strong>Phone:</strong> <a href={`tel:${job.phone}`}>{job.phone}</a></p>
-                    )}
-                    <p><strong>Project/Task Number:</strong> {job.project || 'N/A'}</p>
-                    <p><strong>Address:</strong> {job.address || 'N/A'}, {job.city || 'N/A'}, {job.state || 'N/A'} {job.zip || 'N/A'}</p>
-                    {job.message && <p><strong>Message:</strong> {job.message}</p>}
-                  </div>
-                ))}
-              </div>
-            </div>
-          ));
-        })()}
+        {cancelledJobs.map((job, index) => (
+          <div key={`cancelled-2026-${index}`} className="job-card cancelled-job">
+            <h4 className="job-company">{job.company || 'Unknown Company'}</h4>
+            <p className="cancellation-type">
+              <strong>Cancellation Type:</strong> {job.cancelledType === 'entire_job' ? 'Entire Job Cancelled' : 'Single Date Cancelled'}
+            </p>
+            <p>
+              <strong>Cancelled Date:</strong> {new Date(job.cancelledDate).toLocaleDateString()}
+            </p>
+            {job.originalJobDate && job.cancelledType === 'single_date' && (
+              <p><strong>Original Job Date:</strong> {new Date(job.originalJobDate).toLocaleDateString()}</p>
+            )}
+            <p><strong>Coordinator:</strong> {job.coordinator || 'N/A'}</p>
+            {job.phone && (
+              <p><strong>Phone:</strong> <a href={`tel:${job.phone}`}>{job.phone}</a></p>
+            )}
+            <p><strong>Project/Task Number:</strong> {job.project || 'N/A'}</p>
+            <p><strong>Address:</strong> {job.address || 'N/A'}, {job.city || 'N/A'}, {job.state || 'N/A'} {job.zip || 'N/A'}</p>
+            {job.message && <p><strong>Message:</strong> {job.message}</p>}
+          </div>
+        ))}
       </div>
     )}
   </div>
