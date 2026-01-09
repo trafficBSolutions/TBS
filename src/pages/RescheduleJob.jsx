@@ -102,7 +102,22 @@ export default function RescheduleJob() {
       }, 2000);
     } catch (err) {
       console.error('Error rescheduling:', err);
-      toast.error(err.response?.data?.error || 'Failed to reschedule job');
+      const errorData = err.response?.data;
+      
+      if (errorData?.redirectUrl) {
+        // Show special alert for same-day rescheduling with redirect option
+        const shouldRedirect = window.confirm(
+          `${errorData.error}\n\n${errorData.suggestion}\n\nWould you like to go to the traffic control page to schedule a new job?`
+        );
+        
+        if (shouldRedirect) {
+          window.open(errorData.redirectUrl, '_blank');
+        }
+        
+        toast.error('Job cannot be rescheduled on the same day it is taking place');
+      } else {
+        toast.error(errorData?.error || 'Failed to reschedule job');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -139,6 +154,17 @@ export default function RescheduleJob() {
           <div className="control-box">
             <h2>Reschedule Your Traffic Control Job</h2>
             <p>Move your job from <strong>{oldDate?.toLocaleDateString('en-US')}</strong> to a new date.</p>
+            <div className="reschedule-warning" style={{ 
+              backgroundColor: '#fff3cd', 
+              border: '1px solid #ffeaa7', 
+              borderRadius: '4px', 
+              padding: '12px', 
+              margin: '16px 0',
+              color: '#856404'
+            }}>
+              <strong>⚠️ Important:</strong> Jobs cannot be rescheduled on the day they are taking place. 
+              If you need to schedule work for today, please <a href="/traffic-control" target="_blank" style={{color: '#007bff'}}>schedule a new job</a> instead.
+            </div>
           </div>
 
           <div className="job-actual-reschedule-box">
@@ -246,7 +272,7 @@ export default function RescheduleJob() {
   </div>
 </footer>
 <div className="footer-copyright">
-      <p className="footer-copy-p">&copy; 2026 Traffic & Barrier Solutions, LLC - 
+      <p className="footer-copy-p">&copy; 2025 Traffic & Barrier Solutions, LLC - 
         Website Created & Deployed by <a className="footer-face"href="https://www.facebook.com/will.rowell.779" target="_blank" rel="noopener noreferrer">William Rowell</a> - All Rights Reserved.</p>
     </div>
     </div>
