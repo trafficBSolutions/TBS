@@ -185,6 +185,7 @@ const Apply = () => {
     phone: '',
     education: '',
     position: '',
+    location: '',
     background: '',
     languages: '',
     skills: '',
@@ -425,7 +426,7 @@ const handlePhoneChange = (event) => {
     console.log('Form submitted');
   
     // Check for required fields
-    const requiredFields = ["first", "last", "email", "phone", "position", "languages", "skills", "message"];
+    const requiredFields = ["first", "last", "email", "phone", "position", "location", "languages", "skills", "message"];
     const newErrors = {};
     let hasError = false;
     
@@ -483,6 +484,7 @@ if (!data.background) {
     formDataObj.append('email', data.email);
     formDataObj.append('phone', data.phone);
     formDataObj.append('position', data.position);
+    formDataObj.append('location', data.location);
     formDataObj.append('languages', data.languages);
     formDataObj.append('skills', data.skills);
     formDataObj.append('message', data.message);
@@ -826,6 +828,35 @@ if (!data.background) {
                 {errors.phone && <div className="error-message">{errors.phone}</div>}
               </div>
             </div>
+            </div>
+            <div className="job-location">
+              <label className="location-name">Location *</label>
+              <p className="location-p">Which location would you like to work out of?</p>
+              <div>
+                <input className="position-checkbox" id="calhoun" type="radio" name="location"
+                value="Calhoun GA"
+                onChange={(e) => { 
+                  formData({ ...data, location: e.target.value });
+                if (e.target.value) {
+                  setErrors((prevErrors) => ({ ...prevErrors, location: '' })); // Clear the error
+                }
+                }}
+                />
+                <label className="position-li" htmlFor="calhoun">Calhoun GA</label>
+              </div>
+              <div>
+                <input className="position-checkbox" id="marietta" type="radio" name="location"
+                value="Marietta GA"
+                onChange={(e) => { 
+                  formData({ ...data, location: e.target.value });
+                if (e.target.value) {
+                  setErrors((prevErrors) => ({ ...prevErrors, location: '' })); // Clear the error
+                }
+                }}
+                />
+                <label className="position-li" htmlFor="marietta">Marietta GA</label>
+              </div>
+              {errors.location && <div className="error-message">{errors.location}</div>}
             </div>
             <div className="education-info">
   <label className="education-label">Education History *</label>
@@ -1446,7 +1477,3 @@ to provide additional context regarding your background, please reach out to our
   );
 }
 export default Apply;
-
-
-
-
