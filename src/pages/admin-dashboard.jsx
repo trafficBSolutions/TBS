@@ -953,6 +953,7 @@ selected={
           <p><strong>Email:</strong> {app.email}</p>
           <p><strong>Phone:</strong> <a href={`tel:${app.phone}`}>{app.phone}</a></p>
           <p><strong>Position:</strong> {app.position}</p>
+          <p><strong>Location:</strong> {app.location}</p>
           <p><strong>Languages:</strong> {app.languages}</p>
           <p><strong>Skills:</strong> {app.skills}</p>
           <h5>Education</h5>
