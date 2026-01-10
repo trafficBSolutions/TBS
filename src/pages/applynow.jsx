@@ -845,8 +845,8 @@ if (!data.background) {
                 <label className="position-li" htmlFor="calhoun">Calhoun GA</label>
               </div>
               <div>
-                <input className="position-checkbox" id="marietta" type="radio" name="location"
-                value="Marietta GA"
+                <input className="position-checkbox" id="atlanta" type="radio" name="location"
+                value="Atlanta GA"
                 onChange={(e) => { 
                   formData({ ...data, location: e.target.value });
                 if (e.target.value) {
@@ -854,7 +854,7 @@ if (!data.background) {
                 }
                 }}
                 />
-                <label className="position-li" htmlFor="marietta">Marietta GA</label>
+                <label className="position-li" htmlFor="atlanta">Atlanta GA</label>
               </div>
               {errors.location && <div className="error-message">{errors.location}</div>}
             </div>
