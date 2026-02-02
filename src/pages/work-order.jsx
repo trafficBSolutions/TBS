@@ -944,7 +944,7 @@ const isSubmitReady = useMemo(() => {
         {selectPair('hardHats','Hard Hats',[2,3,4,5,6])}
                   {selectPair('vests','Vests',[2,3,4,5,6])}
                   {selectPair('walkies','Walkie Talkies',[2,3,4,5,6])}
-                  {selectPair('arrowBoards','Arrow Board',[0,1,2])}
+                  {selectPair('arrowBoards','Arrow Board',[0,1,2,3,4])}
 
                   {numberInput('cones','Cones')}
                   {numberInput('barrels','Barrels')}
