@@ -431,10 +431,15 @@ const EmployeeHandbook = () => {
           </div>
           <div className="statement-box">
             <p className="statement">
-              <b className="safety-b">Safety Statement: </b>
-              At TBS, safety is our top priority. We are dedicated to ensuring the well-being of our employees, clients, 
-              and the general public in every aspect of our operations.
-            </p>
+                    <b className="safety-b">Safety Statement: </b>
+                    At TBS, safety is our top priority. We are dedicated to ensuring the well-being of our employees, clients, 
+                    and the general public in every aspect of our operations. Through comprehensive safety training, 
+                    strict adherence to regulatory standards, and continuous improvement initiatives, 
+                    we strive to create a work environment where accidents and injuries are preventable. 
+                    Our commitment to safety extends beyond compliance—it's a fundamental value embedded in everything we do. 
+                    Together, we work tirelessly to promote a culture of safety, 
+                    accountability, and excellence, because when it comes to traffic control, there's no compromise on safety.
+                </p>
           </div>
         </div>
       </footer>
