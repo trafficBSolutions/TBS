@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import Header from '../components/headerviews/HeaderEmpDash';
+import Header from '../components/headerviews/HeaderAdmin';
 import images from '../utils/tbsImages';
 import '../css/employee.css';
 const EmployeeDashboard = () => {
@@ -29,7 +29,18 @@ const EmployeeDashboard = () => {
             <div className="text-center">
               <div className="compant-form-icon">📝</div>
               <h2 className="complaint-form-title">Employee Complaint Form</h2>
-              <p className="text-gray-600">File a complaint</p>
+              <p className="text-gray-600">Not Ready Yet, but will be added soon</p>
+            </div>
+          </Link>
+          
+          <Link 
+            to="/employee-dashboard/employee-handbook"
+            className="btn-links"
+          >
+            <div className="text-center">
+              <div className="work-order-icon">📖</div>
+              <h2 className="work-order-title">Employee Handbook</h2>
+              <p className="text-gray-600">Read and acknowledge the employee handbook</p>
             </div>
           </Link>
         </div>
@@ -86,7 +97,7 @@ const EmployeeDashboard = () => {
   </div>
 </footer>
 <div className="footer-copyright">
-      <p className="footer-copy-p">&copy; 2026 Traffic & Barrier Solutions, LLC - 
+      <p className="footer-copy-p">&copy; 2025 Traffic & Barrier Solutions, LLC - 
         Website Created & Deployed by <a className="footer-face"href="https://www.facebook.com/will.rowell.779" target="_blank" rel="noopener noreferrer">William Rowell</a> - All Rights Reserved.</p>
     </div>
             </div>
