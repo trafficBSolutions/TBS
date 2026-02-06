@@ -56,61 +56,245 @@ const EmployeeHandbook = () => {
       <Header />
       <main className="control-main">
         <div className="control-container">
-          <h1 className="control-app-box">Employee Handbook</h1>
-          
-          <div className="first-control-input">
-            <h2 className="address-control-label">Welcome to Traffic & Barrier Solutions</h2>
-            <p className="traffic-description">
-              This handbook outlines our company policies, procedures, and expectations. 
-              Please read carefully and acknowledge your understanding by completing the form below.
-            </p>
-          </div>
+         {/* HANDBOOK CONTENT (from PDF) */}
+<section className="company-input">
+  <h2 className="control-app-box">Employee Handbook</h2>
+  <p className="traffic-description">
+    <b>Traffic &amp; Barrier Solutions, LLC</b><br />
+    <b>Effective Date:</b> 01/07/26
+  </p>
+</section>
 
-          <div className="company-input">
-            <h3 className="first-control-label-name">1. Company Overview</h3>
-            <p className="traffic-description">
-              Traffic & Barrier Solutions, LLC is committed to providing exceptional traffic control 
-              services while maintaining the highest safety standards. We value integrity, teamwork, 
-              and professional excellence.
-            </p>
-          </div>
+<section className="company-input">
+  <h3 className="first-control-label-name">Table of Contents</h3>
+  <ol className="traffic-description" style={{ paddingLeft: "1.5rem" }}>
+    <li>Welcome &amp; Company Overview</li>
+    <li>Employment Policies</li>
+    <li>Work Hours, Attendance &amp; Conduct</li>
+    <li>Safety &amp; Traffic Control Operations</li>
+    <li>Compensation &amp; Benefits</li>
+    <li>Discipline &amp; Separation</li>
+    <li>Acknowledgment</li>
+  </ol>
+</section>
 
-          <div className="emailphone-control-input">
-            <h3 className="first-control-label-name">2. Safety Policies</h3>
-            <p className="traffic-description">
-              Safety is our top priority. All employees must:
-            </p>
-            <ul className="traffic-description">
-              <li>Wear appropriate PPE at all times on job sites</li>
-              <li>Follow OSHA and MUTCD guidelines</li>
-              <li>Report any safety concerns immediately</li>
-              <li>Participate in regular safety training</li>
-            </ul>
-          </div>
+<section className="company-input">
+  <h3 className="first-control-label-name">1. Welcome &amp; Company Overview</h3>
+  <p className="traffic-description">
+    Welcome to Traffic &amp; Barrier Solutions, LLC, a Georgia-based traffic control services provider
+    dedicated to protecting workers, motorists, pedestrians, and the public. We support roadway
+    construction, utility work, special events, and emergency response by installing and maintaining
+    compliant traffic control systems.
+  </p>
+  <p className="traffic-description">
+    This handbook outlines general company policies and expectations. It is not an employment contract.
+    Policies may be updated at any time.
+  </p>
+</section>
 
-          <div className="address-controler-container">
-            <h3 className="first-control-label-name">3. Work Hours & Attendance</h3>
-            <p className="traffic-description">
-              Employees are expected to arrive on time and maintain regular attendance. 
-              Any absences must be reported to your supervisor as soon as possible.
-            </p>
-          </div>
+<section className="emailphone-control-input">
+  <h3 className="first-control-label-name">2. Employment Policies</h3>
 
-          <div className="location-control-container">
-            <h3 className="first-control-label-name">4. Code of Conduct</h3>
-            <p className="traffic-description">
-              All employees must maintain professional behavior, respect colleagues and clients, 
-              and represent the company positively at all times.
-            </p>
-          </div>
+  <h4 className="address-control-label">Equal Employment Opportunity</h4>
+  <p className="traffic-description">
+    Traffic &amp; Barrier Solutions, LLC complies with all applicable federal and Georgia employment laws.
+    We do not discriminate based on race, color, religion, sex, national origin, age, disability, veteran status,
+    or any legally protected characteristic.
+  </p>
 
-          <div className="message-control-container">
-            <h3 className="first-control-label-name">5. Equipment & Vehicle Use</h3>
-            <p className="traffic-description">
-              Company equipment and vehicles must be used responsibly and maintained properly. 
-              Report any damage or maintenance needs immediately.
-            </p>
-          </div>
+  <h4 className="address-control-label">At-Will Employment (Georgia)</h4>
+  <p className="traffic-description">
+    Employment is at-will, meaning either the employee or the company may end employment at any time,
+    with or without cause or notice.
+  </p>
+
+  <h4 className="address-control-label">Hiring &amp; Qualifications</h4>
+  <p className="traffic-description">Employment requires:</p>
+  <ul className="traffic-description" style={{ paddingLeft: "1.5rem" }}>
+    <li>Background checks</li>
+    <li>Drug and alcohol testing</li>
+    <li>Valid driver’s license and driving record (for driving positions)</li>
+    <li>Required certifications (e.g., ATSSA Flagger)</li>
+  </ul>
+
+  <h4 className="address-control-label">Introductory Period</h4>
+  <p className="traffic-description">New hires are subject to a 90-day introductory period.</p>
+
+  <h4 className="address-control-label">Employee Legal Information &amp; License Updates</h4>
+  <p className="traffic-description">
+    All employees are required to promptly notify Bryson of any changes to their legal or employment-related
+    information. This includes, but is not limited to:
+  </p>
+  <ul className="traffic-description" style={{ paddingLeft: "1.5rem" }}>
+    <li>Updates, renewals, suspensions, or replacements of a driver’s license or professional license</li>
+    <li>Legal name changes</li>
+    <li>Any other legal changes that may affect employment, payroll, or work authorization</li>
+  </ul>
+
+  <p className="traffic-description">
+    Employees must provide updated documentation as applicable, including but not limited to:
+  </p>
+  <ul className="traffic-description" style={{ paddingLeft: "1.5rem" }}>
+    <li>A current copy of the updated license, and</li>
+    <li>Updated tax or employment forms, such as a W-9 or W-4, when required.</li>
+  </ul>
+
+  <p className="traffic-description">
+    Failure to notify the company of required changes or to provide updated documentation in a timely manner
+    may result in disciplinary action, up to and including termination of employment.
+  </p>
+</section>
+
+<section className="address-controler-container">
+  <h3 className="first-control-label-name">3. Work Hours, Attendance &amp; Conduct</h3>
+
+  <h4 className="address-control-label">Work Hours &amp; Overtime</h4>
+  <p className="traffic-description">
+    Schedules vary by project. Non-exempt employees are paid overtime at 1.5x their regular rate for hours
+    over 40 in a workweek, per federal law. Overtime must be approved in advance.
+  </p>
+
+  <h4 className="address-control-label">Work Schedules, Communication, and Attendance</h4>
+  <p className="traffic-description">
+    Reliable attendance is critical in traffic control operations. Employees must notify supervisors as soon as possible
+    if late or absent. Excessive absences may result in discipline.
+  </p>
+  <p className="traffic-description">
+    Work schedules are issued daily and communicated through GroupMe. Employees are responsible for monitoring
+    GroupMe for scheduling updates and reporting to work as scheduled.
+  </p>
+  <p className="traffic-description">
+    Employees who are unable to work their assigned shift must notify their supervisor no less than one (1) hour before
+    their scheduled start time. Failure to provide proper notice or repeated attendance issues may result in disciplinary action,
+    up to and including termination.
+  </p>
+
+  <h4 className="address-control-label">Standards of Conduct</h4>
+  <p className="traffic-description">Employees are expected to:</p>
+  <ul className="traffic-description" style={{ paddingLeft: "1.5rem" }}>
+    <li>Follow all safety rules and instructions</li>
+    <li>Act professionally on job sites</li>
+    <li>Treat coworkers, clients, and the public with respect</li>
+  </ul>
+</section>
+
+<section className="location-control-container">
+  <h3 className="first-control-label-name">4. Safety &amp; Traffic Control Operations</h3>
+
+  <h4 className="address-control-label">Safety Commitment</h4>
+  <p className="traffic-description">
+    Safety is our highest priority. Employees must comply with:
+  </p>
+  <ul className="traffic-description" style={{ paddingLeft: "1.5rem" }}>
+    <li>MUTCD Part 6 – Temporary Traffic Control</li>
+    <li>GDOT requirements</li>
+    <li>Company safety policies</li>
+  </ul>
+
+  <h4 className="address-control-label">Personal Protective Equipment (PPE)</h4>
+  <p className="traffic-description">Required PPE includes:</p>
+  <ul className="traffic-description" style={{ paddingLeft: "1.5rem" }}>
+    <li>Company approved Saftey Vest</li>
+    <li>TBS-Branded Shirt</li>
+    <li>Hard hat</li>
+    <li>Boots</li>
+    <li>Long Pants (e.g., jeans, khakis, or similar)</li>
+    <li>Additional PPE as required by the job</li>
+  </ul>
+
+  <h4 className="address-control-label">Drug- &amp; Alcohol-Free Workplace</h4>
+  <p className="traffic-description">
+    The use, possession, or impairment from drugs or alcohol during work hours, on job sites, or in company vehicles is prohibited.
+    Testing may occur pre-employment, randomly, post-incident, or for reasonable suspicion.
+  </p>
+
+  <h4 className="address-control-label">Harassment, Discrimination &amp; Violence</h4>
+  <p className="traffic-description">
+    Harassment, discrimination, threats, or violence will not be tolerated. Employees should report concerns immediately.
+    Retaliation is prohibited.
+  </p>
+
+  <h4 className="address-control-label">Vehicle &amp; Equipment Use</h4>
+  <ul className="traffic-description" style={{ paddingLeft: "1.5rem" }}>
+    <li>Company vehicles are for authorized use only</li>
+    <li>Daily inspections are required</li>
+    <li>Report damage, accidents, or equipment issues immediately to management</li>
+  </ul>
+
+  <h4 className="address-control-label">Traffic Laws, Tolls, and Vehicle Use Liability</h4>
+  <p className="traffic-description">
+    Employees must comply with all applicable traffic laws, regulations, and toll requirements while operating a company-owned or company-leased vehicle.
+    Employees are solely responsible for any traffic violations, citations, fines, tolls, penalties, administrative fees, or other charges incurred during vehicle use,
+    regardless of whether the violation is issued to the employee or the company.
+  </p>
+  <p className="traffic-description">
+    This includes, but is not limited to, violations related to speeding, parking, red-light cameras, and the use of toll roads or toll lanes without an authorized
+    transponder or proper payment method. Any costs incurred by the company as a result of such violations may be charged back to the employee or deducted from wages
+    where permitted by applicable law.
+  </p>
+  <p className="traffic-description">
+    Failure to comply with this policy may result in disciplinary action, up to and including termination.
+  </p>
+
+  <h4 className="address-control-label">Incident Reporting</h4>
+  <p className="traffic-description">
+    All accidents, injuries, or near-misses must be reported immediately and documented within 24 hours.
+  </p>
+
+  <h4 className="address-control-label">Work Order Completion &amp; Authorization (Crew Leaders)</h4>
+  <p className="traffic-description">
+    All Crew Leaders are required to accurately complete a work order for each assigned job. This includes:
+  </p>
+  <ul className="traffic-description" style={{ paddingLeft: "1.5rem" }}>
+    <li>Submitting the work order through the designated online system, and</li>
+    <li>Completing a paper copy when required or applicable.</li>
+  </ul>
+  <p className="traffic-description">
+    All work orders must be reviewed and signed by the Superintendent prior to submission or job closeout, unless otherwise authorized.
+  </p>
+  <p className="traffic-description">
+    Failure to properly complete, submit, or obtain required authorization on work orders may result in suspension of pay for that job or disciplinary action,
+    up to and including verbal or written warnings, suspension, or termination, in accordance with company disciplinary policies.
+  </p>
+</section>
+
+<section className="message-control-container">
+  <h3 className="first-control-label-name">5. Compensation &amp; Benefits</h3>
+
+  <h4 className="address-control-label">Compensation</h4>
+  <p className="traffic-description">
+    Employees are paid weekly. Compensation for hours worked during each workweek will be issued the following week,
+    in accordance with the company’s regular payroll schedule. Required deductions apply if applicable.
+  </p>
+
+  <h4 className="address-control-label">Expense Reimbursement</h4>
+  <p className="traffic-description">
+    Approved job-related expenses are reimbursed when submitted in a timely manner with documentation.
+  </p>
+</section>
+
+<section className="company-input">
+  <h3 className="first-control-label-name">6. Discipline &amp; Separation</h3>
+
+  <h4 className="address-control-label">Discipline</h4>
+  <p className="traffic-description">
+    Policy violations may result in disciplinary action up to and including termination. Progressive discipline may be used but is not guaranteed.
+  </p>
+
+  <h4 className="address-control-label">Separation of Employment</h4>
+  <p className="traffic-description">
+    Employees are encouraged to provide 2 weeks of notice. Final pay will be issued in accordance with Georgia law.
+    All company property, including any provided safety vests, hard hats, and TBS-branded clothing, must be returned.
+  </p>
+</section>
+
+<section className="company-input">
+  <h3 className="first-control-label-name">7. Acknowledgment</h3>
+  <p className="traffic-description">
+    I acknowledge receipt of the Traffic &amp; Barrier Solutions, LLC Employee Handbook and understand that employment is at-will
+    and that I am responsible for following company policies.
+  </p>
+</section>
 
           <form onSubmit={handleSubmit} className="control-container">
             <h2 className="control-app-box">Acknowledgment Form</h2>
