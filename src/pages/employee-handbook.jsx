@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/headerviews/HeaderAdmin';
 import images from '../utils/tbsImages';
+import SignatureCanvas from 'react-signature-canvas';
 import '../css/employee.css';
 import '../css/trafficcontrol.css';
 
@@ -15,6 +16,7 @@ const EmployeeHandbook = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
+  const sigCanvas = useRef();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,10 +26,17 @@ const EmployeeHandbook = () => {
       return;
     }
     
-    if (!formData.firstName || !formData.lastName || !formData.signature) {
+    if (!formData.firstName || !formData.lastName) {
       setMessage('Please fill in all fields');
       return;
     }
+
+    if (sigCanvas.current.isEmpty()) {
+      setMessage('Please provide your signature');
+      return;
+    }
+
+    const signatureData = sigCanvas.current.toDataURL();
 
     setIsSubmitting(true);
     
@@ -35,7 +44,10 @@ const EmployeeHandbook = () => {
       const response = await fetch('http://localhost:5000/api/employee-handbook', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          ...formData,
+          signature: signatureData
+        })
       });
 
       if (response.ok) {
@@ -332,14 +344,34 @@ const EmployeeHandbook = () => {
             </div>
 
             <div className="address-controler-container">
-              <label className="first-control-label-name">Signature (Type your full name)</label>
-              <input
-                type="text"
-                value={formData.signature}
-                onChange={(e) => setFormData({...formData, signature: e.target.value})}
-                style={{ width: '100%', padding: '12px', fontSize: '1.5rem', fontFamily: 'cursive', borderRadius: '5px', border: '1px solid #ccc' }}
-                placeholder="Your Full Name"
-              />
+              <label className="first-control-label-name">Signature</label>
+              <div style={{ border: '2px solid #ccc', borderRadius: '5px', backgroundColor: '#fff' }}>
+                <SignatureCanvas
+                  ref={sigCanvas}
+                  canvasProps={{
+                    width: 500,
+                    height: 200,
+                    className: 'signature-canvas',
+                    style: { width: '100%', height: '200px' }
+                  }}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => sigCanvas.current.clear()}
+                style={{
+                  marginTop: '10px',
+                  padding: '10px 20px',
+                  backgroundColor: '#e67e22',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '5px',
+                  cursor: 'pointer',
+                  fontSize: '1rem'
+                }}
+              >
+                Clear Signature
+              </button>
             </div>
 
             {message && (
