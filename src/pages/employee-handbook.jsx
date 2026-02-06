@@ -41,7 +41,7 @@ const EmployeeHandbook = () => {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch('http://localhost:5000/api/employee-handbook', {
+      const response = await fetch('https://tbs-server.onrender.com/api/employee-handbook', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
