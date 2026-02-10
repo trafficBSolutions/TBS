@@ -229,7 +229,6 @@
 .ta-images-section {
   margin-top: 3rem;
   padding: 2rem;
-  background: var(--card);
   border-radius: 16px;
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
