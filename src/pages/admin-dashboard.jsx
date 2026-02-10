@@ -33,6 +33,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const [adminName, setAdminName] = useState('');
   const [showTAImages, setShowTAImages] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
   const [monthlyJobs, setMonthlyJobs] = useState({});
   const [monthlyKey, setMonthlyKey] = useState(0);
@@ -903,25 +904,34 @@ selected={
         </button>
         {showTAImages && (
           <div className="ta-images-grid">
-            <div className="ta-image-card">
+            <div className="ta-image-card" onClick={() => setSelectedImage({ src: images["../assets/buffer and tapers/TA-10.svg"].default, title: 'TA-10' })}>
               <h4>TA-10</h4>
               <img src={images["../assets/buffer and tapers/TA-10.svg"].default} alt="TA-10 Diagram" />
             </div>
-            <div className="ta-image-card">
+            <div className="ta-image-card" onClick={() => setSelectedImage({ src: images["../assets/buffer and tapers/TA-22.svg"].default, title: 'TA-22' })}>
               <h4>TA-22</h4>
               <img src={images["../assets/buffer and tapers/TA-22.svg"].default} alt="TA-22 Diagram" />
             </div>
-            <div className="ta-image-card">
+            <div className="ta-image-card" onClick={() => setSelectedImage({ src: images["../assets/buffer and tapers/TA-32.svg"].default, title: 'TA-32' })}>
               <h4>TA-32</h4>
               <img src={images["../assets/buffer and tapers/TA-32.svg"].default} alt="TA-32 Diagram" />
             </div>
-            <div className="ta-image-card">
+            <div className="ta-image-card" onClick={() => setSelectedImage({ src: images["../assets/buffer and tapers/TA-33.svg"].default, title: 'TA-33' })}>
               <h4>TA-33</h4>
               <img src={images["../assets/buffer and tapers/TA-33.svg"].default} alt="TA-33 Diagram" />
             </div>
-            <div className="ta-image-card">
+            <div className="ta-image-card" onClick={() => setSelectedImage({ src: images["../assets/buffer and tapers/TA-37.svg"].default, title: 'TA-37' })}>
               <h4>TA-37</h4>
               <img src={images["../assets/buffer and tapers/TA-37.svg"].default} alt="TA-37 Diagram" />
+            </div>
+          </div>
+        )}
+        {selectedImage && (
+          <div className="image-modal" onClick={() => setSelectedImage(null)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <button className="modal-close" onClick={() => setSelectedImage(null)}>×</button>
+              <h3>{selectedImage.title}</h3>
+              <img src={selectedImage.src} alt={selectedImage.title} />
             </div>
           </div>
         )}
