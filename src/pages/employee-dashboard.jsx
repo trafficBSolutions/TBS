@@ -51,7 +51,7 @@ const EmployeeDashboard = () => {
         </div>
 
         <div className="ta-images-section">
-          <h2 className="employee-section-title">Traffic Advisor (TA) Diagrams</h2>
+          <h2 className="employee-section-title">Typical Application (TA) Diagrams</h2>
           <button
             className="btn-links ta-toggle-btn"
             onClick={() => setShowTAImages(prev => !prev)}
