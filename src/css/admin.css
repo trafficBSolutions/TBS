@@ -988,3 +988,89 @@
     width: auto;
   }
 }
+/* Selected date tasks display */
+.selected-date-tasks {
+  background: #e8f4fd;
+  border: 2px solid #3498db;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.selected-date-tasks h4 {
+  color: #2980b9;
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.selected-date-tasks .tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.selected-date-tasks .task-item {
+  background: white;
+  border: 1px solid #bdc3c7;
+}
+
+@media screen and (max-width: 640px) {
+  .selected-date-tasks h4 {
+    font-size: 1.5rem;
+  }
+}
+
+/* TA Images Section */
+.ta-images-section {
+  background-color: #f0f0f0;
+  padding: 2rem;
+  text-align: center;
+}
+
+.ta-images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.ta-image-card {
+  background: white;
+  border: 2px solid #efad76;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+}
+
+.ta-image-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.ta-image-card h4 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.ta-image-card img {
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+@media screen and (max-width: 640px) {
+  .ta-images-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .ta-image-card h4 {
+    font-size: 1.5rem;
+  }
+}
