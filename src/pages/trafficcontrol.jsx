@@ -736,7 +736,7 @@ setTimeout(checkAllFieldsFilled, 0);
                 setErrors((p) => ({ ...p, flagger: '' }));
               }}
             />
-            <img className="ta-img" src={images["../assets/buffer and tapers/ta-10.svg"].default} alt="TA-10" />
+            <img className="ta-img" src={images["../assets/buffer and tapers/TA-10.svg"].default} alt="TA-10" />
             <figcaption>TA-10</figcaption>
           </label>
         </figure>
@@ -752,7 +752,7 @@ setTimeout(checkAllFieldsFilled, 0);
                 setErrors((p) => ({ ...p, flagger: '' }));
               }}
             />
-            <img className="ta-img" src={images["../assets/buffer and tapers/ta-33.svg"].default} alt="TA-33" />
+            <img className="ta-img" src={images["../assets/buffer and tapers/TA-33.svg"].default} alt="TA-33" />
             <figcaption>TA-33</figcaption>
           </label>
         </figure>
@@ -768,7 +768,7 @@ setTimeout(checkAllFieldsFilled, 0);
                 setErrors((p) => ({ ...p, flagger: '' }));
               }}
             />
-            <img className="ta-img" src={images["../assets/buffer and tapers/ta-37.svg"].default} alt="TA-37" />
+            <img className="ta-img" src={images["../assets/buffer and tapers/TA-37.svg"].default} alt="TA-37" />
             <figcaption>TA-37</figcaption>
           </label>
         </figure>
@@ -1248,4 +1248,5 @@ setFormData({
         </div>
     )
 };
+
 
