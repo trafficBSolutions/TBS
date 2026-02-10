@@ -895,7 +895,7 @@ selected={
       </div>
 
       <div className="ta-images-section">
-        <h2 className="admin-apps-title">Traffic Advisor (TA) Diagrams</h2>
+        <h2 className="admin-apps-title">Typical Application (TA) Diagrams</h2>
         <button
           className="btn view-cancelled-btn"
           onClick={() => setShowTAImages(prev => !prev)}
