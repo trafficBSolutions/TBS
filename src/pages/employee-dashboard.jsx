@@ -2,7 +2,11 @@ import { Link } from 'react-router-dom';
 import Header from '../components/headerviews/HeaderAdmin';
 import images from '../utils/tbsImages';
 import '../css/employee.css';
+import { useState } from 'react';
+
 const EmployeeDashboard = () => {
+  const [showTAImages, setShowTAImages] = useState(false);
+
   return (
     <div>
         <Header />
@@ -43,6 +47,40 @@ const EmployeeDashboard = () => {
               <p className="text-gray-600">Read and acknowledge the employee handbook</p>
             </div>
           </Link>
+        </div>
+
+        <div className="ta-images-section">
+          <h2 className="employee-section-title">Traffic Advisor (TA) Diagrams</h2>
+          <button
+            className="btn-links ta-toggle-btn"
+            onClick={() => setShowTAImages(prev => !prev)}
+          >
+            {showTAImages ? 'Hide TA Diagrams' : 'View TA Diagrams'}
+          </button>
+          {showTAImages && (
+            <div className="ta-images-grid">
+              <div className="ta-image-card">
+                <h4>TA-10</h4>
+                <img src={images["../assets/buffer and tapers/TA-10.svg"].default} alt="TA-10 Diagram" />
+              </div>
+              <div className="ta-image-card">
+                <h4>TA-22</h4>
+                <img src={images["../assets/buffer and tapers/TA-22.svg"].default} alt="TA-22 Diagram" />
+              </div>
+              <div className="ta-image-card">
+                <h4>TA-32</h4>
+                <img src={images["../assets/buffer and tapers/TA-32.svg"].default} alt="TA-32 Diagram" />
+              </div>
+              <div className="ta-image-card">
+                <h4>TA-33</h4>
+                <img src={images["../assets/buffer and tapers/TA-33.svg"].default} alt="TA-33 Diagram" />
+              </div>
+              <div className="ta-image-card">
+                <h4>TA-37</h4>
+                <img src={images["../assets/buffer and tapers/TA-37.svg"].default} alt="TA-37 Diagram" />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </main>
