@@ -32,6 +32,7 @@ const formatEquipmentName = (key) => {
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [adminName, setAdminName] = useState('');
+  const [showTAImages, setShowTAImages] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [monthlyJobs, setMonthlyJobs] = useState({});
   const [monthlyKey, setMonthlyKey] = useState(0);
@@ -890,6 +891,40 @@ selected={
         >
           Open Work Order
         </button>
+      </div>
+
+      <div className="ta-images-section">
+        <h2 className="admin-apps-title">Traffic Advisor (TA) Diagrams</h2>
+        <button
+          className="btn view-cancelled-btn"
+          onClick={() => setShowTAImages(prev => !prev)}
+        >
+          {showTAImages ? 'Hide TA Diagrams' : 'View TA Diagrams'}
+        </button>
+        {showTAImages && (
+          <div className="ta-images-grid">
+            <div className="ta-image-card">
+              <h4>TA-10</h4>
+              <img src={images["../assets/buffer and tapers/TA-10.svg"].default} alt="TA-10 Diagram" />
+            </div>
+            <div className="ta-image-card">
+              <h4>TA-22</h4>
+              <img src={images["../assets/buffer and tapers/TA-22.svg"].default} alt="TA-22 Diagram" />
+            </div>
+            <div className="ta-image-card">
+              <h4>TA-32</h4>
+              <img src={images["../assets/buffer and tapers/TA-32.svg"].default} alt="TA-32 Diagram" />
+            </div>
+            <div className="ta-image-card">
+              <h4>TA-33</h4>
+              <img src={images["../assets/buffer and tapers/TA-33.svg"].default} alt="TA-33 Diagram" />
+            </div>
+            <div className="ta-image-card">
+              <h4>TA-37</h4>
+              <img src={images["../assets/buffer and tapers/TA-37.svg"].default} alt="TA-37 Diagram" />
+            </div>
+          </div>
+        )}
       </div>
 {allowedForInvoices && (
   <div className="admin-invoice">
