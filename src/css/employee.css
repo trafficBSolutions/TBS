@@ -263,6 +263,7 @@
   padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   transition: transform 0.3s ease;
+  cursor: pointer;
 }
 
 .ta-image-card:hover {
@@ -273,7 +274,6 @@
 .ta-image-card h4 {
   font-size: 1.8rem;
   margin-bottom: 1rem;
-  color: var(--text);
   text-align: center;
   font-weight: 700;
 }
@@ -283,6 +283,71 @@
   height: auto;
   border-radius: 8px;
   border: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.image-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  cursor: zoom-out;
+}
+
+.modal-content {
+  position: relative;
+  max-width: 95vw;
+  max-height: 95vh;
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  cursor: default;
+}
+
+.modal-content h3 {
+  text-align: center;
+  margin-bottom: 1rem;
+  font-size: 2rem;
+  color: #333;
+}
+
+.modal-content img {
+  max-width: 90vw;
+  max-height: 80vh;
+  width: auto;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  cursor: zoom-in;
+}
+
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: #efad76;
+  border: none;
+  font-size: 2.5rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  color: #000;
+  font-weight: bold;
+}
+
+.modal-close:hover {
+  background: #e6943f;
 }
 
 @media screen and (max-width: 640px) {
