@@ -1,3 +1,30 @@
+.employee-main {
+    padding: 2rem;
+    background-color: #f8f8f8;
+}
+.employee-title {
+    font-size: 4rem;
+    color: #333;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+.btn-links {
+    margin: 20px 0;
+  padding: 10px 20px;
+  background-color: #efad76;
+  color: #000;
+  font-weight: 700;
+  font-size: 2rem;
+  border: 0;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.12);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.btn-links:hover {
+    background-color: #e6943f;
+    color: #000;
+}
 /* ====== Base & Theme ====== */
 :root {
   --bg: #f7f8fa;
@@ -175,6 +202,8 @@
   transform: translateY(0);
   box-shadow: 0 1px 0 #00000022;
 }
+
+
 @media screen and (min-width: 320px) and (max-width: 640px) and (orientation: portrait) {
   .address-control-label {
     margin-top: 1.5rem;
@@ -193,5 +222,80 @@
   .address-control-label {
     margin-top: 1.5rem;
     margin-bottom: 0.8rem;
+  }
+}
+
+/* TA Images Section */
+.ta-images-section {
+  margin-top: 3rem;
+  padding: 2rem;
+  background: var(--card);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.employee-section-title {
+  font-size: 2.5rem;
+  color: var(--text);
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+}
+
+.ta-toggle-btn {
+  display: block;
+  margin: 0 auto 2rem auto;
+  max-width: 300px;
+}
+
+.ta-images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.ta-image-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.ta-image-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+}
+
+.ta-image-card h4 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  color: var(--text);
+  text-align: center;
+  font-weight: 700;
+}
+
+.ta-image-card img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+@media screen and (max-width: 640px) {
+  .ta-images-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .ta-image-card h4 {
+    font-size: 1.5rem;
+  }
+  
+  .employee-section-title {
+    font-size: 2rem;
   }
 }
