@@ -34,7 +34,7 @@ const EmployeeDashboard = () => {
             <div className="text-center">
               <div className="compant-form-icon">📝</div>
               <h2 className="complaint-form-title">Employee Complaint Form</h2>
-              <p className="text-gray-600">Not Ready Yet, but will be added soon</p>
+              <p className="text-gray-600">Submit a complaint about your work environment</p>
             </div>
           </Link>
           
