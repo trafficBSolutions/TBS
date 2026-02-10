@@ -50,7 +50,7 @@ const EmployeeDashboard = () => {
           </Link>
         </div>
 
-        <div className="ta-images-section">
+        <div className="ta-images-emp-section">
           <h2 className="employee-section-title">Typical Application (TA) Diagrams</h2>
           <button
             className="btn-links ta-toggle-btn"
