@@ -233,7 +233,14 @@
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
 }
-
+.ta-images-emp-section {
+  margin-top: 3rem;
+  padding: 2rem;
+  background: var(--card);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
 .employee-section-title {
   font-size: 2.5rem;
   color: var(--text);
