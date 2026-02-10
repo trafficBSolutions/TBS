@@ -1,768 +1,1253 @@
-.control-main {
-  background-color: #bcc3bd;
-}
-/* Container style if you want to wrap it */
-.datepicker-container {
-  margin-top: 1rem;
-  background-color: #fff;
-  padding: 10px;
-  border-radius: 8px;
-  box-shadow: 0 4px 10px #0000001a;
-  max-width: 400px;
-  margin: 0 auto;
-}
-.datepicker-container .rmdp-input {
-  display: none;
-}
-.custom-datepicker-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 1rem;
-}
-.react-datepicker__day--highlighted-custom {
-  background-color: #f7b731 !important;
-  color: white !important;
-  border-radius: 50% !important;
+import '../css/trafficcontrol.css'
+import '../css/header.css'
+import '../css/footer.css'
+import images  from '../utils/tbsImages';
+import React, { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
+import DatePicker from 'react-datepicker';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import 'react-datepicker/dist/react-datepicker.css';
+import Header from '../components/headerviews/HeaderDropControl'
+import ReCAPTCHA from 'react-google-recaptcha';
+const states = [
+  { abbreviation: 'AL', name: 'Alabama' },
+  { abbreviation: 'FL', name: 'Florida' },
+  { abbreviation: 'GA', name: 'Georgia' },
+  { abbreviation: 'KY', name: 'Kentucky' },
+  { abbreviation: 'NC', name: 'North Carolina' },
+  { abbreviation: 'SC', name: 'South Carolina' },
+  { abbreviation: 'TN', name: 'Tennessee' }
+];
+const gaPower = [
+  "TA-10",
+  "TA-33",
+  "TA-37"
+]
+const companyList = [
+ "Atlanta Gas Light",
+  "Broadband Technical Resources",
+  "Broadband of Indiana",
+  "Car Michael",
+  "Fairway Electric",
+  "Georgia Power",
+  "Global Infrastructure",
+  "HD Excavations & Utilities",
+  "H and H Paving and Concrete",
+  "Hibbymo Properties-Cloudland",
+  "J and A Grading",
+  "Magnum Paving",
+  "Perman Construction",
+  "Pike Electric",
+  "Service Electric",
+  "Source One",
+  "The Surface Masters",
+  "Tindall",
+  "Wilson Boys Enterprises",
+  "Other(Specify if new in message to add to this list)"
+]
+const timeOptions = [
+  "7:00 AM", "7:15 AM", "7:30 AM", "7:45 AM",
+  "8:00 AM", "8:15 AM", "8:30 AM", "8:45 AM",
+  "9:00 AM", "9:15 AM", "9:30 AM", "9:45 AM",
+  "10:00 AM", "10:15 AM", "10:30 AM", "10:45 AM",
+  "11:00 AM", "11:15 AM", "11:30 AM", "11:45 AM",
+  "12:00 PM", "12:15 PM", "12:30 PM", "12:45 PM",
+]
+const flaggerCount = [
+  "2 Flaggers", "3 Flaggers", "4 Flaggers", "5 Flaggers", "6 Flaggers"
+]
+const flaggerGACount = [1];
+export default function TrafficControl() {
+  const [phone, setPhone] = useState('');
+  const [jobDates, setJobDates] = useState([]);
+  const [time, setTime] = useState('7:00am');
+  const [isSubmitting, setIsSubmitting] = useState(false); 
+  const [showAdditionalConfirm, setShowAdditionalConfirm] = useState(false);
+const [ackAdditionalConfirm, setAckAdditionalConfirm] = useState(false);
+
+  const [site, setSite] = useState('');
+  const [showEmergencyConfirm, setShowEmergencyConfirm] = useState(false);
+const [isEmergencyJob, setIsEmergencyJob] = useState(false);
+  const [siteContact, setSiteContact] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [coordinator, setCoordinator] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [fullDates, setFullDates] = useState([]);
+  const [recaptchaSize, setRecaptchaSize] = useState('normal');
+
+useEffect(() => {
+  const mq = window.matchMedia('(min-width: 320px) and (max-width: 640px) and (orientation: portrait)');
+  const update = () => setRecaptchaSize(mq.matches ? 'compact' : 'normal');
+  update();
+  mq.addEventListener?.('change', update);
+  return () => mq.removeEventListener?.('change', update);
+}, []);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    jobDate: '',
+    company: '',
+    coordinator: '',
+    site: '',
+    siteContact: '',
+    time: '',
+    project: '',
+    flagger: '',
+    additionalFlaggers: false,
+    additionalFlaggerCount: '',
+    equipment: [],
+    terms: '',
+    address: '',
+    city: '',
+    state: '',
+    zip: '',
+    message: ''
+  });
+  const [errors, setErrors] = useState({});
+  const [submissionMessage, setSubmissionMessage] = useState('');
+  const [submissionErrorMessage, setSubmissionErrorMessage] = useState('');
+  const recaptchaRef = useRef(null);
+  const [recaptchaToken, setRecaptchaToken] = useState('');
+  const recaptchaWrapRef = useRef(null);
+  const getNowInEST = () => {
+  return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
+};
+  const getDisabledDayClass = (date) => {
+// Inside handleSubmit, after validation success:
+const nowEST = getNowInEST(); // get EST
+const isAfter8pmEST = nowEST.getHours() >= 20;
+const tomorrowEST = new Date(nowEST);
+tomorrowEST.setDate(nowEST.getDate() + 1);
+tomorrowEST.setHours(0, 0, 0, 0);
+
+// Check if "tomorrow" is selected
+const isTomorrowSelected = jobDates.some(
+  (d) => d.toDateString() === tomorrowEST.toDateString()
+);
+
+// Trigger warning
+if (isAfter8pmEST && isTomorrowSelected && !isEmergencyJob) {
+  setShowEmergencyConfirm(true);
+  setIsSubmitting(false); // stop submit
+  return;
 }
 
-.react-datepicker__day--highlighted-custom:hover {
-  background-color: #f39c12 !important;
-}
-.custom-datepicker-wrapper .rmdp-container {
-  display: block !important;
-}
+};
+useEffect(() => {
+  axios.get('https://tbs-server.onrender.com/jobs/full-dates')
+    .then(res => {
+      const fullDateObjects = res.data.map(dateStr => {
+        const [year, month, day] = dateStr.split('-').map(Number);
+        return new Date(year, month - 1, day);
+      });
 
-.custom-datepicker-wrapper .rmdp-calendar {
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  transform: none !important;
-  position: static !important;
-}
-.control-fill-info  {
-  font-size: 1.5rem;
-  font-weight: bold;
-  text-align: center;
-  color: #333;
-  margin-bottom: 10px;
-}
-/* Override some react-datepicker default styles */
-.react-datepicker {
-  border: none !important;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 1rem;
-}
-/* Targeting the custom calendar class to override defaults */
-.custom-datepicker {
-  background-color: #ffffff;
-  border-radius: 8px;
-  padding: 10px;
-  box-shadow: 0 4px 10px #0000001a;
-  font-family: Arial, sans-serif;
-}
+      const nowEST = getNowInEST();
+      const hour = nowEST.getHours();
 
-.custom-datepicker .react-datepicker__month-container {
-  border: none;
-  background-color: #bcc3bd;
-  text-align: center;
-}
-.selected-date-display {
-  margin-top: 10px;
-  font-size: 1.5rem;
-  text-align: center;
-  color: #333;
-}
+      // Disable tomorrow if it's past midnight
+      const tomorrow = new Date(nowEST);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
 
-.custom-datepicker .react-datepicker__header {
-  background-color: #f7d7bc;
-  color: white;
-  padding: 10px;
-  border-radius: 8px 8px 0 0;
-  border-bottom: none;
-}
-.address-note {
-  font-size: 1.2rem;
-  text-align: center;
-  color: #333;
-  margin-bottom: 10px;
-}
-.example-note {
-  font-size: 1.1rem;
-  text-align: center;
-  color: #333;
-  margin-bottom: 10px;
-}
-.address-note b, .example-note b {
-  color: #062fb6;
-}
-.custom-datepicker .react-datepicker__current-month {
-  font-size: 1.2rem;
-  font-weight: bold;
-}
-.custom-datepicker__month, .react-datepicker__month {
-  background-color: #f8f8f8;
-}
-.custom-datepicker .react-datepicker__day,
-.custom-datepicker .react-datepicker__day-name {
-  width: 2.5rem;
-  height: 2.5rem;
-  line-height: 2.5rem;
-  margin: 0.2rem;
-  font-size: 1.1rem;
-  text-align: center;
-  border-radius: 50%;
-}
+      const isPastMidnight = hour === 0 && nowEST.getMinutes() < 59;
 
-.custom-datepicker .react-datepicker__day--selected {
-  background-color: #e67e22;
-  color: white;
-}
+      const alreadyFull = fullDateObjects.some(
+        (d) => d.toDateString() === tomorrow.toDateString()
+      );
 
-.custom-datepicker .react-datepicker__day:hover {
-  background-color: #f1a661;
-  color: white;
-}
+      if (nowEST.getHours() >= 0 && nowEST.getHours() < 24) {
+        const midnight = new Date(nowEST);
+        midnight.setHours(23, 59, 59, 999);
+        if (nowEST > midnight && !alreadyFull) {
+          fullDateObjects.push(tomorrow); // fully disable the date
+        }
+      }
 
-.react-datepicker__month-container {
-  background-color: #ffffff;
-  border-radius: 8px;
-  padding: 10px;
-}
+      setFullDates(fullDateObjects);
+    })
+    .catch(err => console.error("Error loading full dates", err));
+}, []);
 
-.react-datepicker__header {
-  background-color: #e67e22;
-  color: white;
-  padding: 10px 0;
-  border-bottom: none;
-  border-radius: 8px 8px 0 0;
-}
 
-.react-datepicker__current-month {
-  font-size: 1.2rem;
-  font-weight: bold;
-}
+  const handleCoordinatorChange = (e) => {
+    const value = e.target.value;
+  
+    // Capitalize the first letter of each word
+    const capitalized = value.replace(/\b\w/g, (char) => char.toUpperCase());
+  
+    setCoordinator(capitalized);
+    setFormData({ ...formData, coordinator: capitalized });
+  
+    // Clear error if the input is no longer empty
+    if (value.trim() !== '') {
+      setErrors((prevErrors) => ({ ...prevErrors, coordinator: '' }));
+      setTimeout(checkAllFieldsFilled, 0);
+    }
+  };
+  
+  const handleEquipmentChange = (e) => {
+    const { value, checked } = e.target;
+    let updatedEquipment = [...formData.equipment];
+  
+    if (checked) {
+      // Add if not already included
+      if (!updatedEquipment.includes(value)) {
+        updatedEquipment.push(value);
+      }
+    } else {
+      // Remove if unchecked
+      updatedEquipment = updatedEquipment.filter(item => item !== value);
+    }
+  
+    setFormData({ ...formData, equipment: updatedEquipment });
+  
+    if (updatedEquipment.length > 0) {
+      setErrors((prev) => ({ ...prev, equipment: '' }));
+    }
+    setTimeout(checkAllFieldsFilled, 0);
+  };
+  const runSubmissionLogic = async () => {
+    try {
+      const res = await axios.post('https://tbs-server.onrender.com/trafficcontrol', formData);
+      
+      if (res.data.requiresConfirmation) {
+        toast.info('Additional Flagger confirmation email sent! Please check your email.');
+        setSubmissionMessage('Additional Flagger confirmation email sent. Please check your email to complete job submission.');
+      } else {
+        toast.success('Job submitted successfully!');
+        setSubmissionMessage('Success! Your job has been submitted.');
+      }
+      
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        jobDate: '',
+        company: '',
+        coordinator: '',
+        site: '',
+        siteContact: '',
+        time: '',
+        project: '',
+        flagger: '',
+        additionalFlaggers: false,
+        additionalFlaggerCount: '',
+        equipment: [],
+        terms: '',
+        address: '',
+        city: '',
+        state: '',
+        zip: '',
+        message: ''
+      });
+      setJobDates([]);
+      setPhone('');
+      setIsSubmitting(false);
+      setErrors({});
+      setIsEmergencyJob(false);
+    } catch (error) {
+      toast.error('Submission failed. Please try again.');
+      setIsSubmitting(false);
+    }
+  };
 
-.react-datepicker__day,
-.react-datepicker__day-name {
-  width: 2.5rem;
-  height: 2.5rem;
-  line-height: 2.5rem;
-  margin: 0.2rem;
-  font-size: 1.1rem;
-  text-align: center;
-}
+  const handleContactChange = (e) => {
+    const value = e.target.value;
+  
+    // Capitalize the first letter of each word
+    const capitalized = value.replace(/\b\w/g, (char) => char.toUpperCase());
+  
+    setSiteContact(capitalized);
+    setFormData({ ...formData, siteContact: capitalized });
+  
+    // Clear error if the input is no longer empty
+    if (value.trim() !== '') {
+      setErrors((prevErrors) => ({ ...prevErrors, siteContact: '' }));
+    }
+  };
+  const handleSiteChange = (event) => {
+    const input = event.target.value;
+    const rawInput = input.replace(/\D/g, ''); // Remove non-digit characters
+    const formatted = rawInput.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+    
+    setSite(formatted);
+    setFormData({ ...formData, site: formatted });
+  
+    // Check if the input has 10 digits and clear the error if it does
+    if (rawInput.length === 10) {
+      setErrors((prevErrors) => ({ ...prevErrors, site: '' }));
+    } else {
+      setErrors((prevErrors) => ({ ...prevErrors, site: 'Please enter a valid 10-digit phone number.' }));
+    }
+  };
+  const handlePhoneChange = (event) => {
+    const input = event.target.value;
+    const rawInput = input.replace(/\D/g, ''); // Remove non-digit characters
+    const formatted = rawInput.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+    
+    setPhone(formatted);
+    setFormData({ ...formData, phone: formatted });
+  
+    // Check if the input has 10 digits and clear the error if it does
+    if (rawInput.length === 10) {
+      setErrors((prevErrors) => ({ ...prevErrors, phone: '' }));
+    } else {
+      setErrors((prevErrors) => ({ ...prevErrors, phone: 'Please enter a valid 10-digit phone number.' }));
+    }
+    setTimeout(checkAllFieldsFilled, 0);
+  };
+    // Check emergency job logic
+    const now = new Date();
+    const isLateNight = now.getHours() >= 21; // 9:00 PM or later
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const isTomorrowSelected = jobDates.some(
+      (d) => d.toDateString() === tomorrow.toDateString()
+    );
+    const tomorrowFormatted = tomorrow.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric'
+    });  
+    // Add this function after your state declarations
+const checkAllFieldsFilled = () => {
+  const requiredFields = ['name', 'email', 'phone', 'jobDate',
+    'company', 'coordinator', 'time', 'project', 'flagger', 'address', 'city', 
+    'state', 'zip', 'message', 'terms'];
+  
+  // Check if all required fields are filled
+  const allFilled = requiredFields.every(field => 
+    formData[field] && formData[field].toString().trim() !== ''
+  );
+  
+  // Also check equipment which is an array
+  const equipmentSelected = formData.equipment && formData.equipment.length > 0;
+  
+  // If all fields are filled, clear the error message
+  if (allFilled && equipmentSelected) {
+    setErrorMessage('');
+  }
+  
+  return allFilled && equipmentSelected;
+};
+// Accept common ways people type Georgia Power
+const isGeorgiaPower = (str) => {
+  const s = (str || '').trim().toLowerCase();
 
-.react-datepicker__day--selected {
-  background-color: #e67e22;
-  color: #fff;
-  border-radius: 50%;
-}
+  // regexes allow optional spaces and optional "co"/"company"
+  const patterns = [
+    /\bg[eao]org[ie]a\s*p[ow]w[eao]r\b/,    // "georgia power" with misspellings
+    /\bg[ae]\s*p[ow]w[eao]r\b/,             // "ga power" with misspellings
+    /\bgpc\b/,                             // "gpc"
+    /\bd[eao]s[oa]t[oa]\b/,                 // "desoto" with misspellings
+    /\bthe\s*d[eao]s[oa]t[oa]\s*gr[oa]up\b/, // "the desoto group" with misspellings
+    /\bd[eao]s[oa]t[oa]\s*gr[oa]up\b/,      // "desoto group" with misspellings
+    /\bf[ae]irw[ae]y\s*[eao]l[eao]ctr[ie]c\b/, // "fairway electric" with misspellings
+    /\bf[ae]irw[ae]y\b/,                    // "fairway" with misspellings
+    /\bs[eao]rv[ie]c[eao]\s*[eao]l[eao]ctr[ie]c\b/, // "service electric" with misspellings
+    /\b[eao]l[eao]ctr[ae]\s*gr[ie]d\b/,     // "electra grid" with misspellings
+    /\b[eao]l[eao]ctr[ae]\s*gr[ie]d\s*s[oa]l[uo]t[ie][oa]ns\b/, // "electra grid solutions" with misspellings
+    /\b[eao]l[eao]ctr[ae]\b/,               // "electra" with misspellings
+    /\bf[ae]ith\s*[eao]l[eao]ctr[ie]c\b/,   // "faith electric" with misspellings
+    /\b[eao]l[eao]ctr[ie]c\b/,              // "electric" with misspellings
+    /\bf[ae]ith\b/,                         // "faith" with misspellings
+    // Slash combinations with GA Power
+    /\bf[ae]irw[ae]y\s*\/\s*(g[ae]\s*p[ow]w[eao]r|g[eao]org[ie]a\s*p[ow]w[eao]r)\b/i,
+    /\bf[ae]irw[ae]y\s*[eao]l[eao]ctr[ie]c\s*\/\s*(g[ae]\s*p[ow]w[eao]r|g[eao]org[ie]a\s*p[ow]w[eao]r)\b/i,
+    /\bf[ae]ith\s*[eao]l[eao]ctr[ie]c\s*\/\s*(g[ae]\s*p[ow]w[eao]r|g[eao]org[ie]a\s*p[ow]w[eao]r)\b/i,
+    /\bs[eao]rv[ie]c[eao]\s*[eao]l[eao]ctr[ie]c\s*\/\s*(g[ae]\s*p[ow]w[eao]r|g[eao]org[ie]a\s*p[ow]w[eao]r)\b/i,
+    /\bd[eao]s[oa]t[oa]\s*\/\s*(g[ae]\s*p[ow]w[eao]r|g[eao]org[ie]a\s*p[ow]w[eao]r)\b/i,
+    /\b[eao]l[eao]ctr[ae]\s*gr[ie]d\s*\/\s*(g[ae]\s*p[ow]w[eao]r|g[eao]org[ie]a\s*p[ow]w[eao]r)\b/i,
+  ];
 
-.react-datepicker__day--keyboard-selected {
-  background-color: #ccc;
-  color: #000;
-}
+  return patterns.some((rx) => rx.test(s));
+};
 
-.react-datepicker__day:hover {
-  background-color: #f1a661;
-  color: white;
-  border-radius: 50%;
-}
+const isGASelected = isGeorgiaPower(formData.company);
+const isCompanySelected = (formData.company || '').trim().length > 0;
 
-.traffic-control-head {
-  font-size: 8rem;
-    font-weight: bold;
-    margin-bottom: 10px;
-    text-align: center;
-    color: #000000;
-    font-family: "Moveo Sans W00 Bold";
-}
-.traffic-description {
-  font-size: 16px;
-  margin-bottom: 20px;
-  margin: 3rem;
-  font-family: Arial, Helvetica, sans-serif;
-}
-.emergency-container {
-  text-align: center;
-  font-family: Arial, Helvetica, sans-serif;
-  padding: 20px;
-  background-color: #f8f8f8;
-}
-.control-container {
-  background-color: #fff;
-  padding: 20px;
-  box-shadow: 0 4px 10px #0000001a;
-  margin: 20px auto;
-  max-width: 900px;
-}
-.emergency-header {
-  font-size: 4rem;
-  font-weight: bold;
-  color: #cc0000;
-  margin-bottom: 10px;
-}
 
-.emergency-instruction {
-  font-size: 2rem;
-  margin-bottom: 20px;
-  color: #000;
-}
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
 
-.emergency-contacts {
-  list-style-type: none;
-  padding: 0;
-  font-size: 2rem;
-}
+    // Validation first
+    const requiredFields = ['name', 'email', 'phone', 'jobDate',
+      'company', 'coordinator', 'time', 'project', 'flagger', 'address', 'city', 
+    'state', 'zip', 'message', 'terms'];
+    const newErrors = {};
 
-.emergency-contacts li {
-  margin: 10px 0;
-}
+    requiredFields.forEach(field => {
+      if (!formData[field]) {
+        let fieldLabel = field.charAt(0).toUpperCase() + field.slice(1);
+        if (field === 'name') fieldLabel = 'Name';
+        if (field === 'email') fieldLabel = 'Email';
+        if (field === 'phone') fieldLabel = 'Phone Number';
+        if (field === 'jobDate') fieldLabel = 'Job Date';
+        if (field === 'company') fieldLabel = 'Company Name';
+        if (field === 'coordinator') fieldLabel = 'Coordinator';
+        if (field === 'time') fieldLabel = 'Time';
+        if (field === 'project') fieldLabel = 'Project';
+        if (field === 'flagger') fieldLabel = 'Flagger Count';
+        if (field ==='address') fieldLabel = 'Address';
+        if (field === 'city') fieldLabel = 'City';
+        if (field ==='state') fieldLabel = 'State';
+        if (field === 'zip') fieldLabel = 'Zip Code';
+        if (field === 'terms') fieldLabel = 'Terms & Conditions';
+        newErrors[field] = `${fieldLabel} is required!`;
+      }
+    });
+    
+    if (formData.equipment.length === 0) {
+      newErrors.equipment = 'Please select at least one piece of equipment.';
+    }
+    
+    if (!recaptchaToken && recaptchaToken !== 'bypass') {
+      newErrors.recaptcha = 'Please complete the reCAPTCHA.';
+    }
+    
+    if (formData.additionalFlaggers && showAdditionalConfirm) {
+      setErrorMessage('Please acknowledge the additional flagger warning.');
+      setIsSubmitting(false);
+      return;
+    }
 
-.emergency-contacts a {
-  text-decoration: none;
-  color: #0000ee;
-  font-weight: bold;
-}
-.emergency-contacts a:hover {
-  color: #595964;
-}
-.response-time {
-  font-size: 2rem;
-  color: #555;
-  margin-top: 20px;
-}
-.control-app-box {
-  font-size: 32px;
-    text-align: center;
-    color: #64340d;
-    margin-bottom: 10px;
-}
-.control-fill {
-  font-size: 20px;
-    color: #8b4c18;
-    text-align: center;
-    margin-bottom: 30px;
-}
-.first-control-input,
-.company-input,
-.emailphone-control-input,
-.address-controler-container,
-.location-control-container,
-.message-control-container {
-  background-color: #f1f1f1;
-  padding: 20px;
-  border-radius: 5px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 10px #00000084;
-}
-.map-container {
-  width: 100%;
-  height: 400px;
-  border-radius: 5px;
-  border: #000 solid 2px;
-  overflow: hidden;
-}
-.message-control-text {
-  font-size: 1.5rem;
-  height: 20rem;
-  font-family: Arial, Helvetica, sans-serif;
-}
-.submission-control-message {
-  color: #009f1b;
-  font-size: 1.5rem;
-  margin: 1rem;
-  font-family: Arial, Helvetica, sans-serif;
-  font-weight: bold;
-  text-align: center;
-}
-.submit-control {
-  display: flex;
-  font-size: 1.3rem;
-  justify-content: center;
-}
-.file-input-control-container {
-display: flex;
-    align-items: center;
-    transition: background-color .3s ease;
-}
-.file-control-label, 
-.remove-control-file-button {
-background-color: #e67e22;
-color: #fff;
-border: none;
-display: flex;
-justify-content: center;
-align-items: center;
-padding: 15px 20px;
-text-align: center;
-font-size: 18px;
-cursor: pointer;
-width: 100%;
-border-radius: 5px;
-}
-.remove-control-file-button {
-  margin-left: 10px;
-}
-.address-control-label {
-  text-align: center;
-  font-size: 2rem;
-}
-.map-button {
-  display: flex;
-      justify-content: center;
-      margin-bottom: 20px;
-      align-items: center;
-}
-.add-marker {
-  font-size: 2rem;
-}
-.file-control-label input[type="file"] {
-  display: none;
-}
-.address-container label {
-  display: block;
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-top: 1.5rem;
-  color: #333;
-}
+    if (Object.keys(newErrors).length > 0) {
+      setErrorMessage('Required fields are missing.');
+      setErrors(newErrors);
+      if (newErrors.recaptcha) {
+        recaptchaWrapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      setIsSubmitting(false);
+      return;
+    }
 
-.address-container input[type="text"],
-.address-container input[type="time"],
-.address-container select,
-.address-container .react-datepicker,
-.address-container .react-time-picker {
-  width: 100%;
-  padding: 12px;
-  font-size: 1.2rem;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  margin-top: 0.5rem;
-  background-color: #fff;
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-}
+    if (!termsAccepted) {
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        terms: 'You must agree to pay upon job completion.'
+      }));
+      setErrorMessage('You must accept the terms and conditions.');
+      setIsSubmitting(false);
+      return;
+    }
 
-.address-container .react-datepicker {
-  margin: 0 auto;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-}
+    // Emergency job check after validation passes
+    const nowEST = getNowInEST();
+    const isAfter8pmEST = nowEST.getHours() >= 20;
+    const tomorrowEST = new Date(nowEST);
+    tomorrowEST.setDate(nowEST.getDate() + 1);
+    tomorrowEST.setHours(0, 0, 0, 0);
+    const isTomorrowSelected = jobDates.some(
+      (d) => d.toDateString() === tomorrowEST.toDateString()
+    );
 
-.address-container .equipment-checkboxes {
-  margin-top: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
+    if (isAfter8pmEST && isTomorrowSelected && !isEmergencyJob) {
+      setShowEmergencyConfirm(true);
+      setIsSubmitting(false);
+      return;
+    }
 
-.address-container .equipment-checkboxes label {
-  font-weight: normal;
-  font-size: 1.3rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
+    // Prepare form data and submit
+    formData.jobDates = jobDates;
+    formData.phone = phone;
+    formData.emergency = isEmergencyJob;
 
-.address-container .error-message {
-  color: red;
-  font-size: 1rem;
-  margin-top: 0.3rem;
-  display: block;
-}
-.submit-button-wrapper {
-  margin-top: 1rem;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+    await runSubmissionLogic();
+  };
+    return (
+        <div>
+            <Header />
+      <main className="control-main">
+      <div className="apply-container">
+          <h1 className="traffic-control-head">TRAFFIC CONTROL</h1>
+            <h1 className="traffic-description">Traffic control on and around a worksite has two key aims: to manage risks & to ensure work gets done. 
+          Neither aim can be achieved in isolation. 
+          This is why traffic management is crucial. 
+          It ensures the safety of everyone while reducing the time and money spent on any one project. 
+          TBS Offers 2-3 flaggers per crew with one foreman/crew lead per fully loaded truck.</h1>
+          </div>
+          <div className="emergency-container">
+  <h2 className="emergency-header">EMERGENCY JOB REQUEST</h2>
+  <p className="emergency-instruction">
+    For emergency traffic control jobs, call one of the numbers below. 
+    <strong> DO NOT SUBMIT REQUESTS HERE!</strong>
+  </p>
+<ul className="emergency-contacts">
+  <li><a href="tel:+17062630175">Bryson Davis (Owner): (706) 263-0175</a></li>
+  <li><a href="tel:+17065814465">Carson Speer (Traffic Control Manager): (706) 581-4465</a></li>
+  <li><a href="tel:+17066595468">Salvador Gonzalez (Foreman Manager - Español / Spanish Help): (706) 659-5468</a></li>
+</ul>
+  <p className="response-time">We aim to respond to emergency requests within 2 hours.</p>
+</div>
 
-.custom-toast {
-  margin-top: 0.5rem;
-  font-size: 1rem;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  width: fit-content;
-  max-width: 90%;
-  text-align: center;
-  animation: fadeIn 0.3s ease;
+        <div className="traffic-flagger">
+          
+        </div>
+        <form className="form-center"
+        onSubmit={handleSubmit}
+        >
+          <div className="control-container container--narrow page-section">
+<div className="control-box">
+<h1 className="control-app-box">Traffic Control Form</h1>
+<h2 className="control-fill">Please Fill Out the Form Below to Submit Your Traffic Control Job!</h2>
+<h3 className="control-fill-info">Fields marked with * are required.</h3>
+</div>
+<div className="job-actual">
+<div className="first-control-input">
+  <div className="first-name">
+    <div className="name-control-input">
+    <div className="first-name-control-container">
+<label className="first-control-label-name">Name *</label>
+<input
+name="name"
+type="text"
+className="first-control-name-input"
+text="first-name--input"
+placeholder="Enter First & Last Name"
+value={formData.name}
+onChange={(e) => { 
+  setFormData({ ...formData, name: e.target.value });
+if (e.target.value) {
+  setErrors((prevErrors) => ({ ...prevErrors, name: '' })); // Clear the error
 }
+setTimeout(checkAllFieldsFilled, 0);
+}}
+/>
+{errors.name && <div className="error-message">{errors.name}</div>}
+</div>
+    </div>
+  </div>
+  <div className="email">
+    <div className="email-control-input">
+    <div className="email-control-container">
+<label className="email-control-name">Email *</label>
+      <p className="date-picker-note"><b>NOTE:</b> Make sure your email address is correct. Otherwise, you will not receive an email nor a cancel link.</p>
+<input
+name="email"
+type="text"
+className="email-control-box"
+text="email--input"
+placeholder="Enter Email"
+value={formData.email}
+onChange={(e) => { 
+  setFormData({ ...formData, email: e.target.value });
+if (e.target.value) {
+  setErrors((prevErrors) => ({ ...prevErrors, email: '' })); // Clear the error
+}
+setTimeout(checkAllFieldsFilled, 0);
+}}
+/>
+{errors.email && <div className="error-message">{errors.email}</div>}
+</div>
+    </div>
+  </div>
+              </div>
+<div className="address-controler-container">
+<label className="address-controllabel">Job Information: </label>
+<div className="address-control-input">
+<div className="address-container">
+<div className="datepicker-container">
+  <label className="job-control-label">Job Date *</label>
+  <p className="date-picker-note"><b>NOTE:</b> If a date has been disabled, it means the schedule is full for that day.
+  However, if someone else cancels a job, it will open that date back up again.</p>
+  <DatePicker
+  selected={null}
+  onChange={(date) => {
+    const localMidnight = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate()
+    );
 
-.custom-toast.success {
-  background-color: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-}
+    const exists = jobDates.some(
+      (d) => d.toDateString() === localMidnight.toDateString()
+    );
 
-.custom-toast.error {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-}
+    const updatedDates = exists
+      ? jobDates.filter((d) => d.toDateString() !== localMidnight.toDateString())
+      : [...jobDates, localMidnight];
 
-.spinner-button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
+    setJobDates(updatedDates);
+    setFormData((prev) => ({ ...prev, jobDate: updatedDates }));
+    setErrors((prevErrors) => ({ ...prevErrors, jobDate: '' }));
+    setTimeout(checkAllFieldsFilled, 0);
+  }}
+  highlightDates={[
+    {
+      "react-datepicker__day--highlighted-custom": jobDates
+    }
+  ]}
+  minDate={new Date(new Date().setDate(new Date().getDate() + 1))}
+  excludeDates={fullDates}
+  inline
+  calendarClassName="custom-datepicker"
+  dayClassName={(date) => getDisabledDayClass(date)}
+/>
+  <div className="selected-date-display">
+  {jobDates.length > 0 ? (
+  <div>
+    <strong>Job Dates Selected:</strong> {jobDates.map(d => d.toLocaleDateString('en-US')).join(', ')}
+  </div>
+) : (
+  "Please select one or more job dates starting tomorrow or later"
+)}
+  </div>
+  {errors.jobDate && <div className="error-message">{errors.jobDate}</div>}
+</div>
 
-.spinner {
-  width: 1rem;
-  height: 1rem;
-  border: 2px solid #fff;
-  border-top: 2px solid #333;
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
+  <label className="project-number-label">Company *</label>
+  <input
+  className="project-number-input"
+  type="text"
+  placeholder="Enter Company Name"
+  value={formData.company}
+onChange={(e) => { 
+  setFormData({ ...formData, company: e.target.value });
+if (e.target.value) {
+  setErrors((prevErrors) => ({ ...prevErrors, company: '' })); // Clear the error
 }
-.emergency-warning-box {
-  background-color: #fff3cd;
-  border: 1px solid #ffeeba;
-  padding: 1rem;
-  margin: 0 auto;
-  border-radius: 8px;
-  color: #856404;
+setTimeout(checkAllFieldsFilled, 0);
+}}
+/>
+{errors.company && <div className="error-message">{errors.company}</div>}
+<label className="cord-label">Coordinator *</label>
+<input
+  className="project-name-input"
+  type="text"
+  placeholder="Coordinator First & Last Name"
+  value={coordinator}
+  onChange={handleCoordinatorChange}
+/>
+{errors.coordinator && <span className="error-message">{errors.coordinator}</span>}
+                  <label className="phone">Coordinator Phone Number *</label>
+                  <input
+                    name="phone"
+                    type="text"
+                    className="phone-box"
+                    text="phone--input"
+                    placeholder="Enter Phone Number"
+                    value={phone} // Bind to phone state
+                    onChange={handlePhoneChange}
+                  />
+                {errors.phone && <div className="error-message">{errors.phone}</div>}
+                <label className="phone">On-Site Contact</label>
+                  <input
+                    name="siteContact"
+                    type="text"
+                    className="phone-box"
+                    text="phone--input"
+                    placeholder="Enter On-Site First & Last Name"
+                    value={siteContact} // Bind to phone state
+                    onChange={handleContactChange}
+                  />
+                <label className="phone">On-Site Contact Phone Number</label>
+                  <input
+                    name="site"
+                    type="text"
+                    className="phone-box"
+                    text="phone--input"
+                    placeholder="Enter On-Site Phone Number"
+                    value={site} // Bind to phone state
+                    onChange={handleSiteChange}
+                  />
+<label className="project-time">Time of Arrival *</label>
+<p className="time-label">What time do you want the TBS crew to arrive?</p>
+<select
+  className="custom-time-dropdown"
+  value={time}
+  onChange={(e) => {
+  setTime(e.target.value)
+  setFormData({ ...formData, time: e.target.value });
+  if (e.target.value) {
+    setErrors((prevErrors) => ({ ...prevErrors, time: '' })); // Clear the error
+  }
+  setTimeout(checkAllFieldsFilled, 0);
 }
+}
+>
+  <option value="">Select a time</option>
+  {timeOptions.map((t) => (
+    <option key={t} value={t}>
+      {t}
+    </option>
+  ))}
+</select>
+{errors.time && <div className="error-message">{errors.time}</div>}
+  <label className="project-number-label">Project/Task Number *</label>
+  <input
+  className="project-number-input"
+  type="text"
+  placeholder="Enter Project/Task Number"
+  value={formData.project}
+onChange={(e) => { 
+  setFormData({ ...formData, project: e.target.value });
+if (e.target.value) {
+  setErrors((prevErrors) => ({ ...prevErrors, project: '' })); // Clear the error
+}
+setTimeout(checkAllFieldsFilled, 0);
+}}
+/>
+  {errors.project && <div className="error-message">{errors.project}</div>}
+<label className="project-flagger-label">Flaggers *</label>
+<p className="project-flagger-p">How many flaggers does your job need?</p>
 
-.emergency-warning-buttons {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  justify-content: center;
-  margin-top: 10px;
-}
-.message-control-label, .phone, .first-control-label-name, .email-control-name {
-  display: block;
-    font-size: 1.5rem;
-    font-weight: bold;
-    margin-top: 1.5rem;
-    color: #333;
-}
-.terms-text {
-  font-size: 1.3rem;
-}
-.job-actual-reschedule-box h3 {
-  font-size: 2rem;
-  margin-bottom: 10px;
-  text-align: center;
-}
-.job-actual-reschedule-box ul {
-  list-style-type: none;
-  padding: 0;
-  font-size: 1.5rem;
-}
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
+{/* Non-GA companies -> standard flagger count */}
+{isCompanySelected && !isGASelected && (
+  <>
+    <select
+      className="project-flagger-input"
+      value={formData.flagger}
+      onChange={(e) => {
+        const value = e.target.value;
+        setFormData({ ...formData, flagger: value });
+        if (value.trim() !== '') setErrors((p) => ({ ...p, flagger: '' }));
+      }}
+    >
+      <option value="">Select How Many Flaggers</option>
+      {flaggerCount.map((t) => (
+        <option key={t} value={t}>{t}</option>
+      ))}
+    </select>
+  </>
+)}
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-.emergency-submit-blocked-note {
-  text-align: center;
-  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-  font-size: 2rem;
-  margin: 0.7rem 0;
-}
-.emergency-warning-text {
-  font-size: 1.3rem;
-}
-.warning-text {
-  text-align: center;
-  font-size: 3rem;
-  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-}
-@media screen and (max-width: 1200px) and (orientation: landscape) {
-  .traffic-control-head {
-    font-size: 6rem;
-  }
-  .traffic-description {
-    font-size: 1.2rem;
-    margin: 0 auto;
-    text-align: center;
-  }
-  .emergency-header {
-    font-size: 3rem;
-  }
-  .emergency-instruction {
-    font-size: 1.6rem;
-  }
-  .emergency-contacts {
-    font-size: 1.3rem;
-  }
-  .response-time {
-    font-size: 1.2rem;
-  }
-  .first-control-input,
-  .company-input,
-  .emailphone-control-input,
-  .address-controler-container,
-  .location-control-container,
-  .message-control-container {
-    padding: 10px;
-  }
-  .control-container {
-    padding: 1rem;
-    margin: 0 auto;
-    max-width: 500px;
-    display: block;
-  }
-}
-@media screen and (max-width: 1200px) and (orientation: portrait) {
-  .traffic-control-head {
-    font-size: 6rem;
-  }
-  .traffic-description {
-    font-size: 1.2rem;
-    margin: 0 auto;
-    text-align: center;
-  }
-  .emergency-header {
-    font-size: 3rem;
-  }
-  .emergency-instruction {
-    font-size: 1.6rem;
-  }
-  .emergency-contacts {
-    font-size: 1.3rem;
-  }
-  .response-time {
-    font-size: 1.5rem;
-  }
-  .first-control-input,
-  .company-input,
-  .emailphone-control-input,
-  .address-controler-container,
-  .location-control-container,
-  .message-control-container {
-    padding: 10px;
-  }
-  .control-container {
-    padding: 1rem;
-    margin: 0 auto;
-    max-width: 700px;
-    display: block;
-  }
-}
-@media screen and (min-width: 320px) and (max-width: 640px) and (orientation: portrait) {
-  .traffic-control-head {
-    font-size: 4rem;
-  }
-  .traffic-description {
-    font-size: 1.2rem;
-    margin: 0 auto;
-    text-align: center;
-  }
-  .emergency-header {
-    font-size: 3rem;
-  }
-  .emergency-instruction {
-    font-size: 1.6rem;
-  }
-  .emergency-contacts {
-    font-size: 1.3rem;
-  }
-  .response-time {
-    font-size: 1.2rem;
-  }
-  .first-control-input,
-  .company-input,
-  .emailphone-control-input,
-  .address-controler-container,
-  .location-control-container,
-  .message-control-container {
-    padding: 10px;
-  }
-  .control-container {
-    padding: 1rem;
-    margin: 0 auto;
-    max-width: 300px;
-    display: block;
-  }
-  .address-note, .example-note {
-    font-size: 1.15rem;
-    text-align: center;
-    margin-top: 0.5rem;
-    line-height: 1.2rem;
-    display: block;
-  }
-  .submission-control-message {
-    font-size: 1.2rem;
-    line-height: 1.4rem;
-  }
-  .terms-text {
-    font-size: 1.2rem;
-  }
-}
+{/* Georgia Power -> TA radio buttons + gallery */}
+{isGASelected && (
+  <>
+    {/* keep your GA help/gallery */}
+    <div className="ga-help">
+      <p className="helper-note">
+        You’ve selected a Georgia Power Company. Please choose the TA number instead of flaggers.
+      </p>
+      <div className="ta-gallery">
+        <figure className="ta-card">
+          <label className={`radio-pill ${formData.flagger === 'TA-10' ? 'selected' : ''}`}>
+            <input
+              type="radio"
+              name="gaTa"
+              value="TA-10"
+              checked={formData.flagger === 'TA-10'}
+              onChange={(e) => {
+                setFormData({ ...formData, flagger: e.target.value });
+                setErrors((p) => ({ ...p, flagger: '' }));
+              }}
+            />
+            <img className="ta-img" src={images["../assets/buffer and tapers/TA-10.svg"].default} alt="TA-10" />
+            <figcaption>TA-10</figcaption>
+          </label>
+        </figure>
+        <figure className="ta-card">
+          <label className={`radio-pill ${formData.flagger === 'TA-33' ? 'selected' : ''}`}>
+            <input
+              type="radio"
+              name="gaTa"
+              value="TA-33"
+              checked={formData.flagger === 'TA-33'}
+              onChange={(e) => {
+                setFormData({ ...formData, flagger: e.target.value });
+                setErrors((p) => ({ ...p, flagger: '' }));
+              }}
+            />
+            <img className="ta-img" src={images["../assets/buffer and tapers/TA-33.svg"].default} alt="TA-33" />
+            <figcaption>TA-33</figcaption>
+          </label>
+        </figure>
+        <figure className="ta-card">
+          <label className={`radio-pill ${formData.flagger === 'TA-37' ? 'selected' : ''}`}>
+            <input
+              type="radio"
+              name="gaTa"
+              value="TA-37"
+              checked={formData.flagger === 'TA-37'}
+              onChange={(e) => {
+                setFormData({ ...formData, flagger: e.target.value });
+                setErrors((p) => ({ ...p, flagger: '' }));
+              }}
+            />
+            <img className="ta-img" src={images["../assets/buffer and tapers/TA-37.svg"].default} alt="TA-37" />
+            <figcaption>TA-37</figcaption>
+          </label>
+        </figure>
+      </div>
+<label className="checkbox-option">
+  <input
+    type="checkbox"
+    checked={formData.additionalFlaggers || false}
+    onChange={(e) => {
+      const checked = e.target.checked;
+      setFormData({ ...formData, additionalFlaggers: checked });
 
-@media screen and (max-width: 320px) and (orientation: landscape) {
-  .traffic-control-head {
-    font-size: 4rem;
-  }
-  .traffic-description {
-    font-size: 1.2rem;
-    margin: 0 auto;
-    text-align: center;
-  }
-  .emergency-header {
-    font-size: 2rem;
-  }
-  .emergency-instruction {
-    font-size: 1.2rem;
-  }
-  .emergency-contacts {
-    font-size: 1.1rem;
-  }
-  .response-time {
-    font-size: 1.3rem;
-  }
-  .first-control-input,
-  .company-input,
-  .emailphone-control-input,
-  .address-controler-container,
-  .location-control-container,
-  .message-control-container {
-    padding: 10px;
-  }
-  .control-container {
-    padding: 1rem;
-    margin: 0 auto;
-    max-width: 250px;
-    display: block;
-  }
-  .map-container {
-    height: 250px
-}
-.control-app-box {
-  font-size: 3rem;
-}
-.control-fill {
-  font-size: 1.5rem;
-}
-.remove-control-file-button {
-  margin-left: 0;
-}
-.file-input-control-container {
-  display: block;
-}
-.address-note, .example-note {
-  font-size: 1.05rem;
-  margin-top: 0.5rem;
-  display: block;
-}
-.submission-control-message {
-  font-size: 1.2rem;
-  line-height: 1.4rem;
-}
-}
-@media screen and (max-width: 320px) and (orientation: portrait) {
-  .traffic-control-head {
-    font-size: 4rem;
-  }
-  .traffic-description {
-    font-size: 1.2rem;
-    margin: 0 auto;
-    text-align: center;
-  }
-  .emergency-header {
-    font-size: 2rem;
-  }
-  .emergency-instruction {
-    font-size: 1.2rem;
-  }
-  .emergency-contacts {
-    font-size: 1.1rem;
-  }
-  .response-time {
-    font-size: 1.3rem;
-  }
-  .first-control-input,
-  .company-input,
-  .emailphone-control-input,
-  .address-controler-container,
-  .location-control-container,
-  .message-control-container {
-    padding: 10px;
-  }
-  .control-container {
-    padding: 1rem;
-    margin: 0 auto;
-    max-width: 200px;
-    display: block;
-  }
-  .map-container {
-    height: 250px
-}
-.control-app-box {
-  font-size: 3rem;
-}
-.control-fill {
-  font-size: 1.5rem;
-}
-.remove-control-file-button {
-  margin-left: 0;
-}
-.file-input-control-container {
-  display: block;
-}
-.address-note, .example-note {
-  font-size: 01rem;
-  margin-top: 0.5rem;
-  display: block;
-}
-.submission-control-message {
-  font-size: 1.2rem;
-  line-height: 1.4rem;
-}
-}
-.ta-gallery {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin: 1rem 0;
-}
+      if (checked) {
+        // Pop the warning modal
+        setShowAdditionalConfirm(true);
+        setAckAdditionalConfirm(false);
+      } else {
+        // If they turn it off, clear count
+        setFormData(prev => ({ ...prev, additionalFlaggers: false, additionalFlaggerCount: '' }));
+      }
+    }}
+  />
+  <small className="rate-warning">⚠️ For Additional Flaggers, additional rates will apply.</small>
+</label>
 
-.ta-card {
-  margin: 0;
-}
+      {formData.additionalFlaggers && (
+        <div className="additional-flaggers">
+          <p>How many additional flaggers do you need?</p>
+{flaggerGACount.map((count) => (
+  <label key={count} className="radio-option">
+    <input
+      type="radio"
+      name="additionalFlaggerCount"
+      value={count}
+      checked={Number(formData.additionalFlaggerCount) === count}
+      onChange={(e) =>
+        setFormData({ ...formData, additionalFlaggerCount: parseInt(e.target.value, 10) })
+      }
+    />
+    {count} {count === 1 ? 'Flagger' : 'Flaggers'}
+  </label>
+))}
 
-.ta-img {
-  max-width: 250px;
-  height: 300px;
-  object-fit: cover;
-  border-radius: 5px;
-  border: 3px solid #ccc;
-}
+        </div>
+      )}
+    </div>
+  </>
+)}
 
-.radio-pill {
-  display: block;
-  cursor: pointer;
-  text-align: center;
-}
+{!isCompanySelected && (
+  <p className="helper-note">Please enter a company to enable this section.</p>
+)}
+{errors.flagger && <div className="error-message">{errors.flagger}</div>}
+  <label className="equipment-setup-label">
+    Equipment Setup * (Select all that apply)
+  </label>
+  <div className="equipment-checkboxes">
+  <label>
+    <input 
+      type="checkbox" 
+      name="equipment" 
+      value="Arrow Board"
+      checked={formData.equipment.includes('Arrow Board')}
+      onChange={handleEquipmentChange}
+    />
+    Arrow Board
+  </label>
+  <label>
+    <input 
+      type="checkbox" 
+      name="equipment" 
+      value="Message Board"
+      checked={formData.equipment.includes('Message Board')}
+      onChange={handleEquipmentChange}
+    />
+    Message Board
+  </label>
+  <label>
+  <input 
+  type="checkbox" 
+  name="equipment" 
+  value="Barricades" // ✅ correct spelling
+  checked={formData.equipment.includes('Barricades')} // ✅ now it will work
+  onChange={handleEquipmentChange}
+/>
+Barricades
 
-.radio-pill.selected .ta-img {
-  border-color: #e67e22;
-}
+  </label>
+  <label>
+    <input 
+      type="checkbox" 
+      name="equipment" 
+      value="Cones"
+      checked={formData.equipment.includes('Cones')}
+      onChange={handleEquipmentChange}
+    />
+    Cones
+  </label>
+  <label>
+    <input 
+      type="checkbox" 
+      name="equipment" 
+      value="Barrels"
+      checked={formData.equipment.includes('Barrels')}
+      onChange={handleEquipmentChange}
+    />
+    Barrels
+  </label>
+  <label>
+    <input 
+      type="checkbox" 
+      name="equipment" 
+      value="Signs"
+      checked={formData.equipment.includes('Signs')}
+      onChange={handleEquipmentChange}
+    />
+    Signs
+  </label>
+  {errors.equipment && <div className="error-message">{errors.equipment}</div>}
+</div>
 
-.radio-pill input[type="radio"] {
-  display: none;
-}
+<label className="addr-control-label">Job Site Address *</label>
+<p className="address-note"><b>NOTE: </b>Enter a valid street address without punctuation (no commas, periods, slashes, or symbols). </p>
+<p className="example-note"><b>For Example: </b>(123 Main St SE) (123 N Main St) (10 US Hwy 41) or (4 Town And Country Dr)</p>
+<input
+  name="address"
+  type="text"
+  className="address-control-box"
+  placeholder="Enter Address"
+  value={formData.address}
+  onChange={(e) => {
+    setFormData({ ...formData, address: e.target.value });
+    if (e.target.value) {
+      setErrors((prevErrors) => ({ ...prevErrors, address: '' })); // Clear the error
+    }
+    setTimeout(checkAllFieldsFilled, 0);
+  }}
+/>
+{errors.address && <div className="error-message">{errors.address}</div>}
+<input
+name="city-input"
+type="text"
+className="city-control-box"
+text="city--input"
+placeholder="City"
+value={formData.city}
+onChange={(e) => {
+  const rawValue = e.target.value;
 
-.radio-pill figcaption {
-  margin-top: 0.5rem;
-  font-weight: bold;
+  // Remove commas, asterisks, digits, or other unwanted characters
+  const cleaned = rawValue.replace(/[^a-zA-Z\s]/g, '');
+
+  // Capitalize first letter of each word
+  const capitalized = cleaned.replace(/\b\w/g, (char) => char.toUpperCase());
+
+  // Regex: only letters and spaces (already enforced, but double-checked)
+  const cityRegex = /^[a-zA-Z\s]+$/;
+
+  if (!cityRegex.test(capitalized)) {
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      city: 'City must only contain letters and spaces',
+    }));
+  } else {
+    setErrors((prevErrors) => ({ ...prevErrors, city: '' }));
+  }
+setTimeout(checkAllFieldsFilled, 0);
+  // Update formData with cleaned value
+  setFormData((prev) => ({ ...prev, city: capitalized }));
+}}
+/>
+{errors.city && <span className="error-message">{errors.city}</span>}
+<div className="city-state">
+<select
+      name="state"
+      className="state-control-box"
+      value={formData.state}
+      onChange={(e) => { 
+        setFormData({ ...formData, state: e.target.value });
+      if (e.target.value) {
+        setErrors((prevErrors) => ({ ...prevErrors, state: '' })); // Clear the error
+      }
+      setTimeout(checkAllFieldsFilled, 0);
+      }}
+    >
+      <option value="">Select State</option>
+      {states.map(state => (
+        <option key={state.abbreviation} value={state.abbreviation}>{state.name}</option>
+      ))}
+    </select>
+    {errors.state && <span className="error-message">{errors.state}</span>}
+<input
+        name="zip"
+        type="text"
+        className="zip-control-box"
+        value={formData.zip}
+        onChange={(e) => {
+          const value = e.target.value;
+          let formattedValue = value;
+          const rawDigits = value.replace(/\D/g, ""); // Remove non-numeric characters
+          formattedValue = rawDigits.slice(0, 5); // Limit to 5 digits
+          setFormData({ ...formData, zip: e.target.value })
+          if (formattedValue.length === 5) {
+            setErrors((prevErrors) => ({ ...prevErrors, zip: '' }));
+        }
+        setTimeout(checkAllFieldsFilled, 0);
+      }}
+        placeholder="Zip Code"
+        maxLength={5}
+        pattern="\d{5}"
+        title="Zip code must be 5 digits"
+      />
+      {errors.zip && <span className="error-message">{errors.zip}</span>}
+</div>
+</div>
+</div>
+</div>
+
+<div className="message-control-container">
+<label className="message-control-label">Message *</label>
+<h2 className="message-control-note">If you need additional equipment,
+  please explain here. Otherwise, please describe to us about your job and how do we need to set up! </h2>
+
+<textarea className="message-control-text" name="message" type="text" placeholder="Enter Message"
+  onChange={(e) => { 
+  setFormData({ ...formData, message: e.target.value });
+if (e.target.value) {
+  setErrors((prevErrors) => ({ ...prevErrors, message: '' })); // Clear the error
 }
+setTimeout(checkAllFieldsFilled, 0);
+}}
+/>
+
+  {errors.message && <span className="error-message">{errors.message}</span>}
+  <div className="terms-checkbox">
+  <label className="terms-label">Terms & Conditions *</label>
+  <input
+    type="checkbox"
+    id="terms"
+    checked={termsAccepted}
+    onChange={(e) => {
+      const checked = e.target.checked;
+      setTermsAccepted(checked);
+      setFormData((prev) => ({ ...prev, terms: checked }));
+      if (checked) {
+        setErrors((prevErrors) => ({ ...prevErrors, terms: '' }));
+      }
+      setTimeout(checkAllFieldsFilled, 0);
+    }}
+  />
+  <p className="terms-text">
+    <strong>PLEASE READ AND CHECK: </strong>
+    By scheduling this job, you agree to pay once job is complete. 
+  </p>
+  
+</div>
+{errors.terms && <div className="error-message">{errors.terms}</div>}
+
+<div
+  ref={recaptchaWrapRef}
+  className={`recaptcha-wrap ${errors.recaptcha ? 'has-error' : ''}`}
+  style={{ marginTop: '12px' }}
+>
+  <ReCAPTCHA
+    ref={recaptchaRef}
+    sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+    size={recaptchaSize}  
+    onChange={(token) => {
+      setRecaptchaToken(token || '');
+      if (token) setErrors((prev) => ({ ...prev, recaptcha: '' }));
+    }}
+    onExpired={() => {
+      setRecaptchaToken('');
+      setErrors((prev) => ({ ...prev, recaptcha: 'Please complete the reCAPTCHA.' }));
+    }}
+    onErrored={() => {
+      console.warn('reCAPTCHA error - continuing without verification');
+      setRecaptchaToken('bypass');
+      setErrors((prev) => ({ ...prev, recaptcha: '' }));
+    }}
+  />
+</div>
+{errors.recaptcha && <div className="error-message">{errors.recaptcha}</div>}
+  </div>
+  {showAdditionalConfirm && (
+  <div className="emergency-warning-box">
+    <p className="warning-text">⚠️ WARNING</p>
+    <p className="emergency-warning-text" style={{ marginTop: 8 }}>
+      <strong>WARNING:</strong> Do you approve the additional flagger for the additional charge?
+      <br />
+      <strong>You are required to confirm through your confirmation email that you need an additional flagger.</strong>
+    </p>
+
+    <label style={{ display: 'block', marginTop: 12 }}>
+      <input
+        type="checkbox"
+        checked={ackAdditionalConfirm}
+        onChange={(e) => setAckAdditionalConfirm(e.target.checked)}
+      />{' '}
+      I understand that I must confirm this in the email I receive.
+    </label>
+
+    <div className="emergency-warning-buttons" style={{ marginTop: 12 }}>
+      <button
+        type="button"
+        className="btn btn--warning"
+        disabled={!ackAdditionalConfirm}
+        onClick={() => setShowAdditionalConfirm(false)}
+      >
+        YES, I Approve Additional Flagger
+      </button>
+      <button
+        type="button"
+        className="btn btn--cancel"
+        onClick={() => {
+          setShowAdditionalConfirm(false);
+          setAckAdditionalConfirm(false);
+          // Revert the additional flagger choice
+          setFormData(prev => ({ ...prev, additionalFlaggers: false, additionalFlaggerCount: '' }));
+        }}
+      >
+        Cancel Additional Flagger
+      </button>
+    </div>
+  </div>
+)}
+
+  <div className="submit-button-wrapper">
+  <button
+  type="submit"
+  className="btn btn--full submit-control"
+  disabled={isSubmitting || showEmergencyConfirm}
+>
+
+    {isSubmitting ? (
+      <div className="spinner-button">
+        <span className="spinner"></span> Submitting...
+      </div>
+    ) : (
+      'SUBMIT TRAFFIC CONTROL JOB'
+    )}
+  </button>
+  {/* Toast-like message */}
+  {submissionMessage && (
+    <div className="custom-toast success">{submissionMessage}</div>
+  )}
+  {submissionErrorMessage && (
+    <div className="custom-toast error">{submissionErrorMessage}</div>
+  )}
+  {
+  errorMessage && (
+    <div className="custom-toast error">{errorMessage}</div>
+  )}
+</div>
+{showEmergencyConfirm && (
+  <div className="emergency-warning-box">
+    <p className="warning-text">⚠️ WARNING</p>
+    <p className="emergency-submit-blocked-note">
+    Submission is paused until you confirm the emergency warning.
+  </p>
+  
+    <p className="emergency-warning-text">
+      ⚠️ <strong>Heads Up:</strong> You’re submitting this job after <strong>8:00 PM EST</strong> and selected <strong>{tomorrowFormatted}</strong> as one of your job dates.
+      This will be considered an <strong>emergency job</strong> and will charge more to your invoice.<br /><br />
+      <strong>Are you sure you want to proceed?</strong>
+    </p>
+    <div className="emergency-warning-buttons">
+<button
+  type="button"
+  className="btn btn--warning"
+  onClick={() => {
+    setShowEmergencyConfirm(false);
+    setIsEmergencyJob(true);
+    runSubmissionLogic();
+  }}
+>
+  Yes, Proceed
+</button>
+
+      <button
+        type="button"
+        className="btn btn--cancel"
+        onClick={() => {
+setFormData({
+  name: '',
+  email: '',
+  phone: '',
+  jobDate: '',
+  company: '',
+  coordinator: '',
+  site: '',
+  siteContact: '',
+  time: '',
+  project: '',
+  flagger: '',
+  equipment: [],
+  terms: '',
+  address: '',
+  city: '',
+  state: '',
+  zip: '',
+  message: ''
+});
+
+          setJobDates([]);
+          setPhone('');
+          setErrors({});
+          setSubmissionMessage('');
+          setShowEmergencyConfirm(false);
+          setIsEmergencyJob(false);
+        }}
+      >
+        No, Clear Form
+      </button>
+    </div>
+  </div>
+)}
+
+  </div>
+  </div>
+        </form>
+      </main>
+      <footer className="footer">
+  <div className="site-footer__inner">
+    <img className="tbs-logo" alt="TBS logo" src={images["../assets/tbs_companies/tbs white.svg"].default} />
+    <div className="footer-navigation-content">
+      <h2 className="footer-title">Navigation</h2>
+    <ul className="footer-navigate">
+      <li><a className="footer-nav-link" href="/about-us">About Us</a></li>
+      <li><a className="footer-nav-link" href="/traffic-control-services">Traffic Control Services</a></li>
+      <li><a className="footer-nav-link" href="/product-services">Product Services</a></li>
+      <li><a className="footer-nav-link" href="/contact-us">Contact Us</a></li>
+      <li><a className="footer-nav-link" href="/applynow">Careers</a></li>
+    </ul>
+    </div>
+    <div className="footer-contact">
+      <h2 className="footer-title">Contact</h2>
+      <p className="contact-info">
+        <a className="will-phone" href="tel:+17062630175">Call: (706) 263-0175</a>
+        <a className="will-email" href="mailto: tbsolutions1999@gmail.com">Email: tbsolutions1999@gmail.com</a>
+        <a className="will-address" href="https://www.google.com/maps/place/Traffic+and+Barrier+Solutions,+LLC/@34.5025307,-84.899317,660m/data=!3m1!1e3!4m6!3m5!1s0x482edab56d5b039b:0x94615ce25483ace6!8m2!3d34.5018691!4d-84.8994308!16s%2Fg%2F11pl8d7p4t?entry=ttu&g_ep=EgoyMDI1MDEyMC4wIKXMDSoASAFQAw%3D%3D"
+      >
+        1995 Dews Pond Rd, Calhoun, GA 30701</a>
+      </p>
+    </div>
+
+    <div className="social-icons">
+      <h2 className="footer-title">Follow Us</h2>
+      <a className="social-icon" href="https://www.facebook.com/tbssigns2022/" target="_blank" rel="noopener noreferrer">
+                    <img className="facebook-img" src={images["../assets/social media/facebook.png"].default} alt="Facebook" />
+                </a>
+                <a className="social-icon" href="https://www.tiktok.com/@tbsmaterialworx?_t=8lf08Hc9T35&_r=1" target="_blank" rel="noopener noreferrer">
+                    <img className="tiktok-img" src={images["../assets/social media/tiktok.png"].default} alt="TikTok" />
+                </a>
+                <a className="social-icon" href="https://www.instagram.com/tbsmaterialworx?igsh=YzV4b3doaTExcjN4&utm_source=qr" target="_blank" rel="noopener noreferrer">
+                    <img className="insta-img" src={images["../assets/social media/instagram.png"].default} alt="Instagram" />
+                </a>
+    </div>
+    <div className="statement-box">
+                <p className="statement">
+                    <b className="safety-b">Safety Statement: </b>
+                    At TBS, safety is our top priority. We are dedicated to ensuring the well-being of our employees, clients, 
+                    and the general public in every aspect of our operations. Through comprehensive safety training, 
+                    strict adherence to regulatory standards, and continuous improvement initiatives, 
+                    we strive to create a work environment where accidents and injuries are preventable. 
+                    Our commitment to safety extends beyond compliance—it's a fundamental value embedded in everything we do. 
+                    Together, we work tirelessly to promote a culture of safety, 
+                    accountability, and excellence, because when it comes to traffic control, there's no compromise on safety.
+                </p>
+            </div>
+  </div>
+</footer>
+<div className="footer-copyright">
+      <p className="footer-copy-p">&copy; 2026 Traffic & Barrier Solutions, LLC - 
+        Website MERN Stack Coded & Deployed by <a className="footer-face"href="https://www.facebook.com/will.rowell.779" target="_blank" rel="noopener noreferrer">William Rowell</a> - All Rights Reserved.</p>
+    </div>
+        </div>
+    )
+};
+
+
+
