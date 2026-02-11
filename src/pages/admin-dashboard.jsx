@@ -33,6 +33,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const [adminName, setAdminName] = useState('');
   const [showTAImages, setShowTAImages] = useState(false);
+  const [showCharts, setShowCharts] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
   const [monthlyJobs, setMonthlyJobs] = useState({});
@@ -924,6 +925,10 @@ selected={
               <h4>TA-37</h4>
               <img src={images["../assets/buffer and tapers/TA-37.svg"].default} alt="TA-37 Diagram" />
             </div>
+            <div className="ta-image-card" onClick={() => setSelectedImage({ src: images["../assets/charts/Formulas.svg"].default, title: 'Formulas' })}>
+              <h4>Formulas</h4>
+              <img src={images["../assets/charts/Formulas.svg"].default} alt="Formulas" />
+            </div>
           </div>
         )}
         {selectedImage && (
@@ -936,6 +941,36 @@ selected={
           </div>
         )}
       </div>
+
+      <div className="ta-images-section">
+        <h2 className="admin-apps-title">Reference Charts</h2>
+        <button
+          className="btn view-cancelled-btn"
+          onClick={() => setShowCharts(prev => !prev)}
+        >
+          {showCharts ? 'Hide Charts' : 'View Charts'}
+        </button>
+        {showCharts && (
+          <div className="ta-images-grid">
+            <div className="ta-image-card" onClick={() => setSelectedImage({ src: images["../assets/charts/Buffer Space.svg"].default, title: 'Buffer Space' })}>
+              <h4>Buffer Space</h4>
+              <img src={images["../assets/charts/Buffer Space.svg"].default} alt="Buffer Space Chart" />
+            </div>
+            <div className="ta-image-card" onClick={() => setSelectedImage({ src: images["../assets/charts/Cone Spacing.svg"].default, title: 'Cone Spacing' })}>
+              <h4>Cone Spacing</h4>
+              <img src={images["../assets/charts/Cone Spacing.svg"].default} alt="Cone Spacing Chart" />
+            </div>
+            <div className="ta-image-card" onClick={() => setSelectedImage({ src: images["../assets/charts/Sign Spacing.svg"].default, title: 'Sign Spacing' })}>
+              <h4>Sign Spacing</h4>
+              <img src={images["../assets/charts/Sign Spacing.svg"].default} alt="Sign Spacing Chart" />
+            </div>
+            <div className="ta-image-card" onClick={() => setSelectedImage({ src: images["../assets/charts/Stop Sight.svg"].default, title: 'Stop Sight' })}>
+              <h4>Stop Sight</h4>
+              <img src={images["../assets/charts/Stop Sight.svg"].default} alt="Stop Sight Chart" />
+            </div>
+      </div>
+        )}
+        </div>
 {allowedForInvoices && (
   <div className="admin-invoice">
     <h1 className="invoice-h1">Invoicing</h1>
