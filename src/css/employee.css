@@ -68,7 +68,8 @@
               radial-gradient(1000px 400px at 110% 10%, rgba(229, 160, 70, 0.5), transparent 60%),
               var(--bg);
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: center;
 }
 
 .employee-options {
@@ -362,12 +363,20 @@
     gap: 1rem;
   }
   
+  .ta-image-card {
+    padding: 1rem;
+  }
+  
   .ta-image-card h4 {
     font-size: 1.5rem;
   }
   
   .employee-section-title {
     font-size: 2rem;
+  }
+  
+  .ta-images-emp-section {
+    padding: 1rem;
   }
 }
 
