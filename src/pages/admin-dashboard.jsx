@@ -1095,7 +1095,7 @@ selected={
 {allowedForQuotes && (
   <div className="admin-invoice">
     <h1 className="invoice-h1">Quoting</h1>
-    <a href="/quote" className="invoice-btn">Go to Quoting</a>
+    <a href="/admin-dashboard/quote" className="invoice-btn">Go to Quoting</a>
   </div>
 )}
 <div className="cancelled-jobs">
