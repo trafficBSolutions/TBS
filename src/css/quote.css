@@ -14,8 +14,6 @@
 .hint { font-size: 11px; opacity: .7; }
 
 .table-actions { display:flex; justify-content:flex-end; margin-bottom:8px; }
-.btn { padding: 8px 12px; border-radius: 8px; border: 1px solid #ccc; background: #fff; cursor:pointer; }
-.btn:hover { background: #f6f6f6; }
 
 .quote-table table { width:100%; border-collapse:collapse; }
 .quote-table th, .quote-table td { border: 1px solid #d9d9d9; padding: 6px; font-size: 13px; }
