@@ -118,7 +118,7 @@ export default function Quote() {
       
 
       <section className="quote-info">
-        <label>Company/Excavator<input value={company} onChange={(e) => setCompany(e.target.value)} /></label>
+        <label>Company/Excavator<input type="text" value={company} onChange={(e) => setCompany(e.target.value)} /></label>
         <label>Customer<input type="text" value={customer} onChange={(e) => setCustomer(e.target.value)} /></label>
         <label>Address<input type="text" value={address} onChange={(e) => setAddress(e.target.value)} /></label>
 
