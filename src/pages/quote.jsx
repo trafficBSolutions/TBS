@@ -1,348 +1,152 @@
-import React, { useMemo, useState } from "react";
-import "../css/quote.css";
-import Header from '../components/headerviews/HeaderAdminDash';
-import images from '../utils/tbsImages';
-import api from '../utils/api';
-const money = (n) =>
-  (Number.isFinite(n) ? n : 0).toLocaleString(undefined, {
-    style: "currency",
-    currency: "USD",
-  });
+const puppeteer = require('puppeteer');
+const fs = require('fs');
+const path = require('path');
 
-const isoDate = () => new Date().toISOString().slice(0, 10);
+function toDataUri(absPath) {
+  try {
+    if (!fs.existsSync(absPath)) return '';
+    const ext = path.extname(absPath).toLowerCase();
+    const mime = ext === '.svg' ? 'image/svg+xml' : ext === '.png' ? 'image/png' : 'image/jpeg';
+    const buf = fs.readFileSync(absPath);
+    return `data:${mime};base64,${buf.toString('base64')}`;
+  } catch {
+    return '';
+  }
+}
 
-const blankRow = () => ({
-  id: crypto.randomUUID(),
-  item: "",
-  description: "",
-  taxable: true,     // TAX? Yes/No
-  qty: 1,            // QUANTITY
-  unitPrice: 0,      // AMOUNT Per Unit
-});
+async function generateQuotePdf(quoteData) {
+  const { date, company, customer, address, city, state, zip, email, phone, rows, computed } = quoteData;
 
-export default function Quote() {
-  // header fields (match your doc)
-  const [date, setDate] = useState(isoDate());
-  const [company, setCompany] = useState("");
-  const [customer, setCustomer] = useState("");
-  const [address, setAddress] = useState("");
-  const [city, setCity] = useState("");
-  const [state, setState] = useState("GA");
-  const [zip, setZip] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const tbsLogo = toDataUri(path.resolve(__dirname, '../public/TBSPDF7.svg'));
+  const mxLogo = toDataUri(path.resolve(__dirname, '../public/Material WorX Tan.svg'));
 
-  // pricing controls (match your rules)
-  const [taxRate, setTaxRate] = useState(0.08);         // 8% example
-  const [isTaxExempt, setIsTaxExempt] = useState(false); // “If tax exempt, subtotal is final total”
-  const [payMethod, setPayMethod] = useState("Check");   // Card triggers 3.5% fee
-  const [ccFeeRate] = useState(0.035);                   // 3.5% rule
-  const [requireDeposit] = useState(true);
-  const [depositRate] = useState(0.5);                   // 50% down
+  const rowsHTML = rows.map(r => `
+    <tr>
+      <td>${r.item}</td>
+      <td>${r.description}</td>
+      <td style="text-align:center;">${r.taxable ? 'Yes' : 'No'}</td>
+      <td style="text-align:center;">${r.qty}</td>
+      <td style="text-align:right;">$${r.unitPrice.toFixed(2)}</td>
+      <td style="text-align:right;">$${(r.qty * r.unitPrice).toFixed(2)}</td>
+    </tr>
+  `).join('');
 
-  const [rows, setRows] = useState([blankRow(), blankRow(), blankRow()]);
-  const [sending, setSending] = useState(false);
-  const [message, setMessage] = useState("");
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+<style>
+body{font-family:Arial,sans-serif;margin:20px;color:#111;}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:10px;border-bottom:2px solid #17365D;}
+.logos{display:flex;gap:15px;align-items:center;}
+.logos img{height:50px;width:auto;}
+.title{font-size:24px;font-weight:bold;color:#17365D;}
+.info{font-size:12px;margin-bottom:15px;}
+.info p{margin:3px 0;}
+table{width:100%;border-collapse:collapse;font-size:12px;margin:15px 0;}
+th{background:#17365D;color:#fff;padding:8px;text-align:left;}
+td{padding:6px;border:1px solid #ddd;}
+.totals{text-align:right;margin-top:15px;font-size:13px;}
+.totals p{margin:5px 0;}
+.grand{font-size:16px;font-weight:bold;}
+.footer{margin-top:20px;padding-top:10px;border-top:1px solid #ddd;font-size:11px;color:#555;}
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="logos">
+      ${tbsLogo ? `<img src="${tbsLogo}" alt="TBS"/>` : ''}
+      ${mxLogo ? `<img src="${mxLogo}" alt="Material WorX"/>` : ''}
+    </div>
+    <div class="title">QUOTE</div>
+  </div>
 
-  const updateRow = (id, patch) => {
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
-  };
+  <div class="info">
+    <p><strong>Date:</strong> ${date} | <strong>Customer:</strong> ${customer}</p>
+    <p><strong>Company:</strong> ${company}</p>
+    <p><strong>Address:</strong> ${address}, ${city}, ${state} ${zip}</p>
+    <p><strong>Email:</strong> ${email} | <strong>Phone:</strong> ${phone}</p>
+  </div>
 
-  const addRow = () => setRows((prev) => [...prev, blankRow()]);
-  const removeRow = (id) => setRows((prev) => prev.filter((r) => r.id !== id));
+  <table>
+    <thead>
+      <tr>
+        <th>ITEM</th>
+        <th>NOTES</th>
+        <th style="text-align:center;">TAX?</th>
+        <th style="text-align:center;">QTY</th>
+        <th style="text-align:right;">PER UNIT</th>
+        <th style="text-align:right;">TOTAL</th>
+      </tr>
+    </thead>
+    <tbody>${rowsHTML}</tbody>
+  </table>
 
-  const computed = useMemo(() => {
-    const lineTotals = rows.map((r) => {
-      const qty = Number(r.qty) || 0;
-      const unit = Number(r.unitPrice) || 0;
-      return qty * unit;
+  <div class="totals">
+    <p>Subtotal: $${computed.subtotal.toFixed(2)}</p>
+    <p>Tax: $${computed.taxDue.toFixed(2)}</p>
+    ${computed.ccFee > 0 ? `<p>Card Fee: $${computed.ccFee.toFixed(2)}</p>` : ''}
+    <p class="grand">TOTAL: $${computed.total.toFixed(2)}</p>
+    <p style="color:#d97706;">Deposit (50%): $${computed.depositDue.toFixed(2)}</p>
+  </div>
+
+  <div class="footer">
+    <p style="margin:10px 0 5px 0;"><strong>REMIT PAYMENT TO:</strong></p>
+    <p style="margin:3px 0;">Traffic and Barrier Solutions, LLC</p>
+    <p style="margin:3px 0;">723 N Wall St, Calhoun, GA 30701</p>
+    <p style="margin:10px 0 3px 0;">If your company is tax exempt, then the subtotal will be your final total.</p>
+    <p style="margin:3px 0;">A 3.5% charge will be added to credit card payments.</p>
+    <p style="margin:10px 0 3px 0;">If you have any questions about this quote, please contact Bryson Davis, (706) 263-0175, tbsolutions3@gmail.com</p>
+  </div>
+</body>
+</html>`;
+
+  let browser;
+  try {
+    const candidates = [];
+    try {
+      const p = await puppeteer.executablePath();
+      if (p) candidates.push(p);
+    } catch (_) {}
+
+    candidates.push(
+      '/usr/bin/google-chrome-stable',
+      '/usr/bin/google-chrome',
+      '/usr/bin/chromium-browser',
+      '/usr/bin/chromium',
+      'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+      'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'
+    );
+
+    if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+      candidates.unshift(process.env.PUPPETEER_EXECUTABLE_PATH);
+    }
+
+    let executablePath = undefined;
+    for (const p of candidates) {
+      try {
+        if (p && fs.existsSync(p)) { executablePath = p; break; }
+      } catch (_) {}
+    }
+
+    browser = await puppeteer.launch({
+      headless: true,
+      ...(executablePath ? { executablePath } : {}),
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
     });
 
-    const subtotal = lineTotals.reduce((sum, v) => sum + v, 0);
-
-    const taxableSubtotal = isTaxExempt
-      ? 0
-      : rows.reduce((sum, r, idx) => (r.taxable ? sum + lineTotals[idx] : sum), 0);
-
-    const taxDue = taxableSubtotal * (Number(taxRate) || 0);
-
-    const ccFee =
-      payMethod === "Card" ? (subtotal + taxDue) * ccFeeRate : 0;
-
-    const total = isTaxExempt ? subtotal + ccFee : subtotal + taxDue + ccFee;
-
-    const depositDue = requireDeposit ? total * depositRate : 0;
-
-    return { lineTotals, subtotal, taxDue, ccFee, total, depositDue };
-  }, [rows, taxRate, isTaxExempt, payMethod, ccFeeRate, requireDeposit, depositRate]);
- const handlePhoneChange = (event) => {
-    const input = event.target.value;
-    const rawInput = input.replace(/\D/g, ''); // Remove non-digit characters
-    const formatted = rawInput.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'load', timeout: 30000 });
     
-    setPhone(formatted);
-    setFormData({ ...formData, phone: formatted });
-  
-    // Check if the input has 10 digits and clear the error if it does
-    if (rawInput.length === 10) {
-      setErrors((prevErrors) => ({ ...prevErrors, phone: '' }));
-    } else {
-      setErrors((prevErrors) => ({ ...prevErrors, phone: 'Please enter a valid 10-digit phone number.' }));
-    }
-    setTimeout(checkAllFieldsFilled, 0);
-  };
-  const handleSendQuote = async () => {
-    if (!email) {
-      setMessage("Please enter an email address");
-      return;
-    }
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: { top: '10mm', right: '10mm', bottom: '10mm', left: '10mm' }
+    });
 
-    setSending(true);
-    setMessage("");
-
-    try {
-      await api.post('/api/quote', {
-        date,
-        company,
-        customer,
-        address,
-        city,
-        state,
-        zip,
-        email,
-        phone,
-        taxRate,
-        isTaxExempt,
-        payMethod,
-        rows,
-        computed
-      });
-      setMessage("Quote sent successfully!");
-    } catch (error) {
-      console.error('Error sending quote:', error);
-      setMessage("Failed to send quote. Please try again.");
-    } finally {
-      setSending(false);
-    }
-  };
-
-  return (
-    <div>
-    <Header />
-    <div className="quote-wrap">
-      
-
-      <section className="quote-info">
-        <label>Company/Excavator<input type="text" value={company} onChange={(e) => setCompany(e.target.value)} /></label>
-        <label>Customer<input type="text" value={customer} onChange={(e) => setCustomer(e.target.value)} /></label>
-        <label>Address<input type="text" value={address} onChange={(e) => setAddress(e.target.value)} /></label>
-
-        <div className="row3">
-          <label>City<input type="text" value={city} onChange={(e) => setCity(e.target.value)} /></label>
-          <label>State<input type="text" value={state} onChange={(e) => setState(e.target.value)} /></label>
-          <label>ZIP<input type="text" value={zip} onChange={(e) => setZip(e.target.value)} /></label>
-        </div>
-
-        <div className="row2">
-          <label>Email<input type="text" value={email} onChange={(e) => setEmail(e.target.value)} /></label>
-          <label>Phone<input type="text" value={phone} onChange={handlePhoneChange} /></label>
-        </div>
-      </section>
-
-      <section className="quote-controls">
-        <label className="inline">
-          <input
-            type="checkbox"
-            checked={isTaxExempt}
-            onChange={(e) => setIsTaxExempt(e.target.checked)}
-          />
-          Tax Exempt (subtotal is final total)
-        </label>
-
-        <label>
-          Tax Rate
-          <input
-            type="number"
-            step="0.001"
-            value={taxRate}
-            onChange={(e) => setTaxRate(Number(e.target.value))}
-          />
-          <span className="hint">0.08 = 8%</span>
-        </label>
-
-        <label>
-          Paid By
-          <select value={payMethod} onChange={(e) => setPayMethod(e.target.value)}>
-            <option value="Check">Check</option>
-            <option value="Cash">Cash</option>
-            <option value="Card">Credit Card</option>
-          </select>
-          <span className="hint">Card adds 3.5% fee</span>
-        </label>
-      </section>
-
-      <section className="quote-table">
-        <div className="table-actions">
-          <button type="button" className="btn" onClick={addRow}>+ Add Line</button>
-        </div>
-
-        <table>
-          <thead>
-            <tr>
-              <th style={{ width: "16%" }}>ITEM</th>
-              <th>Notes (measuring / designing / printing / installing)</th>
-              <th style={{ width: "10%" }}>TAX?</th>
-              <th style={{ width: "12%" }}>QTY</th>
-              <th style={{ width: "14%" }}>PER UNIT</th>
-              <th style={{ width: "14%" }}>LINE TOTAL</th>
-              <th style={{ width: "8%" }}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r, idx) => (
-              <tr key={r.id}>
-                <td>
-                  <input
-                    value={r.item}
-                    onChange={(e) => updateRow(r.id, { item: e.target.value })}
-                    placeholder="e.g., Banner"
-                  />
-                </td>
-                <td>
-                  <input
-                    value={r.description}
-                    onChange={(e) => updateRow(r.id, { description: e.target.value })}
-                    placeholder="Details..."
-                  />
-                </td>
-                <td className="center">
-                  <select
-                    value={r.taxable ? "Yes" : "No"}
-                    onChange={(e) => updateRow(r.id, { taxable: e.target.value === "Yes" })}
-                    disabled={isTaxExempt}
-                  >
-                    <option>Yes</option>
-                    <option>No</option>
-                  </select>
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    min="0"
-                    value={r.qty}
-                    onChange={(e) => updateRow(r.id, { qty: Number(e.target.value) })}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={r.unitPrice}
-                    onChange={(e) => updateRow(r.id, { unitPrice: Number(e.target.value) })}
-                  />
-                </td>
-                <td className="right">{money(computed.lineTotals[idx])}</td>
-                <td className="center">
-                  <button type="button" className="icon-btn" onClick={() => removeRow(r.id)}>
-                    ✕
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
-
-      <section className="quote-totals">
-        <div className="totals-box">
-          <div className="row"><span>Subtotal</span><strong>{money(computed.subtotal)}</strong></div>
-          <div className="row"><span>Tax Due</span><strong>{money(computed.taxDue)}</strong></div>
-          <div className="row"><span>Card Fee (3.5%)</span><strong>{money(computed.ccFee)}</strong></div>
-          <div className="row total"><span>TOTAL</span><strong>{money(computed.total)}</strong></div>
-
-          <div className="row deposit">
-            <span>Deposit Due (50%)</span>
-            <strong>{money(computed.depositDue)}</strong>
-          </div>
-        </div>
-
-        <div style={{ marginTop: '20px', textAlign: 'center' }}>
-          <button 
-            type="button" 
-            className="btn" 
-            onClick={handleSendQuote}
-            disabled={sending}
-            style={{ padding: '12px 30px', fontSize: '16px' }}
-          >
-            {sending ? 'Sending...' : 'Send Quote to Email'}
-          </button>
-          {message && (
-            <p style={{ 
-              marginTop: '10px', 
-              color: message.includes('success') ? 'green' : 'red',
-              fontWeight: 'bold'
-            }}>
-              {message}
-            </p>
-          )}
-        </div>
-      </section>
-      </div>
-<footer className="footer">
-  <div className="site-footer__inner">
-    <img className="tbs-logo" alt="TBS logo" src={images["../assets/tbs_companies/tbs white.svg"].default} />
-    <div className="footer-navigation-content">
-      <h2 className="footer-title">Navigation</h2>
-    <ul className="footer-navigate">
-      <li><a className="footer-nav-link" href="/about-us">About Us</a></li>
-      <li><a className="footer-nav-link" href="/traffic-control-services">Traffic Control Services</a></li>
-      <li><a className="footer-nav-link" href="/product-services">Product Services</a></li>
-      <li><a className="footer-nav-link" href="/contact-us">Contact Us</a></li>
-      <li><a className="footer-nav-link" href="/applynow">Careers</a></li>
-    </ul>
-    </div>
-    <div className="footer-contact">
-      <h2 className="footer-title">Contact</h2>
-      <p className="contact-info">
-        <a className="will-phone" href="tel:+17062630175">Call: 706-263-0175</a>
-        <a className="will-email" href="mailto: tbsolutions1999@gmail.com">Email: tbsolutions1999@gmail.com</a>
-        <a className="will-address" href="https://www.google.com/maps/place/Traffic+and+Barrier+Solutions,+LLC/@34.5025307,-84.899317,660m/data=!3m1!1e3!4m6!3m5!1s0x482edab56d5b039b:0x94615ce25483ace6!8m2!3d34.5018691!4d-84.8994308!16s%2Fg%2F11pl8d7p4t?entry=ttu&g_ep=EgoyMDI1MDEyMC4wIKXMDSoASAFQAw%3D%3D"
-      >
-        1995 Dews Pond Rd, Calhoun, GA 30701</a>
-      </p>
-    </div>
-
-    <div className="social-icons">
-      <h2 className="footer-title">Follow Us</h2>
-      <a className="social-icon" href="https://www.facebook.com/tbssigns2022/" target="_blank" rel="noopener noreferrer">
-                    <img className="facebook-img" src={images["../assets/social media/facebook.png"].default} alt="Facebook" />
-                </a>
-                <a className="social-icon" href="https://www.tiktok.com/@tbsmaterialworx?_t=8lf08Hc9T35&_r=1" target="_blank" rel="noopener noreferrer">
-                    <img className="tiktok-img" src={images["../assets/social media/tiktok.png"].default} alt="TikTok" />
-                </a>
-                <a className="social-icon" href="https://www.instagram.com/tbsmaterialworx?igsh=YzV4b3doaTExcjN4&utm_source=qr" target="_blank" rel="noopener noreferrer">
-                    <img className="insta-img" src={images["../assets/social media/instagram.png"].default} alt="Instagram" />
-                </a>
-    </div>
-    <div className="statement-box">
-                <p className="statement">
-                    <b className="safety-b">Safety Statement: </b>
-                    At TBS, safety is our top priority. We are dedicated to ensuring the well-being of our employees, clients, 
-                    and the general public in every aspect of our operations. Through comprehensive safety training, 
-                    strict adherence to regulatory standards, and continuous improvement initiatives, 
-                    we strive to create a work environment where accidents and injuries are preventable. 
-                    Our commitment to safety extends beyond compliance—it's a fundamental value embedded in everything we do. 
-                    Together, we work tirelessly to promote a culture of safety, 
-                    accountability, and excellence, because when it comes to traffic control, there's no compromise on safety.
-                </p>
-            </div>
-  </div>
-</footer>
-<div className="footer-copyright">
-      <p className="footer-copy-p">&copy; 2026 Traffic & Barrier Solutions, LLC - 
-        Website Created & Deployed by <a className="footer-face"href="https://www.facebook.com/will.rowell.779" target="_blank" rel="noopener noreferrer">William Rowell</a> - All Rights Reserved.</p>
-    </div>
-    </div>
-  );
+    return pdfBuffer;
+  } finally {
+    if (browser) await browser.close();
+  }
 }
+
+module.exports = { generateQuotePdf };
