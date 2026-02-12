@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate} from 'react-router-dom'
-import { About, EmployeeHandbook, ConfirmAdditionalFlagger, EmployeeDiscipline, Invoice, Work, ManageJobTest, CancelJobTest, ManageJob, CancelJob, AdminLog, AdminDashboard, Contact, Apply, Home, TrafficControl, TrafficPlan, Rentals, PPE, Signs, BollardsWheels, Error, TService, Product, TrafficControlTest, EmployeeDashboard, EmployeeComplaintForm } from './pages';
+import { About, EmployeeHandbook, Quote, ConfirmAdditionalFlagger, EmployeeDiscipline, Invoice, Work, ManageJobTest, CancelJobTest, ManageJob, CancelJob, AdminLog, AdminDashboard, Contact, Apply, Home, TrafficControl, TrafficPlan, Rentals, PPE, Signs, BollardsWheels, Error, TService, Product, TrafficControlTest, EmployeeDashboard, EmployeeComplaintForm } from './pages';
 import axios from 'axios';
 import RescheduleJob from './pages/RescheduleJob';
 import Navbar from './components/Navbar';
@@ -109,6 +109,9 @@ function App() {
 />
  <Route element={<RequireAdmin />}>
   <Route path="/admin-dashboard/invoices" element={<Invoice />} />
+</Route>
+<Route element={<RequireAdmin />}>
+  <Route path="/admin-dashboard/quote" element={<Quote />} />
 </Route>
 <Route path="/admin-dashboard/disciplinary-action" element={<RequireStaff><EmployeeDiscipline /></RequireStaff>} />
 <Route
