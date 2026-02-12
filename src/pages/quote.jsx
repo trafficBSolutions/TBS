@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import "../css/quote.css";
 import Header from '../components/headerviews/HeaderAdminDash';
+import images from '../utils/tbsImages';
 const money = (n) =>
   (Number.isFinite(n) ? n : 0).toLocaleString(undefined, {
     style: "currency",
