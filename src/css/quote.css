@@ -1,0 +1,45 @@
+.quote-wrap { max-width: 1100px; margin: 0 auto; padding: 16px; }
+.quote-header { display:flex; justify-content:space-between; gap:16px; align-items:flex-start; }
+.quote-header h1 { margin: 0 0 8px; }
+.small { font-size: 12px; opacity: .85; }
+
+.quote-info { margin: 14px 0; display:grid; gap:10px; }
+.quote-info label { display:flex; flex-direction:column; gap:6px; font-size: 13px; }
+.row2 { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+.row3 { display:grid; grid-template-columns: 1fr 120px 160px; gap:10px; }
+
+.quote-controls { display:flex; flex-wrap:wrap; gap:14px; align-items:end; margin: 8px 0 14px; }
+.quote-controls label { display:flex; flex-direction:column; gap:6px; font-size: 13px; }
+.quote-controls .inline { flex-direction:row; align-items:center; gap:8px; margin-right:auto; }
+.hint { font-size: 11px; opacity: .7; }
+
+.table-actions { display:flex; justify-content:flex-end; margin-bottom:8px; }
+.btn { padding: 8px 12px; border-radius: 8px; border: 1px solid #ccc; background: #fff; cursor:pointer; }
+.btn:hover { background: #f6f6f6; }
+
+.quote-table table { width:100%; border-collapse:collapse; }
+.quote-table th, .quote-table td { border: 1px solid #d9d9d9; padding: 6px; font-size: 13px; }
+.quote-table thead th { background: #f2f2f2; text-align:left; }
+.quote-table input, .quote-table select {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 13px;
+  padding: 6px;
+}
+.quote-table tr:hover td { background: #fafafa; }
+
+.center { text-align:center; }
+.right { text-align:right; }
+
+.icon-btn { border: none; background: transparent; cursor:pointer; font-size: 16px; }
+.icon-btn:hover { opacity: .7; }
+
+.quote-totals { display:flex; justify-content:flex-end; margin-top: 12px; }
+.totals-box { width: 340px; border: 1px solid #d9d9d9; border-radius: 10px; padding: 10px; }
+.totals-box .row { display:flex; justify-content:space-between; padding: 6px 2px; }
+.totals-box .total { border-top: 1px solid #e1e1e1; margin-top: 6px; padding-top: 10px; font-size: 15px; }
+.totals-box .deposit { margin-top: 6px; opacity: .95; }
+
+.quote-footer { margin-top: 16px; border-top: 1px dashed #ccc; padding-top: 10px; }
