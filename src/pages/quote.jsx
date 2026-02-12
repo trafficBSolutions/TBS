@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import "../css/quote.css";
 import Header from '../components/headerviews/HeaderAdminDash';
 import images from '../utils/tbsImages';
+import api from '../utils/api';
 const money = (n) =>
   (Number.isFinite(n) ? n : 0).toLocaleString(undefined, {
     style: "currency",
@@ -40,6 +41,8 @@ export default function Quote() {
   const [depositRate] = useState(0.5);                   // 50% down
 
   const [rows, setRows] = useState([blankRow(), blankRow(), blankRow()]);
+  const [sending, setSending] = useState(false);
+  const [message, setMessage] = useState("");
 
   const updateRow = (id, patch) => {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
@@ -72,6 +75,41 @@ export default function Quote() {
 
     return { lineTotals, subtotal, taxDue, ccFee, total, depositDue };
   }, [rows, taxRate, isTaxExempt, payMethod, ccFeeRate, requireDeposit, depositRate]);
+
+  const handleSendQuote = async () => {
+    if (!email) {
+      setMessage("Please enter an email address");
+      return;
+    }
+
+    setSending(true);
+    setMessage("");
+
+    try {
+      await api.post('/api/quote', {
+        date,
+        company,
+        customer,
+        address,
+        city,
+        state,
+        zip,
+        email,
+        phone,
+        taxRate,
+        isTaxExempt,
+        payMethod,
+        rows,
+        computed
+      });
+      setMessage("Quote sent successfully!");
+    } catch (error) {
+      console.error('Error sending quote:', error);
+      setMessage("Failed to send quote. Please try again.");
+    } finally {
+      setSending(false);
+    }
+  };
 
   return (
     <div>
@@ -212,6 +250,27 @@ export default function Quote() {
             <span>Deposit Due (50%)</span>
             <strong>{money(computed.depositDue)}</strong>
           </div>
+        </div>
+
+        <div style={{ marginTop: '20px', textAlign: 'center' }}>
+          <button 
+            type="button" 
+            className="btn" 
+            onClick={handleSendQuote}
+            disabled={sending}
+            style={{ padding: '12px 30px', fontSize: '16px' }}
+          >
+            {sending ? 'Sending...' : 'Send Quote to Email'}
+          </button>
+          {message && (
+            <p style={{ 
+              marginTop: '10px', 
+              color: message.includes('success') ? 'green' : 'red',
+              fontWeight: 'bold'
+            }}>
+              {message}
+            </p>
+          )}
         </div>
       </section>
       </div>
