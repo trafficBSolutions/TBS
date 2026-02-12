@@ -260,11 +260,6 @@ export default function Quote() {
           <div className="row"><span>Tax Due</span><strong>{money(computed.taxDue)}</strong></div>
           <div className="row"><span>Card Fee (3.5%)</span><strong>{money(computed.ccFee)}</strong></div>
           <div className="row total"><span>TOTAL</span><strong>{money(computed.total)}</strong></div>
-
-          <div className="row deposit">
-            <span>Deposit Due (50%)</span>
-            <strong>{money(computed.depositDue)}</strong>
-          </div>
         </div>
 
         <div style={{ marginTop: '20px', textAlign: 'center' }}>
