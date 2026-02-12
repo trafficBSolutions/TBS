@@ -55,6 +55,10 @@ const [woSelectedDate, setWoSelectedDate] = useState(null);
 const [woMonthly, setWoMonthly] = useState({});
 const [woList, setWoList] = useState([]);
 const [viewMode, setViewMode] = useState('traffic'); // 'traffic' or 'workorders'
+const [quotesDate, setQuotesDate] = useState(new Date());
+const [quotesList, setQuotesList] = useState([]);
+const [quotesMonthly, setQuotesMonthly] = useState({});
+const [allowedForQuotes, setAllowedForQuotes] = useState(false);
 const [complaintsDate, setComplaintsDate] = useState(new Date());
 const [complaintsList, setComplaintsList] = useState([]);
 const [complaintsMonthly, setComplaintsMonthly] = useState({});
@@ -215,6 +219,13 @@ useEffect(() => {
       legacyEmails.has(user.email);
 
     setAllowedForInvoices(Boolean(canInvoice));
+
+    const quoteEmails = new Set([
+      'tbsolutions1999@gmail.com',
+      'tbsolutions9@gmail.com',
+      'tbsolutions4@gmail.com'
+    ]);
+    setAllowedForQuotes(quoteEmails.has(user.email));
   }
 }, []);
 const fetchComplaintsForDay = async (date) => {
@@ -245,6 +256,36 @@ const fetchMonthlyComplaints = async (date) => {
   } catch (e) {
     console.error('Failed to fetch monthly complaints:', e);
     setComplaintsMonthly({});
+  }
+};
+
+const fetchMonthlyQuotes = async (date) => {
+  try {
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+    const res = await axios.get(`/api/quotes/month?month=${month}&year=${year}`);
+    const grouped = {};
+    (res.data || []).forEach(q => {
+      const dateStr = q.date;
+      if (!dateStr) return;
+      (grouped[dateStr] ||= []).push(q);
+    });
+    setQuotesMonthly(grouped);
+  } catch (e) {
+    console.error('Failed to fetch monthly quotes:', e);
+    setQuotesMonthly({});
+  }
+};
+
+const fetchQuotesForDay = async (date) => {
+  if (!date) return;
+  try {
+    const dateStr = date.toISOString().split('T')[0];
+    const res = await axios.get(`/api/quotes/day?date=${dateStr}`);
+    setQuotesList(res.data || []);
+  } catch (e) {
+    console.error('Failed to fetch daily quotes:', e);
+    setQuotesList([]);
   }
 };
 const fetchMonthlyWorkOrders = async (date) => {
@@ -309,6 +350,13 @@ useEffect(() => {
     fetchComplaintsForDay(complaintsDate);
   }
 }, [complaintsDate]);
+
+useEffect(() => {
+  if (quotesDate && allowedForQuotes) {
+    fetchMonthlyQuotes(quotesDate);
+    fetchQuotesForDay(quotesDate);
+  }
+}, [quotesDate, allowedForQuotes]);
 // Update the fetchMonthlyJobs function to focus only on active jobs
 const fetchMonthlyJobs = async (date) => {
   try {
@@ -440,6 +488,14 @@ useEffect(() => {
       >
         Switch to Work Orders
       </button>
+      {allowedForQuotes && (
+        <button 
+          className={`btn ${viewMode === 'quotes' ? 'active' : ''}`}
+          onClick={() => setViewMode('quotes')}
+        >
+          Switch to Quotes
+        </button>
+      )}
         <button className={`btn ${viewMode === 'complaints' ? 'active' : ''}`} onClick={() => setViewMode('complaints')}>
     Switch to Complaints
   </button>
@@ -515,6 +571,7 @@ selected={
     : viewMode === 'workorders' ? woSelectedDate
     : viewMode === 'complaints' ? complaintsDate
     : viewMode === 'discipline' ? disciplineDate
+    : viewMode === 'quotes' ? quotesDate
     : taskDate
 }
   onChange={(date) => {
@@ -522,6 +579,7 @@ selected={
   else if (viewMode === 'workorders') setWoSelectedDate(date);
   else if (viewMode === 'complaints') setComplaintsDate(date);
   else if (viewMode === 'discipline') setDisciplineDate(date);
+  else if (viewMode === 'quotes') setQuotesDate(date);
   else setTaskDate(date);
 }}
   onMonthChange={(date) => {
@@ -530,6 +588,7 @@ selected={
   else if (viewMode === 'workorders') fetchMonthlyWorkOrders(date);
   else if (viewMode === 'complaints') fetchMonthlyComplaints(date);
   else if (viewMode === 'discipline') fetchMonthlyDiscipline(date);
+  else if (viewMode === 'quotes') fetchMonthlyQuotes(date);
   else fetchTasks();
 }}
   calendarClassName="admin-date-picker"
@@ -554,6 +613,7 @@ selected={
   : viewMode === 'workorders' ? woMonthly
   : viewMode === 'complaints' ? complaintsMonthly
   : viewMode === 'discipline' ? disciplineMonthly
+  : viewMode === 'quotes' ? quotesMonthly
   : tasks;
     const hasItems = dataSource[dateStr] && dataSource[dateStr].length > 0;
     return hasItems ? 'has-jobs' : '';
@@ -572,6 +632,8 @@ selected={
       dataSource = disciplineMonthly;
     } else if (viewMode === 'tasks') {
       dataSource = tasks;
+    } else if (viewMode === 'quotes') {
+      dataSource = quotesMonthly;
     }
     
     const itemsOnDate = dataSource?.[dateStr];
@@ -586,6 +648,7 @@ selected={
             : viewMode === 'workorders' ? 'Work Orders' 
             : viewMode === 'complaints' ? 'Complaints'
             : viewMode === 'discipline' ? 'Discipline'
+            : viewMode === 'quotes' ? 'Quotes'
             : 'Tasks'} {itemCount}
           </div>
         )}
@@ -780,6 +843,58 @@ selected={
   </div>
 )}
 </div>
+{viewMode === 'quotes' && (
+  <>
+    <h3>Quotes on {quotesDate?.toLocaleDateString()}</h3>
+    <div className="job-info-list">
+      {quotesList.map((q, i) => (
+        <div key={q._id || i} className="job-card">
+          <h4 className="job-company">{q.customer} - {q.company}</h4>
+          <p><strong>Date:</strong> {q.date}</p>
+          <p><strong>Email:</strong> {q.email}</p>
+          <p><strong>Phone:</strong> <a href={`tel:${q.phone}`}>{q.phone}</a></p>
+          <p><strong>Address:</strong> {q.address}, {q.city}, {q.state} {q.zip}</p>
+          <p><strong>Payment Method:</strong> {q.payMethod}</p>
+          <p><strong>Tax Exempt:</strong> {q.isTaxExempt ? 'Yes' : 'No'}</p>
+          <div style={{marginTop: '10px'}}>
+            <strong>Items:</strong>
+            <table style={{width: '100%', borderCollapse: 'collapse', marginTop: '5px', fontSize: '12px'}}>
+              <thead>
+                <tr style={{backgroundColor: '#f2f2f2'}}>
+                  <th style={{border: '1px solid #ddd', padding: '4px'}}>Item</th>
+                  <th style={{border: '1px solid #ddd', padding: '4px'}}>Description</th>
+                  <th style={{border: '1px solid #ddd', padding: '4px'}}>Qty</th>
+                  <th style={{border: '1px solid #ddd', padding: '4px'}}>Unit Price</th>
+                  <th style={{border: '1px solid #ddd', padding: '4px'}}>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {q.rows?.map((row, idx) => (
+                  <tr key={idx}>
+                    <td style={{border: '1px solid #ddd', padding: '4px'}}>{row.item}</td>
+                    <td style={{border: '1px solid #ddd', padding: '4px'}}>{row.description}</td>
+                    <td style={{border: '1px solid #ddd', padding: '4px'}}>{row.qty}</td>
+                    <td style={{border: '1px solid #ddd', padding: '4px'}}>${row.unitPrice?.toFixed(2)}</td>
+                    <td style={{border: '1px solid #ddd', padding: '4px'}}>${(row.qty * row.unitPrice)?.toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div style={{marginTop: '10px', textAlign: 'right'}}>
+            <p><strong>Subtotal:</strong> ${q.computed?.subtotal?.toFixed(2)}</p>
+            <p><strong>Tax:</strong> ${q.computed?.taxDue?.toFixed(2)}</p>
+            {q.computed?.ccFee > 0 && <p><strong>Card Fee:</strong> ${q.computed?.ccFee?.toFixed(2)}</p>}
+            <p style={{fontSize: '16px'}}><strong>TOTAL:</strong> ${q.computed?.total?.toFixed(2)}</p>
+            <p style={{color: '#d97706'}}><strong>Deposit (50%):</strong> ${q.computed?.depositDue?.toFixed(2)}</p>
+          </div>
+          <p><strong>Created:</strong> {new Date(q.createdAt).toLocaleDateString()} at {new Date(q.createdAt).toLocaleTimeString()}</p>
+        </div>
+      ))}
+      {quotesList.length === 0 && <p>No quotes on this day.</p>}
+    </div>
+  </>
+)}
 {viewMode === 'complaints' && (
   <>
     <h3>Employee Complaints on {complaintsDate?.toLocaleDateString()}</h3>
@@ -975,6 +1090,12 @@ selected={
   <div className="admin-invoice">
     <h1 className="invoice-h1">Invoicing</h1>
     <a href="/admin-dashboard/invoices" className="invoice-btn">Go to Invoicing</a>
+  </div>
+)}
+{allowedForQuotes && (
+  <div className="admin-invoice">
+    <h1 className="invoice-h1">Quoting</h1>
+    <a href="/quote" className="invoice-btn">Go to Quoting</a>
   </div>
 )}
 <div className="cancelled-jobs">
