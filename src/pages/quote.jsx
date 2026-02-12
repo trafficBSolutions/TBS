@@ -36,11 +36,11 @@ export default function Quote() {
   const [taxRate, setTaxRate] = useState(0.08);         // 8% example
   const [isTaxExempt, setIsTaxExempt] = useState(false); // “If tax exempt, subtotal is final total”
   const [payMethod, setPayMethod] = useState("Check");   // Card triggers 3.5% fee
-  const [ccFeeRate] = useState(0.035);                   // 3.5% rule
+  const [ccFeeRate] = useState(0.03);                   // 3.5% rule
   const [requireDeposit] = useState(true);
   const [depositRate] = useState(0.5);                   // 50% down
 
-  const [rows, setRows] = useState([blankRow(), blankRow(), blankRow()]);
+  const [rows, setRows] = useState([blankRow()]);
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -169,16 +169,6 @@ export default function Quote() {
           />
           <span className="hint">0.08 = 8%</span>
         </label>
-
-        <label>
-          Paid By
-          <select value={payMethod} onChange={(e) => setPayMethod(e.target.value)}>
-            <option value="Check">Check</option>
-            <option value="Cash">Cash</option>
-            <option value="Card">Credit Card</option>
-          </select>
-          <span className="hint">Card adds 3.5% fee</span>
-        </label>
       </section>
 
       <section className="quote-table">
@@ -258,7 +248,7 @@ export default function Quote() {
         <div className="totals-box">
           <div className="row"><span>Subtotal</span><strong>{money(computed.subtotal)}</strong></div>
           <div className="row"><span>Tax Due</span><strong>{money(computed.taxDue)}</strong></div>
-          <div className="row"><span>Card Fee (3.5%)</span><strong>{money(computed.ccFee)}</strong></div>
+          <div className="row"><span>Card Fee (3%)</span><strong>{money(computed.ccFee)}</strong></div>
           <div className="row total"><span>TOTAL</span><strong>{money(computed.total)}</strong></div>
         </div>
 
