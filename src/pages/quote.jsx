@@ -119,18 +119,18 @@ export default function Quote() {
 
       <section className="quote-info">
         <label>Company/Excavator<input value={company} onChange={(e) => setCompany(e.target.value)} /></label>
-        <label>Customer<input value={customer} onChange={(e) => setCustomer(e.target.value)} /></label>
-        <label>Address<input value={address} onChange={(e) => setAddress(e.target.value)} /></label>
+        <label>Customer<input type="text" value={customer} onChange={(e) => setCustomer(e.target.value)} /></label>
+        <label>Address<input type="text" value={address} onChange={(e) => setAddress(e.target.value)} /></label>
 
         <div className="row3">
-          <label>City<input value={city} onChange={(e) => setCity(e.target.value)} /></label>
-          <label>State<input value={state} onChange={(e) => setState(e.target.value)} /></label>
-          <label>ZIP<input value={zip} onChange={(e) => setZip(e.target.value)} /></label>
+          <label>City<input type="text" value={city} onChange={(e) => setCity(e.target.value)} /></label>
+          <label>State<input type="text" value={state} onChange={(e) => setState(e.target.value)} /></label>
+          <label>ZIP<input type="text" value={zip} onChange={(e) => setZip(e.target.value)} /></label>
         </div>
 
         <div className="row2">
-          <label>Email<input value={email} onChange={(e) => setEmail(e.target.value)} /></label>
-          <label>Phone<input value={phone} onChange={(e) => setPhone(e.target.value)} /></label>
+          <label>Email<input type="text" value={email} onChange={(e) => setEmail(e.target.value)} /></label>
+          <label>Phone<input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} /></label>
         </div>
       </section>
 
