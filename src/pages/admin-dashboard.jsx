@@ -842,7 +842,7 @@ selected={
 </div>
   </div>
 )}
-</div>
+
 {viewMode === 'quotes' && (
   <>
     <h3>Quotes on {quotesDate?.toLocaleDateString()}</h3>
@@ -995,7 +995,7 @@ selected={
     </div>
   </>
 )}
-
+</div>
 
       <div className="job-actions">
         <h2 className="admin-apps-title">Need To Fill Out a Work Order?</h2>
