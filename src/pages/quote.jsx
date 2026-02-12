@@ -75,7 +75,22 @@ export default function Quote() {
 
     return { lineTotals, subtotal, taxDue, ccFee, total, depositDue };
   }, [rows, taxRate, isTaxExempt, payMethod, ccFeeRate, requireDeposit, depositRate]);
-
+ const handlePhoneChange = (event) => {
+    const input = event.target.value;
+    const rawInput = input.replace(/\D/g, ''); // Remove non-digit characters
+    const formatted = rawInput.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+    
+    setPhone(formatted);
+    setFormData({ ...formData, phone: formatted });
+  
+    // Check if the input has 10 digits and clear the error if it does
+    if (rawInput.length === 10) {
+      setErrors((prevErrors) => ({ ...prevErrors, phone: '' }));
+    } else {
+      setErrors((prevErrors) => ({ ...prevErrors, phone: 'Please enter a valid 10-digit phone number.' }));
+    }
+    setTimeout(checkAllFieldsFilled, 0);
+  };
   const handleSendQuote = async () => {
     if (!email) {
       setMessage("Please enter an email address");
@@ -130,7 +145,7 @@ export default function Quote() {
 
         <div className="row2">
           <label>Email<input type="text" value={email} onChange={(e) => setEmail(e.target.value)} /></label>
-          <label>Phone<input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} /></label>
+          <label>Phone<input type="text" value={phone} onChange={handlePhoneChange} /></label>
         </div>
       </section>
 
