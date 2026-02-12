@@ -74,8 +74,10 @@ export default function Quote() {
   }, [rows, taxRate, isTaxExempt, payMethod, ccFeeRate, requireDeposit, depositRate]);
 
   return (
+    <div>
+    <Header />
     <div className="quote-wrap">
-      <Header />
+      
 
       <section className="quote-info">
         <label>Company/Excavator<input value={company} onChange={(e) => setCompany(e.target.value)} /></label>
@@ -212,6 +214,7 @@ export default function Quote() {
           </div>
         </div>
       </section>
+      </div>
 <footer className="footer">
   <div className="site-footer__inner">
     <img className="tbs-logo" alt="TBS logo" src={images["../assets/tbs_companies/tbs white.svg"].default} />
