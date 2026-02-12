@@ -81,7 +81,7 @@ export default function Quote() {
     const formatted = rawInput.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
     
     setPhone(formatted);
-    setFormData({ ...formData, phone: formatted });
+
   
     // Check if the input has 10 digits and clear the error if it does
     if (rawInput.length === 10) {
