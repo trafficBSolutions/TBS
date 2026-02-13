@@ -883,7 +883,7 @@ selected={
             <p><strong>Tax:</strong> ${q.computed?.taxDue?.toFixed(2)}</p>
             {q.computed?.ccFee > 0 && <p><strong>Card Fee:</strong> ${q.computed?.ccFee?.toFixed(2)}</p>}
             <p style={{fontSize: '16px'}}><strong>TOTAL:</strong> ${q.computed?.total?.toFixed(2)}</p>
-            <p style={{color: '#d97706'}}><strong>Deposit (50%):</strong> ${q.computed?.depositDue?.toFixed(2)}</p>
+          
           </div>
           <p><strong>Created:</strong> {new Date(q.createdAt).toLocaleDateString()} at {new Date(q.createdAt).toLocaleTimeString()}</p>
         </div>
