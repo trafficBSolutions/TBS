@@ -74,6 +74,7 @@ const [isTaskPublic, setIsTaskPublic] = useState(false);
 const [showTasks, setShowTasks] = useState(false);
 const [taskDate, setTaskDate] = useState(new Date());
 const [resendingQuoteId, setResendingQuoteId] = useState(null);
+const [successMessage, setSuccessMessage] = useState('');
 // Modify your fetchMonthlyJobs function to include better logging
 // Add this useEffect to fetch cancelled jobs specifically
 useEffect(() => {
@@ -844,6 +845,20 @@ selected={
 {viewMode === 'quotes' && (
   <>
     <h3>Quotes on {quotesDate?.toLocaleDateString()}</h3>
+    {successMessage && (
+      <div style={{
+        backgroundColor: successMessage.includes('successfully') ? '#4CAF50' : '#f44336',
+        color: 'white',
+        padding: '12px 20px',
+        borderRadius: '4px',
+        marginBottom: '15px',
+        textAlign: 'center',
+        fontWeight: 'bold',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+      }}>
+        {successMessage}
+      </div>
+    )}
     <div className="job-info-list">
       {quotesList.map((q, i) => (
         <div key={q._id || i} className="job-card">
@@ -894,10 +909,12 @@ selected={
                 try {
                   await axios.post(`/api/quotes/${q._id}/resend`);
                   await fetchQuotesForDay(quotesDate);
-                  alert('Quote resent successfully!');
+                  setSuccessMessage('Quote resent successfully!');
+                  setTimeout(() => setSuccessMessage(''), 3000);
                 } catch (error) {
                   console.error('Error resending quote:', error);
-                  alert('Failed to resend quote');
+                  setSuccessMessage('Failed to resend quote');
+                  setTimeout(() => setSuccessMessage(''), 3000);
                 } finally {
                   setResendingQuoteId(null);
                 }
