@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import "../css/quote.css";
 import Header from '../components/headerviews/HeaderAdminDash';
 import images from '../utils/tbsImages';
 import api from '../utils/api';
+import { useNavigate } from 'react-router-dom';
 const money = (n) =>
   (Number.isFinite(n) ? n : 0).toLocaleString(undefined, {
     style: "currency",
@@ -21,6 +22,25 @@ const blankRow = () => ({
 });
 
 export default function Quote() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const stored = localStorage.getItem('adminUser');
+    if (stored) {
+      const user = JSON.parse(stored);
+      const quoteEmails = new Set([
+        'tbsolutions1999@gmail.com',
+        'tbsolutions9@gmail.com',
+        'tbsolutions4@gmail.com'
+      ]);
+      if (!quoteEmails.has(user.email)) {
+        navigate('/admin-dashboard');
+      }
+    } else {
+      navigate('/admin-dashboard');
+    }
+  }, [navigate]);
+
   // header fields (match your doc)
   const [date, setDate] = useState(isoDate());
   const [company, setCompany] = useState("");
