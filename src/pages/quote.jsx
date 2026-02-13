@@ -241,7 +241,7 @@ export default function Quote() {
                 </td>
                 <td className="center">
                   <select
-                    value={r.taxable ? "Yes" : "No"}
+                    value={isTaxExempt ? "No" : (r.taxable ? "Yes" : "No")}
                     onChange={(e) => updateRow(r.id, { taxable: e.target.value === "Yes" })}
                     disabled={isTaxExempt}
                   >
