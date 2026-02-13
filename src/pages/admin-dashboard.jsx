@@ -851,7 +851,6 @@ selected={
           <p><strong>Email:</strong> {q.email}</p>
           <p><strong>Phone:</strong> <a href={`tel:${q.phone}`}>{q.phone}</a></p>
           <p><strong>Address:</strong> {q.address}, {q.city}, {q.state} {q.zip}</p>
-          <p><strong>Payment Method:</strong> {q.payMethod}</p>
           <p><strong>Tax Exempt:</strong> {q.isTaxExempt ? 'Yes' : 'No'}</p>
           <div style={{marginTop: '10px'}}>
             <strong>Items:</strong>
