@@ -657,9 +657,9 @@ selected={
   }}
 />
 <div className="job-main-info-list">
-{viewMode === 'traffic' ? (
-  <>
-    <h3>Traffic Control Jobs on {selectedDate?.toLocaleDateString()}</h3>
+  {viewMode === 'traffic' && (
+    <>
+       <h3>Traffic Control Jobs on {selectedDate?.toLocaleDateString()}</h3>
     {selectedDate && tasks[selectedDate.toISOString().split('T')[0]] && (
       <div className="selected-date-tasks">
         <h4>📋 Tasks for {selectedDate.toLocaleDateString()}</h4>
@@ -731,8 +731,9 @@ selected={
       })}
     </div>
   </>
-) : (
-  <>
+  )}
+  {viewMode === 'workorders' && (
+    <>
     <h3>Work Orders on {woSelectedDate?.toLocaleDateString()}</h3>
     {woSelectedDate && tasks[woSelectedDate.toISOString().split('T')[0]] && (
       <div className="selected-date-tasks">
@@ -839,10 +840,6 @@ selected={
     </div>
   </>
 )}
-</div>
-  </div>
-)}
-
 {viewMode === 'quotes' && (
   <>
     <h3>Quotes on {quotesDate?.toLocaleDateString()}</h3>
@@ -995,6 +992,11 @@ selected={
     </div>
   </>
 )}
+</div>
+  </div>
+)}
+
+
 </div>
 
       <div className="job-actions">
