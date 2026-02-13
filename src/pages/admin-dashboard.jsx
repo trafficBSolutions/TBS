@@ -1097,7 +1097,13 @@ selected={
 {allowedForQuotes && (
   <div className="admin-invoice">
     <h1 className="invoice-h1">Quoting</h1>
-    <a href="/admin-dashboard/quote" className="invoice-btn">Go to Quoting</a>
+    <button
+  className="invoice-btn"
+  type="button"
+  onClick={() => navigate("/admin-dashboard/quote")}
+>
+  Go to Quoting
+</button>
   </div>
 )}
 <div className="cancelled-jobs">
