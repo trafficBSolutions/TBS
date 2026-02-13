@@ -882,9 +882,26 @@ selected={
             <p><strong>Tax:</strong> ${q.computed?.taxDue?.toFixed(2)}</p>
             {q.computed?.ccFee > 0 && <p><strong>Card Fee:</strong> ${q.computed?.ccFee?.toFixed(2)}</p>}
             <p style={{fontSize: '16px'}}><strong>TOTAL:</strong> ${q.computed?.total?.toFixed(2)}</p>
-          
           </div>
           <p><strong>Created:</strong> {new Date(q.createdAt).toLocaleDateString()} at {new Date(q.createdAt).toLocaleTimeString()}</p>
+          {q.lastSentAt && <p><strong>Last Sent On:</strong> {new Date(q.lastSentAt).toLocaleDateString()} at {new Date(q.lastSentAt).toLocaleTimeString()}</p>}
+          <div className="job-actions">
+            <button
+              className="btn workorder-btn"
+              onClick={async () => {
+                try {
+                  await axios.post(`/api/quotes/${q._id}/resend`);
+                  alert('Quote resent successfully!');
+                  fetchQuotesForDay(quotesDate);
+                } catch (error) {
+                  console.error('Error resending quote:', error);
+                  alert('Failed to resend quote');
+                }
+              }}
+            >
+              Resend Quote
+            </button>
+          </div>
         </div>
       ))}
       {quotesList.length === 0 && <p>No quotes on this day.</p>}
