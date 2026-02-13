@@ -63,6 +63,7 @@ export default function Quote() {
   const [rows, setRows] = useState([blankRow()]);
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState("");
+  const [taxExemptNumber, setTaxExemptNumber] = useState("");
 
   const updateRow = (id, patch) => {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
@@ -133,6 +134,7 @@ export default function Quote() {
         phone,
         taxRate,
         isTaxExempt,
+        taxExemptNumber,
         payMethod,
         rows,
         computed
@@ -178,6 +180,18 @@ export default function Quote() {
           />
           Tax Exempt (subtotal is final total)
         </label>
+
+        {isTaxExempt && (
+          <label>
+            Tax Exemption Number
+            <input
+              type="text"
+              value={taxExemptNumber}
+              onChange={(e) => setTaxExemptNumber(e.target.value)}
+              placeholder="Enter tax exemption number"
+            />
+          </label>
+        )}
 
         <label>
           Tax Rate
