@@ -73,6 +73,7 @@ const [taskText, setTaskText] = useState('');
 const [isTaskPublic, setIsTaskPublic] = useState(false);
 const [showTasks, setShowTasks] = useState(false);
 const [taskDate, setTaskDate] = useState(new Date());
+const [resendingQuoteId, setResendingQuoteId] = useState(null);
 // Modify your fetchMonthlyJobs function to include better logging
 // Add this useEffect to fetch cancelled jobs specifically
 useEffect(() => {
@@ -888,18 +889,22 @@ selected={
           <div className="job-actions">
             <button
               className="btn workorder-btn"
+              disabled={resendingQuoteId === q._id}
               onClick={async () => {
+                setResendingQuoteId(q._id);
                 try {
                   await axios.post(`/api/quotes/${q._id}/resend`);
+                  await fetchQuotesForDay(quotesDate);
                   alert('Quote resent successfully!');
-                  fetchQuotesForDay(quotesDate);
                 } catch (error) {
                   console.error('Error resending quote:', error);
                   alert('Failed to resend quote');
+                } finally {
+                  setResendingQuoteId(null);
                 }
               }}
             >
-              Resend Quote
+              {resendingQuoteId === q._id ? 'Resending Quote...' : 'Resend Quote'}
             </button>
           </div>
         </div>
