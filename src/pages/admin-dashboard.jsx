@@ -885,7 +885,6 @@ selected={
             <p style={{fontSize: '16px'}}><strong>TOTAL:</strong> ${q.computed?.total?.toFixed(2)}</p>
           </div>
           <p><strong>Created:</strong> {new Date(q.createdAt).toLocaleDateString()} at {new Date(q.createdAt).toLocaleTimeString()}</p>
-          {q.lastSentAt && <p><strong>Last Sent On:</strong> {new Date(q.lastSentAt).toLocaleDateString()} at {new Date(q.lastSentAt).toLocaleTimeString()}</p>}
           <div className="job-actions">
             <button
               className="btn workorder-btn"
