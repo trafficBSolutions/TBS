@@ -6,7 +6,8 @@ const ALLOWLIST = new Set([
   'tbsolutions1999@gmail.com',
   'trafficandbarriersolutions.ap@gmail.com',
   'tbsellen@gmail.com',
-  'tbsolutions1995@gmail.com'
+  'tbsolutions1995@gmail.com',
+  'tbsolutions4@gmail.com',
 ]);
 
 export default function RequireAdmin() {
