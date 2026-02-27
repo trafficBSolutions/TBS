@@ -804,8 +804,8 @@ const Invoice = () => {
   const [companyKey, setCompanyKey] = useState(''); // '' = All Companies
 const [readyToSend, setReadyToSend] = useState(false);
   // Calendar state
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [calendarViewDate, setCalendarViewDate] = useState(new Date()); // current month shown
+  const [selectedDate, setSelectedDate] = useState(new Date(2026, 0, 1));
+  const [calendarViewDate, setCalendarViewDate] = useState(new Date(2026, 0, 1)); // current month shown
   const [monthlyJobs, setMonthlyJobs] = useState({}); // { 'YYYY-MM-DD': [job, ...], ... }
   const [jobsForDay, setJobsForDay] = useState([]);   // jobs for selected day
 const [billingOpen, setBillingOpen] = useState(false);
