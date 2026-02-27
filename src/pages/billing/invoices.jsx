@@ -2034,6 +2034,7 @@ const handleUpdateInvoice = async () => {
   // Fetch all invoices for spreadsheet
   const [allInvoices, setAllInvoices] = useState([]);
   const [invoicePage, setInvoicePage] = useState(0);
+  const [markingPaidId, setMarkingPaidId] = useState(null);
   const INVOICES_PER_PAGE = 50;
   
   useEffect(() => {
@@ -2047,6 +2048,21 @@ const handleUpdateInvoice = async () => {
     };
     fetchAllInvoices();
   }, []);
+
+  const handleQuickMarkPaid = async (invoiceId) => {
+    if (!confirm('Mark this invoice as paid?')) return;
+    setMarkingPaidId(invoiceId);
+    try {
+      await api.post('/api/billing/quick-mark-paid', { invoiceId });
+      toast.success('Invoice marked as paid!');
+      const res = await api.get('/api/billing/all-invoices');
+      setAllInvoices(res.data || []);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to mark paid');
+    } finally {
+      setMarkingPaidId(null);
+    }
+  };
 
   return (
     <div>
@@ -2093,15 +2109,33 @@ const handleUpdateInvoice = async () => {
                       <td style={{ padding: '10px', border: '1px solid #ddd' }}>{new Date(inv.sentAt || inv.createdAt).toLocaleDateString()}</td>
                       <td style={{ padding: '10px', textAlign: 'right', border: '1px solid #ddd' }}>${(inv.principal || 0).toFixed(2)}</td>
                       <td style={{ padding: '10px', textAlign: 'center', border: '1px solid #ddd' }}>
-                        <span style={{ 
-                          padding: '4px 12px', 
-                          borderRadius: '4px', 
-                          backgroundColor: inv.status === 'PAID' ? '#28a745' : '#ffc107',
-                          color: inv.status === 'PAID' ? 'white' : 'black',
-                          fontWeight: 'bold'
-                        }}>
-                          {inv.status === 'PAID' ? 'Yes' : 'No'}
-                        </span>
+                        {inv.status === 'PAID' ? (
+                          <span style={{ 
+                            padding: '4px 12px', 
+                            borderRadius: '4px', 
+                            backgroundColor: '#28a745',
+                            color: 'white',
+                            fontWeight: 'bold'
+                          }}>
+                            Yes
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => handleQuickMarkPaid(inv._id)}
+                            disabled={markingPaidId === inv._id}
+                            style={{
+                              padding: '4px 12px',
+                              borderRadius: '4px',
+                              backgroundColor: '#ffc107',
+                              color: 'black',
+                              fontWeight: 'bold',
+                              border: 'none',
+                              cursor: markingPaidId === inv._id ? 'wait' : 'pointer'
+                            }}
+                          >
+                            {markingPaidId === inv._id ? 'Marking...' : 'No - Mark Paid'}
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
