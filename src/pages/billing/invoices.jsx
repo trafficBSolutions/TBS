@@ -2033,6 +2033,8 @@ const handleUpdateInvoice = async () => {
 
   // Fetch all invoices for spreadsheet
   const [allInvoices, setAllInvoices] = useState([]);
+  const [invoicePage, setInvoicePage] = useState(0);
+  const INVOICES_PER_PAGE = 50;
   
   useEffect(() => {
     const fetchAllInvoices = async () => {
@@ -2083,6 +2085,7 @@ const handleUpdateInvoice = async () => {
                     const numB = parseInt(b.invoiceNumber || '0');
                     return numA - numB;
                   })
+                  .slice(invoicePage * INVOICES_PER_PAGE, (invoicePage + 1) * INVOICES_PER_PAGE)
                   .map((inv, idx) => (
                     <tr key={inv._id || idx} style={{ borderBottom: '1px solid #ddd' }}>
                       <td style={{ padding: '10px', border: '1px solid #ddd' }}>{inv.invoiceNumber || 'N/A'}</td>
@@ -2104,6 +2107,23 @@ const handleUpdateInvoice = async () => {
                   ))}
               </tbody>
             </table>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '15px' }}>
+            <button 
+              onClick={() => setInvoicePage(p => Math.max(0, p - 1))}
+              disabled={invoicePage === 0}
+              style={{ padding: '8px 16px', backgroundColor: invoicePage === 0 ? '#ccc' : '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: invoicePage === 0 ? 'not-allowed' : 'pointer' }}
+            >
+              ← Previous
+            </button>
+            <span>Page {invoicePage + 1} of {Math.ceil(allInvoices.length / INVOICES_PER_PAGE)} ({allInvoices.length} total)</span>
+            <button 
+              onClick={() => setInvoicePage(p => p + 1)}
+              disabled={(invoicePage + 1) * INVOICES_PER_PAGE >= allInvoices.length}
+              style={{ padding: '8px 16px', backgroundColor: (invoicePage + 1) * INVOICES_PER_PAGE >= allInvoices.length ? '#ccc' : '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: (invoicePage + 1) * INVOICES_PER_PAGE >= allInvoices.length ? 'not-allowed' : 'pointer' }}
+            >
+              Next →
+            </button>
           </div>
         </div>
         {/* Jobs Calendar – shows ALL jobs until a selection is made, then filters */}
