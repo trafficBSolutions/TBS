@@ -2031,6 +2031,21 @@ const handleUpdateInvoice = async () => {
   }
 };
 
+  // Fetch all invoices for spreadsheet
+  const [allInvoices, setAllInvoices] = useState([]);
+  
+  useEffect(() => {
+    const fetchAllInvoices = async () => {
+      try {
+        const res = await api.get('/api/billing/all-invoices');
+        setAllInvoices(res.data || []);
+      } catch (err) {
+        console.error('Failed to fetch all invoices:', err);
+      }
+    };
+    fetchAllInvoices();
+  }, []);
+
   return (
     <div>
       <Header />
@@ -2045,6 +2060,51 @@ const handleUpdateInvoice = async () => {
           >
             🔄 Refresh
           </button>
+        </div>
+        
+        {/* Invoice Spreadsheet */}
+        <div style={{ marginBottom: '30px', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+          <h2 style={{ marginBottom: '15px' }}>All Invoices</h2>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: 'white' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#17365D', color: 'white' }}>
+                  <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #ddd' }}>Invoice Number</th>
+                  <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #ddd' }}>Company</th>
+                  <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #ddd' }}>Date</th>
+                  <th style={{ padding: '12px', textAlign: 'right', border: '1px solid #ddd' }}>Amount</th>
+                  <th style={{ padding: '12px', textAlign: 'center', border: '1px solid #ddd' }}>Paid?</th>
+                </tr>
+              </thead>
+              <tbody>
+                {allInvoices
+                  .sort((a, b) => {
+                    const numA = parseInt(a.invoiceNumber || '0');
+                    const numB = parseInt(b.invoiceNumber || '0');
+                    return numA - numB;
+                  })
+                  .map((inv, idx) => (
+                    <tr key={inv._id || idx} style={{ borderBottom: '1px solid #ddd' }}>
+                      <td style={{ padding: '10px', border: '1px solid #ddd' }}>{inv.invoiceNumber || 'N/A'}</td>
+                      <td style={{ padding: '10px', border: '1px solid #ddd' }}>{inv.billedTo?.name || 'N/A'}</td>
+                      <td style={{ padding: '10px', border: '1px solid #ddd' }}>{new Date(inv.sentAt || inv.createdAt).toLocaleDateString()}</td>
+                      <td style={{ padding: '10px', textAlign: 'right', border: '1px solid #ddd' }}>${(inv.principal || 0).toFixed(2)}</td>
+                      <td style={{ padding: '10px', textAlign: 'center', border: '1px solid #ddd' }}>
+                        <span style={{ 
+                          padding: '4px 12px', 
+                          borderRadius: '4px', 
+                          backgroundColor: inv.status === 'PAID' ? '#28a745' : '#ffc107',
+                          color: inv.status === 'PAID' ? 'white' : 'black',
+                          fontWeight: 'bold'
+                        }}>
+                          {inv.status === 'PAID' ? 'Yes' : 'No'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
         </div>
         {/* Jobs Calendar – shows ALL jobs until a selection is made, then filters */}
         <div className="admin-job-calendar" style={{ marginTop: 20 }}>
