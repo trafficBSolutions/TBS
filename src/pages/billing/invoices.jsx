@@ -2400,6 +2400,11 @@ const isExpanded = billingJob?._id === workOrder._id;
               )}
             </div>
             
+            <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#e3f2fd', borderRadius: '8px', border: '2px solid #007bff' }}>
+              <label style={{ display: 'block', marginBottom: 8, fontSize: '18px', fontWeight: 'bold', color: '#007bff' }}>TBS Invoice Number</label>
+              <input type="text" value={workOrderTbsInvoiceNumber} onChange={(e) => setWorkOrderTbsInvoiceNumber(e.target.value)} placeholder="Enter TBS invoice number" style={{ width: '100%', padding: 10, fontSize: '16px', fontWeight: 'bold', border: '2px solid #007bff' }} />
+            </div>
+            
             <div style={{ display:'grid', gridTemplateColumns:'auto auto', gap:12, alignItems:'end', marginBottom: '15px' }}>
               <label style={{ display:'grid', gap:6 }}>
                 <span>Invoice Date</span>
@@ -2424,8 +2429,6 @@ const isExpanded = billingJob?._id === workOrder._id;
               <input type="text" value={billToAddress} onChange={(e) => setBillToAddress(e.target.value)} placeholder="Street, City, State ZIP" style={{ width: '100%', padding: 6 }} />
               <label style={{ display: 'block', marginTop: 8 }}>Send Invoice To (Emails - separate with commas)</label>
               <textarea value={selectedEmail} onChange={(e) => setSelectedEmail(e.target.value)} placeholder="email1@company.com, email2@company.com" style={{ width: '100%', padding: 6, minHeight: '60px', resize: 'vertical' }} />
-              <label style={{ display: 'block', marginTop: 8 }}>TBS Invoice Number</label>
-              <input type="text" value={workOrderTbsInvoiceNumber} onChange={(e) => setWorkOrderTbsInvoiceNumber(e.target.value)} placeholder="Enter TBS invoice number" style={{ width: '100%', padding: 6 }} />
             </div>
             
             <div style={{ padding: 12, border: '1px solid #e5e7eb', borderRadius: 8, background: '#f9fafb', marginBottom: 12 }}>
@@ -2585,6 +2588,12 @@ const isExpanded = billingJob?._id === workOrder._id;
       )}
     </div>
 
+    {/* === TBS INVOICE NUMBER (PRIMARY) === */}
+    <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#e3f2fd', borderRadius: '8px', border: '2px solid #007bff' }}>
+      <label style={{ display: 'block', marginBottom: 8, fontSize: '18px', fontWeight: 'bold', color: '#007bff' }}>TBS Invoice Number</label>
+      <input type="text" value={workOrderTbsInvoiceNumber} onChange={(e) => setWorkOrderTbsInvoiceNumber(e.target.value)} placeholder="Enter TBS invoice number" style={{ width: '100%', padding: 10, fontSize: '16px', fontWeight: 'bold', border: '2px solid #007bff' }} />
+    </div>
+
     {/* === DATES === */}
     <div style={{ display:'grid', gridTemplateColumns:'auto auto', gap:12, alignItems:'end', marginBottom: '15px' }}>
       <label style={{ display:'grid', gap:6 }}>
@@ -2613,9 +2622,6 @@ const isExpanded = billingJob?._id === workOrder._id;
 
       <label style={{ display: 'block', marginTop: 8 }}>Send Invoice To (Emails - separate with commas)</label>
       <textarea value={selectedEmail} onChange={(e) => setSelectedEmail(e.target.value)} placeholder="email1@company.com, email2@company.com" style={{ width: '100%', padding: 6, minHeight: '60px', resize: 'vertical' }} />
-      
-      <label style={{ display: 'block', marginTop: 8 }}>TBS Invoice Number</label>
-      <input type="text" value={workOrderTbsInvoiceNumber} onChange={(e) => setWorkOrderTbsInvoiceNumber(e.target.value)} placeholder="Enter TBS invoice number" style={{ width: '100%', padding: 6 }} />
     </div>
 
     {/* === TOTALS SUMMARY === */}
