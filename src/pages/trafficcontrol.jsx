@@ -322,15 +322,12 @@ const checkAllFieldsFilled = () => {
     formData[field] && formData[field].toString().trim() !== ''
   );
   
-  // Also check equipment which is an array
-  const equipmentSelected = formData.equipment && formData.equipment.length > 0;
-  
   // If all fields are filled, clear the error message
-  if (allFilled && equipmentSelected) {
+  if (allFilled) {
     setErrorMessage('');
   }
   
-  return allFilled && equipmentSelected;
+  return allFilled;
 };
 // Accept common ways people type Georgia Power
 const isGeorgiaPower = (str) => {
@@ -400,10 +397,6 @@ const isCompanySelected = (formData.company || '').trim().length > 0;
         newErrors[field] = `${fieldLabel} is required!`;
       }
     });
-    
-    if (formData.equipment.length === 0) {
-      newErrors.equipment = 'Please select at least one piece of equipment.';
-    }
     
     if (!recaptchaToken && recaptchaToken !== 'bypass') {
       newErrors.recaptcha = 'Please complete the reCAPTCHA.';
@@ -823,7 +816,7 @@ setTimeout(checkAllFieldsFilled, 0);
 )}
 {errors.flagger && <div className="error-message">{errors.flagger}</div>}
   <label className="equipment-setup-label">
-    Equipment Setup * (Select all that apply)
+    Equipment Setup (Select all that apply)
   </label>
   <div className="equipment-checkboxes">
   <label>
@@ -1248,5 +1241,6 @@ setFormData({
         </div>
     )
 };
+
 
 
