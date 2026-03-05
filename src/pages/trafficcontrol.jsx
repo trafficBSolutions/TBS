@@ -730,7 +730,7 @@ setTimeout(checkAllFieldsFilled, 0);
               }}
             />
             <img className="ta-img" src={images["../assets/buffer and tapers/TA-10.svg"].default} alt="TA-10" />
-            <figcaption>TA-10</figcaption>
+            <figcaption>TA-10<br/><small>2 Flaggers on 2 Lane Road</small></figcaption>
           </label>
         </figure>
         <figure className="ta-card">
@@ -746,7 +746,7 @@ setTimeout(checkAllFieldsFilled, 0);
               }}
             />
             <img className="ta-img" src={images["../assets/buffer and tapers/TA-33.svg"].default} alt="TA-33" />
-            <figcaption>TA-33</figcaption>
+            <figcaption>TA-33<br/><small>2 Flaggers with Arrow Board</small></figcaption>
           </label>
         </figure>
         <figure className="ta-card">
@@ -762,7 +762,7 @@ setTimeout(checkAllFieldsFilled, 0);
               }}
             />
             <img className="ta-img" src={images["../assets/buffer and tapers/TA-37.svg"].default} alt="TA-37" />
-            <figcaption>TA-37</figcaption>
+            <figcaption>TA-37<br/><small>2 Crews with 2 Arrow Boards</small></figcaption>
           </label>
         </figure>
       </div>
