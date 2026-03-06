@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import '../css/trafficcontrol.css';
 
 export default function ConfirmAdditionalFlagger() {
   const [jobData, setJobData] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const pendingJob = sessionStorage.getItem('pendingTrafficControlJob');
@@ -13,15 +16,31 @@ export default function ConfirmAdditionalFlagger() {
   }, []);
 
   const handleConfirm = () => {
-    sessionStorage.setItem('additionalFlaggersConfirmed', 'true');
-    alert('Confirmation successful! Returning to form...');
-    window.close();
+    setIsSubmitting(true);
+    toast.info('Submitting...');
+    
+    setTimeout(() => {
+      sessionStorage.setItem('additionalFlaggersConfirmed', 'true');
+      toast.success('Confirmed! Closing tab...');
+      
+      setTimeout(() => {
+        window.close();
+      }, 1500);
+    }, 1000);
   };
 
   const handleCancel = () => {
-    sessionStorage.setItem('additionalFlaggersConfirmed', 'false');
-    alert('Additional flaggers cancelled. Returning to form...');
-    window.close();
+    setIsSubmitting(true);
+    toast.info('Submitting...');
+    
+    setTimeout(() => {
+      sessionStorage.setItem('additionalFlaggersConfirmed', 'false');
+      toast.error('Cancelled! Closing tab...');
+      
+      setTimeout(() => {
+        window.close();
+      }, 1500);
+    }, 1000);
   };
 
   if (!jobData) {
@@ -43,6 +62,8 @@ export default function ConfirmAdditionalFlagger() {
   }
 
   return (
+    <>
+    <ToastContainer position="top-center" autoClose={2000} />
     <div style={{ padding: '40px', maxWidth: '600px', margin: '0 auto', fontFamily: 'Arial, sans-serif' }}>
       <div style={{ backgroundColor: '#fff3cd', padding: '20px', borderRadius: '8px', border: '2px solid #ffc107' }}>
         <h1 style={{ color: '#856404', marginTop: 0 }}>⚠️ Additional Flagger Confirmation</h1>
@@ -65,15 +86,17 @@ export default function ConfirmAdditionalFlagger() {
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
           <button
             onClick={handleConfirm}
+            disabled={isSubmitting}
             style={{
-              backgroundColor: '#28a745',
+              backgroundColor: isSubmitting ? '#6c757d' : '#28a745',
               color: 'white',
               padding: '12px 24px',
               border: 'none',
               borderRadius: '4px',
               fontSize: '16px',
-              cursor: 'pointer',
-              fontWeight: 'bold'
+              cursor: isSubmitting ? 'not-allowed' : 'pointer',
+              fontWeight: 'bold',
+              opacity: isSubmitting ? 0.6 : 1
             }}
           >
             YES, I Approve Additional Flagger
@@ -81,15 +104,17 @@ export default function ConfirmAdditionalFlagger() {
           
           <button
             onClick={handleCancel}
+            disabled={isSubmitting}
             style={{
-              backgroundColor: '#dc3545',
+              backgroundColor: isSubmitting ? '#6c757d' : '#dc3545',
               color: 'white',
               padding: '12px 24px',
               border: 'none',
               borderRadius: '4px',
               fontSize: '16px',
-              cursor: 'pointer',
-              fontWeight: 'bold'
+              cursor: isSubmitting ? 'not-allowed' : 'pointer',
+              fontWeight: 'bold',
+              opacity: isSubmitting ? 0.6 : 1
             }}
           >
             Cancel Additional Flagger
@@ -101,5 +126,6 @@ export default function ConfirmAdditionalFlagger() {
         </p>
       </div>
     </div>
+    </>
   );
 }
