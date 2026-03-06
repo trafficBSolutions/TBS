@@ -65,6 +65,8 @@ export default function TrafficControl() {
   const [isSubmitting, setIsSubmitting] = useState(false); 
   const [showAdditionalConfirm, setShowAdditionalConfirm] = useState(false);
 const [ackAdditionalConfirm, setAckAdditionalConfirm] = useState(false);
+const [confirmationWindow, setConfirmationWindow] = useState(null);
+const [waitingForConfirmation, setWaitingForConfirmation] = useState(false);
 
   const [site, setSite] = useState('');
   const [showEmergencyConfirm, setShowEmergencyConfirm] = useState(false);
@@ -397,8 +399,51 @@ const isCompanySelected = (formData.company || '').trim().length > 0;
       newErrors.recaptcha = 'Please complete the reCAPTCHA.';
     }
     
+    // Check if waiting for confirmation from new tab
+    if (waitingForConfirmation) {
+      setErrorMessage('Please complete the confirmation in the other tab.');
+      setIsSubmitting(false);
+      return;
+    }
+
     if (formData.additionalFlaggers && !ackAdditionalConfirm) {
-      setErrorMessage('Please acknowledge the additional flagger warning.');
+      // Open new tab for confirmation
+      const confirmData = {
+        formData: formData,
+        timestamp: Date.now()
+      };
+      sessionStorage.setItem('pendingTrafficControlJob', JSON.stringify(confirmData));
+      
+      const newWindow = window.open('/confirm-additional-flaggers', '_blank');
+      setConfirmationWindow(newWindow);
+      setWaitingForConfirmation(true);
+      
+      // Poll for confirmation
+      const checkInterval = setInterval(() => {
+        const confirmed = sessionStorage.getItem('additionalFlaggersConfirmed');
+        if (confirmed === 'true') {
+          sessionStorage.removeItem('additionalFlaggersConfirmed');
+          sessionStorage.removeItem('pendingTrafficControlJob');
+          clearInterval(checkInterval);
+          setAckAdditionalConfirm(true);
+          setWaitingForConfirmation(false);
+          setErrorMessage('');
+          // Trigger submission again
+          setTimeout(() => {
+            document.querySelector('.submit-control').click();
+          }, 100);
+        } else if (confirmed === 'false') {
+          sessionStorage.removeItem('additionalFlaggersConfirmed');
+          sessionStorage.removeItem('pendingTrafficControlJob');
+          clearInterval(checkInterval);
+          setFormData(prev => ({ ...prev, additionalFlaggers: false, additionalFlaggerCount: '' }));
+          setWaitingForConfirmation(false);
+          setIsSubmitting(false);
+          setErrorMessage('Additional flaggers cancelled.');
+        }
+      }, 500);
+      
+      setErrorMessage('Please confirm in the new tab that opened.');
       setIsSubmitting(false);
       return;
     }
