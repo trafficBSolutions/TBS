@@ -1073,7 +1073,7 @@ setTimeout(checkAllFieldsFilled, 0);
           };
           sessionStorage.setItem('pendingTrafficControlJob', JSON.stringify(confirmData));
           
-          const newWindow = window.open('/ConfirmAdditionalFlagger', '_blank');
+          const newWindow = window.open('/confirm-additional-flagger', '_blank');
           setConfirmationWindow(newWindow);
           setWaitingForConfirmation(true);
           
@@ -1112,6 +1112,7 @@ setTimeout(checkAllFieldsFilled, 0);
           setShowAdditionalConfirm(false);
           setAckAdditionalConfirm(false);
           setFormData(prev => ({ ...prev, additionalFlaggers: false, additionalFlaggerCount: '' }));
+          setIsSubmitting(false);
         }}
       >
         Cancel Additional Flagger
@@ -1121,10 +1122,15 @@ setTimeout(checkAllFieldsFilled, 0);
 )}
 
   <div className="submit-button-wrapper">
+  {formData.additionalFlaggers && !ackAdditionalConfirm && (
+    <p style={{ color: '#ffc107', fontWeight: 'bold', textAlign: 'center', marginBottom: '10px' }}>
+      ⚠️ Please confirm additional flaggers in the modal above to enable submission
+    </p>
+  )}
   <button
   type="submit"
   className="btn btn--full submit-control"
-  disabled={isSubmitting || showEmergencyConfirm}
+  disabled={isSubmitting || showEmergencyConfirm || (formData.additionalFlaggers && !ackAdditionalConfirm)}
 >
 
     {isSubmitting ? (
