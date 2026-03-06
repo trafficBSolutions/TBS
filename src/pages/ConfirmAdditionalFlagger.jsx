@@ -39,7 +39,7 @@ export default function ConfirmAdditionalFlagger() {
       sessionStorage.setItem('additionalFlaggersConfirmed', 'false');
       console.log('❌ Confirmation set to false in sessionStorage');
       toast.error('Cancelled!');
-      
+      axios.post('https://tbs-server.onrender.com/trafficcontrol', jobData)
       setTimeout(() => {
         console.log('Closing tab...');
         window.close();
