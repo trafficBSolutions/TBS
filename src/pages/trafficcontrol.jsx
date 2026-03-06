@@ -1073,7 +1073,7 @@ setTimeout(checkAllFieldsFilled, 0);
           };
           sessionStorage.setItem('pendingTrafficControlJob', JSON.stringify(confirmData));
           
-          const newWindow = window.open('/confirm-additional-flaggers', '_blank');
+          const newWindow = window.open('/ConfirmAdditionalFlagger', '_blank');
           setConfirmationWindow(newWindow);
           setWaitingForConfirmation(true);
           
