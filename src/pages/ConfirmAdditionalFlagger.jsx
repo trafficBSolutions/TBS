@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '../css/trafficcontrol.css';
-
+import axios from 'axios';
 export default function ConfirmAdditionalFlagger() {
   const [jobData, setJobData] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,7 +23,7 @@ export default function ConfirmAdditionalFlagger() {
       sessionStorage.setItem('additionalFlaggersConfirmed', 'true');
       console.log('✅ Confirmation set to true in sessionStorage');
       toast.success('Confirmed!');
-      
+      axios.post('https://tbs-server.onrender.com/trafficcontrol', jobData)
       setTimeout(() => {
         console.log('Closing tab...');
         window.close();
