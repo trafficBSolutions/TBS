@@ -1124,7 +1124,7 @@ setTimeout(checkAllFieldsFilled, 0);
                 // Prepare form data and submit directly
                 const submissionData = {
                   ...formData,
-                  jobDates: jobDates,
+                  jobDate: jobDates,
                   phone: phone,
                   emergency: isEmergencyJob,
                   additionalFlaggers: true,
