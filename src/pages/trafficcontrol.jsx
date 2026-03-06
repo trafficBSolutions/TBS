@@ -407,43 +407,7 @@ const isCompanySelected = (formData.company || '').trim().length > 0;
     }
 
     if (formData.additionalFlaggers && !ackAdditionalConfirm) {
-      // Open new tab for confirmation
-      const confirmData = {
-        formData: formData,
-        timestamp: Date.now()
-      };
-      sessionStorage.setItem('pendingTrafficControlJob', JSON.stringify(confirmData));
-      
-      const newWindow = window.open('/confirm-additional-flaggers', '_blank');
-      setConfirmationWindow(newWindow);
-      setWaitingForConfirmation(true);
-      
-      // Poll for confirmation
-      const checkInterval = setInterval(() => {
-        const confirmed = sessionStorage.getItem('additionalFlaggersConfirmed');
-        if (confirmed === 'true') {
-          sessionStorage.removeItem('additionalFlaggersConfirmed');
-          sessionStorage.removeItem('pendingTrafficControlJob');
-          clearInterval(checkInterval);
-          setAckAdditionalConfirm(true);
-          setWaitingForConfirmation(false);
-          setErrorMessage('');
-          // Trigger submission again
-          setTimeout(() => {
-            document.querySelector('.submit-control').click();
-          }, 100);
-        } else if (confirmed === 'false') {
-          sessionStorage.removeItem('additionalFlaggersConfirmed');
-          sessionStorage.removeItem('pendingTrafficControlJob');
-          clearInterval(checkInterval);
-          setFormData(prev => ({ ...prev, additionalFlaggers: false, additionalFlaggerCount: '' }));
-          setWaitingForConfirmation(false);
-          setIsSubmitting(false);
-          setErrorMessage('Additional flaggers cancelled.');
-        }
-      }, 500);
-      
-      setErrorMessage('Please confirm in the new tab that opened.');
+      setShowAdditionalConfirm(true);
       setIsSubmitting(false);
       return;
     }
@@ -1092,26 +1056,51 @@ setTimeout(checkAllFieldsFilled, 0);
     <p className="emergency-warning-text" style={{ marginTop: 8 }}>
       <strong>WARNING:</strong> Do you approve the additional flagger for the additional charge?
       <br />
-      <strong>You are required to confirm through your confirmation email that you need an additional flagger.</strong>
+      <strong>A new tab will open for final confirmation.</strong>
     </p>
-
-    <label style={{ display: 'block', marginTop: 12 }}>
-      <input
-        type="checkbox"
-        checked={ackAdditionalConfirm}
-        onChange={(e) => setAckAdditionalConfirm(e.target.checked)}
-      />{' '}
-      I understand that I must confirm this in the email I receive.
-    </label>
 
     <div className="emergency-warning-buttons" style={{ marginTop: 12 }}>
       <button
         type="button"
         className="btn btn--warning"
-        disabled={!ackAdditionalConfirm}
         onClick={() => {
           setShowAdditionalConfirm(false);
-          setFormData(prev => ({ ...prev, additionalFlaggers: true, additionalFlaggerCount: prev.additionalFlaggerCount }));
+          
+          // Save form data and open new tab
+          const confirmData = {
+            formData: formData,
+            timestamp: Date.now()
+          };
+          sessionStorage.setItem('pendingTrafficControlJob', JSON.stringify(confirmData));
+          
+          const newWindow = window.open('/confirm-additional-flaggers', '_blank');
+          setConfirmationWindow(newWindow);
+          setWaitingForConfirmation(true);
+          
+          // Poll for confirmation
+          const checkInterval = setInterval(() => {
+            const confirmed = sessionStorage.getItem('additionalFlaggersConfirmed');
+            if (confirmed === 'true') {
+              sessionStorage.removeItem('additionalFlaggersConfirmed');
+              sessionStorage.removeItem('pendingTrafficControlJob');
+              clearInterval(checkInterval);
+              setAckAdditionalConfirm(true);
+              setWaitingForConfirmation(false);
+              setErrorMessage('');
+              // Trigger submission again
+              setTimeout(() => {
+                document.querySelector('.submit-control').click();
+              }, 100);
+            } else if (confirmed === 'false') {
+              sessionStorage.removeItem('additionalFlaggersConfirmed');
+              sessionStorage.removeItem('pendingTrafficControlJob');
+              clearInterval(checkInterval);
+              setFormData(prev => ({ ...prev, additionalFlaggers: false, additionalFlaggerCount: '' }));
+              setWaitingForConfirmation(false);
+              setIsSubmitting(false);
+              setErrorMessage('Additional flaggers cancelled.');
+            }
+          }, 500);
         }}
       >
         YES, I Approve Additional Flagger
