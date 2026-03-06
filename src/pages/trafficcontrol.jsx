@@ -406,12 +406,6 @@ const isCompanySelected = (formData.company || '').trim().length > 0;
       return;
     }
 
-    if (formData.additionalFlaggers && !ackAdditionalConfirm) {
-      setShowAdditionalConfirm(true);
-      setIsSubmitting(false);
-      return;
-    }
-
     if (Object.keys(newErrors).length > 0) {
       setErrorMessage('Required fields are missing.');
       setErrors(newErrors);
@@ -1050,97 +1044,126 @@ setTimeout(checkAllFieldsFilled, 0);
 </div>
 {errors.recaptcha && <div className="error-message">{errors.recaptcha}</div>}
   </div>
-  {showAdditionalConfirm && (
-  <div className="emergency-warning-box">
-    <p className="warning-text">⚠️ WARNING</p>
-    <p className="emergency-warning-text" style={{ marginTop: 8 }}>
-      <strong>WARNING:</strong> Do you approve the additional flagger for the additional charge?
-      <br />
-      <strong>A new tab will open for final confirmation.</strong>
-    </p>
-
-    <div className="emergency-warning-buttons" style={{ marginTop: 12 }}>
-      <button
-        type="button"
-        className="btn btn--warning"
-        onClick={() => {
-          setShowAdditionalConfirm(false);
-          
-          // Save form data and open new tab
-          const confirmData = {
-            formData: formData,
-            timestamp: Date.now()
-          };
-          sessionStorage.setItem('pendingTrafficControlJob', JSON.stringify(confirmData));
-          
-          const newWindow = window.open('/confirm-additional-flagger', '_blank');
-          setConfirmationWindow(newWindow);
-          setWaitingForConfirmation(true);
-          
-          // Poll for confirmation
-          const checkInterval = setInterval(() => {
-            const confirmed = sessionStorage.getItem('additionalFlaggersConfirmed');
-            if (confirmed === 'true') {
-              sessionStorage.removeItem('additionalFlaggersConfirmed');
-              sessionStorage.removeItem('pendingTrafficControlJob');
-              clearInterval(checkInterval);
-              setAckAdditionalConfirm(true);
-              setWaitingForConfirmation(false);
-              setErrorMessage('');
-              // Trigger submission again
-              setTimeout(() => {
-                document.querySelector('.submit-control').click();
-              }, 100);
-            } else if (confirmed === 'false') {
-              sessionStorage.removeItem('additionalFlaggersConfirmed');
-              sessionStorage.removeItem('pendingTrafficControlJob');
-              clearInterval(checkInterval);
-              setFormData(prev => ({ ...prev, additionalFlaggers: false, additionalFlaggerCount: '' }));
-              setWaitingForConfirmation(false);
-              setIsSubmitting(false);
-              setErrorMessage('Additional flaggers cancelled.');
-            }
-          }, 500);
-        }}
-      >
-        YES, I Approve Additional Flagger
-      </button>
-      <button
-        type="button"
-        className="btn btn--cancel"
-        onClick={() => {
-          setShowAdditionalConfirm(false);
-          setAckAdditionalConfirm(false);
-          setFormData(prev => ({ ...prev, additionalFlaggers: false, additionalFlaggerCount: '' }));
-          setIsSubmitting(false);
-        }}
-      >
-        Cancel Additional Flagger
-      </button>
-    </div>
-  </div>
-)}
-
   <div className="submit-button-wrapper">
-  {formData.additionalFlaggers && !ackAdditionalConfirm && (
-    <p style={{ color: '#ffc107', fontWeight: 'bold', textAlign: 'center', marginBottom: '10px' }}>
-      ⚠️ Please confirm additional flaggers in the modal above to enable submission
-    </p>
-  )}
-  <button
-  type="submit"
-  className="btn btn--full submit-control"
-  disabled={isSubmitting || showEmergencyConfirm || (formData.additionalFlaggers && !ackAdditionalConfirm)}
->
+  {formData.additionalFlaggers && !ackAdditionalConfirm ? (
+    <div className="emergency-warning-box">
+      <p className="warning-text">⚠️ WARNING</p>
+      <p className="emergency-warning-text" style={{ marginTop: 8 }}>
+        <strong>WARNING:</strong> Do you approve the additional flagger for the additional charge?
+        <br />
+        <strong>A new tab will open for final confirmation.</strong>
+      </p>
 
-    {isSubmitting ? (
-      <div className="spinner-button">
-        <span className="spinner"></span> Submitting...
+      <div className="emergency-warning-buttons" style={{ marginTop: 12 }}>
+        <button
+          type="button"
+          className="btn btn--warning"
+          onClick={() => {
+            // Validate all required fields first
+            const requiredFields = ['name', 'email', 'phone', 'jobDate',
+              'company', 'coordinator', 'time', 'project', 'flagger', 'address', 'city', 
+              'state', 'zip', 'message', 'terms'];
+            const newErrors = {};
+
+            requiredFields.forEach(field => {
+              if (!formData[field]) {
+                let fieldLabel = field.charAt(0).toUpperCase() + field.slice(1);
+                if (field === 'jobDate') fieldLabel = 'Job Date';
+                if (field === 'company') fieldLabel = 'Company Name';
+                if (field === 'coordinator') fieldLabel = 'Coordinator';
+                if (field === 'phone') fieldLabel = 'Phone Number';
+                if (field === 'terms') fieldLabel = 'Terms & Conditions';
+                newErrors[field] = `${fieldLabel} is required!`;
+              }
+            });
+            
+            if (!recaptchaToken && recaptchaToken !== 'bypass') {
+              newErrors.recaptcha = 'Please complete the reCAPTCHA.';
+            }
+
+            if (Object.keys(newErrors).length > 0) {
+              setErrorMessage('Please fill all required fields before confirming.');
+              setErrors(newErrors);
+              if (newErrors.recaptcha) {
+                recaptchaWrapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+              return;
+            }
+
+            if (!termsAccepted) {
+              setErrors((prevErrors) => ({
+                ...prevErrors,
+                terms: 'You must agree to pay upon job completion.'
+              }));
+              setErrorMessage('You must accept the terms and conditions.');
+              return;
+            }
+            
+            // All validation passed - open new tab
+            const confirmData = {
+              formData: formData,
+              timestamp: Date.now()
+            };
+            sessionStorage.setItem('pendingTrafficControlJob', JSON.stringify(confirmData));
+            
+            const newWindow = window.open('/confirm-additional-flagger', '_blank');
+            setConfirmationWindow(newWindow);
+            setWaitingForConfirmation(true);
+            
+            // Poll for confirmation
+            const checkInterval = setInterval(() => {
+              const confirmed = sessionStorage.getItem('additionalFlaggersConfirmed');
+              if (confirmed === 'true') {
+                sessionStorage.removeItem('additionalFlaggersConfirmed');
+                sessionStorage.removeItem('pendingTrafficControlJob');
+                clearInterval(checkInterval);
+                setAckAdditionalConfirm(true);
+                setWaitingForConfirmation(false);
+                setErrorMessage('');
+                // Trigger submission
+                setTimeout(() => {
+                  document.querySelector('.submit-control').click();
+                }, 100);
+              } else if (confirmed === 'false') {
+                sessionStorage.removeItem('additionalFlaggersConfirmed');
+                sessionStorage.removeItem('pendingTrafficControlJob');
+                clearInterval(checkInterval);
+                setFormData(prev => ({ ...prev, additionalFlaggers: false, additionalFlaggerCount: '' }));
+                setWaitingForConfirmation(false);
+                setErrorMessage('Additional flaggers cancelled.');
+              }
+            }, 500);
+          }}
+        >
+          YES, I Approve Additional Flagger
+        </button>
+        <button
+          type="button"
+          className="btn btn--cancel"
+          onClick={() => {
+            setAckAdditionalConfirm(false);
+            setFormData(prev => ({ ...prev, additionalFlaggers: false, additionalFlaggerCount: '' }));
+          }}
+        >
+          NO, Cancel Additional Flagger
+        </button>
       </div>
-    ) : (
-      'SUBMIT TRAFFIC CONTROL JOB'
-    )}
-  </button>
+    </div>
+  ) : (
+    <button
+      type="submit"
+      className="btn btn--full submit-control"
+      disabled={isSubmitting || showEmergencyConfirm}
+    >
+      {isSubmitting ? (
+        <div className="spinner-button">
+          <span className="spinner"></span> Submitting...
+        </div>
+      ) : (
+        'SUBMIT TRAFFIC CONTROL JOB'
+      )}
+    </button>
+  )}
   {/* Toast-like message */}
   {submissionMessage && (
     <div className="custom-toast success">{submissionMessage}</div>
