@@ -212,13 +212,8 @@ useEffect(() => {
     try {
       const res = await axios.post('https://tbs-server.onrender.com/trafficcontrol', formData);
       
-      if (res.data.requiresConfirmation) {
-        toast.info('Additional Flagger confirmation email sent! Please check your email.');
-        setSubmissionMessage('Additional Flagger confirmation email sent. Please check your email to complete job submission.');
-      } else {
-        toast.success('Job submitted successfully!');
-        setSubmissionMessage('Success! Your job has been submitted.');
-      }
+      toast.success('Job submitted successfully!');
+      setSubmissionMessage('Success! Your job has been submitted.');
       
       setFormData({
         name: '',
@@ -402,7 +397,7 @@ const isCompanySelected = (formData.company || '').trim().length > 0;
       newErrors.recaptcha = 'Please complete the reCAPTCHA.';
     }
     
-    if (formData.additionalFlaggers && showAdditionalConfirm) {
+    if (formData.additionalFlaggers && !ackAdditionalConfirm) {
       setErrorMessage('Please acknowledge the additional flagger warning.');
       setIsSubmitting(false);
       return;
@@ -730,7 +725,7 @@ setTimeout(checkAllFieldsFilled, 0);
               }}
             />
             <img className="ta-img" src={images["../assets/buffer and tapers/TA-10.svg"].default} alt="TA-10" />
-            <figcaption>TA-10<br/><small>2 Flaggers on 2 Lane Road</small></figcaption>
+            <figcaption>TA-10<br/><small>2 Flaggers on two Lane Road</small></figcaption>
           </label>
         </figure>
         <figure className="ta-card">
@@ -1069,7 +1064,10 @@ setTimeout(checkAllFieldsFilled, 0);
         type="button"
         className="btn btn--warning"
         disabled={!ackAdditionalConfirm}
-        onClick={() => setShowAdditionalConfirm(false)}
+        onClick={() => {
+          setShowAdditionalConfirm(false);
+          setFormData(prev => ({ ...prev, additionalFlaggers: true, additionalFlaggerCount: prev.additionalFlaggerCount }));
+        }}
       >
         YES, I Approve Additional Flagger
       </button>
@@ -1079,7 +1077,6 @@ setTimeout(checkAllFieldsFilled, 0);
         onClick={() => {
           setShowAdditionalConfirm(false);
           setAckAdditionalConfirm(false);
-          // Revert the additional flagger choice
           setFormData(prev => ({ ...prev, additionalFlaggers: false, additionalFlaggerCount: '' }));
         }}
       >
