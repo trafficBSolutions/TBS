@@ -1120,10 +1120,56 @@ setTimeout(checkAllFieldsFilled, 0);
                 setAckAdditionalConfirm(true);
                 setWaitingForConfirmation(false);
                 setErrorMessage('');
-                // Trigger submission
-                setTimeout(() => {
-                  document.querySelector('.submit-control').click();
-                }, 100);
+                
+                // Prepare form data and submit directly
+                const submissionData = {
+                  ...formData,
+                  jobDates: jobDates,
+                  phone: phone,
+                  emergency: isEmergencyJob,
+                  additionalFlaggers: true,
+                  additionalFlaggerCount: formData.additionalFlaggerCount
+                };
+                
+                setIsSubmitting(true);
+                axios.post('https://tbs-server.onrender.com/trafficcontrol', submissionData)
+                  .then(res => {
+                    toast.success('Job submitted successfully!');
+                    setSubmissionMessage('Success! Your job has been submitted.');
+                    
+                    // Reset form
+                    setFormData({
+                      name: '',
+                      email: '',
+                      phone: '',
+                      jobDate: '',
+                      company: '',
+                      coordinator: '',
+                      site: '',
+                      siteContact: '',
+                      time: '',
+                      project: '',
+                      flagger: '',
+                      additionalFlaggers: false,
+                      additionalFlaggerCount: '',
+                      equipment: [],
+                      terms: '',
+                      address: '',
+                      city: '',
+                      state: '',
+                      zip: '',
+                      message: ''
+                    });
+                    setJobDates([]);
+                    setPhone('');
+                    setIsSubmitting(false);
+                    setErrors({});
+                    setAckAdditionalConfirm(false);
+                  })
+                  .catch(error => {
+                    toast.error('Submission failed. Please try again.');
+                    setIsSubmitting(false);
+                  });
               } else if (confirmed === 'false') {
                 sessionStorage.removeItem('additionalFlaggersConfirmed');
                 sessionStorage.removeItem('pendingTrafficControlJob');
