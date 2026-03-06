@@ -21,11 +21,13 @@ export default function ConfirmAdditionalFlagger() {
     
     setTimeout(() => {
       sessionStorage.setItem('additionalFlaggersConfirmed', 'true');
-      toast.success('Confirmed! Closing tab...');
+      console.log('✅ Confirmation set to true in sessionStorage');
+      toast.success('Confirmed!');
       
       setTimeout(() => {
+        console.log('Closing tab...');
         window.close();
-      }, 1500);
+      }, 2500);
     }, 1000);
   };
 
@@ -35,11 +37,13 @@ export default function ConfirmAdditionalFlagger() {
     
     setTimeout(() => {
       sessionStorage.setItem('additionalFlaggersConfirmed', 'false');
-      toast.error('Cancelled! Closing tab...');
+      console.log('❌ Confirmation set to false in sessionStorage');
+      toast.error('Cancelled!');
       
       setTimeout(() => {
+        console.log('Closing tab...');
         window.close();
-      }, 1500);
+      }, 2500);
     }, 1000);
   };
 
