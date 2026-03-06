@@ -1113,7 +1113,10 @@ setTimeout(checkAllFieldsFilled, 0);
             // Poll for confirmation
             const checkInterval = setInterval(() => {
               const confirmed = sessionStorage.getItem('additionalFlaggersConfirmed');
+              console.log('Polling for confirmation, current value:', confirmed);
+              
               if (confirmed === 'true') {
+                console.log('✅ Confirmed! Submitting job...');
                 sessionStorage.removeItem('additionalFlaggersConfirmed');
                 sessionStorage.removeItem('pendingTrafficControlJob');
                 clearInterval(checkInterval);
@@ -1131,9 +1134,11 @@ setTimeout(checkAllFieldsFilled, 0);
                   additionalFlaggerCount: formData.additionalFlaggerCount
                 };
                 
+                console.log('Submission data:', submissionData);
                 setIsSubmitting(true);
                 axios.post('https://tbs-server.onrender.com/trafficcontrol', submissionData)
                   .then(res => {
+                    console.log('Job submitted successfully:', res.data);
                     toast.success('Job submitted successfully!');
                     setSubmissionMessage('Success! Your job has been submitted.');
                     
@@ -1167,10 +1172,12 @@ setTimeout(checkAllFieldsFilled, 0);
                     setAckAdditionalConfirm(false);
                   })
                   .catch(error => {
+                    console.error('Submission error:', error);
                     toast.error('Submission failed. Please try again.');
                     setIsSubmitting(false);
                   });
               } else if (confirmed === 'false') {
+                console.log('❌ Cancelled by user');
                 sessionStorage.removeItem('additionalFlaggersConfirmed');
                 sessionStorage.removeItem('pendingTrafficControlJob');
                 clearInterval(checkInterval);
