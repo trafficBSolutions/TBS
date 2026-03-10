@@ -45,10 +45,6 @@ export default function Quote() {
   const [date, setDate] = useState(isoDate());
   const [company, setCompany] = useState("");
   const [customer, setCustomer] = useState("");
-  const [address, setAddress] = useState("");
-  const [city, setCity] = useState("");
-  const [state, setState] = useState("GA");
-  const [zip, setZip] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
 
@@ -126,10 +122,6 @@ export default function Quote() {
         date,
         company,
         customer,
-        address,
-        city,
-        state,
-        zip,
         email,
         phone,
         taxRate,
@@ -155,20 +147,10 @@ export default function Quote() {
       
 
       <section className="quote-info">
-        <label>Company/Excavator<input type="text" value={company} onChange={(e) => setCompany(e.target.value)} /></label>
-        <label>Customer<input type="text" value={customer} onChange={(e) => setCustomer(e.target.value)} /></label>
-        <label>Address<input type="text" value={address} onChange={(e) => setAddress(e.target.value)} /></label>
-
-        <div className="row3">
-          <label>City<input type="text" value={city} onChange={(e) => setCity(e.target.value)} /></label>
-          <label>State<input type="text" value={state} onChange={(e) => setState(e.target.value)} /></label>
-          <label>ZIP<input type="text" value={zip} onChange={(e) => setZip(e.target.value)} /></label>
-        </div>
-
-        <div className="row2">
-          <label>Email<input type="text" value={email} onChange={(e) => setEmail(e.target.value)} /></label>
-          <label>Phone<input type="text" value={phone} onChange={handlePhoneChange} /></label>
-        </div>
+        <label>Company/Excavator<input type="text" value={company} onChange={(e) => setCompany(e.target.value.replace(/\b\w/g, c => c.toUpperCase()))} /></label>
+        <label>Customer<input type="text" value={customer} onChange={(e) => setCustomer(e.target.value.replace(/\b\w/g, c => c.toUpperCase()))} /></label>
+        <label>Email (comma-separated for multiple)<input type="text" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email1@example.com, email2@example.com" /></label>
+        <label>Phone<input type="text" value={phone} onChange={handlePhoneChange} /></label>
       </section>
 
       <section className="quote-controls">
@@ -183,12 +165,12 @@ export default function Quote() {
 
         {isTaxExempt && (
           <label>
-            Tax Exemption Number
+            Tax Exemption Number (Optional)
             <input
               type="text"
               value={taxExemptNumber}
               onChange={(e) => setTaxExemptNumber(e.target.value)}
-              placeholder="Enter tax exemption number"
+              placeholder="Enter tax exemption number (optional)"
             />
           </label>
         )}
@@ -228,14 +210,14 @@ export default function Quote() {
                 <td>
                   <input
                     value={r.item}
-                    onChange={(e) => updateRow(r.id, { item: e.target.value })}
+                    onChange={(e) => updateRow(r.id, { item: e.target.value.replace(/\b\w/g, c => c.toUpperCase()) })}
                     placeholder="e.g., Banner"
                   />
                 </td>
                 <td>
                   <input
                     value={r.description}
-                    onChange={(e) => updateRow(r.id, { description: e.target.value })}
+                    onChange={(e) => updateRow(r.id, { description: e.target.value.replace(/\b\w/g, c => c.toUpperCase()) })}
                     placeholder="Details..."
                   />
                 </td>
