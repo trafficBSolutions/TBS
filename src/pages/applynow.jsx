@@ -771,38 +771,6 @@ if (!data.background) {
     </div>
 </section>
 
-<section className="carrier-section">
-    <h2 className="carrierh2">CREW LEAD</h2>
-    <div className="job-lists">
-      <div className="duty-div">
-        <h2 className="duties-div">Job Duties</h2>
-        <li>Lead a small crew of flaggers and traffic controllers on jobsites</li>
-        <li>Set up and tear down traffic control devices per the traffic control plan</li>
-        <li>Ensure crew follows all safety procedures and company policies</li>
-        <li>Communicate with foreman and report jobsite progress</li>
-        <li>Assist with training new employees on proper procedures</li>
-        <li>Operate company vehicles to transport crew and equipment</li>
-      </div>
-      <div className="require-div">
-        <h2 className="requirements">Requirements</h2>
-        <li>High School Diploma or GED</li>
-        <li>Minimum 1 year of traffic control experience preferred</li>
-        <li>Valid Traffic Controller Certification or ability to obtain one</li>
-        <li>Must pass a background check and drug test</li>
-        <li>Able to work in ALL weather conditions</li>
-        <li>Must be able to lift up to 50 lbs</li>
-        <li>Must follow company dress code policy</li>
-      </div>
-      <div className="skills-div">
-        <h2 className="skills-required">Skills Needed</h2>
-        <li>Leadership and ability to direct a small team</li>
-        <li>Strong communication skills</li>
-        <li>Knowledge of traffic control setups and devices</li>
-        <li>Ability to remain calm under pressure</li>
-        <li>Dependability and strong work ethic</li>
-      </div>
-    </div>
-</section>
 
 <section className="carrier-section">
     <h2 className="carrierh2">TRAFFIC CONTROL FLAGGER</h2>
@@ -1053,7 +1021,7 @@ if (!data.background) {
             <div className="position-info">
   <label className="position-name">Position *</label>
   <p className="position-look">What position are you applying for?</p>
-  {["Traffic Control Safety Advisor", "Foreman", "Crew Lead", "Traffic Control Flagger"].map((pos) => (
+  {["Traffic Control Safety Advisor", "Foreman", "Traffic Control Flagger"].map((pos) => (
     <div key={pos}>
       <input className="position-checkbox" id={`pos-${pos}`} type="radio" name="position"
         value={pos}
