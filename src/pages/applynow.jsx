@@ -1065,9 +1065,7 @@ if (!data.background) {
   <div className="background-history">
   <label className="background-label">Background History *</label>
   <p className="background-p">Have you ever been convicted of a felony, 
-    have any misdemeanors(Ex: Speeding Tickets), and/or are on probation or parole?
-    <strong> Note: </strong> If you're applying to be a driver, please click "Yes"
-    and add your driving charges: Ex: How many Speeding Tickets, DUIs, and other Traffic Violation charges.
+    have any misdemeanors, and/or are on probation or parole?
     </p>
 
 
