@@ -88,9 +88,7 @@ const endMonths = [
   "December"
 ]
 const misdemeanorCharges = [
-  "Speeding Ticket",
   "Failure to Appear",
-  "DUI",
   "Hit and Run(Property Damage)",
   "Reckless Driving",
   "Driving with a Suspended/Revoked License",
