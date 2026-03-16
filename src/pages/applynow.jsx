@@ -805,40 +805,7 @@ if (!data.background) {
 </section>
 
 <section className="carrier-section">
-    <h2 className="carrierh2">FLAGGER</h2>
-    <div className="job-lists">
-      <div className="duty-div">
-        <h2 className="duties-div">Job Duties</h2>
-        <li>Direct vehicles and pedestrians safely through work zones</li>
-        <li>Use signs, flags, and paddles to control traffic flow</li>
-        <li>Communicate with other flaggers and crew members via radio</li>
-        <li>Set up and maintain cones, barricades, and warning signs</li>
-        <li>Report any safety hazards or incidents to crew lead/foreman</li>
-      </div>
-      <div className="require-div">
-        <h2 className="requirements">Requirements</h2>
-        <li>High School Diploma or GED</li>
-        <li>Valid Flagger Certification or ability to obtain one</li>
-        <li>Must pass a background check and drug test</li>
-        <li>Able to work in ALL weather conditions</li>
-        <li>Ability to stand for extended periods of time</li>
-        <li>Must be able to lift up to 50 lbs</li>
-        <li>Ability to move quickly out of harm's way in case of emergency</li>
-        <li>Must follow company dress code policy</li>
-      </div>
-      <div className="skills-div">
-        <h2 className="skills-required">Skills Needed</h2>
-        <li>Strong communication skills</li>
-        <li>Ability to remain calm and alert under pressure</li>
-        <li>Excellent attention to detail and situational awareness</li>
-        <li>Adequate physical stamina for long periods in challenging weather</li>
-        <li>Ability to follow instructions from crew lead/foreman</li>
-      </div>
-    </div>
-</section>
-
-<section className="carrier-section">
-    <h2 className="carrierh2">TRAFFIC CONTROLLER</h2>
+    <h2 className="carrierh2">TRAFFIC CONTROL FLAGGER</h2>
     <p className="carrier-ops">
       A Traffic Controller is responsible for directing and managing the flow of vehicles and pedestrians in and around designated areas.
       They ensure the safety of all parties, while also making sure that traffic moves efficiently.
@@ -1086,7 +1053,7 @@ if (!data.background) {
             <div className="position-info">
   <label className="position-name">Position *</label>
   <p className="position-look">What position are you applying for?</p>
-  {["Traffic Control Safety Advisor", "Foreman", "Crew Lead", "Flagger", "Traffic Controller"].map((pos) => (
+  {["Traffic Control Safety Advisor", "Foreman", "Crew Lead", "Traffic Control Flagger"].map((pos) => (
     <div key={pos}>
       <input className="position-checkbox" id={`pos-${pos}`} type="radio" name="position"
         value={pos}
