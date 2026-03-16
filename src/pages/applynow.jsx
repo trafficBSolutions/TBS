@@ -178,6 +178,8 @@ const Apply = () => {
   reasonForLeaving: "",
   mayContact: "",
 });
+  const [wantsDriver, setWantsDriver] = useState('');
+  const [drivingRecord, setDrivingRecord] = useState({ speedingTickets: '', trafficViolations: '', duis: '', otherViolations: '' });
   const [data, formData] = useState({
     first: '',
     last: '',
@@ -484,6 +486,8 @@ if (!data.background) {
     formDataObj.append('email', data.email);
     formDataObj.append('phone', data.phone);
     formDataObj.append('position', data.position);
+    formDataObj.append('wantsDriver', wantsDriver);
+    formDataObj.append('drivingRecord', JSON.stringify(wantsDriver === 'Yes' ? drivingRecord : {}));
     formDataObj.append('location', data.location);
     formDataObj.append('languages', data.languages);
     formDataObj.append('skills', data.skills);
@@ -700,53 +704,182 @@ if (!data.background) {
             more efficient roadways.</h2>
         </div>
 <section className="carrier-section">
-    <h2 className="carrierh2">
-      TRAFFIC CONTROLLER
-    </h2>
-    <h4 className="carrierh4">
-      JOB DESCRIPTION
-    </h4>
+    <h2 className="carrierh2">🔶 TRAFFIC CONTROL SAFETY ADVISOR (Internal Hiring)</h2>
+    <div className="internal-hiring-notice">
+      <p className="carrier-ops"><strong>We're HIRING an internal Traffic Control Safety Advisor position here at TBS.</strong> This role helps ensure jobsite safety, proper traffic control setups, and compliance with OSHA and MUTCD standards, TTCP production (traffic control plans). This position comes with an hourly pay increase. Interested employees should contact management.</p>
+    </div>
+    <div className="job-lists">
+      <div className="duty-div">
+        <h2 className="duties-div">Job Duties</h2>
+        <li>Inspect jobsites to ensure proper traffic control setups and compliance</li>
+        <li>Produce and review Traffic Control Plans (TTCPs)</li>
+        <li>Ensure compliance with OSHA and MUTCD standards</li>
+        <li>Conduct safety audits and report findings to management</li>
+        <li>Train crew members on safety protocols and best practices</li>
+        <li>Investigate incidents and recommend corrective actions</li>
+      </div>
+      <div className="require-div">
+        <h2 className="requirements">Requirements</h2>
+        <li>Current TBS employee in good standing</li>
+        <li>Knowledge of OSHA and MUTCD standards</li>
+        <li>Experience with traffic control plan production</li>
+        <li>Must pass a background check and drug test</li>
+        <li>Strong attention to detail and safety awareness</li>
+      </div>
+      <div className="skills-div">
+        <h2 className="skills-required">Skills Needed</h2>
+        <li>Leadership and communication skills</li>
+        <li>Knowledge of OSHA/MUTCD regulations</li>
+        <li>Ability to read and produce traffic control plans</li>
+        <li>Problem-solving and critical thinking</li>
+        <li>Ability to train and mentor others</li>
+      </div>
+    </div>
+</section>
+
+<section className="carrier-section">
+    <h2 className="carrierh2">FOREMAN</h2>
+    <div className="job-lists">
+      <div className="duty-div">
+        <h2 className="duties-div">Job Duties</h2>
+        <li>Oversee daily operations of traffic control crews on jobsites</li>
+        <li>Ensure all traffic control setups meet MUTCD and project specifications</li>
+        <li>Coordinate with project managers, DOT, and contractors</li>
+        <li>Manage crew schedules, assignments, and performance</li>
+        <li>Conduct daily safety briefings and enforce safety protocols</li>
+        <li>Maintain accurate daily reports and documentation</li>
+        <li>Ensure all equipment is properly maintained and accounted for</li>
+      </div>
+      <div className="require-div">
+        <h2 className="requirements">Requirements</h2>
+        <li>High School Diploma or GED</li>
+        <li>Minimum 2 years of traffic control or construction experience</li>
+        <li>Valid driver's license with clean driving record</li>
+        <li>Valid Traffic Controller Certification or ability to obtain one</li>
+        <li>Must pass a background check and drug test</li>
+        <li>Able to work in ALL weather conditions</li>
+        <li>Must be able to lift up to 50 lbs</li>
+      </div>
+      <div className="skills-div">
+        <h2 className="skills-required">Skills Needed</h2>
+        <li>Strong leadership and team management skills</li>
+        <li>Excellent communication and organizational skills</li>
+        <li>Knowledge of MUTCD standards and traffic control plans</li>
+        <li>Ability to make quick decisions under pressure</li>
+        <li>Conflict resolution and problem-solving abilities</li>
+      </div>
+    </div>
+</section>
+
+<section className="carrier-section">
+    <h2 className="carrierh2">CREW LEAD</h2>
+    <div className="job-lists">
+      <div className="duty-div">
+        <h2 className="duties-div">Job Duties</h2>
+        <li>Lead a small crew of flaggers and traffic controllers on jobsites</li>
+        <li>Set up and tear down traffic control devices per the traffic control plan</li>
+        <li>Ensure crew follows all safety procedures and company policies</li>
+        <li>Communicate with foreman and report jobsite progress</li>
+        <li>Assist with training new employees on proper procedures</li>
+        <li>Operate company vehicles to transport crew and equipment</li>
+      </div>
+      <div className="require-div">
+        <h2 className="requirements">Requirements</h2>
+        <li>High School Diploma or GED</li>
+        <li>Minimum 1 year of traffic control experience preferred</li>
+        <li>Valid Traffic Controller Certification or ability to obtain one</li>
+        <li>Must pass a background check and drug test</li>
+        <li>Able to work in ALL weather conditions</li>
+        <li>Must be able to lift up to 50 lbs</li>
+        <li>Must follow company dress code policy</li>
+      </div>
+      <div className="skills-div">
+        <h2 className="skills-required">Skills Needed</h2>
+        <li>Leadership and ability to direct a small team</li>
+        <li>Strong communication skills</li>
+        <li>Knowledge of traffic control setups and devices</li>
+        <li>Ability to remain calm under pressure</li>
+        <li>Dependability and strong work ethic</li>
+      </div>
+    </div>
+</section>
+
+<section className="carrier-section">
+    <h2 className="carrierh2">FLAGGER</h2>
+    <div className="job-lists">
+      <div className="duty-div">
+        <h2 className="duties-div">Job Duties</h2>
+        <li>Direct vehicles and pedestrians safely through work zones</li>
+        <li>Use signs, flags, and paddles to control traffic flow</li>
+        <li>Communicate with other flaggers and crew members via radio</li>
+        <li>Set up and maintain cones, barricades, and warning signs</li>
+        <li>Report any safety hazards or incidents to crew lead/foreman</li>
+      </div>
+      <div className="require-div">
+        <h2 className="requirements">Requirements</h2>
+        <li>High School Diploma or GED</li>
+        <li>Valid Flagger Certification or ability to obtain one</li>
+        <li>Must pass a background check and drug test</li>
+        <li>Able to work in ALL weather conditions</li>
+        <li>Ability to stand for extended periods of time</li>
+        <li>Must be able to lift up to 50 lbs</li>
+        <li>Ability to move quickly out of harm's way in case of emergency</li>
+        <li>Must follow company dress code policy</li>
+      </div>
+      <div className="skills-div">
+        <h2 className="skills-required">Skills Needed</h2>
+        <li>Strong communication skills</li>
+        <li>Ability to remain calm and alert under pressure</li>
+        <li>Excellent attention to detail and situational awareness</li>
+        <li>Adequate physical stamina for long periods in challenging weather</li>
+        <li>Ability to follow instructions from crew lead/foreman</li>
+      </div>
+    </div>
+</section>
+
+<section className="carrier-section">
+    <h2 className="carrierh2">TRAFFIC CONTROLLER</h2>
     <p className="carrier-ops">
       A Traffic Controller is responsible for directing and managing the flow of vehicles and pedestrians in and around designated areas.
-      They ensure the safety of all parties, while also making sure that traffic moves efficiently. 
+      They ensure the safety of all parties, while also making sure that traffic moves efficiently.
       We offer traffic controllers with leadership opportunities including crew leads and drivers.
       If you're dependable, alert, and ready for a rewarding career, apply today and be part of something that keeps communities moving safely!
     </p>
     <div className="job-lists">
-    <div className="require-div">
-    <h2 className="requirements">Job Requirements</h2>
-      <li>High School Diploma or General Education Development(GED)</li>
-      <li>Excellent communication and interpersonal skills</li>
-      <li>Valid Traffic Controller Certification or the ability to obtain one</li>
-      <li>Able to work in ALL weather conditions</li>
-      <li>Ability to stand, walk, and/or direct traffic for extended periods of time</li>
-      <li>Quick decision-making abilities and ability to adapt to changing situations</li>
-      <li>Must pass a background check and drug test</li>
-      <li>Must be able to lift up to 50IBS</li>
-      <li>Ability to move quickly out of harms way incase of emergency</li>
-      <li>Must follow company dress code policy</li>
-      </div>
       <div className="duty-div">
-    <h2 className="duties-div">Job Duties</h2>
-      <li>Direct vehicles and pedestrians to ensure safety and efficiency</li>
-      <li>Monitor traffic flow and adjust signals and signs as needed</li>
-      <li>Communicate with other traffic controllers and emergency services as necessary</li>
-      <li>Enforce traffic laws and regulations</li>
-      <li>Implement detours and traffic control plans during special events or emergencies</li>
-      <li>Provide assistance to disabled or stranded motorist</li>
-      <li>Maintain records of traffic control activities</li>
+        <h2 className="duties-div">Job Duties</h2>
+        <li>Direct vehicles and pedestrians to ensure safety and efficiency</li>
+        <li>Monitor traffic flow and adjust signals and signs as needed</li>
+        <li>Communicate with other traffic controllers and emergency services as necessary</li>
+        <li>Enforce traffic laws and regulations</li>
+        <li>Implement detours and traffic control plans during special events or emergencies</li>
+        <li>Provide assistance to disabled or stranded motorist</li>
+        <li>Maintain records of traffic control activities</li>
+      </div>
+      <div className="require-div">
+        <h2 className="requirements">Requirements</h2>
+        <li>High School Diploma or GED</li>
+        <li>Excellent communication and interpersonal skills</li>
+        <li>Valid Traffic Controller Certification or the ability to obtain one</li>
+        <li>Able to work in ALL weather conditions</li>
+        <li>Ability to stand, walk, and/or direct traffic for extended periods of time</li>
+        <li>Quick decision-making abilities and ability to adapt to changing situations</li>
+        <li>Must pass a background check and drug test</li>
+        <li>Must be able to lift up to 50 lbs</li>
+        <li>Ability to move quickly out of harm's way in case of emergency</li>
+        <li>Must follow company dress code policy</li>
       </div>
       <div className="skills-div">
-    <h2 className="skills-required">Skills Required</h2>
-      <li>Strong communication skills</li>
-      <li>Ability to remain calm under pressure</li>
-      <li>Ability to enforce safety regulations while being courteous with the public</li>
-      <li>Awareness of local and federal laws and regulations</li>
-      <li>Good problem-solving skills</li>
-      <li>Excellent attention to detail</li>
-      <li>Adequate physical stamina to stand for long periods and work in challenging weather conditions</li>
-      <li>Ability to work well with others and follow rules given by your foreman/crew lead</li>
-    </div>
+        <h2 className="skills-required">Skills Needed</h2>
+        <li>Strong communication skills</li>
+        <li>Ability to remain calm under pressure</li>
+        <li>Ability to enforce safety regulations while being courteous with the public</li>
+        <li>Awareness of local and federal laws and regulations</li>
+        <li>Good problem-solving skills</li>
+        <li>Excellent attention to detail</li>
+        <li>Adequate physical stamina to stand for long periods and work in challenging weather conditions</li>
+        <li>Ability to work well with others and follow rules given by your foreman/crew lead</li>
+      </div>
     </div>
 </section>
         <form
@@ -952,30 +1085,49 @@ if (!data.background) {
    </div>
             <div className="position-info">
   <label className="position-name">Position *</label>
-  <p className="position-look">What position are you looking for?</p>
-  <div>
-    <input className="position-checkbox" id="full" type="radio" name="position"
-    value="Full Time"
-    onChange={(e) => { 
-      formData({ ...data, position: e.target.value });
-    if (e.target.value) {
-      setErrors((prevErrors) => ({ ...prevErrors, position: '' })); // Clear the error
-    }}}
-    />
-    <label className="position-li" htmlFor="full">Full-Time</label>
-  </div>
-  <div>
-    <input className="position-checkbox" id="part" type="radio" name="position"
-    value="Part Time"
-    onChange={(e) => { 
-      formData({ ...data, position: e.target.value });
-    if (e.target.value) {
-      setErrors((prevErrors) => ({ ...prevErrors, position: '' })); // Clear the error
-    }}}
-    />
-    <label className="position-li" htmlFor="part">Part-Time</label>
-  </div>
+  <p className="position-look">What position are you applying for?</p>
+  {["Traffic Control Safety Advisor", "Foreman", "Crew Lead", "Flagger", "Traffic Controller"].map((pos) => (
+    <div key={pos}>
+      <input className="position-checkbox" id={`pos-${pos}`} type="radio" name="position"
+        value={pos}
+        onChange={(e) => {
+          formData({ ...data, position: e.target.value });
+          if (e.target.value) setErrors((prev) => ({ ...prev, position: '' }));
+        }}
+      />
+      <label className="position-li" htmlFor={`pos-${pos}`}>{pos}</label>
+    </div>
+  ))}
   {errors.position && <div className="error-message">{errors.position}</div>}
+
+  <div className="driver-section" style={{ marginTop: '20px' }}>
+    <label className="position-name">Would you like to be a Driver? (Pays more hourly)</label>
+    <div>
+      <input className="position-checkbox" id="driver-yes" type="radio" name="wantsDriver" value="Yes"
+        onChange={(e) => setWantsDriver(e.target.value)} checked={wantsDriver === 'Yes'} />
+      <label className="position-li" htmlFor="driver-yes">Yes</label>
+      <input className="position-checkbox" id="driver-no" type="radio" name="wantsDriver" value="No"
+        onChange={(e) => { setWantsDriver(e.target.value); setDrivingRecord({ speedingTickets: '', trafficViolations: '', duis: '', otherViolations: '' }); }} checked={wantsDriver === 'No'} />
+      <label className="position-li" htmlFor="driver-no">No</label>
+    </div>
+    {wantsDriver === 'Yes' && (
+      <div className="driving-record-section">
+        <p className="driving-record-p"><strong>Please provide your driving record details:</strong></p>
+        <label>How many Speeding Tickets?</label>
+        <input type="number" min="0" placeholder="0" value={drivingRecord.speedingTickets}
+          onChange={(e) => setDrivingRecord({ ...drivingRecord, speedingTickets: e.target.value })} />
+        <label>How many Traffic Violations?</label>
+        <input type="number" min="0" placeholder="0" value={drivingRecord.trafficViolations}
+          onChange={(e) => setDrivingRecord({ ...drivingRecord, trafficViolations: e.target.value })} />
+        <label>How many DUIs?</label>
+        <input type="number" min="0" placeholder="0" value={drivingRecord.duis}
+          onChange={(e) => setDrivingRecord({ ...drivingRecord, duis: e.target.value })} />
+        <label>Other Violations (describe):</label>
+        <textarea placeholder="Describe any other driving violations..." value={drivingRecord.otherViolations}
+          onChange={(e) => setDrivingRecord({ ...drivingRecord, otherViolations: e.target.value })} />
+      </div>
+    )}
+  </div>
   </div>
   <div className="background-history">
   <label className="background-label">Background History *</label>
