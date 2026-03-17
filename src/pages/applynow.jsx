@@ -153,10 +153,12 @@ const Apply = () => {
   const [endYear, setEndYear] = useState('');
   const [addedEd, setAddedEd] = useState([]);
   const [workError, setWorkError] = useState(""); // Yes or No selection
+  const [employmentErrors, setEmploymentErrors] = useState({});
   const [educationError, setEducationError] = useState(""); // Yes or No selection
   const [backgroundError, setBackgroundError] = useState(""); 
   const [convictions, setConvictions] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); 
   const [newConviction, setNewConviction] = useState({
     type: "Misdemeanor",
     charge: "",
@@ -302,29 +304,24 @@ const handleBackgroundChange = (event) => {
 };
 
 const addEmploymentEntry = () => {
-  // Validate fields before adding
-  if (
-    !newEmploy.employerName ||
-    !newEmploy.address ||
-    !newEmploy.city ||
-    !newEmploy.state ||
-    !newEmploy.zip ||
-    !newEmploy.phone ||
-    !newEmploy.duties ||
-    (!newEmploy.currentlyEmployed && !newEmploy.reasonForLeaving) ||
-    !newEmploy.mayContact
-  ) {
+  const newEmpErrors = {};
+  if (!newEmploy.employerName) newEmpErrors.employerName = "Employer name is required.";
+  if (!newEmploy.address) newEmpErrors.address = "Address is required.";
+  if (!newEmploy.city) newEmpErrors.city = "City is required.";
+  if (!newEmploy.state) newEmpErrors.state = "State is required.";
+  if (!newEmploy.zip) newEmpErrors.zip = "Zip code is required.";
+  if (!newEmploy.phone) newEmpErrors.phone = "Phone number is required.";
+  if (!newEmploy.duties) newEmpErrors.duties = "Job duties are required.";
+  if (!newEmploy.currentlyEmployed && !newEmploy.reasonForLeaving) newEmpErrors.reasonForLeaving = "Reason for leaving is required.";
+  if (!newEmploy.mayContact) newEmpErrors.mayContact = "Please select if we may contact this employer.";
+
+  if (Object.keys(newEmpErrors).length > 0) {
+    setEmploymentErrors(newEmpErrors);
     setWorkError("Please fill in all employment fields before adding.");
     return;
   }
 
-  // Add new employment entry to the list
-  setEmploymentEntries((prevEntries) => {
-    const updatedEntries = [...prevEntries, newEmploy];
-    return updatedEntries;
-  });
-
-  // Reset form fields for the next entry
+  setEmploymentEntries((prevEntries) => [...prevEntries, newEmploy]);
   setNewEmploy({
     employerName: "",
     address: "",
@@ -337,8 +334,9 @@ const addEmploymentEntry = () => {
     reasonForLeaving: "",
     mayContact: "",
   });
-  setSubmissionErrorMessage(""); // Remove error after successful addition
-  setWorkError(""); // Remove error after successful addition
+  setEmploymentErrors({});
+  setSubmissionErrorMessage("");
+  setWorkError("");
 };
 
 const handleEmploymentChange = (event) => {
@@ -502,6 +500,9 @@ if (!data.background) {
   for (let pair of formDataObj.entries()) {
   console.log(pair[0]+ ':', pair[1]);
 }
+    setIsSubmitting(true);
+    const loadingToast = toast.loading('Submitting your application...');
+
     try {
       const response = await axios.post('/applynow', formDataObj, {
         headers: {
@@ -510,24 +511,31 @@ if (!data.background) {
       });
     
       if (response.data.errors) {
+        toast.dismiss(loadingToast);
         if (response.data.error === "Duplicate email or phone") {
+          toast.error("Application already submitted with this email or phone number.");
           setSubmissionErrorMessage("Application has already been submitted with this email, phone number, resume, or cover letter. If you recently worked for TBS, please call 706-263-0175. If you're new and have submitted before, please wait until we review your application.");
         } else {
           setSubmissionErrorMessage('');
         }
       } else {
-        // Process submission success
+        toast.dismiss(loadingToast);
         setSubmissionMessage('Application Submitted! We will be with you as soon as possible!');
         toast.success('Application Submitted! We will be with you as soon as possible!');
         navigate('/applynow');
       }
     } catch (error) {
+      toast.dismiss(loadingToast);
       console.error("Submission error:", error);
       if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.message || "There was an error with your submission.");
         setSubmissionErrorMessage(error.response.data.message || "There was an error with your submission.");
       } else {
+        toast.error("An unexpected error occurred. Please try again.");
         setSubmissionErrorMessage("An unexpected error occurred. Please report any submission errors to William Rowell: (706) 879-0106 to fix the issue on your application.");
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
   /*
@@ -1267,8 +1275,10 @@ to provide additional context regarding your background, please reach out to our
     const raw = e.target.value;
     const formatted = raw.replace(/\b\w/g, (char) => char.toUpperCase());
     handleEmployment2Change("employerName", formatted);
+    if (formatted) setEmploymentErrors((prev) => ({ ...prev, employerName: '' }));
   }}
 />
+{employmentErrors.employerName && <div className="error-message">{employmentErrors.employerName}</div>}
 <input
   className="address"
   placeholder="Employer Address"
@@ -1277,28 +1287,30 @@ to provide additional context regarding your background, please reach out to our
   onChange={(e) => {
     const value = e.target.value;
     handleEmployment2Change("address", value);
-    if (value.trim()) {
-      setErrors((prevErrors) => ({ ...prevErrors, address: '' }));
-    }
+    if (value.trim()) setEmploymentErrors((prev) => ({ ...prev, address: '' }));
   }}
-  />
+/>
+{employmentErrors.address && <div className="error-message">{employmentErrors.address}</div>}
 <input
   className="city"
   placeholder="City"
   type="text"
   value={newEmploy.city}
   onChange={(e) => {
-    const sanitized = e.target.value.replace(/[^\w\s]/gi, ''); // Removes punctuation
-    const formatted = sanitized
-      .toLowerCase()
-      .replace(/\b\w/g, (char) => char.toUpperCase()); // Capitalizes first letter of each word
+    const sanitized = e.target.value.replace(/[^\w\s]/gi, '');
+    const formatted = sanitized.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
     handleEmployment2Change("city", formatted);
+    if (formatted) setEmploymentErrors((prev) => ({ ...prev, city: '' }));
   }}
 />
+{employmentErrors.city && <div className="error-message">{employmentErrors.city}</div>}
         <select
           className="state"
           value={newEmploy.state}
-          onChange={(e) => handleEmployment2Change("state", e.target.value)}
+          onChange={(e) => {
+            handleEmployment2Change("state", e.target.value);
+            if (e.target.value) setEmploymentErrors((prev) => ({ ...prev, state: '' }));
+          }}
         >
           <option value="">Select a State</option>
           {states.map((state) => (
@@ -1307,26 +1319,39 @@ to provide additional context regarding your background, please reach out to our
             </option>
           ))}
         </select>
+        {employmentErrors.state && <div className="error-message">{employmentErrors.state}</div>}
         <input
           className="zip"
           placeholder="Zip Code"
           type="text"
           value={newEmploy.zip}
-          onChange={(e) => handleEmployment2Change("zip", e.target.value)}
+          onChange={(e) => {
+            handleEmployment2Change("zip", e.target.value);
+            if (e.target.value) setEmploymentErrors((prev) => ({ ...prev, zip: '' }));
+          }}
         />
+        {employmentErrors.zip && <div className="error-message">{employmentErrors.zip}</div>}
         <input
           className="phone"
           placeholder="Employer Phone Number"
           type="text"
           value={newEmploy.phone}
-          onChange={(e) => handleEmployment2Change("phone", e.target.value)}
+          onChange={(e) => {
+            handleEmployment2Change("phone", e.target.value);
+            if (e.target.value) setEmploymentErrors((prev) => ({ ...prev, phone: '' }));
+          }}
         />
+        {employmentErrors.phone && <div className="error-message">{employmentErrors.phone}</div>}
         <textarea
           className="duties"
           placeholder="Describe your job duties"
           value={newEmploy.duties}
-          onChange={(e) => handleEmployment2Change("duties", e.target.value)}
+          onChange={(e) => {
+            handleEmployment2Change("duties", e.target.value);
+            if (e.target.value) setEmploymentErrors((prev) => ({ ...prev, duties: '' }));
+          }}
         ></textarea>
+        {employmentErrors.duties && <div className="error-message">{employmentErrors.duties}</div>}
 
         <div>
           <input
@@ -1339,12 +1364,18 @@ to provide additional context regarding your background, please reach out to our
         </div>
 
         {!newEmploy.currentlyEmployed && (
+          <>
           <textarea
             className="reason-for-leaving"
             placeholder="Reason for Leaving"
             value={newEmploy.reasonForLeaving}
-            onChange={(e) => handleEmployment2Change("reasonForLeaving", e.target.value)}
+            onChange={(e) => {
+              handleEmployment2Change("reasonForLeaving", e.target.value);
+              if (e.target.value) setEmploymentErrors((prev) => ({ ...prev, reasonForLeaving: '' }));
+            }}
           />
+          {employmentErrors.reasonForLeaving && <div className="error-message">{employmentErrors.reasonForLeaving}</div>}
+          </>
         )}
 
         <p className="contact-employer">May we contact this employer?</p>
@@ -1354,7 +1385,10 @@ to provide additional context regarding your background, please reach out to our
             id="contact-yes"
             name="mayContact"
             value="Yes"
-            onChange={(e) => handleEmployment2Change("mayContact", e.target.value)}
+            onChange={(e) => {
+              handleEmployment2Change("mayContact", e.target.value);
+              setEmploymentErrors((prev) => ({ ...prev, mayContact: '' }));
+            }}
             checked={newEmploy.mayContact === "Yes"}
           />
           <label htmlFor="contact-yes">Yes</label>
@@ -1364,11 +1398,15 @@ to provide additional context regarding your background, please reach out to our
             id="contact-no"
             name="mayContact"
             value="No"
-            onChange={(e) => handleEmployment2Change("mayContact", e.target.value)}
+            onChange={(e) => {
+              handleEmployment2Change("mayContact", e.target.value);
+              setEmploymentErrors((prev) => ({ ...prev, mayContact: '' }));
+            }}
             checked={newEmploy.mayContact === "No"}
           />
           <label htmlFor="contact-no">No</label>
         </div>
+        {employmentErrors.mayContact && <div className="error-message">{employmentErrors.mayContact}</div>}
 
         {/* ✅ Add Employment Button */}
         <button type="button" className="add-button" onClick={addEmploymentEntry}>
@@ -1478,23 +1516,34 @@ to provide additional context regarding your background, please reach out to our
                  been received!</h2>
                  </div>
                  </div>
-            <button type="submit" className="btn btn--full submit-app">SUBMIT APPLICATION</button>
-            
-            
-            {submissionErrorMessage && (
-  <div className="submission-error-message">{submissionErrorMessage}</div>
-)}
-{/* Display general error message */}
-{errorMessage && (
-  <div className="submission-error-message">{errorMessage}</div>
-)}
-{/* Display submission success message */}
-{submissionMessage && (
-  <div className="submission-message">{submissionMessage}</div>
-)}
             
           {/* Display submission error message */}
           </div>
+          <div className="submit-button-wrapper">
+    <button
+    type="submit"
+    className="btn btn--full submit-app"
+    disabled={isSubmitting}
+  >
+    {isSubmitting ? (
+      <div className="spinner-button">
+        <span className="spinner"></span> Submitting...
+      </div>
+    ) : (
+      'SUBMIT APPLICATION'
+    )}
+  </button>
+  {submissionMessage && (
+    <div className="custom-toast success">{submissionMessage}</div>
+  )}
+  {submissionErrorMessage && (
+    <div className="custom-toast error">{submissionErrorMessage}</div>
+  )}
+  {errorMessage && (
+    <div className="custom-toast error">{errorMessage}</div>
+  )}
+         </div> 
+
         </form>
 
       </main>
