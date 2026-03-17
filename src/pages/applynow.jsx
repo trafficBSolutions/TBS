@@ -156,6 +156,7 @@ const Apply = () => {
   const [employmentErrors, setEmploymentErrors] = useState({});
   const [educationError, setEducationError] = useState(""); // Yes or No selection
   const [backgroundError, setBackgroundError] = useState(""); 
+  const [convictionErrors, setConvictionErrors] = useState({});
   const [convictions, setConvictions] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false); 
@@ -260,22 +261,26 @@ const handleRemoveEducation = (index) => {
 };
 
 const addConviction = () => {
-  if (!newConviction.charge || !newConviction.date || !newConviction.explanation) {
+  const newConvErrors = {};
+  if (!newConviction.charge) newConvErrors.charge = "Charge is required.";
+  if (!newConviction.date) newConvErrors.date = "Date of conviction is required.";
+  if (!newConviction.explanation) newConvErrors.explanation = "Explanation is required.";
+
+  if (Object.keys(newConvErrors).length > 0) {
+    setConvictionErrors(newConvErrors);
     setBackgroundError("Please fill in all background fields before adding.");
     return;
   }
 
   setConvictions([...convictions, newConviction]);
-
-  // Clear the new conviction input fields
   setNewConviction({
     type: "Misdemeanor",
     charge: "",
     date: "",
     explanation: "",
   });
-  setSubmissionErrorMessage(""); // Remove error after successful addition
-  // ✅ Remove error once a background entry is added
+  setConvictionErrors({});
+  setSubmissionErrorMessage("");
   setBackgroundError("");
 };
 
@@ -1127,7 +1132,10 @@ to provide additional context regarding your background, please reach out to our
       <label>Charge:</label>
       <select
         value={newConviction.charge}
-        onChange={(e) => setNewConviction({ ...newConviction, charge: e.target.value })}
+        onChange={(e) => {
+          setNewConviction({ ...newConviction, charge: e.target.value });
+          if (e.target.value) setConvictionErrors((prev) => ({ ...prev, charge: '' }));
+        }}
       >
         <option value="">Select a Charge</option>
         {newConviction.type === "Misdemeanor"
@@ -1138,21 +1146,30 @@ to provide additional context regarding your background, please reach out to our
               <option key={idx} value={charge}>{charge}</option>
             ))}
       </select>
+      {convictionErrors.charge && <div className="error-message">{convictionErrors.charge}</div>}
 
       <label>Date of Conviction:</label>
       <input
         type="date"
         value={newConviction.date}
-        onChange={(e) => setNewConviction({ ...newConviction, date: e.target.value })}
+        onChange={(e) => {
+          setNewConviction({ ...newConviction, date: e.target.value });
+          if (e.target.value) setConvictionErrors((prev) => ({ ...prev, date: '' }));
+        }}
       />
+      {convictionErrors.date && <div className="error-message">{convictionErrors.date}</div>}
 
       <label>Explain your charge:</label>
       <textarea
         placeholder="Provide details of this charge/conviction..."
         className="conviction-textarea"
         value={newConviction.explanation}
-        onChange={(e) => setNewConviction({ ...newConviction, explanation: e.target.value })}
+        onChange={(e) => {
+          setNewConviction({ ...newConviction, explanation: e.target.value });
+          if (e.target.value) setConvictionErrors((prev) => ({ ...prev, explanation: '' }));
+        }}
       />
+      {convictionErrors.explanation && <div className="error-message">{convictionErrors.explanation}</div>}
 
       {/* Add Conviction Button */}
       <button type="button" className="add-button" onClick={addConviction}>
