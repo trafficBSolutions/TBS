@@ -437,11 +437,7 @@ const handlePhoneChange = (event) => {
       }
     });
   
-   // ✅ Check if resume is uploaded
-   if (!data.resume) {
-    newErrors.resume = "Resume is required.";
-    hasError = true;
-}
+   // ✅ Check if resume is uploaded (optional now)
 
 // ✅ Education Validation
 if (addedEd.length === 0) {
@@ -1411,12 +1407,12 @@ to provide additional context regarding your background, please reach out to our
   {workError && <div className="error-message">{workError}</div>}
 </div>
             <div className="job-resume">
-            <h2 className="resume-note"><b className="resume-note-b">NOTE:</b> You can only submit .doc, .pdf, .txt, and .pages files. Your resume is required before you submit.
-              Cover letters are optional but are recommended. </h2>
+            <h2 className="resume-note"><b className="resume-note-b">NOTE:</b> You can only submit .doc, .pdf, .txt, and .pages files. Resumes and
+              cover letters are optional but are recommended. </h2>
             <div className="resume-input">
               <div className="resume-section">
                 <div className="name-input">
-                  <label htmlFor="resume-label" className="resume-name">Resume *</label>
+                  <label htmlFor="resume-label" className="resume-name">Resume</label>
                   <div className="file-apply-input-container">
                     <label className="file-apply-label">
                       {data.resume ? (
