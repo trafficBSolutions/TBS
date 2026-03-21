@@ -257,7 +257,7 @@ export default function Rentals() {
         <li>101-299: $22.65 (Pick up)</li>
         <li>299+: $20.45 (Big Savings and Delivery &#128666; availability)</li>
       </ul>
-      <p style={{marginTop:'12px'}}>Order from our website: <a href="https://www.trafficbarriersolutions.com" target="_blank" rel="noopener noreferrer">www.trafficbarriersolutions.com</a></p>
+      <p style={{marginTop:'12px'}}>Request Today!</p>
     </div>
   </div>
 
