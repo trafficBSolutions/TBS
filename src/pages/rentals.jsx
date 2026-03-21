@@ -152,87 +152,108 @@ export default function Rentals() {
   }
 
  
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-  
-    const requiredFields = ['first', 'last', 'company', 'email', 'phone', 'address', 'city', 'state', 'zip', 'startDate', 'endDate', 'message'];
-    const newErrors = {};
-  
-    // Check if start date is selected
-    if (!startDate) {
-      newErrors.startDate = 'Start Date is required!';
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  const newErrors = {};
+  const isSale = orderType === 'sale';
+
+  const requiredFields = isSale
+    ? ['first', 'last', 'company', 'email', 'phone', 'address', 'city', 'state', 'zip']
+    : ['first', 'last', 'company', 'email', 'phone', 'address', 'city', 'state', 'zip', 'message'];
+
+  requiredFields.forEach((field) => {
+    if (!formData[field]) {
+      let fieldLabel = field.charAt(0).toUpperCase() + field.slice(1);
+      if (field === 'first') fieldLabel = 'First Name';
+      if (field === 'last') fieldLabel = 'Last Name';
+      if (field === 'company') fieldLabel = 'Company Name';
+      if (field === 'phone') fieldLabel = 'Phone Number';
+      if (field === 'address') fieldLabel = 'Address';
+      if (field === 'city') fieldLabel = 'City';
+      if (field === 'state') fieldLabel = 'State';
+      if (field === 'zip') fieldLabel = 'Zip Code';
+      if (field === 'message') fieldLabel = 'Message';
+      newErrors[field] = `${fieldLabel} is required!`;
     }
-  
-    // Check if end date is selected
-    if (!endDate) {
-      newErrors.endDate = 'End Date is required!';
-    }
-  
-    requiredFields.forEach(field => {
-      if (!formData[field]) {
-        let fieldLabel = field.charAt(0).toUpperCase() + field.slice(1);
-        if (field === 'first') fieldLabel = 'First Name';
-        if (field === 'last') fieldLabel = 'Last Name';
-        if (field === 'company') fieldLabel = 'Company Name';
-        if (field === 'phone') fieldLabel = 'Phone Number';
-        if (field === 'address') fieldLabel = 'Address';
-        if (field === 'city') fieldLabel = 'City';
-        if (field === 'state') fieldLabel = 'State';
-        if (field === 'zip') fieldLabel = 'Zip Code';
-        if (field === 'message') fieldLabel = 'Message';
-        newErrors[field] = `${fieldLabel} is required!`;
+  });
+
+  if (!isSale && !startDate) {
+    newErrors.startDate = 'Start Date is required!';
+  }
+
+  if (!isSale && !endDate) {
+    newErrors.endDate = 'End Date is required!';
+  }
+
+  if (addedEquipment.length === 0) {
+    newErrors.equipment = 'Please add at least one equipment item!';
+  }
+
+  if (Object.keys(newErrors).length > 0) {
+    setErrorMessage('Required fields are missing.');
+    setErrors(newErrors);
+    return;
+  }
+
+  try {
+    const equipmentString = addedEquipment.join(', ');
+
+    const formDataToSend = {
+      ...formData,
+      orderType,
+      equipment: equipmentString,
+      startDate: isSale ? null : startDate?.toISOString(),
+      endDate: isSale ? null : endDate?.toISOString(),
+      message: isSale ? (formData.message || '') : formData.message
+    };
+
+    const response = await axios.post('/rentals', formDataToSend, {
+      headers: {
+        'Content-Type': 'application/json'
       }
     });
-  
-    if (Object.keys(newErrors).length > 0) {
-      setErrorMessage('Required fields are Missing.');
-      setErrors(newErrors);
-      return;
-    }
-  
-    try {
-      const equipmentString = addedEquipment.join(', ');
-        const formDataToSend = {
-          ...formData,
-          equipment: equipmentString, // Update the equipment field with added equipment
-          startDate: startDate.toLocaleDateString(),
-          endDate: endDate.toLocaleDateString()
-        };
-  
-      const response = await axios.post('/rentals', formDataToSend, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-  
-      console.log(response.data);
-      setFormData({
-        first: '',
-        last: '',
-        company: '',
-        email: '',
-        phone: '',
-        address: '',
-        city: '',
-        state: '',
-        zip: '',
-        startDate: null,
-        endDate: null,
-        message: ''
-      });
-  
-      setErrors({});
-      setPhone('');
-      setStartDate(null); // Reset start date
-      setEndDate(null); // Reset end date
-      setAddedEquipment([]); // Clear added equipment
-      setSubmissionMessage(orderType === 'sale'
+
+    console.log(response.data);
+
+    setFormData({
+      first: '',
+      last: '',
+      company: '',
+      email: '',
+      phone: '',
+      address: '',
+      city: '',
+      state: '',
+      zip: '',
+      equipment: '',
+      startDate: '',
+      endDate: '',
+      message: '',
+      orderType: 'rental'
+    });
+
+    setOrderType('rental');
+    setErrors({});
+    setErrorMessage('');
+    setSubmissionErrorMessage('');
+    setSubmissionMessage(
+      isSale
         ? 'Equipment Purchase Request Submitted! We will be with you within 48 hours!'
-        : 'Equipment Rental Request Submitted! We will be with you within 48 hours!');
-    } catch (error) {
-      console.error('Error submitting Rental Request:', error);
-    }
-  };
+        : 'Equipment Rental Request Submitted! We will be with you within 48 hours!'
+    );
+
+    setPhone('');
+    setStartDate(null);
+    setEndDate(null);
+    setAddedEquipment([]);
+    setSelectedEquipment('');
+    setQuantity(1);
+  } catch (error) {
+    console.error('Error submitting Rental Request:', error);
+    setSubmissionErrorMessage('There was an error submitting your request.');
+  }
+};
   
   
     return (
@@ -481,7 +502,13 @@ onChange={(e) => setFormData({ ...formData, city: e.target.value })}
     {addedEquipment.map((equipment, index) => (
       <li className="equipment-list" key={index}>
         {equipment}
-        <button className="btn btn--full submit-quantity" onClick={() => handleRemoveEquipment(index)}>Remove Items</button>
+        <button
+  type="button"
+  className="btn btn--full submit-quantity"
+  onClick={() => handleRemoveEquipment(index)}
+>
+  Remove Items
+</button>
       </li>
     ))}
   </ul>
