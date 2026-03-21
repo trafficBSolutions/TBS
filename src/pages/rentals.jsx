@@ -244,7 +244,7 @@ export default function Rentals() {
           <h2 className="equip-intro">
     Rent equipment to ensure safe and efficient traffic control. 
     From arrow boards to construction signs, 
-    weÃ¢â‚¬â„¢ve got what you need.
+    we've got what you need.
   </h2>
 
   <div className="sales-promo-section" style={{background:'#fff3e0',borderRadius:'12px',padding:'24px',margin:'20px 0',border:'2px solid #ef6c00'}}>
