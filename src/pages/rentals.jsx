@@ -278,7 +278,7 @@ export default function Rentals() {
         <li>101-299: $22.65 (Pick up)</li>
         <li>299+: $20.45 (Big Savings and Delivery &#128666; availability)</li>
       </ul>
-      <p style={{marginTop:'12px'}}>Request Today!</p>
+      <p style={{marginTop:'12px'}}>Click the BUY CONES/DRUMS button and order today!</p>
     </div>
   </div>
 
