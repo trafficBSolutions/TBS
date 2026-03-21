@@ -78,6 +78,7 @@ export default function Rentals() {
   const [quantity, setQuantity] = useState(1); // Default quantity
   const [addedEquipment, setAddedEquipment] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
+  const [orderType, setOrderType] = useState('rental');
   const [formData, setFormData] = useState({
     first: '',
     last: '',
@@ -91,7 +92,8 @@ export default function Rentals() {
     equipment: '',
     startDate: '',
     endDate: '',
-    message: ''
+    message: '',
+    orderType: 'rental'
   });
   const [errors, setErrors] = useState({});
   const [submissionMessage, setSubmissionMessage] = useState('');
@@ -121,10 +123,10 @@ export default function Rentals() {
     setAddedEquipment(updatedEquipment);
   };
 
-  const handleStateChange = (e) => {
-    setSelectedState(e.target.value);
-    setErrors({ ...errors, state: '' }); // Clear state error when state changes
-  };
+ const handleStateChange = (e) => {
+  setFormData({ ...formData, state: e.target.value });
+  setErrors({ ...errors, state: '' });
+};
 
   const handlePhoneChange = (event) => {
     const input = event.target.value;
@@ -224,7 +226,9 @@ export default function Rentals() {
       setStartDate(null); // Reset start date
       setEndDate(null); // Reset end date
       setAddedEquipment([]); // Clear added equipment
-      setSubmissionMessage('Equipment Rental Request Submitted! We will be with you within 48 hours!');
+      setSubmissionMessage(orderType === 'sale'
+        ? 'Equipment Purchase Request Submitted! We will be with you within 48 hours!'
+        : 'Equipment Rental Request Submitted! We will be with you within 48 hours!');
     } catch (error) {
       console.error('Error submitting Rental Request:', error);
     }
@@ -240,13 +244,41 @@ export default function Rentals() {
           <h2 className="equip-intro">
     Rent equipment to ensure safe and efficient traffic control. 
     From arrow boards to construction signs, 
-    we’ve got what you need.
-  </h2></div>
+    weâ€™ve got what you need.
+  </h2>
+
+  <div className="sales-promo-section" style={{background:'#fff3e0',borderRadius:'12px',padding:'24px',margin:'20px 0',border:'2px solid #ef6c00'}}>
+    <h2 style={{textAlign:'center',fontSize:'1.6rem'}}>&#9724;&#65039;TBS&#128310; is now selling Cones and Drums! &#128679;</h2>
+    <div style={{marginTop:'12px',fontSize:'1.1rem'}}>
+      <p><strong>Drums</strong> - $46.00 includes Tire Ring (on orders 50+)</p>
+      <p style={{marginTop:'8px'}}><strong>Cones (28" 10lbs base)</strong></p>
+      <ul style={{listStyle:'disc',paddingLeft:'24px'}}>
+        <li>1-100: $24.95 each (Pick up)</li>
+        <li>101-299: $22.65 (Pick up)</li>
+        <li>299+: $20.45 (Big Savings and Delivery &#128666; availability)</li>
+      </ul>
+      <p style={{marginTop:'12px'}}>Order from our website: <a href="https://www.trafficbarriersolutions.com" target="_blank" rel="noopener noreferrer">www.trafficbarriersolutions.com</a></p>
+    </div>
+  </div>
+
+  <div className="order-type-toggle" style={{display:'flex',gap:'12px',justifyContent:'center',margin:'20px 0'}}>
+    <button type="button" className={`btn btn--full ${orderType === 'rental' ? 'submit-rental' : ''}`}
+      style={{opacity: orderType === 'rental' ? 1 : 0.5}}
+      onClick={() => { setOrderType('rental'); setFormData({...formData, orderType:'rental'}); }}>
+      RENT EQUIPMENT
+    </button>
+    <button type="button" className={`btn btn--full ${orderType === 'sale' ? 'submit-rental' : ''}`}
+      style={{opacity: orderType === 'sale' ? 1 : 0.5}}
+      onClick={() => { setOrderType('sale'); setFormData({...formData, orderType:'sale'}); }}>
+      BUY CONES / DRUMS
+    </button>
+  </div>
+</div>
         <form className="rental-form" onSubmit={handleSubmit}>
         <div className="equipment-form-container container--narrow page-section">
 
-<h1 className="equipment-box">Equipment Rental Form</h1>
-<h2 className="equipment-fill">Please Fill Out the Form Below to Request Equipment you Need to Rent!</h2>
+<h1 className="equipment-box">{orderType === 'sale' ? 'Equipment Purchase Form' : 'Equipment Rental Form'}</h1>
+<h2 className="equipment-fill">{orderType === 'sale' ? 'Fill out the form below to purchase Cones or Drums!' : 'Please Fill Out the Form Below to Request Equipment you Need to Rent!'}</h2>
 
 <div className="first-equip-input">
 
@@ -367,11 +399,11 @@ onChange={(e) => setFormData({ ...formData, city: e.target.value })}
 <div className="city-equip-state">
 <label className="state-equip-label">State *</label>
 <select
-      name="state"
-      className="state-equip-box"
-      value={formData.state}
-      onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-    >
+  name="state"
+  className="state-equip-box"
+  value={formData.state}
+  onChange={handleStateChange}
+>
       <option value="">Select State</option>
       {states.map(state => (
         <option key={state.abbreviation} value={state.abbreviation}>{state.name}</option>
@@ -454,68 +486,78 @@ onChange={(e) => setFormData({ ...formData, city: e.target.value })}
       </div>
       {errors.equipment && <span className="error-message">{errors.equipment}</span>}
           
-          <div className="equipment-start-section">
-        <label className="date-label">Start Date and Time:</label>
-        {/* Use the DatePicker component for selecting date and time */}
-        <DatePicker
-          selected={startDate}
-          placeholderText="Select a Start Date/Time"
-          onChange={(date) => handleStartDateChange(date)}
-          showTimeSelect
-          timeFormat="HH:mm"
-          timeIntervals={15}
-          timeCaption="Time"
-          dateFormat="MMMM d, yyyy h:mm aa"
-          className="date-picker"
-        />
-        {errors.startDate && <span className="error-message">{errors.startDate}</span>}
-      </div>
-      <div className="equipment-end-section">
-        <label className="date-label">End Date and Time:</label>
-        {/* Use the DatePicker component for selecting date and time */}
-        <DatePicker
-  selected={endDate}
-  placeholderText="Select an End Date/Time"
-  onChange={(date) => handleEndDateChange(date)}
-  showTimeSelect
-  timeFormat="HH:mm"
-  timeIntervals={15}
-  timeCaption="Time"
-  dateFormat="MMMM d, yyyy h:mm aa"
-  className="date-picker"
-/>
-        {errors.endDate && <span className="error-message">{errors.endDate}</span>}
-      </div>
-      </div>
-      
-<div className="input-equip-message-container">
-<label className="message-equip-label">Message *</label>
-<h2 className="message-equip-note">Tell us why you need your equipment! </h2>
+          {orderType === 'rental' && (
+  <>
+    <div className="equipment-start-section">
+      <label className="date-label">Start Date and Time:</label>
+      <DatePicker
+        selected={startDate}
+        placeholderText="Select a Start Date/Time"
+        onChange={handleStartDateChange}
+        showTimeSelect
+        timeFormat="HH:mm"
+        timeIntervals={15}
+        timeCaption="Time"
+        dateFormat="MMMM d, yyyy h:mm aa"
+        className="date-picker"
+      />
+      {errors.startDate && <span className="error-message">{errors.startDate}</span>}
+    </div>
 
-<textarea className="message-equip-text" name="message" type="text" placeholder="Enter Message"
-  value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-  />
-  {errors.message && <span className="error-message">{errors.message}</span>}
-  
-  </div>
-  <h2 className="warning-message">
-  WARNING: Late returns incur daily fees. Equipment is tracked by 
-  serial numbers. After 3 days past the due date, law enforcement may be involved, 
-  and you could face legal action. For extensions, 
-  call 706-263-0175. <b>Do NOT request extensions here!</b>
-</h2>
+    <div className="equipment-end-section">
+      <label className="date-label">End Date and Time:</label>
+      <DatePicker
+        selected={endDate}
+        placeholderText="Select an End Date/Time"
+        onChange={handleEndDateChange}
+        showTimeSelect
+        timeFormat="HH:mm"
+        timeIntervals={15}
+        timeCaption="Time"
+        dateFormat="MMMM d, yyyy h:mm aa"
+        className="date-picker"
+      />
+      {errors.endDate && <span className="error-message">{errors.endDate}</span>}
+    </div>
 
-  <button type="button" className="btn btn--full submit-rental" onClick={handleSubmit}>SUBMIT EQUIPMENT RENTAL</button>
-  {submissionErrorMessage &&
-            <div className="submission-error-message">{submissionErrorMessage}</div>
-          }
-          {errorMessage &&
-            <div className="submission-error-message">{errorMessage}</div>
-          }
-          {submissionMessage && (
-<div className="submission-message">{submissionMessage}</div>
+    <div className="input-equip-message-container">
+      <label className="message-equip-label">Message *</label>
+      <h2 className="message-equip-note">Tell us why you need your equipment!</h2>
+      <textarea
+        className="message-equip-text"
+        name="message"
+        placeholder="Enter Message"
+        value={formData.message}
+        onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+      />
+      {errors.message && <span className="error-message">{errors.message}</span>}
+    </div>
+
+    <h2 className="warning-message">
+      WARNING: Late returns incur daily fees. Equipment is tracked by
+      serial numbers. After 3 days past the due date, law enforcement may be involved,
+      and you could face legal action. For extensions,
+      call 706-263-0175. <b>Do NOT request extensions here!</b>
+    </h2>
+  </>
+)}
+
+<button type="submit" className="btn btn--full submit-rental">
+  {orderType === 'sale' ? 'SUBMIT EQUIPMENT PURCHASE' : 'SUBMIT EQUIPMENT RENTAL'}
+</button>
+
+{submissionErrorMessage && (
+  <div className="submission-error-message">{submissionErrorMessage}</div>
+)}
+{errorMessage && (
+  <div className="submission-error-message">{errorMessage}</div>
+)}
+{submissionMessage && (
+  <div className="submission-message">{submissionMessage}</div>
 )}
 </div>
+</div>
+
           </form>
         
 
@@ -563,7 +605,7 @@ onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                     and the general public in every aspect of our operations. Through comprehensive safety training, 
                     strict adherence to regulatory standards, and continuous improvement initiatives, 
                     we strive to create a work environment where accidents and injuries are preventable. 
-                    Our commitment to safety extends beyond compliance—it's a fundamental value embedded in everything we do. 
+                    Our commitment to safety extends beyond complianceâ€”it's a fundamental value embedded in everything we do. 
                     Together, we work tirelessly to promote a culture of safety, 
                     accountability, and excellence, because when it comes to traffic control, there's no compromise on safety.
                 </p>
@@ -577,4 +619,3 @@ onChange={(e) => setFormData({ ...formData, city: e.target.value })}
         </div>
     )
 };
-
