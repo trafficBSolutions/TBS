@@ -60,7 +60,7 @@ const states = [
   { abbreviation: 'WY', name: 'Wyoming' }
 ];
 
-const equipmentOptions = [
+const equipmentRentalsOptions = [
   { name: 'Arrow Board' },
   { name: 'Barrels' },
   { name: 'Barricades' },
@@ -69,7 +69,10 @@ const equipmentOptions = [
   { name: 'Aluminum Construction Sign' },
   { name: 'Message Board' },
 ]
-
+const saleEquipmentOptions = [
+  { name: 'Cones' },
+  { name: 'Drums' },
+];
 export default function Rentals() {
   const [phone, setPhone] = useState('');
   const [startDate, setStartDate] = useState(null);
@@ -98,7 +101,8 @@ export default function Rentals() {
   const [errors, setErrors] = useState({});
   const [submissionMessage, setSubmissionMessage] = useState('');
   const [submissionErrorMessage, setSubmissionErrorMessage] = useState('');
-
+const activeEquipmentOptions =
+  orderType === 'sale' ? saleEquipmentOptions : equipmentRentalsOptions;
   const handleAddEquipment = () => {
     if (selectedEquipment && quantity > 0) {
       setAddedEquipment([...addedEquipment, `${quantity} ${selectedEquipment}`]);
@@ -453,34 +457,71 @@ onChange={(e) => setFormData({ ...formData, city: e.target.value })}
 <div className="equipment-section">
         <h2>Equipment Options</h2>
         <div className="equipment-img-section">
-          <div>
-            <img src={images["../assets/message and arrow boards/arrow board.jpg"].default} alt="Arrow Board" />
-            <p>Arrow Board</p>
-          </div>
-          <div>
-            <img src={images["../assets/buffer and tapers/barrel.jpg"].default} alt="Barrel" />
-            <p>Barrel</p>
-          </div>
-          <div>
-            <img src={images["../assets/buffer and tapers/cone.jpeg"].default} alt="Cone" />
-            <p>Cone</p>
-          </div>
-          <div>
-            <img src={images["../assets/buffer and tapers/message board.jpg"].default} alt="Message Board" />
-            <p>Message Board</p>
-          </div>
-        </div>
+  {orderType === 'rental' && (
+    <>
+      <div>
+        <img
+          src={images["../assets/message and arrow boards/arrow board.jpg"].default}
+          alt="Arrow Board"
+        />
+        <p>Arrow Board</p>
+      </div>
+
+      <div>
+        <img
+          src={images["../assets/buffer and tapers/barrel.jpg"].default}
+          alt="Barrel"
+        />
+        <p>Barrels</p>
+      </div>
+
+      <div>
+        <img
+          src={images["../assets/buffer and tapers/cone.jpeg"].default}
+          alt="Cone"
+        />
+        <p>Cones</p>
+      </div>
+
+      <div>
+        <img
+          src={images["../assets/buffer and tapers/message board.jpg"].default}
+          alt="Message Board"
+        />
+        <p>Message Board</p>
+      </div>
+    </>
+  )}
+
+  {orderType === 'sale' && (
+    <>
+      <div>
+        <img
+          src={images["../assets/buffer and tapers/cone.jpeg"].default}
+          alt="Cone"
+        />
+        <p>Cones</p>
+      </div>
+
+      <div>
+        <img
+          src={images["../assets/buffer and tapers/barrel.jpg"].default}
+          alt="Drum"
+        />
+        <p>Drums</p>
+      </div>
+    </>
+  )}
+</div>
         <label>Equipment *</label>
-        <select
+<select
   name="equipment"
   className="equipment-select"
   value={selectedEquipment}
   onChange={(e) => setSelectedEquipment(e.target.value)}
 >
   <option value="">Select Equipment</option>
-  {equipmentOptions
-    .filter(option => orderType === 'rental' || (option.name !== 'Arrow Board' && option.name !== 'Message Board'))
-    .map((option, index) => (
+  {activeEquipmentOptions.map((option, index) => (
     <option key={index} value={option.name}>
       {option.name}
     </option>
