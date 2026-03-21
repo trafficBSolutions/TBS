@@ -244,7 +244,7 @@ export default function Rentals() {
           <h2 className="equip-intro">
     Rent equipment to ensure safe and efficient traffic control. 
     From arrow boards to construction signs, 
-    weâ€™ve got what you need.
+    weÃ¢â‚¬â„¢ve got what you need.
   </h2>
 
   <div className="sales-promo-section" style={{background:'#fff3e0',borderRadius:'12px',padding:'24px',margin:'20px 0',border:'2px solid #ef6c00'}}>
@@ -457,7 +457,9 @@ onChange={(e) => setFormData({ ...formData, city: e.target.value })}
   onChange={(e) => setSelectedEquipment(e.target.value)}
 >
   <option value="">Select Equipment</option>
-  {equipmentOptions.map((option, index) => (
+  {equipmentOptions
+    .filter(option => orderType === 'rental' || (option.name !== 'Arrow Board' && option.name !== 'Message Board'))
+    .map((option, index) => (
     <option key={index} value={option.name}>
       {option.name}
     </option>
@@ -605,7 +607,7 @@ onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                     and the general public in every aspect of our operations. Through comprehensive safety training, 
                     strict adherence to regulatory standards, and continuous improvement initiatives, 
                     we strive to create a work environment where accidents and injuries are preventable. 
-                    Our commitment to safety extends beyond complianceâ€”it's a fundamental value embedded in everything we do. 
+                    Our commitment to safety extends beyond complianceÃ¢â‚¬â€it's a fundamental value embedded in everything we do. 
                     Together, we work tirelessly to promote a culture of safety, 
                     accountability, and excellence, because when it comes to traffic control, there's no compromise on safety.
                 </p>
