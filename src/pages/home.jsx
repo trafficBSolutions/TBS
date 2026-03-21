@@ -41,6 +41,21 @@ export default function Home() {
             <a href="/trafficplanning" className="plan-btn">Plan a Job</a>
           </div>
         </section>
+        <section className="section-sales-promo">
+          <div style={{background:'#fff3e0',borderRadius:'12px',padding:'30px',margin:'20px auto',maxWidth:'800px',border:'2px solid #ef6c00',textAlign:'center'}}>
+            <h2 style={{fontSize:'1.8rem',marginBottom:'12px'}}>&#9724;&#65039;TBS&#128310; is now selling Cones and Drums! &#128679;</h2>
+            <p><strong>Drums</strong> - $46.00 includes Tire Ring (on orders 50+)</p>
+            <p style={{marginTop:'8px'}}><strong>Cones (28" 10lbs base)</strong></p>
+            <ul style={{listStyle:'disc',display:'inline-block',textAlign:'left',paddingLeft:'24px',margin:'8px 0'}}>
+              <li>1-100: $24.95 each (Pick up)</li>
+              <li>101-299: $22.65 (Pick up)</li>
+              <li>299+: $20.45 (Big Savings and Delivery &#128666; availability)</li>
+            </ul>
+            <p style={{marginTop:'12px'}}>Order Today!</p>
+            <p style={{marginTop:'8px'}}>Email: <a href="mailto:Materialworx2@gmail.com">Materialworx2@gmail.com</a></p>
+            <a href="/rentals" className="schedule-btn" style={{display:'inline-block',marginTop:'16px'}}>Order Now</a>
+          </div>
+        </section>
         <section className="section-will-featured">
         <div className="material-website-container">
   <h1 className="contact-materialX">Need a Website That Works?</h1>
@@ -67,21 +82,7 @@ export default function Home() {
   </div>
 </div>
 </section>
-        <section className="section-sales-promo">
-          <div style={{background:'#fff3e0',borderRadius:'12px',padding:'30px',margin:'20px auto',maxWidth:'800px',border:'2px solid #ef6c00',textAlign:'center'}}>
-            <h2 style={{fontSize:'1.8rem',marginBottom:'12px'}}>&#9724;&#65039;TBS&#128310; is now selling Cones and Drums! &#128679;</h2>
-            <p><strong>Drums</strong> - $46.00 includes Tire Ring (on orders 50+)</p>
-            <p style={{marginTop:'8px'}}><strong>Cones (28" 10lbs base)</strong></p>
-            <ul style={{listStyle:'disc',display:'inline-block',textAlign:'left',paddingLeft:'24px',margin:'8px 0'}}>
-              <li>1-100: $24.95 each (Pick up)</li>
-              <li>101-299: $22.65 (Pick up)</li>
-              <li>299+: $20.45 (Big Savings and Delivery &#128666; availability)</li>
-            </ul>
-            <p style={{marginTop:'12px'}}>Order from our website: <a href="https://www.trafficbarriersolutions.com" target="_blank" rel="noopener noreferrer">www.trafficbarriersolutions.com</a></p>
-            <p style={{marginTop:'8px'}}>Email: <a href="mailto:Materialworx2@gmail.com">Materialworx2@gmail.com</a></p>
-            <a href="/rentals" className="schedule-btn" style={{display:'inline-block',marginTop:'16px'}}>Order Now</a>
-          </div>
-        </section>
+        
         <section className="now-hiring">
           <div className="now-hiring-container">
             <h1 className="now-hiring-title">APPLY NOW</h1>
