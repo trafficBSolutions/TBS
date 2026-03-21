@@ -526,7 +526,86 @@ body {
   margin: 0 auto;
   padding: 0 3.2rem;
 }
+.section-sales-promo {
+  background-color: #fdf2e9;
+  padding: 3rem 1.5rem;
+}
 
+.sales-promo-box {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+  text-align: center;
+  background: linear-gradient(135deg, #fff3e0, #fbe4cf);
+  border: 3px solid #e67e22;
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.sales-promo-title {
+  font-size: 3.2rem;
+  margin-bottom: 1.5rem;
+  color: #000;
+  font-family: "Moveo Sans W00 Bold";
+}
+
+.sales-promo-text {
+  font-size: 2rem;
+  color: #222;
+  margin-bottom: 1rem;
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.5;
+}
+
+.sales-promo-subtitle {
+  font-size: 2.2rem;
+  color: #5a270f;
+  margin: 1.5rem 0 1rem;
+  font-family: "Arial Black", Gadget, sans-serif;
+}
+
+.sales-promo-list {
+  display: inline-block;
+  text-align: left;
+  margin: 1rem auto;
+  padding-left: 2.4rem;
+}
+
+.sales-promo-list li {
+  font-size: 1.8rem;
+  color: #222;
+  margin-bottom: 0.8rem;
+  line-height: 1.5;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.sales-promo-order {
+  font-size: 2.2rem;
+  margin-top: 1.8rem;
+  color: #cf711f;
+  font-family: "Moveo Sans W00 Bold";
+}
+
+.sales-promo-email {
+  font-size: 1.8rem;
+  margin-top: 1rem;
+  color: #000;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.sales-promo-email a {
+  color: #d35400;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.sales-promo-email a:hover {
+  text-decoration: underline;
+}
+
+.sales-promo-btn {
+  margin-top: 2rem;
+}
 .hero-description {
   font-size: 2rem;
   line-height: 1.6;
