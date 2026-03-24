@@ -230,6 +230,41 @@ const formatName = (name) => {
 };
 
   const sigRef = useRef(null);
+  const officerSigRef = useRef(null);
+  const [policeOfficer, setPoliceOfficer] = useState({ used: false, name: '', signature: '' });
+
+const officerSigCanvasProps = React.useMemo(
+  () => ({
+    className: 'sig-canvas',
+    'aria-label': 'Police officer signature',
+    width: 600,
+    height: 200,
+  }),
+  []
+);
+
+const handleOfficerSigEnd = () => {
+  const pad = officerSigRef.current;
+  if (!pad) return;
+  if (typeof pad.isEmpty === 'function' && pad.isEmpty()) {
+    setPoliceOfficer(prev => ({ ...prev, signature: '' }));
+    return;
+  }
+  let dataUrl;
+  try {
+    dataUrl = typeof pad.getTrimmedCanvas === 'function'
+      ? pad.getTrimmedCanvas().toDataURL('image/png')
+      : pad.getCanvas().toDataURL('image/png');
+  } catch {
+    dataUrl = pad.getCanvas().toDataURL('image/png');
+  }
+  setPoliceOfficer(prev => ({ ...prev, signature: dataUrl.split(',')[1] }));
+};
+
+const clearOfficerSignature = () => {
+  officerSigRef.current?.clear();
+  setPoliceOfficer(prev => ({ ...prev, signature: '' }));
+};
 
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
@@ -518,6 +553,20 @@ const onSubmit = async (e) => {
   setSubmissionErrorMessage('');
   setErrorMessage('');
 
+  // Police officer validation
+  if (policeOfficer.used) {
+    if (!policeOfficer.name.trim()) {
+      setErrors(prev => ({ ...prev, officerName: 'Officer name is required' }));
+      setErrorMessage('Required fields are missing.');
+      return;
+    }
+    if (!policeOfficer.signature) {
+      setErrors(prev => ({ ...prev, officerSignature: 'Officer signature is required' }));
+      setErrorMessage('Required fields are missing.');
+      return;
+    }
+  }
+
   // 1) Validate first (NO spinner yet)
   const valid = validateAll();
   if (!valid) {
@@ -545,7 +594,8 @@ const onSubmit = async (e) => {
   formData.append('tbs', JSON.stringify(tbs));
   formData.append('mismatch', hasMismatch);
   formData.append('foremanSignature', foremanSig);
-  
+  formData.append('policeOfficer', JSON.stringify(policeOfficer));
+
   photos.forEach(photo => {
     formData.append('photos', photo);
   });
@@ -580,6 +630,8 @@ const onSubmit = async (e) => {
     setPhotos([]);
     setRequiresPhotos(false);
     sigRef.current?.clear();
+    officerSigRef.current?.clear();
+    setPoliceOfficer({ used: false, name: '', signature: '' });
     setTbs({
       flagger1: '',
       flagger2: '',
@@ -1083,6 +1135,70 @@ const isSubmitReady = useMemo(() => {
     </div>
   </div>
 </div>
+              <div className="police-officer-section" style={{ marginTop: '20px', padding: '15px', border: '1px solid #ddd', borderRadius: '8px', background: '#f9f9f9' }}>
+                <h4 style={{ marginTop: 0 }}>🚔 Police Officer On Site</h4>
+                <p style={{ fontSize: '13px', color: '#555' }}>If a police officer was used at this job, check the box below and have the officer sign.</p>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={policeOfficer.used}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setPoliceOfficer(prev => ({
+                        ...prev,
+                        used: checked,
+                        ...(!checked ? { name: '', signature: '' } : {})
+                      }));
+                      if (!checked) {
+                        officerSigRef.current?.clear();
+                        setErrors(prev => { const n = {...prev}; delete n.officerName; delete n.officerSignature; return n; });
+                      }
+                    }}
+                  /> A police officer was present at this job
+                </label>
+
+                {policeOfficer.used && (
+                  <div style={{ marginTop: '15px' }}>
+                    <label>Officer Name *</label>
+                    <input
+                      type="text"
+                      placeholder="Officer First & Last Name"
+                      value={policeOfficer.name}
+                      onChange={(e) => {
+                        const val = formatName(e.target.value);
+                        setPoliceOfficer(prev => ({ ...prev, name: val }));
+                        if (val.trim()) setErrors(prev => ({ ...prev, officerName: '' }));
+                      }}
+                    />
+                    {errors.officerName && <div className="error-message">{errors.officerName}</div>}
+
+                    <label style={{ marginTop: '10px', display: 'block' }}>Officer Signature *</label>
+                    <p className="sign-here">Please have the officer sign below to confirm their presence.</p>
+                    <div className="sig-canvas-wrap">
+                      <SignatureCanvas
+                        ref={officerSigRef}
+                        penColor="#000"
+                        onEnd={handleOfficerSigEnd}
+                        canvasProps={officerSigCanvasProps}
+                      />
+                      <div className="sig-actions">
+                        <button type="button" className="btn sig-clear" onClick={clearOfficerSignature}>
+                          Clear Signature
+                        </button>
+                      </div>
+                    </div>
+                    {errors.officerSignature && <div className="error-message">{errors.officerSignature}</div>}
+
+                    {policeOfficer.signature && (
+                      <div className="sig-preview">
+                        <span>Captured:</span>
+                        <img alt="Officer signature preview" src={`data:image/png;base64,${policeOfficer.signature}`} />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               <div className="actions">
                  <div className="submit-button-wrapper">
   <button
