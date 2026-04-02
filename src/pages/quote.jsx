@@ -61,6 +61,62 @@ export default function Quote() {
   const [message, setMessage] = useState("");
   const [taxExemptNumber, setTaxExemptNumber] = useState("");
 
+  // ── Invoice state ──
+  const [invNumber, setInvNumber] = useState("");
+  const [invDate, setInvDate] = useState(isoDate());
+  const [invCompany, setInvCompany] = useState("");
+  const [invCustomer, setInvCustomer] = useState("");
+  const [invEmail, setInvEmail] = useState("");
+  const [invPhone, setInvPhone] = useState("");
+  const [invTaxRate, setInvTaxRate] = useState(0.08);
+  const [invIsTaxExempt, setInvIsTaxExempt] = useState(false);
+  const [invTaxExemptNumber, setInvTaxExemptNumber] = useState("");
+  const [invPayMethod, setInvPayMethod] = useState("Check");
+  const [invRows, setInvRows] = useState([blankRow()]);
+  const [invSending, setInvSending] = useState(false);
+  const [invMessage, setInvMessage] = useState("");
+
+  const updateInvRow = (id, patch) => setInvRows(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r));
+  const addInvRow = () => setInvRows(prev => [...prev, blankRow()]);
+  const removeInvRow = (id) => setInvRows(prev => prev.filter(r => r.id !== id));
+
+  const invComputed = useMemo(() => {
+    const lineTotals = invRows.map(r => (Number(r.qty) || 0) * (Number(r.unitPrice) || 0));
+    const subtotal = lineTotals.reduce((s, v) => s + v, 0);
+    const taxableSubtotal = invIsTaxExempt ? 0 : invRows.reduce((s, r, i) => r.taxable ? s + lineTotals[i] : s, 0);
+    const taxDue = taxableSubtotal * (Number(invTaxRate) || 0);
+    const ccFee = invPayMethod === "Card" ? (subtotal + taxDue) * ccFeeRate : 0;
+    const total = invIsTaxExempt ? subtotal + ccFee : subtotal + taxDue + ccFee;
+    const depositDue = requireDeposit ? total * depositRate : 0;
+    return { lineTotals, subtotal, taxDue, ccFee, total, depositDue };
+  }, [invRows, invTaxRate, invIsTaxExempt, invPayMethod, ccFeeRate, requireDeposit, depositRate]);
+
+  const handleInvPhoneChange = (e) => {
+    const raw = e.target.value.replace(/\D/g, '');
+    setInvPhone(raw.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3'));
+  };
+
+  const handleSendInvoice = async () => {
+    if (!invEmail) { setInvMessage("Please enter an email address"); return; }
+    if (!invNumber.trim()) { setInvMessage("Please enter an invoice number"); return; }
+    setInvSending(true);
+    setInvMessage("");
+    try {
+      await api.post('/api/invoice', {
+        invoiceNumber: invNumber.trim(),
+        date: invDate, company: invCompany, customer: invCustomer,
+        email: invEmail, phone: invPhone,
+        taxRate: invTaxRate, isTaxExempt: invIsTaxExempt, taxExemptNumber: invTaxExemptNumber,
+        payMethod: invPayMethod, rows: invRows, computed: invComputed
+      });
+      setInvMessage("Invoice sent successfully!");
+    } catch {
+      setInvMessage("Failed to send invoice. Please try again.");
+    } finally {
+      setInvSending(false);
+    }
+  };
+
   const updateRow = (id, patch) => {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
   };
@@ -287,6 +343,85 @@ export default function Quote() {
               {message}
             </p>
           )}
+        </div>
+      </section>
+
+      {/* ════════════════ INVOICE SECTION ════════════════ */}
+      <hr style={{ margin: '40px 0', borderTop: '3px solid #17365D' }} />
+      <h2 style={{ textAlign: 'center', color: '#17365D' }}>INVOICE</h2>
+
+      <section className="quote-info">
+        <label>Invoice Number *<input type="text" value={invNumber} onChange={(e) => setInvNumber(e.target.value)} placeholder="e.g., TBS-1001" /></label>
+        <label>Company/Excavator<input type="text" value={invCompany} onChange={(e) => setInvCompany(e.target.value.replace(/\b\w/g, c => c.toUpperCase()))} /></label>
+        <label>Customer<input type="text" value={invCustomer} onChange={(e) => setInvCustomer(e.target.value.replace(/\b\w/g, c => c.toUpperCase()))} /></label>
+        <label>Email (comma-separated for multiple)<input type="text" value={invEmail} onChange={(e) => setInvEmail(e.target.value)} placeholder="email1@example.com, email2@example.com" /></label>
+        <label>Phone<input type="text" value={invPhone} onChange={handleInvPhoneChange} /></label>
+      </section>
+
+      <section className="quote-controls">
+        <label className="inline">
+          <input type="checkbox" checked={invIsTaxExempt} onChange={(e) => setInvIsTaxExempt(e.target.checked)} />
+          Tax Exempt (subtotal is final total)
+        </label>
+        {invIsTaxExempt && (
+          <label>Tax Exemption Number (Optional)
+            <input type="text" value={invTaxExemptNumber} onChange={(e) => setInvTaxExemptNumber(e.target.value)} placeholder="Enter tax exemption number (optional)" />
+          </label>
+        )}
+        <label>Tax Rate
+          <input type="number" step="0.001" value={invTaxRate} onChange={(e) => setInvTaxRate(Number(e.target.value))} />
+          <span className="hint">0.08 = 8%</span>
+        </label>
+      </section>
+
+      <section className="quote-table">
+        <div className="table-actions">
+          <button type="button" className="btn" onClick={addInvRow}>+ Add Line</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th style={{ width: "16%" }}>ITEM</th>
+              <th>Notes (measuring / designing / printing / installing)</th>
+              <th style={{ width: "10%" }}>TAX?</th>
+              <th style={{ width: "12%" }}>QTY</th>
+              <th style={{ width: "14%" }}>PER UNIT</th>
+              <th style={{ width: "14%" }}>LINE TOTAL</th>
+              <th style={{ width: "8%" }}></th>
+            </tr>
+          </thead>
+          <tbody>
+            {invRows.map((r, idx) => (
+              <tr key={r.id}>
+                <td><input value={r.item} onChange={(e) => updateInvRow(r.id, { item: e.target.value.replace(/\b\w/g, c => c.toUpperCase()) })} placeholder="e.g., Banner" /></td>
+                <td><input value={r.description} onChange={(e) => updateInvRow(r.id, { description: e.target.value.replace(/\b\w/g, c => c.toUpperCase()) })} placeholder="Details..." /></td>
+                <td className="center">
+                  <select value={invIsTaxExempt ? "No" : (r.taxable ? "Yes" : "No")} onChange={(e) => updateInvRow(r.id, { taxable: e.target.value === "Yes" })} disabled={invIsTaxExempt}>
+                    <option>Yes</option><option>No</option>
+                  </select>
+                </td>
+                <td><input type="number" min="0" value={r.qty} onChange={(e) => updateInvRow(r.id, { qty: Number(e.target.value) })} /></td>
+                <td><input type="number" step="0.01" min="0" value={r.unitPrice} onChange={(e) => updateInvRow(r.id, { unitPrice: Number(e.target.value) })} /></td>
+                <td className="right">{money(invComputed.lineTotals[idx])}</td>
+                <td className="center"><button type="button" className="icon-btn" onClick={() => removeInvRow(r.id)}>✕</button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+
+      <section className="quote-totals">
+        <div className="totals-box">
+          <div className="row"><span>Subtotal</span><strong>{money(invComputed.subtotal)}</strong></div>
+          <div className="row"><span>Tax Due</span><strong>{money(invComputed.taxDue)}</strong></div>
+          <div className="row"><span>Card Fee (3%)</span><strong>{money(invComputed.ccFee)}</strong></div>
+          <div className="row total"><span>TOTAL</span><strong>{money(invComputed.total)}</strong></div>
+        </div>
+        <div style={{ marginTop: '20px', textAlign: 'center' }}>
+          <button type="button" className="btn" onClick={handleSendInvoice} disabled={invSending} style={{ padding: '12px 30px', fontSize: '16px' }}>
+            {invSending ? 'Sending...' : 'Send Invoice to Email'}
+          </button>
+          {invMessage && <p style={{ marginTop: '10px', color: invMessage.includes('success') ? 'green' : 'red', fontWeight: 'bold' }}>{invMessage}</p>}
         </div>
       </section>
       </div>
