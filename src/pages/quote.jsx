@@ -351,7 +351,7 @@ export default function Quote() {
       <h2 style={{ textAlign: 'center', color: '#17365D' }}>INVOICE</h2>
 
       <section className="quote-info">
-        <label>Invoice Number *<input type="text" value={invNumber} onChange={(e) => setInvNumber(e.target.value)} placeholder="e.g., TBS-1001" /></label>
+        <label>Invoice Number *<input type="text" value={invNumber} onChange={(e) => setInvNumber(e.target.value.toUpperCase())} placeholder="e.g., 2026SS001" /></label>
         <label>Company/Excavator<input type="text" value={invCompany} onChange={(e) => setInvCompany(e.target.value.replace(/\b\w/g, c => c.toUpperCase()))} /></label>
         <label>Customer<input type="text" value={invCustomer} onChange={(e) => setInvCustomer(e.target.value.replace(/\b\w/g, c => c.toUpperCase()))} /></label>
         <label>Email (comma-separated for multiple)<input type="text" value={invEmail} onChange={(e) => setInvEmail(e.target.value)} placeholder="email1@example.com, email2@example.com" /></label>
