@@ -301,7 +301,6 @@ function EmployeeDiscipline() {
             )}
           </fieldset>
 
-          <label>Employee Statement<textarea value={form.employeeStatement} onChange={e=>setForm({...form,employeeStatement:e.target.value})} /></label>
           <label>Employer/Supervisor Statement<textarea value={form.employerStatement} onChange={e=>setForm({...form,employerStatement:e.target.value})} /></label>
 
           {/* Points Input */}
