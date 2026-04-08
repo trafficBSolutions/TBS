@@ -34,7 +34,7 @@ function EmployeeDiscipline() {
     employeeName:'', position:'',
     issuedByName:'',
     supervisorName:'',
-    dateOfWarning:'', incidentDate:'', incidentTime:'', incidentPlace:'',
+    dateOfWarning:'', incidentDate:'', incidentTime:'', incidentPeriod:'AM', incidentPlace:'',
     violationTypes:[], otherViolationText:'',
     employeeStatement:'', employerStatement:'', decision:'',
     points: '',
@@ -280,6 +280,12 @@ function EmployeeDiscipline() {
             <label>Date of Warning<input type="date" value={form.dateOfWarning} onChange={e=>setForm({...form,dateOfWarning:e.target.value})} required/></label>
             <label>Incident Date<input type="date" value={form.incidentDate} onChange={e=>setForm({...form,incidentDate:e.target.value})} required/></label>
             <label>Incident Time<input type="time" value={form.incidentTime} onChange={e=>setForm({...form,incidentTime:e.target.value})}/></label>
+            <label>AM / PM
+              <select value={form.incidentPeriod} onChange={e=>setForm({...form,incidentPeriod:e.target.value})}>
+                <option>AM</option>
+                <option>PM</option>
+              </select>
+            </label>
             <label>Place<input type="text" value={form.incidentPlace} onChange={e=>setForm({...form,incidentPlace:capitalize(e.target.value)})}/></label>
 
           <fieldset>
