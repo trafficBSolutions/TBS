@@ -33,7 +33,7 @@ function EmployeeDiscipline() {
     employeeName:'', position:'',
     issuedByName:'',
     supervisorName:'',
-    incidentDate:'', incidentTime:'', incidentPlace:'',
+    dateOfWarning:'', incidentDate:'', incidentTime:'', incidentPlace:'',
     violationTypes:[], otherViolationText:'',
     employeeStatement:'', employerStatement:'', decision:'',
     points: '',
@@ -271,6 +271,7 @@ function EmployeeDiscipline() {
             <label>Employee Name<input type="text" value={form.employeeName} onChange={e=>setForm({...form,employeeName:capitalize(e.target.value)})} required/></label>
             <label>Position<input type="text" value={form.position} onChange={e=>setForm({...form,position:capitalize(e.target.value)})}/></label>
             <label>Supervisor Name<input type="text" value={form.supervisorName} onChange={e=>setForm({...form,supervisorName:capitalize(e.target.value)})} required/></label>
+            <label>Date of Warning<input type="date" value={form.dateOfWarning} onChange={e=>setForm({...form,dateOfWarning:e.target.value})} required/></label>
             <label>Incident Date<input type="date" value={form.incidentDate} onChange={e=>setForm({...form,incidentDate:e.target.value})} required/></label>
             <label>Incident Time<input type="time" value={form.incidentTime} onChange={e=>setForm({...form,incidentTime:e.target.value})}/></label>
             <label>Place<input type="text" value={form.incidentPlace} onChange={e=>setForm({...form,incidentPlace:capitalize(e.target.value)})}/></label>
