@@ -323,8 +323,7 @@ function EmployeeDiscipline() {
             )}
           </div>
 
-          <label>Warning Decision<textarea value={form.decision} onChange={e=>setForm({...form,decision:sentenceCap(e.target.value)})} style={{fontFamily:'Arial',fontWeight:'normal'}} /></label>
-          <label>Meeting Date (for signatures in office)<input type="date" value={form.meetingDate} onChange={e=>setForm({...form,meetingDate:e.target.value})} /></label>
+
 
           <div>
             <h4>Previous Warnings</h4>
