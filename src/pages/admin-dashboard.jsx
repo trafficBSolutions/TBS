@@ -74,7 +74,28 @@ const [isTaskPublic, setIsTaskPublic] = useState(false);
 const [showTasks, setShowTasks] = useState(false);
 const [taskDate, setTaskDate] = useState(new Date());
 const [resendingQuoteId, setResendingQuoteId] = useState(null);
+const [empNewPassword, setEmpNewPassword] = useState('');
+const [empPasswordMsg, setEmpPasswordMsg] = useState('');
+const [empPasswordLoading, setEmpPasswordLoading] = useState(false);
 const [successMessage, setSuccessMessage] = useState('');
+const handleChangeEmpPassword = async () => {
+  if (!empNewPassword.trim()) { setEmpPasswordMsg('Please enter a new password.'); return; }
+  if (empNewPassword.length < 6) { setEmpPasswordMsg('Password must be at least 6 characters.'); return; }
+  setEmpPasswordLoading(true);
+  setEmpPasswordMsg('');
+  try {
+    const res = await axios.put('/employee/change-password', {
+      email: 'tbsolutions55@gmail.com',
+      newPassword: empNewPassword
+    });
+    setEmpPasswordMsg(res.data.message || 'Password updated successfully!');
+    setEmpNewPassword('');
+  } catch (err) {
+    setEmpPasswordMsg(err.response?.data?.message || 'Failed to update password.');
+  } finally {
+    setEmpPasswordLoading(false);
+  }
+};
 // Modify your fetchMonthlyJobs function to include better logging
 // Add this useEffect to fetch cancelled jobs specifically
 useEffect(() => {
@@ -1143,6 +1164,33 @@ selected={
 </button>
   </div>
 )}
+
+<div className="admin-invoice">
+  <h1 className="invoice-h1">Employee Login Password</h1>
+  <p style={{ fontSize: '13px', color: '#555', marginBottom: '10px' }}>Change the password for the employee login (tbsolutions55@gmail.com)</p>
+  <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+    <input
+      type="text"
+      placeholder="Enter new password"
+      value={empNewPassword}
+      onChange={(e) => setEmpNewPassword(e.target.value)}
+      style={{ padding: '8px 12px', borderRadius: '4px', border: '1px solid #ccc', minWidth: '200px' }}
+    />
+    <button
+      className="invoice-btn"
+      type="button"
+      onClick={handleChangeEmpPassword}
+      disabled={empPasswordLoading}
+    >
+      {empPasswordLoading ? 'Updating...' : 'Change Password'}
+    </button>
+  </div>
+  {empPasswordMsg && (
+    <p style={{ marginTop: '10px', fontWeight: 'bold', color: empPasswordMsg.includes('success') ? 'green' : 'red' }}>
+      {empPasswordMsg}
+    </p>
+  )}
+</div>
 <div className="cancelled-jobs">
   <h2 className="admin-apps-title">Cancelled Jobs</h2> 
   <button
@@ -1361,9 +1409,9 @@ selected={
       <p className="contact-info">
         <a className="will-phone" href="tel:+17062630175">Call: 706-263-0175</a>
         <a className="will-email" href="mailto: tbsolutions1999@gmail.com">Email: tbsolutions1999@gmail.com</a>
-        <a className="will-address" href="https://www.google.com/maps/place/Traffic+and+Barrier+Solutions,+LLC/@34.5117779,-84.9474798,123m/data=!3m1!1e3!4m6!3m5!1s0x482edab56d5b039b:0x94615ce25483ace6!8m2!3d34.511583!4d-84.9480585!16s%2Fg%2F11pl8d7p4t?entry=ttu&g_ep=EgoyMDI2MDMzMS4wIKXMDSoASAFQAw%3D%3D"
+        <a className="will-address" href="https://www.google.com/maps/place/Traffic+and+Barrier+Solutions,+LLC/@34.5025307,-84.899317,660m/data=!3m1!1e3!4m6!3m5!1s0x482edab56d5b039b:0x94615ce25483ace6!8m2!3d34.5018691!4d-84.8994308!16s%2Fg%2F11pl8d7p4t?entry=ttu&g_ep=EgoyMDI1MDEyMC4wIKXMDSoASAFQAw%3D%3D"
       >
-        721 N Wall St, Calhoun, GA 30701</a>
+        1995 Dews Pond Rd, Calhoun, GA 30701</a>
       </p>
     </div>
 
@@ -1394,7 +1442,7 @@ selected={
   </div>
 </footer>
 <div className="footer-copyright">
-      <p className="footer-copy-p">&copy; 2025 Traffic & Barrier Solutions, LLC - 
+      <p className="footer-copy-p">&copy; 2026 Traffic & Barrier Solutions, LLC - 
         Website Created & Deployed by <a className="footer-face"href="https://www.facebook.com/will.rowell.779" target="_blank" rel="noopener noreferrer">William Rowell</a> - All Rights Reserved.</p>
     </div>
     </div>
