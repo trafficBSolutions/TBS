@@ -37,8 +37,7 @@ function EmployeeDiscipline() {
     violationTypes:[], otherViolationText:'',
     employeeStatement:'', employerStatement:'', decision:'',
     points: '',
-    meetingDate:'',
-    previousWarnings:[]
+    meetingDate:''
   });
 
   useEffect(() => {
@@ -116,16 +115,6 @@ function EmployeeDiscipline() {
     });
   };
 
-  const addPrev = () => {
-    setForm(f => ({...f, previousWarnings:[...f.previousWarnings, {type:'Verbal', date:'', byWhom:''}]}));
-  };
-  const updatePrev = (i, key, val) => {
-    setForm(f => {
-      const arr = f.previousWarnings.slice();
-      arr[i] = { ...arr[i], [key]: val };
-      return { ...f, previousWarnings: arr };
-    });
-  };
 
   const pointsNum = parseFloat(form.points) || 0;
   const projectedTotal = Math.min(selectedEmpPoints + pointsNum, 3);
@@ -139,12 +128,7 @@ function EmployeeDiscipline() {
         ...form,
         employeeRef: selectedEmpId || undefined,
         points: pointsNum,
-        incidentDate: form.incidentDate ? new Date(form.incidentDate) : null,
-        meetingDate: form.meetingDate ? new Date(form.meetingDate) : null,
-        previousWarnings: form.previousWarnings.map(p => ({
-          ...p,
-          date: p.date ? new Date(p.date) : null
-        }))
+        incidentDate: form.incidentDate ? new Date(form.incidentDate) : null
       };
       const res = await axios.post('/discipline', payload);
       window.open(`/discipline/${res.data._id}/pdf`, '_blank', 'noopener');
@@ -281,7 +265,6 @@ function EmployeeDiscipline() {
 
             <label>Employee Name<input type="text" value={form.employeeName} onChange={e=>setForm({...form,employeeName:capitalize(e.target.value)})} required/></label>
             <label>Position<input type="text" value={form.position} onChange={e=>setForm({...form,position:capitalize(e.target.value)})}/></label>
-            <label>Issued By (Person Warning)<input type="text" value={form.issuedByName} onChange={e=>setForm({...form,issuedByName:capitalize(e.target.value)})} required/></label>
             <label>Supervisor Name<input type="text" value={form.supervisorName} onChange={e=>setForm({...form,supervisorName:capitalize(e.target.value)})} required/></label>
             <label>Incident Date<input type="date" value={form.incidentDate} onChange={e=>setForm({...form,incidentDate:e.target.value})} required/></label>
             <label>Incident Time<input type="time" value={form.incidentTime} onChange={e=>setForm({...form,incidentTime:e.target.value})}/></label>
@@ -325,22 +308,6 @@ function EmployeeDiscipline() {
 
 
 
-          <div>
-            <h4>Previous Warnings</h4>
-            {form.previousWarnings.map((p, i) => (
-              <div key={i} className="grid-3">
-                <label>Type
-                  <select value={p.type} onChange={e=>updatePrev(i,'type',e.target.value)}>
-                    <option>Verbal</option>
-                    <option>Written</option>
-                  </select>
-                </label>
-                <label>Date<input type="date" value={p.date} onChange={e=>updatePrev(i,'date',e.target.value)}/></label>
-                <label>By Whom<input type="text" value={p.byWhom||''} onChange={e=>updatePrev(i,'byWhom',capitalize(e.target.value))}/></label>
-              </div>
-            ))}
-            <button type="button" className="btn" onClick={addPrev}>+ Add Previous Warning</button>
-          </div>
 </div>
           <button className="btn workorder-btn" type="submit" disabled={selectedEmpTerminated}>
             {selectedEmpTerminated ? 'Employee Already Terminated' : 'Submit & Open Printable PDF'}
