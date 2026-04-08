@@ -304,7 +304,7 @@ function EmployeeDiscipline() {
             )}
           </fieldset>
 
-          <label>Employer/Supervisor Statement<textarea value={form.employerStatement} onChange={e=>setForm({...form,employerStatement:sentenceCap(e.target.value)})} /></label>
+          <label>Employer/Supervisor Statement<textarea value={form.employerStatement} onChange={e=>setForm({...form,employerStatement:sentenceCap(e.target.value)})} style={{fontFamily:'Arial',fontWeight:'normal'}} /></label>
 
           {/* Points Input */}
           <div style={{background:'#f0f4ff',border:'2px solid #1e3a8a',borderRadius:8,padding:15,margin:'15px 0'}}>
@@ -323,7 +323,7 @@ function EmployeeDiscipline() {
             )}
           </div>
 
-          <label>Warning Decision<textarea value={form.decision} onChange={e=>setForm({...form,decision:sentenceCap(e.target.value)})} /></label>
+          <label>Warning Decision<textarea value={form.decision} onChange={e=>setForm({...form,decision:sentenceCap(e.target.value)})} style={{fontFamily:'Arial',fontWeight:'normal'}} /></label>
           <label>Meeting Date (for signatures in office)<input type="date" value={form.meetingDate} onChange={e=>setForm({...form,meetingDate:e.target.value})} /></label>
 
           <div>
