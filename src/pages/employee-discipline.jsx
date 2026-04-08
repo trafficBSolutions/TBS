@@ -14,18 +14,17 @@ function EmployeeDiscipline() {
   const [allowed, setAllowed] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const stored = localStorage.getItem('adminUser');
-    if (stored) {
-      try {
-        const user = JSON.parse(stored);
-        if (ALLOWED_EMAILS.has(user.email)) {
-          setAllowed(true);
-        }
-      } catch (e) {}
-    }
-    setLoading(false);
-  }, []);
+  // Employee roster
+  const [employees, setEmployees] = useState([]);
+  const [newEmpName, setNewEmpName] = useState('');
+  const [newEmpPosition, setNewEmpPosition] = useState('');
+  const [showAddEmployee, setShowAddEmployee] = useState(false);
+
+  // Selected employee info
+  const [selectedEmpId, setSelectedEmpId] = useState('');
+  const [selectedEmpPoints, setSelectedEmpPoints] = useState(0);
+  const [selectedEmpHistory, setSelectedEmpHistory] = useState([]);
+  const [selectedEmpTerminated, setSelectedEmpTerminated] = useState(false);
 
   const [form, setForm] = useState({
     employeeName:'', employeeTitle:'', position:'',
@@ -34,9 +33,77 @@ function EmployeeDiscipline() {
     incidentDate:'', incidentTime:'', incidentPlace:'',
     violationTypes:[], otherViolationText:'',
     employeeStatement:'', employerStatement:'', decision:'',
+    points: '',
     meetingDate:'',
     previousWarnings:[]
   });
+
+  useEffect(() => {
+    const stored = localStorage.getItem('adminUser');
+    if (stored) {
+      try {
+        const user = JSON.parse(stored);
+        if (ALLOWED_EMAILS.has(user.email)) setAllowed(true);
+      } catch (e) {}
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (allowed) fetchEmployees();
+  }, [allowed]);
+
+  const fetchEmployees = async () => {
+    try {
+      const res = await axios.get('/discipline/employees');
+      setEmployees(res.data);
+    } catch (e) { console.error('Failed to fetch employees:', e); }
+  };
+
+  const handleAddEmployee = async () => {
+    if (!newEmpName.trim()) return;
+    try {
+      await axios.post('/discipline/employees', { name: newEmpName.trim(), position: newEmpPosition.trim() });
+      setNewEmpName('');
+      setNewEmpPosition('');
+      setShowAddEmployee(false);
+      fetchEmployees();
+    } catch (e) { alert('Failed to add employee'); }
+  };
+
+  const handleDeleteEmployee = async (id) => {
+    if (!confirm('Remove this employee from the roster?')) return;
+    try {
+      await axios.delete(`/discipline/employees/${id}`);
+      if (selectedEmpId === id) {
+        setSelectedEmpId('');
+        setSelectedEmpPoints(0);
+        setSelectedEmpHistory([]);
+        setSelectedEmpTerminated(false);
+        setForm(f => ({ ...f, employeeName: '', position: '' }));
+      }
+      fetchEmployees();
+    } catch (e) { alert('Failed to delete'); }
+  };
+
+  const handleSelectEmployee = async (empId) => {
+    setSelectedEmpId(empId);
+    if (!empId) {
+      setSelectedEmpPoints(0);
+      setSelectedEmpHistory([]);
+      setSelectedEmpTerminated(false);
+      setForm(f => ({ ...f, employeeName: '', position: '' }));
+      return;
+    }
+    try {
+      const res = await axios.get(`/discipline/employees/${empId}/points`);
+      const { employee, history } = res.data;
+      setSelectedEmpPoints(employee.totalPoints);
+      setSelectedEmpTerminated(employee.terminated);
+      setSelectedEmpHistory(history);
+      setForm(f => ({ ...f, employeeName: employee.name, position: employee.position || '' }));
+    } catch (e) { console.error('Failed to fetch employee points:', e); }
+  };
 
   const toggleViolation = (v) => {
     setForm(f => {
@@ -57,11 +124,18 @@ function EmployeeDiscipline() {
     });
   };
 
+  const pointsNum = parseFloat(form.points) || 0;
+  const projectedTotal = Math.min(selectedEmpPoints + pointsNum, 3);
+  const willTerminate = projectedTotal >= 3;
+
   const submit = async (e) => {
     e.preventDefault();
+    if (selectedEmpTerminated) { alert('This employee is already terminated.'); return; }
     try {
       const payload = {
         ...form,
+        employeeRef: selectedEmpId || undefined,
+        points: pointsNum,
         incidentDate: form.incidentDate ? new Date(form.incidentDate) : null,
         meetingDate: form.meetingDate ? new Date(form.meetingDate) : null,
         previousWarnings: form.previousWarnings.map(p => ({
@@ -72,6 +146,9 @@ function EmployeeDiscipline() {
       const res = await axios.post('/discipline', payload);
       window.open(`/discipline/${res.data._id}/pdf`, '_blank', 'noopener');
       alert('Submitted. PDF opened for printing.');
+      // Refresh employee data
+      if (selectedEmpId) handleSelectEmployee(selectedEmpId);
+      fetchEmployees();
     } catch (err) {
       console.error(err);
       alert('Submit failed.');
@@ -100,6 +177,62 @@ function EmployeeDiscipline() {
         <div className="apply-container">
         <h2 className="traffic-control-head">Employee Disciplinary Action (Office Signatures Required)</h2>
         </div>
+
+        {/* ── Employee Roster Section ── */}
+        <div className="control-container container--narrow page-section" style={{marginBottom:20}}>
+          <div className="control-box">
+            <h1 className="control-app-box">Employee Roster</h1>
+            <h2 className="control-fill">Manage employees for disciplinary tracking</h2>
+          </div>
+          <div className="job-actual">
+            <div className="first-control-input">
+              <button type="button" className="btn" onClick={() => setShowAddEmployee(!showAddEmployee)}>
+                {showAddEmployee ? 'Cancel' : '+ Add Employee to Roster'}
+              </button>
+              {showAddEmployee && (
+                <div style={{display:'flex',gap:10,flexWrap:'wrap',marginTop:10,alignItems:'flex-end'}}>
+                  <label>Name<input type="text" value={newEmpName} onChange={e=>setNewEmpName(e.target.value)} placeholder="Employee Full Name" /></label>
+                  <label>Position<input type="text" value={newEmpPosition} onChange={e=>setNewEmpPosition(e.target.value)} placeholder="e.g. Flagger, Driver" /></label>
+                  <button type="button" className="btn workorder-btn" onClick={handleAddEmployee}>Add</button>
+                </div>
+              )}
+
+              <table style={{width:'100%',borderCollapse:'collapse',marginTop:15,fontSize:13}}>
+                <thead>
+                  <tr style={{background:'#f2f2f2'}}>
+                    <th style={{border:'1px solid #ddd',padding:8,textAlign:'left'}}>Name</th>
+                    <th style={{border:'1px solid #ddd',padding:8,textAlign:'left'}}>Position</th>
+                    <th style={{border:'1px solid #ddd',padding:8,textAlign:'center'}}>Points</th>
+                    <th style={{border:'1px solid #ddd',padding:8,textAlign:'center'}}>Status</th>
+                    <th style={{border:'1px solid #ddd',padding:8,textAlign:'center'}}>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {employees.map(emp => (
+                    <tr key={emp._id} style={{background: emp.terminated ? '#f8d7da' : emp.totalPoints >= 2 ? '#fff3cd' : 'white'}}>
+                      <td style={{border:'1px solid #ddd',padding:8}}>{emp.name}</td>
+                      <td style={{border:'1px solid #ddd',padding:8}}>{emp.position}</td>
+                      <td style={{border:'1px solid #ddd',padding:8,textAlign:'center',fontWeight:'bold',color: emp.totalPoints >= 3 ? '#c0392b' : emp.totalPoints >= 2 ? '#e67e22' : '#27ae60'}}>
+                        {emp.totalPoints.toFixed(2)} / 3.00
+                      </td>
+                      <td style={{border:'1px solid #ddd',padding:8,textAlign:'center'}}>
+                        {emp.terminated ? <span style={{color:'#c0392b',fontWeight:'bold'}}>❌ Terminated</span> : <span style={{color:'#27ae60'}}>Active</span>}
+                      </td>
+                      <td style={{border:'1px solid #ddd',padding:8,textAlign:'center'}}>
+                        <button type="button" className="btn" style={{fontSize:11,padding:'4px 8px'}} onClick={() => handleDeleteEmployee(emp._id)}>Remove</button>
+                      </td>
+                    </tr>
+                  ))}
+                  {employees.length === 0 && (
+                    <tr><td colSpan={5} style={{border:'1px solid #ddd',padding:12,textAlign:'center',color:'#999'}}>No employees added yet.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Discipline Form ── */}
         <form onSubmit={submit} className="form-center">
           <div className="control-container container--narrow page-section">
             <div className="control-box">
@@ -108,7 +241,42 @@ function EmployeeDiscipline() {
             </div>
             <div className="job-actual">
                 <div className="first-control-input">
-            <label>Employee Name<input type="text" value={form.employeeName} onChange={e=>setForm({...form,employeeName:e.target.value})}/></label>
+
+            {/* Employee Selection */}
+            <label>Select Employee from Roster
+              <select value={selectedEmpId} onChange={e => handleSelectEmployee(e.target.value)} style={{width:'100%',padding:8}}>
+                <option value="">-- Select Employee --</option>
+                {employees.filter(e => !e.terminated).map(emp => (
+                  <option key={emp._id} value={emp._id}>{emp.name} — {emp.totalPoints.toFixed(2)} pts{emp.position ? ` (${emp.position})` : ''}</option>
+                ))}
+              </select>
+            </label>
+
+            {/* Points Display */}
+            {selectedEmpId && (
+              <div style={{background: selectedEmpTerminated ? '#f8d7da' : '#e8f5e9', border:'1px solid #ccc', borderRadius:8, padding:15, margin:'15px 0'}}>
+                <h4 style={{margin:0}}>📊 {form.employeeName} — Point Status</h4>
+                <p style={{fontSize:18,fontWeight:'bold',margin:'8px 0',color: selectedEmpPoints >= 3 ? '#c0392b' : selectedEmpPoints >= 2 ? '#e67e22' : '#27ae60'}}>
+                  Current Points: {selectedEmpPoints.toFixed(2)} / 3.00
+                </p>
+                {selectedEmpTerminated && <p style={{color:'#c0392b',fontWeight:'bold'}}>❌ This employee has been terminated.</p>}
+                <div style={{background:'#eee',borderRadius:6,height:20,marginTop:8,overflow:'hidden'}}>
+                  <div style={{background: selectedEmpPoints >= 3 ? '#c0392b' : selectedEmpPoints >= 2 ? '#e67e22' : '#27ae60', height:'100%', width:`${Math.min((selectedEmpPoints/3)*100,100)}%`, transition:'width 0.3s'}}></div>
+                </div>
+                {selectedEmpHistory.length > 0 && (
+                  <div style={{marginTop:12}}>
+                    <strong>Previous Write-Ups:</strong>
+                    {selectedEmpHistory.map((d,i) => (
+                      <div key={i} style={{fontSize:12,padding:'4px 0',borderBottom:'1px solid #ddd'}}>
+                        {new Date(d.incidentDate).toLocaleDateString()} — {(d.violationTypes||[]).join(', ')} — <strong>{(d.points||0).toFixed(2)} pts</strong> (Total after: {(d.newTotalPoints||0).toFixed(2)})
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <label>Employee Name<input type="text" value={form.employeeName} onChange={e=>setForm({...form,employeeName:e.target.value})} required/></label>
             <label>Employee Title<input type="text" value={form.employeeTitle} onChange={e=>setForm({...form,employeeTitle:e.target.value})}/></label>
             <label>Position<input type="text" value={form.position} onChange={e=>setForm({...form,position:e.target.value})}/></label>
             <label>Issued By (Person Warning)<input type="text" value={form.issuedByName} onChange={e=>setForm({...form,issuedByName:e.target.value})} required/></label>
@@ -116,9 +284,8 @@ function EmployeeDiscipline() {
             <label>Supervisor Name<input type="text" value={form.supervisorName} onChange={e=>setForm({...form,supervisorName:e.target.value})} required/></label>
             <label>Supervisor Title<input type="text" value={form.supervisorTitle} onChange={e=>setForm({...form,supervisorTitle:e.target.value})}/></label>
             <label>Incident Date<input type="date" value={form.incidentDate} onChange={e=>setForm({...form,incidentDate:e.target.value})} required/></label>
-            <label>Incident Time<input type="time" placeholder="e.g. 3:00 PM" value={form.incidentTime} onChange={e=>setForm({...form,incidentTime:e.target.value})}/></label>
+            <label>Incident Time<input type="time" value={form.incidentTime} onChange={e=>setForm({...form,incidentTime:e.target.value})}/></label>
             <label>Place<input type="text" value={form.incidentPlace} onChange={e=>setForm({...form,incidentPlace:e.target.value})}/></label>
-          
 
           <fieldset>
             <legend>Type of Violation</legend>
@@ -139,6 +306,24 @@ function EmployeeDiscipline() {
 
           <label>Employee Statement<textarea value={form.employeeStatement} onChange={e=>setForm({...form,employeeStatement:e.target.value})} /></label>
           <label>Employer/Supervisor Statement<textarea value={form.employerStatement} onChange={e=>setForm({...form,employerStatement:e.target.value})} /></label>
+
+          {/* Points Input */}
+          <div style={{background:'#f0f4ff',border:'2px solid #1e3a8a',borderRadius:8,padding:15,margin:'15px 0'}}>
+            <label style={{fontWeight:'bold',fontSize:15}}>Points to Add (0.00 – 3.00)
+              <input type="number" step="0.25" min="0" max={Math.max(3 - selectedEmpPoints, 0).toFixed(2)} value={form.points} onChange={e=>setForm({...form,points:e.target.value})} style={{fontSize:18,fontWeight:'bold',padding:10,width:'100%'}} />
+            </label>
+            {selectedEmpId && (
+              <div style={{marginTop:10}}>
+                <p>Previous: <strong>{selectedEmpPoints.toFixed(2)}</strong> + Adding: <strong>{pointsNum.toFixed(2)}</strong> = New Total: <strong style={{color: willTerminate ? '#c0392b' : '#1e3a8a',fontSize:18}}>{projectedTotal.toFixed(2)} / 3.00</strong></p>
+                {willTerminate && (
+                  <div style={{background:'#f8d7da',border:'1px solid #f5c6cb',borderRadius:6,padding:10,marginTop:8,color:'#721c24',fontWeight:'bold',textAlign:'center'}}>
+                    ⚠️ WARNING: This will bring the employee to {projectedTotal.toFixed(2)} points — TERMINATION
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           <label>Warning Decision<textarea value={form.decision} onChange={e=>setForm({...form,decision:e.target.value})} /></label>
           <label>Meeting Date (for signatures in office)<input type="date" value={form.meetingDate} onChange={e=>setForm({...form,meetingDate:e.target.value})} /></label>
 
@@ -159,9 +344,11 @@ function EmployeeDiscipline() {
             <button type="button" className="btn" onClick={addPrev}>+ Add Previous Warning</button>
           </div>
 </div>
-          <button className="btn workorder-btn" type="submit">Submit &amp; Open Printable PDF</button>
+          <button className="btn workorder-btn" type="submit" disabled={selectedEmpTerminated}>
+            {selectedEmpTerminated ? 'Employee Already Terminated' : 'Submit & Open Printable PDF'}
+          </button>
           </div>
-          
+
           </div>
         </form>
         </main>
@@ -204,19 +391,19 @@ function EmployeeDiscipline() {
     <div className="statement-box">
                 <p className="statement">
                     <b className="safety-b">Safety Statement: </b>
-                    At TBS, safety is our top priority. We are dedicated to ensuring the well-being of our employees, clients, 
-                    and the general public in every aspect of our operations. Through comprehensive safety training, 
-                    strict adherence to regulatory standards, and continuous improvement initiatives, 
-                    we strive to create a work environment where accidents and injuries are preventable. 
-                    Our commitment to safety extends beyond compliance—it's a fundamental value embedded in everything we do. 
-                    Together, we work tirelessly to promote a culture of safety, 
+                    At TBS, safety is our top priority. We are dedicated to ensuring the well-being of our employees, clients,
+                    and the general public in every aspect of our operations. Through comprehensive safety training,
+                    strict adherence to regulatory standards, and continuous improvement initiatives,
+                    we strive to create a work environment where accidents and injuries are preventable.
+                    Our commitment to safety extends beyond compliance—it's a fundamental value embedded in everything we do.
+                    Together, we work tirelessly to promote a culture of safety,
                     accountability, and excellence, because when it comes to traffic control, there's no compromise on safety.
                 </p>
             </div>
   </div>
 </footer>
 <div className="footer-copyright">
-      <p className="footer-copy-p">&copy; 2026 Traffic &amp; Barrier Solutions, LLC - 
+      <p className="footer-copy-p">&copy; 2026 Traffic &amp; Barrier Solutions, LLC -
         Website Created &amp; Deployed by <a className="footer-face"href="https://www.facebook.com/will.rowell.779" target="_blank" rel="noopener noreferrer">William Rowell</a> - All Rights Reserved.</p>
     </div>
     </RequireStaff>
