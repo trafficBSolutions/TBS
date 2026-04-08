@@ -75,21 +75,24 @@ const [showTasks, setShowTasks] = useState(false);
 const [taskDate, setTaskDate] = useState(new Date());
 const [resendingQuoteId, setResendingQuoteId] = useState(null);
 const [empNewPassword, setEmpNewPassword] = useState('');
+const [empConfirmPassword, setEmpConfirmPassword] = useState('');
 const [empPasswordMsg, setEmpPasswordMsg] = useState('');
 const [empPasswordLoading, setEmpPasswordLoading] = useState(false);
 const [successMessage, setSuccessMessage] = useState('');
 const handleChangeEmpPassword = async () => {
   if (!empNewPassword.trim()) { setEmpPasswordMsg('Please enter a new password.'); return; }
   if (empNewPassword.length < 6) { setEmpPasswordMsg('Password must be at least 6 characters.'); return; }
+  if (empNewPassword !== empConfirmPassword) { setEmpPasswordMsg('Passwords do not match.'); return; }
   setEmpPasswordLoading(true);
   setEmpPasswordMsg('');
   try {
-    const res = await axios.put('/employee/change-password', {
+    await axios.put('/employee/change-password', {
       email: 'tbsolutions55@gmail.com',
       newPassword: empNewPassword
     });
-    setEmpPasswordMsg(res.data.message || 'Password updated successfully!');
+    setEmpPasswordMsg('Password has been changed. Please notify the groupchat.');
     setEmpNewPassword('');
+    setEmpConfirmPassword('');
   } catch (err) {
     setEmpPasswordMsg(err.response?.data?.message || 'Failed to update password.');
   } finally {
@@ -1173,7 +1176,14 @@ selected={
       type="text"
       placeholder="Enter new password"
       value={empNewPassword}
-      onChange={(e) => setEmpNewPassword(e.target.value)}
+      onChange={(e) => { setEmpNewPassword(e.target.value); setEmpPasswordMsg(''); }}
+      style={{ padding: '8px 12px', borderRadius: '4px', border: '1px solid #ccc', minWidth: '200px' }}
+    />
+    <input
+      type="text"
+      placeholder="Confirm new password"
+      value={empConfirmPassword}
+      onChange={(e) => { setEmpConfirmPassword(e.target.value); setEmpPasswordMsg(''); }}
       style={{ padding: '8px 12px', borderRadius: '4px', border: '1px solid #ccc', minWidth: '200px' }}
     />
     <button
@@ -1186,7 +1196,7 @@ selected={
     </button>
   </div>
   {empPasswordMsg && (
-    <p style={{ marginTop: '10px', fontWeight: 'bold', color: empPasswordMsg.includes('success') ? 'green' : 'red' }}>
+    <p style={{ marginTop: '10px', fontWeight: 'bold', color: empPasswordMsg.includes('changed') ? 'green' : 'red' }}>
       {empPasswordMsg}
     </p>
   )}
