@@ -59,6 +59,7 @@ const [quotesDate, setQuotesDate] = useState(new Date());
 const [quotesList, setQuotesList] = useState([]);
 const [quotesMonthly, setQuotesMonthly] = useState({});
 const [allowedForQuotes, setAllowedForQuotes] = useState(false);
+const [allowedForDiscipline, setAllowedForDiscipline] = useState(false);
 const [complaintsDate, setComplaintsDate] = useState(new Date());
 const [complaintsList, setComplaintsList] = useState([]);
 const [complaintsMonthly, setComplaintsMonthly] = useState({});
@@ -252,6 +253,12 @@ useEffect(() => {
       'tbsolutions4@gmail.com'
     ]);
     setAllowedForQuotes(quoteEmails.has(user.email));
+
+    const disciplineEmails = new Set([
+      'tbsolutions4@gmail.com',
+      'tbsolutions9@gmail.com'
+    ]);
+    setAllowedForDiscipline(disciplineEmails.has(user.email));
   }
 }, []);
 const fetchComplaintsForDay = async (date) => {
@@ -1165,6 +1172,18 @@ selected={
 >
   Go to Quoting
 </button>
+  </div>
+)}
+{allowedForDiscipline && (
+  <div className="admin-invoice">
+    <h1 className="invoice-h1">Disciplinary Action</h1>
+    <button
+      className="invoice-btn"
+      type="button"
+      onClick={() => navigate("/admin-dashboard/disciplinary-action")}
+    >
+      Go to Disciplinary Action
+    </button>
   </div>
 )}
 
