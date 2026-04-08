@@ -21,6 +21,7 @@ function EmployeeDiscipline() {
   const [employees, setEmployees] = useState([]);
   const [newEmpName, setNewEmpName] = useState('');
   const [newEmpPosition, setNewEmpPosition] = useState('');
+  const [newEmpPoints, setNewEmpPoints] = useState('');
   const [showAddEmployee, setShowAddEmployee] = useState(false);
 
   // Selected employee info
@@ -65,9 +66,10 @@ function EmployeeDiscipline() {
   const handleAddEmployee = async () => {
     if (!newEmpName.trim()) return;
     try {
-      await axios.post('/discipline/employees', { name: newEmpName.trim(), position: newEmpPosition.trim() });
+      await axios.post('/discipline/employees', { name: newEmpName.trim(), position: newEmpPosition.trim(), totalPoints: parseFloat(newEmpPoints) || 0 });
       setNewEmpName('');
       setNewEmpPosition('');
+      setNewEmpPoints('');
       setShowAddEmployee(false);
       fetchEmployees();
     } catch (e) { alert('Failed to add employee'); }
@@ -186,6 +188,9 @@ function EmployeeDiscipline() {
                 <div style={{display:'flex',gap:10,flexWrap:'wrap',marginTop:10,alignItems:'flex-end'}}>
                   <label>Name<input type="text" value={newEmpName} onChange={e=>setNewEmpName(capitalize(e.target.value))} placeholder="Employee Full Name" /></label>
                   <label>Position<input type="text" value={newEmpPosition} onChange={e=>setNewEmpPosition(capitalize(e.target.value))} placeholder="e.g. Flagger, Driver" /></label>
+                  <label>Existing Points (from paper)
+                    <input type="number" step="0.25" min="0" max="3" value={newEmpPoints} onChange={e=>setNewEmpPoints(e.target.value)} placeholder="0.00" style={{width:100}} />
+                  </label>
                   <button type="button" className="btn workorder-btn" onClick={handleAddEmployee}>Add</button>
                 </div>
               )}
