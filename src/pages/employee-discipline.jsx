@@ -116,6 +116,9 @@ function EmployeeDiscipline() {
   };
 
 
+  const [submitting, setSubmitting] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
+
   const pointsNum = parseFloat(form.points) || 0;
   const projectedTotal = Math.min(selectedEmpPoints + pointsNum, 3);
   const willTerminate = projectedTotal >= 3;
@@ -123,6 +126,8 @@ function EmployeeDiscipline() {
   const submit = async (e) => {
     e.preventDefault();
     if (selectedEmpTerminated) { alert('This employee is already terminated.'); return; }
+    setSubmitting(true);
+    setSuccessMsg('');
     try {
       const payload = {
         ...form,
@@ -130,15 +135,15 @@ function EmployeeDiscipline() {
         points: pointsNum,
         incidentDate: form.incidentDate ? new Date(form.incidentDate) : null
       };
-      const res = await axios.post('/discipline', payload);
-      window.open(`/discipline/${res.data._id}/pdf`, '_blank', 'noopener');
-      alert('Submitted. PDF opened for printing.');
-      // Refresh employee data
+      await axios.post('/discipline', payload);
+      setSuccessMsg('✅ Disciplinary action submitted successfully!');
       if (selectedEmpId) handleSelectEmployee(selectedEmpId);
       fetchEmployees();
     } catch (err) {
       console.error(err);
       alert('Submit failed.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -309,9 +314,10 @@ function EmployeeDiscipline() {
 
 
 </div>
-          <button className="btn workorder-btn" type="submit" disabled={selectedEmpTerminated}>
-            {selectedEmpTerminated ? 'Employee Already Terminated' : 'Submit & Open Printable PDF'}
+          <button className="btn workorder-btn" type="submit" disabled={selectedEmpTerminated || submitting}>
+            {submitting ? 'Submitting...' : selectedEmpTerminated ? 'Employee Already Terminated' : 'Submit Disciplinary Action'}
           </button>
+          {successMsg && <div style={{background:'#d4edda',color:'#155724',border:'1px solid #c3e6cb',borderRadius:6,padding:12,marginTop:12,textAlign:'center',fontWeight:'bold'}}>{successMsg}</div>}
           </div>
 
           </div>
