@@ -1,13 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Header from '../components/headerviews/HeaderAdminDash';
 import RequireStaff from '../components/requireStaff';
 import images from '../utils/tbsImages';
+
+const ALLOWED_EMAILS = new Set(['tbsolutions4@gmail.com', 'tbsolutions9@gmail.com']);
+
 const VIOLATIONS = [
   'Attendance','Tardiness','Safety','Carelessness','Disobedience','Work Quality','Other'
 ];
 
 function EmployeeDiscipline() {
+  const [allowed, setAllowed] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('adminUser');
+    if (stored) {
+      try {
+        const user = JSON.parse(stored);
+        if (ALLOWED_EMAILS.has(user.email)) {
+          setAllowed(true);
+        }
+      } catch (e) {}
+    }
+    setLoading(false);
+  }, []);
+
   const [form, setForm] = useState({
     employeeName:'', employeeTitle:'', department:'',
     issuedByName:'', issuedByTitle:'',
@@ -51,7 +70,6 @@ function EmployeeDiscipline() {
         }))
       };
       const res = await axios.post('/discipline', payload);
-      // Open printable PDF in new tab
       window.open(`/discipline/${res.data._id}/pdf`, '_blank', 'noopener');
       alert('Submitted. PDF opened for printing.');
     } catch (err) {
@@ -59,6 +77,20 @@ function EmployeeDiscipline() {
       alert('Submit failed.');
     }
   };
+
+  if (loading) return <div style={{padding:40,textAlign:'center'}}>Loading…</div>;
+
+  if (!allowed) {
+    return (
+      <div>
+        <Header />
+        <div style={{textAlign:'center',padding:'80px 20px'}}>
+          <h2 style={{color:'#c0392b'}}>⛔ Access Denied</h2>
+          <p>You do not have permission to access the Disciplinary Action page.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -127,7 +159,7 @@ function EmployeeDiscipline() {
             <button type="button" className="btn" onClick={addPrev}>+ Add Previous Warning</button>
           </div>
 </div>
-          <button className="btn workorder-btn" type="submit">Submit & Open Printable PDF</button>
+          <button className="btn workorder-btn" type="submit">Submit &amp; Open Printable PDF</button>
           </div>
           
           </div>
@@ -184,8 +216,8 @@ function EmployeeDiscipline() {
   </div>
 </footer>
 <div className="footer-copyright">
-      <p className="footer-copy-p">&copy; 2026 Traffic & Barrier Solutions, LLC - 
-        Website Created & Deployed by <a className="footer-face"href="https://www.facebook.com/will.rowell.779" target="_blank" rel="noopener noreferrer">William Rowell</a> - All Rights Reserved.</p>
+      <p className="footer-copy-p">&copy; 2026 Traffic &amp; Barrier Solutions, LLC - 
+        Website Created &amp; Deployed by <a className="footer-face"href="https://www.facebook.com/will.rowell.779" target="_blank" rel="noopener noreferrer">William Rowell</a> - All Rights Reserved.</p>
     </div>
     </RequireStaff>
     </div>
