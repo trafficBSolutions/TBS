@@ -10,6 +10,9 @@ const VIOLATIONS = [
   'Attendance','Tardiness','Safety','Carelessness','Disobedience','Work Quality','Other'
 ];
 
+const capitalize = (str) => str.replace(/\b\w/g, c => c.toUpperCase());
+const sentenceCap = (str) => str.replace(/(^|\. +)(\w)/g, (m, p, c) => p + c.toUpperCase());
+
 function EmployeeDiscipline() {
   const [allowed, setAllowed] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -191,8 +194,8 @@ function EmployeeDiscipline() {
               </button>
               {showAddEmployee && (
                 <div style={{display:'flex',gap:10,flexWrap:'wrap',marginTop:10,alignItems:'flex-end'}}>
-                  <label>Name<input type="text" value={newEmpName} onChange={e=>setNewEmpName(e.target.value)} placeholder="Employee Full Name" /></label>
-                  <label>Position<input type="text" value={newEmpPosition} onChange={e=>setNewEmpPosition(e.target.value)} placeholder="e.g. Flagger, Driver" /></label>
+                  <label>Name<input type="text" value={newEmpName} onChange={e=>setNewEmpName(capitalize(e.target.value))} placeholder="Employee Full Name" /></label>
+                  <label>Position<input type="text" value={newEmpPosition} onChange={e=>setNewEmpPosition(capitalize(e.target.value))} placeholder="e.g. Flagger, Driver" /></label>
                   <button type="button" className="btn workorder-btn" onClick={handleAddEmployee}>Add</button>
                 </div>
               )}
@@ -276,13 +279,13 @@ function EmployeeDiscipline() {
               </div>
             )}
 
-            <label>Employee Name<input type="text" value={form.employeeName} onChange={e=>setForm({...form,employeeName:e.target.value})} required/></label>
-            <label>Position<input type="text" value={form.position} onChange={e=>setForm({...form,position:e.target.value})}/></label>
-            <label>Issued By (Person Warning)<input type="text" value={form.issuedByName} onChange={e=>setForm({...form,issuedByName:e.target.value})} required/></label>
-            <label>Supervisor Name<input type="text" value={form.supervisorName} onChange={e=>setForm({...form,supervisorName:e.target.value})} required/></label>
+            <label>Employee Name<input type="text" value={form.employeeName} onChange={e=>setForm({...form,employeeName:capitalize(e.target.value)})} required/></label>
+            <label>Position<input type="text" value={form.position} onChange={e=>setForm({...form,position:capitalize(e.target.value)})}/></label>
+            <label>Issued By (Person Warning)<input type="text" value={form.issuedByName} onChange={e=>setForm({...form,issuedByName:capitalize(e.target.value)})} required/></label>
+            <label>Supervisor Name<input type="text" value={form.supervisorName} onChange={e=>setForm({...form,supervisorName:capitalize(e.target.value)})} required/></label>
             <label>Incident Date<input type="date" value={form.incidentDate} onChange={e=>setForm({...form,incidentDate:e.target.value})} required/></label>
             <label>Incident Time<input type="time" value={form.incidentTime} onChange={e=>setForm({...form,incidentTime:e.target.value})}/></label>
-            <label>Place<input type="text" value={form.incidentPlace} onChange={e=>setForm({...form,incidentPlace:e.target.value})}/></label>
+            <label>Place<input type="text" value={form.incidentPlace} onChange={e=>setForm({...form,incidentPlace:capitalize(e.target.value)})}/></label>
 
           <fieldset>
             <legend>Type of Violation</legend>
@@ -296,12 +299,12 @@ function EmployeeDiscipline() {
             </div>
             {form.violationTypes.includes('Other') && (
               <label>Other (describe)
-                <input type="text" value={form.otherViolationText} onChange={e=>setForm({...form,otherViolationText:e.target.value})}/>
+                <input type="text" value={form.otherViolationText} onChange={e=>setForm({...form,otherViolationText:capitalize(e.target.value)})}/>
               </label>
             )}
           </fieldset>
 
-          <label>Employer/Supervisor Statement<textarea value={form.employerStatement} onChange={e=>setForm({...form,employerStatement:e.target.value})} /></label>
+          <label>Employer/Supervisor Statement<textarea value={form.employerStatement} onChange={e=>setForm({...form,employerStatement:sentenceCap(e.target.value)})} /></label>
 
           {/* Points Input */}
           <div style={{background:'#f0f4ff',border:'2px solid #1e3a8a',borderRadius:8,padding:15,margin:'15px 0'}}>
@@ -320,7 +323,7 @@ function EmployeeDiscipline() {
             )}
           </div>
 
-          <label>Warning Decision<textarea value={form.decision} onChange={e=>setForm({...form,decision:e.target.value})} /></label>
+          <label>Warning Decision<textarea value={form.decision} onChange={e=>setForm({...form,decision:sentenceCap(e.target.value)})} /></label>
           <label>Meeting Date (for signatures in office)<input type="date" value={form.meetingDate} onChange={e=>setForm({...form,meetingDate:e.target.value})} /></label>
 
           <div>
@@ -334,7 +337,7 @@ function EmployeeDiscipline() {
                   </select>
                 </label>
                 <label>Date<input type="date" value={p.date} onChange={e=>updatePrev(i,'date',e.target.value)}/></label>
-                <label>By Whom<input type="text" value={p.byWhom||''} onChange={e=>updatePrev(i,'byWhom',e.target.value)}/></label>
+                <label>By Whom<input type="text" value={p.byWhom||''} onChange={e=>updatePrev(i,'byWhom',capitalize(e.target.value))}/></label>
               </div>
             ))}
             <button type="button" className="btn" onClick={addPrev}>+ Add Previous Warning</button>
