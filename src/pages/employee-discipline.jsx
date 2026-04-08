@@ -27,9 +27,9 @@ function EmployeeDiscipline() {
   const [selectedEmpTerminated, setSelectedEmpTerminated] = useState(false);
 
   const [form, setForm] = useState({
-    employeeName:'', employeeTitle:'', position:'',
-    issuedByName:'', issuedByTitle:'',
-    supervisorName:'', supervisorTitle:'',
+    employeeName:'', position:'',
+    issuedByName:'',
+    supervisorName:'',
     incidentDate:'', incidentTime:'', incidentPlace:'',
     violationTypes:[], otherViolationText:'',
     employeeStatement:'', employerStatement:'', decision:'',
@@ -277,12 +277,9 @@ function EmployeeDiscipline() {
             )}
 
             <label>Employee Name<input type="text" value={form.employeeName} onChange={e=>setForm({...form,employeeName:e.target.value})} required/></label>
-            <label>Employee Title<input type="text" value={form.employeeTitle} onChange={e=>setForm({...form,employeeTitle:e.target.value})}/></label>
             <label>Position<input type="text" value={form.position} onChange={e=>setForm({...form,position:e.target.value})}/></label>
             <label>Issued By (Person Warning)<input type="text" value={form.issuedByName} onChange={e=>setForm({...form,issuedByName:e.target.value})} required/></label>
-            <label>Issued By Title<input value={form.issuedByTitle} type="text" onChange={e=>setForm({...form,issuedByTitle:e.target.value})}/></label>
             <label>Supervisor Name<input type="text" value={form.supervisorName} onChange={e=>setForm({...form,supervisorName:e.target.value})} required/></label>
-            <label>Supervisor Title<input type="text" value={form.supervisorTitle} onChange={e=>setForm({...form,supervisorTitle:e.target.value})}/></label>
             <label>Incident Date<input type="date" value={form.incidentDate} onChange={e=>setForm({...form,incidentDate:e.target.value})} required/></label>
             <label>Incident Time<input type="time" value={form.incidentTime} onChange={e=>setForm({...form,incidentTime:e.target.value})}/></label>
             <label>Place<input type="text" value={form.incidentPlace} onChange={e=>setForm({...form,incidentPlace:e.target.value})}/></label>
