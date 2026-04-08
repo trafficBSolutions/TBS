@@ -28,7 +28,7 @@ function EmployeeDiscipline() {
   }, []);
 
   const [form, setForm] = useState({
-    employeeName:'', employeeTitle:'', department:'',
+    employeeName:'', employeeTitle:'', position:'',
     issuedByName:'', issuedByTitle:'',
     supervisorName:'', supervisorTitle:'',
     incidentDate:'', incidentTime:'', incidentPlace:'',
@@ -110,7 +110,7 @@ function EmployeeDiscipline() {
                 <div className="first-control-input">
             <label>Employee Name<input type="text" value={form.employeeName} onChange={e=>setForm({...form,employeeName:e.target.value})}/></label>
             <label>Employee Title<input type="text" value={form.employeeTitle} onChange={e=>setForm({...form,employeeTitle:e.target.value})}/></label>
-            <label>Department<input type="text" value={form.department} onChange={e=>setForm({...form,department:e.target.value})}/></label>
+            <label>Position<input type="text" value={form.position} onChange={e=>setForm({...form,position:e.target.value})}/></label>
             <label>Issued By (Person Warning)<input type="text" value={form.issuedByName} onChange={e=>setForm({...form,issuedByName:e.target.value})} required/></label>
             <label>Issued By Title<input value={form.issuedByTitle} type="text" onChange={e=>setForm({...form,issuedByTitle:e.target.value})}/></label>
             <label>Supervisor Name<input type="text" value={form.supervisorName} onChange={e=>setForm({...form,supervisorName:e.target.value})} required/></label>
