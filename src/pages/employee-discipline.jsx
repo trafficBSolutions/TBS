@@ -133,7 +133,8 @@ function EmployeeDiscipline() {
         ...form,
         employeeRef: selectedEmpId || undefined,
         points: pointsNum,
-        incidentDate: form.incidentDate ? new Date(form.incidentDate) : null
+        incidentDate: form.incidentDate ? new Date(form.incidentDate) : null,
+        dateOfWarning: form.dateOfWarning ? new Date(form.dateOfWarning) : null
       };
       await axios.post('/discipline', payload);
       setSuccessMsg('✅ Disciplinary action submitted successfully!');
