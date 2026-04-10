@@ -81,7 +81,7 @@
 
 .stat-label {
   color: var(--adm-text-soft);
-  font-size: 0.95rem;
+  font-size: 1.3rem;
   font-weight: 600;
 }
 
@@ -134,13 +134,13 @@
 
 .tool-card h3 {
   color: var(--adm-text);
-  font-size: 1.5rem;
+  font-size: 2.2rem;
   margin: 0;
 }
 
 .tool-card p {
   color: var(--adm-text-soft);
-  font-size: 1rem;
+  font-size: 1.4rem;
   margin: 0;
 }
 
@@ -150,7 +150,7 @@
 
 .tool-hint {
   color: var(--adm-text-muted) !important;
-  font-size: 0.85rem !important;
+  font-size: 1.3rem !important;
 }
 
 .emp-password-row {
@@ -355,7 +355,7 @@
   border-radius: 999px;
   padding: 0.8rem 1.3rem;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 1.3rem;
   text-decoration: none;
   cursor: pointer;
   transition: var(--adm-transition);
@@ -412,7 +412,7 @@
 
 .admin-date-picker {
   width: 100%;
-  font-size: 1rem;
+  font-size: 1.2rem;
   border-radius: var(--adm-radius);
   overflow: hidden;
   background-color: transparent;
@@ -636,7 +636,7 @@
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: var(--adm-radius-sm);
   padding: 0.85rem 1rem;
-  font-size: 1rem;
+  font-size: 1.3rem;
   font-family: inherit;
   resize: vertical;
 }
