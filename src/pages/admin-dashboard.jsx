@@ -1204,7 +1204,7 @@ selected={
 {allowedForEmpPassword && (
 <div className="admin-invoice emp-password-card">
   <h1 className="invoice-h1">Employee Login Password</h1>
-  <p style={{ fontSize: '13px', color: '#555', marginBottom: '10px' }}>Change the password for the employee login (tbsolutions55@gmail.com)</p>
+  <p style={{ fontSize: '13px', color: '#ffffff', marginBottom: '10px' }}>Change the password for the employee login (tbsolutions55@gmail.com)</p>
   <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
     <input
       type="text"
