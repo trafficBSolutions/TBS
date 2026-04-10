@@ -108,7 +108,7 @@
 
 .zone-tools-title {
   font-size: clamp(1.8rem, 3.5vw, 2.8rem);
-  color: var(--adm-text);
+  color: #333;
   margin-bottom: 1.5rem;
 }
 
