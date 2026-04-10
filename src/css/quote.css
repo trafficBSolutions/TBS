@@ -1,5 +1,6 @@
 /* =========================
    QUOTE PAGE – DARK THEME
+   All rules scoped under .quote-page
 ========================= */
 
 .quote-page {
@@ -7,7 +8,7 @@
   min-height: 100vh;
 }
 
-.quote-wrap {
+.quote-page .quote-wrap {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem 1.5rem;
@@ -17,13 +18,13 @@
 }
 
 /* ── Section Tabs ── */
-.quote-section-tabs {
+.quote-page .quote-section-tabs {
   display: flex;
   justify-content: center;
   gap: 1rem;
 }
 
-.quote-section-tabs button {
+.quote-page .quote-section-tabs button {
   padding: 0.75rem 2rem;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -35,19 +36,19 @@
   transition: all 0.2s ease;
 }
 
-.quote-section-tabs button:hover {
+.quote-page .quote-section-tabs button:hover {
   background: rgba(96, 165, 250, 0.12);
   color: #e2e8f0;
 }
 
-.quote-section-tabs button.active {
+.quote-page .quote-section-tabs button.active {
   background: linear-gradient(135deg, #60a5fa, #8b5cf6);
   color: #fff;
   border-color: transparent;
 }
 
 /* ── Section Card ── */
-.quote-section-card {
+.quote-page .quote-section-card {
   background: rgba(30, 41, 59, 0.92);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
@@ -56,7 +57,7 @@
   backdrop-filter: blur(12px);
 }
 
-.quote-section-title {
+.quote-page .quote-section-title {
   text-align: center;
   font-size: clamp(1.8rem, 3.5vw, 2.8rem);
   color: #e2e8f0;
@@ -65,14 +66,14 @@
 }
 
 /* ── Info Fields ── */
-.quote-info {
+.quote-page .quote-info {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
   margin-bottom: 1.5rem;
 }
 
-.quote-info label {
+.quote-page .quote-info label {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
@@ -81,7 +82,7 @@
   color: #94a3b8;
 }
 
-.quote-info input {
+.quote-page .quote-info input {
   background: #0f172a;
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 12px;
@@ -92,13 +93,13 @@
   transition: border-color 0.2s;
 }
 
-.quote-info input:focus {
+.quote-page .quote-info input:focus {
   outline: none;
   border-color: #60a5fa;
 }
 
 /* ── Controls ── */
-.quote-controls {
+.quote-page .quote-controls {
   display: flex;
   flex-wrap: wrap;
   gap: 1.25rem;
@@ -106,7 +107,7 @@
   margin-bottom: 1.5rem;
 }
 
-.quote-controls label {
+.quote-page .quote-controls label {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
@@ -115,15 +116,15 @@
   color: #94a3b8;
 }
 
-.quote-controls .inline {
+.quote-page .quote-controls .inline {
   flex-direction: row;
   align-items: center;
   gap: 0.5rem;
   margin-right: auto;
 }
 
-.quote-controls input[type="number"],
-.quote-controls input[type="text"] {
+.quote-page .quote-controls input[type="number"],
+.quote-page .quote-controls input[type="text"] {
   background: #0f172a;
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 12px;
@@ -133,24 +134,24 @@
   font-family: inherit;
 }
 
-.quote-controls input[type="checkbox"] {
+.quote-page .quote-controls input[type="checkbox"] {
   transform: scale(1.2);
   accent-color: #60a5fa;
 }
 
-.hint {
+.quote-page .hint {
   font-size: 0.75rem;
   color: #64748b;
 }
 
 /* ── Table ── */
-.table-actions {
+.quote-page .table-actions {
   display: flex;
   justify-content: flex-end;
   margin-bottom: 0.75rem;
 }
 
-.btn {
+.quote-page .btn {
   padding: 0.65rem 1.25rem;
   border-radius: 999px;
   border: 1px solid transparent;
@@ -161,51 +162,51 @@
   transition: all 0.2s ease;
 }
 
-.btn:hover:not(:disabled) {
+.quote-page .btn:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 8px 18px rgba(96, 165, 250, 0.25);
 }
 
-.btn:disabled {
+.quote-page .btn:disabled {
   background: #334155;
   color: #94a3b8;
   cursor: not-allowed;
 }
 
-.quote-table {
+.quote-page .quote-table {
   overflow-x: auto;
 }
 
-.quote-table table {
+.quote-page .quote-table table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.quote-table th,
-.quote-table td {
+.quote-page .quote-table th,
+.quote-page .quote-table td {
   border: 1px solid rgba(255, 255, 255, 0.08);
   padding: 0.6rem 0.75rem;
   font-size: 0.9rem;
   color: #e2e8f0;
 }
 
-.quote-table thead th {
+.quote-page .quote-table thead th {
   background: linear-gradient(135deg, rgba(96, 165, 250, 0.18), rgba(139, 92, 246, 0.18));
   text-align: left;
   font-weight: 700;
   color: #fff;
 }
 
-.quote-table tbody tr {
+.quote-page .quote-table tbody tr {
   transition: background 0.15s;
 }
 
-.quote-table tbody tr:hover td {
+.quote-page .quote-table tbody tr:hover td {
   background: rgba(96, 165, 250, 0.06);
 }
 
-.quote-table input,
-.quote-table select {
+.quote-page .quote-table input,
+.quote-page .quote-table select {
   width: 100%;
   border: none;
   outline: none;
@@ -216,19 +217,19 @@
   font-family: inherit;
 }
 
-.quote-table select {
+.quote-page .quote-table select {
   cursor: pointer;
 }
 
-.quote-table select option {
+.quote-page .quote-table select option {
   background: #1e293b;
   color: #e2e8f0;
 }
 
-.center { text-align: center; }
-.right { text-align: right; }
+.quote-page .center { text-align: center; }
+.quote-page .right { text-align: right; }
 
-.icon-btn {
+.quote-page .icon-btn {
   border: none;
   background: transparent;
   cursor: pointer;
@@ -237,20 +238,20 @@
   transition: all 0.2s;
 }
 
-.icon-btn:hover {
+.quote-page .icon-btn:hover {
   color: #ef4444;
   transform: scale(1.15);
 }
 
 /* ── Totals ── */
-.quote-totals {
+.quote-page .quote-totals {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   margin-top: 1.25rem;
 }
 
-.totals-box {
+.quote-page .totals-box {
   width: 360px;
   background: rgba(15, 23, 42, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -258,7 +259,7 @@
   padding: 1rem 1.25rem;
 }
 
-.totals-box .row {
+.quote-page .totals-box .row {
   display: flex;
   justify-content: space-between;
   padding: 0.5rem 0;
@@ -266,11 +267,11 @@
   font-size: 0.95rem;
 }
 
-.totals-box .row strong {
+.quote-page .totals-box .row strong {
   color: #e2e8f0;
 }
 
-.totals-box .total {
+.quote-page .totals-box .total {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   margin-top: 0.5rem;
   padding-top: 0.75rem;
@@ -278,28 +279,28 @@
   color: #fff;
 }
 
-.totals-box .total strong {
+.quote-page .totals-box .total strong {
   color: #60a5fa;
 }
 
 /* ── Send Button Area ── */
-.quote-send-area {
+.quote-page .quote-send-area {
   margin-top: 1.25rem;
   text-align: center;
 }
 
-.quote-send-area .btn {
+.quote-page .quote-send-area .btn {
   padding: 0.85rem 2.5rem;
   font-size: 1.05rem;
 }
 
-.quote-send-area .success-msg {
+.quote-page .success-msg {
   color: #34d399;
   font-weight: 700;
   margin-top: 0.75rem;
 }
 
-.quote-send-area .error-msg {
+.quote-page .error-msg {
   color: #ef4444;
   font-weight: 700;
   margin-top: 0.75rem;
@@ -310,20 +311,20 @@
 ========================= */
 
 @media (max-width: 768px) {
-  .quote-info {
+  .quote-page .quote-info {
     grid-template-columns: 1fr;
   }
 
-  .quote-section-tabs {
+  .quote-page .quote-section-tabs {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .totals-box {
+  .quote-page .totals-box {
     width: 100%;
   }
 
-  .quote-section-card {
+  .quote-page .quote-section-card {
     padding: 1.25rem;
   }
 }
