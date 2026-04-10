@@ -25,26 +25,22 @@
    LAYOUT
 ========================= */
 
-.admin-dashboard,
-.admin-job-calendar,
+.admin-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1.5rem;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
 .admin-apps,
-.admin-plans,
-.admin-invoice,
-.cancelled-jobs,
-.ta-images-section,
-.tasks-section,
-.notes-section {
+.admin-plans {
   width: 100%;
 }
 
-.admin-job-calendar,
 .admin-apps,
-.admin-plans,
-.admin-invoice,
-.cancelled-jobs,
-.ta-images-section,
-.tasks-section,
-.notes-section {
+.admin-plans {
   background: var(--adm-surface);
   border: 1px solid var(--adm-border);
   border-radius: var(--adm-radius);
@@ -53,6 +49,130 @@
   backdrop-filter: blur(12px);
   text-align: center;
 }
+
+/* ── ZONE 1: TOP BAR ── */
+.zone-topbar {
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius);
+  box-shadow: var(--adm-shadow);
+  padding: 1.5rem 2rem;
+  backdrop-filter: blur(12px);
+  text-align: center;
+}
+
+.stats-row {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.stat-chip {
+  background: rgba(230, 126, 34, 0.1);
+  border: 1px solid var(--adm-border);
+  border-radius: 999px;
+  padding: 0.5rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stat-label {
+  color: var(--adm-text-soft);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.stat-value {
+  color: var(--adm-accent);
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+/* ── ZONE 2: SCHEDULER ── */
+.zone-scheduler {
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius);
+  box-shadow: var(--adm-shadow);
+  padding: 1.5rem;
+  backdrop-filter: blur(12px);
+}
+
+/* ── ZONE 3: TOOLS ── */
+.zone-tools {
+  text-align: center;
+}
+
+.zone-tools-title {
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  color: var(--adm-text);
+  margin-bottom: 1.5rem;
+}
+
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.tool-card {
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius);
+  box-shadow: var(--adm-shadow);
+  padding: 1.5rem;
+  backdrop-filter: blur(12px);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.tool-card h3 {
+  color: var(--adm-text);
+  font-size: 1.3rem;
+  margin: 0;
+}
+
+.tool-card p {
+  color: var(--adm-text-soft);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.tool-card--wide {
+  grid-column: 1 / -1;
+}
+
+.tool-hint {
+  color: var(--adm-text-muted) !important;
+  font-size: 0.85rem !important;
+}
+
+.emp-password-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.emp-password-row input {
+  padding: 0.6rem 1rem;
+  border-radius: var(--adm-radius-sm);
+  border: 1px solid var(--adm-border);
+  background: var(--adm-bg);
+  color: var(--adm-text);
+  font-size: 0.9rem;
+  min-width: 180px;
+}
+
+.msg-success { color: var(--adm-accent-3); font-weight: 700; margin-top: 0.5rem; }
+.msg-error { color: var(--adm-danger); font-weight: 700; margin-top: 0.5rem; }
 
 .admin-apps-section {
   display: grid;
@@ -101,10 +221,10 @@
 ========================= */
 
 .welcome {
-  font-size: clamp(2.4rem, 5vw, 4rem);
+  font-size: clamp(2.4rem, 5vw, 3.6rem);
   text-align: center;
-  margin: 0 0 1.5rem;
-  color: #333;
+  margin: 0 0 1rem;
+  color: var(--adm-text);
   letter-spacing: 0.03em;
 }
 
@@ -117,8 +237,8 @@
   color: var(--adm-text);
 }
 
-.admin-job-calendar h2,
-.admin-job-calendar h3 {
+.zone-scheduler h2,
+.zone-scheduler h3 {
   text-align: center;
   margin-bottom: 1.25rem;
   color: var(--adm-text);
@@ -477,7 +597,6 @@
 ========================= */
 
 .notes-section,
-.tasks-section,
 .selected-date-tasks {
   background: linear-gradient(180deg, rgba(26, 16, 8, 0.96), rgba(32, 20, 10, 0.96));
 }
@@ -707,22 +826,6 @@
   text-align: center;
 }
 
-.admin-grid-sections {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-  width: 100%;
-}
-
-.admin-grid-sections > .ta-images-section,
-.admin-grid-sections > .cancelled-jobs {
-  grid-column: 1 / -1;
-}
-
-.emp-password-card {
-  grid-column: 1 / -1;
-}
-
 /* =========================
    MODAL
 ========================= */
@@ -792,9 +895,13 @@
 
 @media (max-width: 900px) {
   .admin-apps-section,
-  .admin-grid-sections,
-  .calendar-grid-layout {
+  .calendar-grid-layout,
+  .tools-grid {
     grid-template-columns: 1fr;
+  }
+
+  .tool-card--wide {
+    grid-column: auto;
   }
 
   .calendar-grid-left {
@@ -812,14 +919,11 @@
 }
 
 @media (max-width: 640px) {
-  .admin-job-calendar,
+  .zone-topbar,
+  .zone-scheduler,
+  .tool-card,
   .admin-apps,
-  .admin-plans,
-  .admin-invoice,
-  .cancelled-jobs,
-  .ta-images-section,
-  .tasks-section,
-  .notes-section {
+  .admin-plans {
     padding: 1rem;
   }
 
