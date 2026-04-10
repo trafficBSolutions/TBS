@@ -258,6 +258,7 @@
   font-size: 1rem;
   border-radius: var(--adm-radius);
   overflow: hidden;
+  background-color: transparent;
   box-shadow: var(--adm-shadow);
 }
 
@@ -266,7 +267,6 @@
   border: 1px solid var(--adm-border);
   background: var(--adm-surface-solid);
   color: var(--adm-text);
-  background-color: transparent;
 }
 
 .admin-date-picker .react-datepicker__month-container,
