@@ -171,6 +171,17 @@
   min-width: 180px;
 }
 
+.emp-password-row input::placeholder {
+  color: #fff;
+  opacity: 0.6;
+}
+
+.add-task textarea::placeholder,
+.task-date-input::placeholder {
+  color: #fff;
+  opacity: 0.6;
+}
+
 .msg-success { color: var(--adm-accent-3); font-weight: 700; margin-top: 0.5rem; }
 .msg-error { color: var(--adm-danger); font-weight: 700; margin-top: 0.5rem; }
 
