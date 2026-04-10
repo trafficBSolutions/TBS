@@ -98,6 +98,13 @@
   border-color: #e67e22;
 }
 
+.quote-page .quote-info input::placeholder,
+.quote-page .quote-controls input::placeholder,
+.quote-page .quote-table input::placeholder {
+  color: #fff;
+  opacity: 0.6;
+}
+
 /* ── Controls ── */
 .quote-page .quote-controls {
   display: flex;
