@@ -1075,12 +1075,12 @@ selected={
 
 </div>
 
-      <div className="job-actions">
+      <div className="admin-grid-sections">
+      <div className="admin-invoice">
         <h2 className="admin-apps-title">Need To Fill Out a Work Order?</h2>
         <button
           className="btn workorder-btn"
           onClick={() => {
-            // Open the employee Work Order page for this job/date
             navigate(`/admin-dashboard/work-order`);
           }}
         >
@@ -1196,7 +1196,7 @@ selected={
 )}
 
 {allowedForEmpPassword && (
-<div className="admin-invoice">
+<div className="admin-invoice emp-password-card">
   <h1 className="invoice-h1">Employee Login Password</h1>
   <p style={{ fontSize: '13px', color: '#555', marginBottom: '10px' }}>Change the password for the employee login (tbsolutions55@gmail.com)</p>
   <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -1230,6 +1230,7 @@ selected={
   )}
 </div>
 )}
+</div>
 <div className="cancelled-jobs">
   <h2 className="admin-apps-title">Cancelled Jobs</h2> 
   <button
