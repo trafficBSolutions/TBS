@@ -51,6 +51,7 @@
   box-shadow: var(--adm-shadow);
   padding: 1.5rem;
   backdrop-filter: blur(12px);
+  text-align: center;
 }
 
 .admin-apps-section {
