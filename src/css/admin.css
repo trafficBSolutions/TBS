@@ -300,6 +300,11 @@
   font-size: 1.15rem;
 }
 
+.job-card td,
+.job-card th {
+  color: var(--adm-text-soft);
+}
+
 .applicant-card h4,
 .plan-card h4 {
   text-align: center;
