@@ -513,100 +513,32 @@ useEffect(() => {
     <div>
       <Header />
       <div className="admin-dashboard">
-      <h1 className="welcome">Welcome, {adminName}</h1>
-      {isAdmin && (
-  <div className="admin-job-calendar">
+{/* ═══════ ZONE 1: TOP BAR ═══════ */}
+<div className="zone-topbar">
+  <h1 className="welcome">Welcome, {adminName}</h1>
+  {isAdmin && (
+  <>
+    <div className="stats-row">
+      <div className="stat-chip"><span className="stat-label">Jobs This Month</span><span className="stat-value">{monthlyTotalJobs}</span></div>
+      <div className="stat-chip"><span className="stat-label">Work Orders</span><span className="stat-value">{monthlyTotalWorkOrders}</span></div>
+      <div className="stat-chip"><span className="stat-label">{calendarViewDate.toLocaleString('default', { month: 'short', year: 'numeric' })}</span><span className="stat-value">📅</span></div>
+    </div>
     <div className="view-toggle">
-      <h2>View Traffic Control Jobs and Work Orders by Date</h2>
-      <button 
-        className={`btn ${viewMode === 'traffic' ? 'active' : ''}`}
-        onClick={() => setViewMode('traffic')}
-      >
-        Switch to Traffic Control Jobs
-      </button>
-      <button 
-        className={`btn ${viewMode === 'workorders' ? 'active' : ''}`}
-        onClick={() => setViewMode('workorders')}
-      >
-        Switch to Work Orders
-      </button>
+      <button className={`btn ${viewMode === 'traffic' ? 'active' : ''}`} onClick={() => setViewMode('traffic')}>Traffic Control Jobs</button>
+      <button className={`btn ${viewMode === 'workorders' ? 'active' : ''}`} onClick={() => setViewMode('workorders')}>Work Orders</button>
       {allowedForQuotes && (
-        <button 
-          className={`btn ${viewMode === 'quotes' ? 'active' : ''}`}
-          onClick={() => setViewMode('quotes')}
-        >
-          Switch to Material WorX
-        </button>
+        <button className={`btn ${viewMode === 'quotes' ? 'active' : ''}`} onClick={() => setViewMode('quotes')}>Material WorX</button>
       )}
-        <button className={`btn ${viewMode === 'complaints' ? 'active' : ''}`} onClick={() => setViewMode('complaints')}>
-    Switch to Complaints
-  </button>
-  <button 
-  className={`btn ${viewMode === 'tasks' ? 'active' : ''}`}
-  onClick={() => setViewMode('tasks')}
->
-  Switch to Tasks
-</button>
-
+      <button className={`btn ${viewMode === 'complaints' ? 'active' : ''}`} onClick={() => setViewMode('complaints')}>Complaints</button>
+      <button className={`btn ${viewMode === 'tasks' ? 'active' : ''}`} onClick={() => setViewMode('tasks')}>Tasks</button>
     </div>
-    
-    <div className="tasks-section">
-      <button 
-        className={`btn ${showTasks ? 'active' : ''}`}
-        onClick={() => setShowTasks(!showTasks)}
-      >
-        {showTasks ? 'Hide Add Task' : 'Add Task'}
-      </button>
-      
-      {showTasks && (
-        <div className="add-task">
-          <div className="task-date-picker">
-            <label>Select Date for Task:</label>
-            <DatePicker
-              selected={taskDate}
-              onChange={setTaskDate}
-              dateFormat="MMMM d, yyyy"
-              className="task-date-input"
-            />
-          </div>
-          <textarea
-            value={taskText}
-            onChange={(e) => setTaskText(e.target.value)}
-            placeholder="Add a task..."
-            rows="3"
-          />
-          <div className="task-options">
-            <label>
-              <input
-                type="checkbox"
-                checked={isTaskPublic}
-                onChange={(e) => setIsTaskPublic(e.target.checked)}
-              />
-              Public (visible to all)
-            </label>
-            <button className="btn" onClick={addTask}>Add Task</button>
-          </div>
-        </div>
-      )}
-    </div>
-    
-    {viewMode === 'traffic' && (
-  <div className="month-summary">
-    <strong>
-      Total Jobs Scheduled for {calendarViewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}:
-    </strong>{' '}
-    {monthlyTotalJobs}
-  </div>
-)}
-{viewMode === 'workorders' && (
-  <div className="month-summary">
-    <strong>
-      Total Jobs Completed for {calendarViewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}:
-    </strong>{' '}
-    {monthlyTotalWorkOrders}
-  </div>
-)}
+  </>
+  )}
+</div>
 
+{/* ═══════ ZONE 2: MAIN SCHEDULER ═══════ */}
+{isAdmin && (
+<div className="zone-scheduler">
     <div className="calendar-grid-layout">
     <div className="calendar-grid-left">
     <DatePicker
@@ -1074,34 +1006,46 @@ selected={
   </>
 )}
 </div>
+</div>
+</div>
+</div>
+)}
+
+{/* ═══════ ZONE 3: ADMIN TOOLS ═══════ */}
+<div className="zone-tools">
+<h2 className="zone-tools-title">Admin Tools</h2>
+<div className="tools-grid">
+
+  <div className="tool-card">
+    <h3>📝 Work Order</h3>
+    <p>Fill out a new work order</p>
+    <button className="btn workorder-btn" onClick={() => navigate('/admin-dashboard/work-order')}>Open Work Order</button>
   </div>
 
-</div>
-</div>
-  )}
-</div>
-
-      <div className="admin-grid-sections">
-      <div className="admin-invoice">
-        <h2 className="admin-apps-title">Need To Fill Out a Work Order?</h2>
-        <button
-          className="btn workorder-btn"
-          onClick={() => {
-            navigate(`/admin-dashboard/work-order`);
-          }}
-        >
-          Open Work Order
-        </button>
+  <div className="tool-card">
+    <h3>📋 Add Task</h3>
+    <p>Create tasks for any date</p>
+    <button className={`btn ${showTasks ? 'active' : ''}`} onClick={() => setShowTasks(!showTasks)}>{showTasks ? 'Hide' : 'Open'}</button>
+    {showTasks && (
+      <div className="add-task" style={{marginTop: '1rem'}}>
+        <div className="task-date-picker">
+          <label>Date:</label>
+          <DatePicker selected={taskDate} onChange={setTaskDate} dateFormat="MMMM d, yyyy" className="task-date-input" />
+        </div>
+        <textarea value={taskText} onChange={(e) => setTaskText(e.target.value)} placeholder="Add a task..." rows="2" />
+        <div className="task-options">
+          <label><input type="checkbox" checked={isTaskPublic} onChange={(e) => setIsTaskPublic(e.target.checked)} /> Public</label>
+          <button className="btn" onClick={addTask}>Add</button>
+        </div>
       </div>
+    )}
+  </div>
 
-      <div className="ta-images-section">
-        <h2 className="admin-apps-title">Typical Application (TA) Diagrams</h2>
-        <button
-          className="btn view-cancelled-btn"
-          onClick={() => setShowTAImages(prev => !prev)}
-        >
-          {showTAImages ? 'Hide TA Diagrams' : 'View TA Diagrams'}
-        </button>
+  <div className="tool-card tool-card--wide">
+    <h3>📐 TA Diagrams</h3>
+    <button className="btn view-cancelled-btn" onClick={() => setShowTAImages(prev => !prev)}>
+      {showTAImages ? 'Hide' : 'View Diagrams'}
+    </button>
         {showTAImages && (
           <div className="ta-images-grid">
             <div className="ta-image-card" onClick={() => setSelectedImage({ src: images["../assets/buffer and tapers/TA-10.svg"].default, title: 'TA-10' })}>
@@ -1130,25 +1074,13 @@ selected={
             </div>
           </div>
         )}
-        {selectedImage && (
-          <div className="image-modal" onClick={() => setSelectedImage(null)}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <button className="modal-close" onClick={() => setSelectedImage(null)}>×</button>
-              <h3>{selectedImage.title}</h3>
-              <img src={selectedImage.src} alt={selectedImage.title} />
-            </div>
-          </div>
-        )}
-      </div>
+  </div>
 
-      <div className="ta-images-section">
-        <h2 className="admin-apps-title">Reference Charts</h2>
-        <button
-          className="btn view-cancelled-btn"
-          onClick={() => setShowCharts(prev => !prev)}
-        >
-          {showCharts ? 'Hide Charts' : 'View Charts'}
-        </button>
+  <div className="tool-card tool-card--wide">
+    <h3>📊 Reference Charts</h3>
+    <button className="btn view-cancelled-btn" onClick={() => setShowCharts(prev => !prev)}>
+      {showCharts ? 'Hide' : 'View Charts'}
+    </button>
         {showCharts && (
           <div className="ta-images-grid">
             <div className="ta-image-card" onClick={() => setSelectedImage({ src: images["../assets/charts/Buffer Space.svg"].default, title: 'Buffer Space' })}>
@@ -1169,82 +1101,47 @@ selected={
             </div>
       </div>
         )}
-        </div>
-{allowedForInvoices && (
-  <div className="admin-invoice">
-    <h1 className="invoice-h1">Traffic Control Invoicing</h1>
-    <a href="/admin-dashboard/invoices" className="invoice-btn">Go to Traffic Control Invoicing</a>
   </div>
-)}
-{allowedForQuotes && (
-  <div className="admin-invoice">
-    <h1 className="invoice-h1">Material WorX Invoicing</h1>
-    <button
-  className="invoice-btn"
-  type="button"
-  onClick={() => navigate("/admin-dashboard/quote")}
->
-  Go to Material WorX Invoicing
-</button>
-  </div>
-)}
-{allowedForDiscipline && (
-  <div className="admin-invoice">
-    <h1 className="invoice-h1">Disciplinary Action</h1>
-    <button
-      className="invoice-btn"
-      type="button"
-      onClick={() => navigate("/admin-dashboard/disciplinary-action")}
-    >
-      Go to Disciplinary Action
-    </button>
-  </div>
-)}
 
-{allowedForEmpPassword && (
-<div className="admin-invoice emp-password-card">
-  <h1 className="invoice-h1">Employee Login Password</h1>
-  <p style={{ fontSize: '13px', color: '#ffffff', marginBottom: '10px' }}>Change the password for the employee login (tbsolutions55@gmail.com)</p>
-  <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-    <input
-      type="text"
-      placeholder="Enter new password"
-      value={empNewPassword}
-      onChange={(e) => { setEmpNewPassword(e.target.value); setEmpPasswordMsg(''); }}
-      style={{ padding: '8px 12px', borderRadius: '4px', border: '1px solid #ccc', minWidth: '200px' }}
-    />
-    <input
-      type="text"
-      placeholder="Confirm new password"
-      value={empConfirmPassword}
-      onChange={(e) => { setEmpConfirmPassword(e.target.value); setEmpPasswordMsg(''); }}
-      style={{ padding: '8px 12px', borderRadius: '4px', border: '1px solid #ccc', minWidth: '200px' }}
-    />
-    <button
-      className="invoice-btn"
-      type="button"
-      onClick={handleChangeEmpPassword}
-      disabled={empPasswordLoading}
-    >
-      {empPasswordLoading ? 'Updating...' : 'Change Password'}
-    </button>
-  </div>
-  {empPasswordMsg && (
-    <p style={{ marginTop: '10px', fontWeight: 'bold', color: empPasswordMsg.includes('changed') ? 'green' : 'red' }}>
-      {empPasswordMsg}
-    </p>
+  {allowedForInvoices && (
+    <div className="tool-card">
+      <h3>💰 TC Invoicing</h3>
+      <p>Traffic Control Invoicing</p>
+      <a href="/admin-dashboard/invoices" className="invoice-btn">Open</a>
+    </div>
   )}
-</div>
-)}
-</div>
-<div className="cancelled-jobs">
-  <h2 className="admin-apps-title">Cancelled Jobs</h2> 
-  <button
-    className="btn view-cancelled-btn"
-    onClick={() => setShowCancelledJobs(prev => !prev)}
-  >
-    {showCancelledJobs ? 'Hide 2026 Cancelled Jobs' : `View 2026 Cancelled Jobs (${cancelledJobs.length})`}
-  </button>
+  {allowedForQuotes && (
+    <div className="tool-card">
+      <h3>🏭 Material WorX</h3>
+      <p>Sign Shop Invoicing</p>
+      <button className="invoice-btn" type="button" onClick={() => navigate('/admin-dashboard/quote')}>Open</button>
+    </div>
+  )}
+  {allowedForDiscipline && (
+    <div className="tool-card">
+      <h3>⚠️ Discipline</h3>
+      <p>Disciplinary Action</p>
+      <button className="invoice-btn" type="button" onClick={() => navigate('/admin-dashboard/disciplinary-action')}>Open</button>
+    </div>
+  )}
+  {allowedForEmpPassword && (
+    <div className="tool-card tool-card--wide">
+      <h3>🔑 Employee Login Password</h3>
+      <p className="tool-hint">Change password for tbsolutions55@gmail.com</p>
+      <div className="emp-password-row">
+        <input type="text" placeholder="New password" value={empNewPassword} onChange={(e) => { setEmpNewPassword(e.target.value); setEmpPasswordMsg(''); }} />
+        <input type="text" placeholder="Confirm password" value={empConfirmPassword} onChange={(e) => { setEmpConfirmPassword(e.target.value); setEmpPasswordMsg(''); }} />
+        <button className="invoice-btn" type="button" onClick={handleChangeEmpPassword} disabled={empPasswordLoading}>{empPasswordLoading ? 'Updating...' : 'Change'}</button>
+      </div>
+      {empPasswordMsg && <p className={empPasswordMsg.includes('changed') ? 'msg-success' : 'msg-error'}>{empPasswordMsg}</p>}
+    </div>
+  )}
+
+  <div className="tool-card tool-card--wide">
+    <h3>❌ Cancelled Jobs</h3>
+    <button className="btn view-cancelled-btn" onClick={() => setShowCancelledJobs(prev => !prev)}>
+      {showCancelledJobs ? 'Hide' : `View (${cancelledJobs.length})`}
+    </button>
 
 {showCancelledJobs && (
   <div className="cancelled-jobs-section">
@@ -1278,9 +1175,11 @@ selected={
     )}
   </div>
 )}
-
+  </div>
+</div>
 </div>
 
+{/* ═══════ ZONE 4: APPLICANTS & PLANS ═══════ */}
 <section className="admin-apps-section">
 <div className="admin-apps">
   <h2 className="admin-apps-title">Job Applicants</h2>
@@ -1452,6 +1351,17 @@ selected={
   )}
   </div>
 </section>
+
+{selectedImage && (
+  <div className="image-modal" onClick={() => setSelectedImage(null)}>
+    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <button className="modal-close" onClick={() => setSelectedImage(null)}>×</button>
+      <h3>{selectedImage.title}</h3>
+      <img src={selectedImage.src} alt={selectedImage.title} />
+    </div>
+  </div>
+)}
+</div>
       <footer className="footer">
   <div className="site-footer__inner">
     <img className="tbs-logo" alt="TBS logo" src={images["../assets/tbs_companies/tbs white.svg"].default} />
@@ -1507,6 +1417,7 @@ selected={
         Website Created & Deployed by <a className="footer-face"href="https://www.facebook.com/will.rowell.779" target="_blank" rel="noopener noreferrer">William Rowell</a> - All Rights Reserved.</p>
     </div>
     </div>
+    
   );
 };
 
