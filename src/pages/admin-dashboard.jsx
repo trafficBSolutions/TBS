@@ -535,7 +535,7 @@ useEffect(() => {
           className={`btn ${viewMode === 'quotes' ? 'active' : ''}`}
           onClick={() => setViewMode('quotes')}
         >
-          Switch to Quotes
+          Switch to Sign Shop
         </button>
       )}
         <button className={`btn ${viewMode === 'complaints' ? 'active' : ''}`} onClick={() => setViewMode('complaints')}>
@@ -1172,19 +1172,19 @@ selected={
         </div>
 {allowedForInvoices && (
   <div className="admin-invoice">
-    <h1 className="invoice-h1">Invoicing</h1>
-    <a href="/admin-dashboard/invoices" className="invoice-btn">Go to Invoicing</a>
+    <h1 className="invoice-h1">Traffic Control Invoicing</h1>
+    <a href="/admin-dashboard/invoices" className="invoice-btn">Go to Traffic Control Invoicing</a>
   </div>
 )}
 {allowedForQuotes && (
   <div className="admin-invoice">
-    <h1 className="invoice-h1">Quoting</h1>
+    <h1 className="invoice-h1">Sign Shop Invoicing</h1>
     <button
   className="invoice-btn"
   type="button"
   onClick={() => navigate("/admin-dashboard/quote")}
 >
-  Go to Quoting
+  Go to Sign Shop Invoicing
 </button>
   </div>
 )}
