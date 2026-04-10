@@ -3,21 +3,21 @@
 ========================= */
 
 :root {
-  --adm-bg: #0f172a;
-  --adm-surface: rgba(30, 41, 59, 0.92);
-  --adm-surface-solid: #1e293b;
-  --adm-card: linear-gradient(180deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
-  --adm-border: rgba(255, 255, 255, 0.08);
-  --adm-text: #e2e8f0;
-  --adm-text-soft: #94a3b8;
-  --adm-text-muted: #64748b;
-  --adm-accent: #60a5fa;
-  --adm-accent-2: #8b5cf6;
-  --adm-accent-3: #34d399;
-  --adm-danger: #ef4444;
+  --adm-bg: #1a1008;
+  --adm-surface: rgba(42, 28, 12, 0.92);
+  --adm-surface-solid: #2a1c0c;
+  --adm-card: linear-gradient(180deg, rgba(42, 28, 12, 0.95), rgba(26, 16, 8, 0.95));
+  --adm-border: rgba(230, 126, 34, 0.15);
+  --adm-text: #f5e6d3;
+  --adm-text-soft: #c4a882;
+  --adm-text-muted: #8b7355;
+  --adm-accent: #e67e22;
+  --adm-accent-2: #f39c12;
+  --adm-accent-3: #27ae60;
+  --adm-danger: #e74c3c;
   --adm-radius: 16px;
   --adm-radius-sm: 12px;
-  --adm-shadow: 0 8px 25px rgba(0, 0, 0, 0.22);
+  --adm-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
   --adm-transition: all 0.2s ease;
 }
 
@@ -104,7 +104,7 @@
   font-size: clamp(2.4rem, 5vw, 4rem);
   text-align: center;
   margin: 0 0 1.5rem;
-  color: #333;
+  color: var(--adm-text);
   letter-spacing: 0.03em;
 }
 
@@ -240,7 +240,7 @@
 .view-toggle button:hover,
 .view-toggle button.active:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 18px rgba(96, 165, 250, 0.25);
+  box-shadow: 0 8px 18px rgba(230, 126, 34, 0.3);
 }
 
 .view-toggle {
@@ -258,7 +258,7 @@
 }
 
 .view-cancelled-btn {
-  background: linear-gradient(135deg, #b91c1c, var(--adm-danger));
+  background: linear-gradient(135deg, #c0392b, var(--adm-danger));
   color: #fff;
 }
 
@@ -297,7 +297,7 @@
 }
 
 .admin-date-picker .react-datepicker__header {
-  background: linear-gradient(135deg, rgba(96, 165, 250, 0.18), rgba(139, 92, 246, 0.18));
+  background: linear-gradient(135deg, rgba(230, 126, 34, 0.25), rgba(243, 156, 18, 0.18));
   border-bottom: 1px solid var(--adm-border);
   padding: 1rem 0;
 }
@@ -333,19 +333,19 @@
 }
 
 .admin-date-picker .react-datepicker__day:hover {
-  background: rgba(96, 165, 250, 0.12);
+  background: rgba(230, 126, 34, 0.15);
 }
 
 .admin-date-picker .react-datepicker__day--selected,
 .admin-date-picker .has-jobs {
-  background: linear-gradient(135deg, rgba(96, 165, 250, 0.25), rgba(139, 92, 246, 0.25));
-  border-color: rgba(96, 165, 250, 0.45);
+  background: linear-gradient(135deg, rgba(230, 126, 34, 0.3), rgba(243, 156, 18, 0.25));
+  border-color: rgba(230, 126, 34, 0.5);
   color: #fff;
   font-weight: 700;
 }
 
 .admin-date-picker .react-datepicker__day--keyboard-selected {
-  background: rgba(96, 165, 250, 0.18);
+  background: rgba(230, 126, 34, 0.2);
   color: #fff;
 }
 
@@ -393,7 +393,7 @@
 
 .admin-date-picker .react-datepicker__year-option:hover,
 .admin-date-picker .react-datepicker__month-option:hover {
-  background: rgba(96, 165, 250, 0.15);
+  background: rgba(230, 126, 34, 0.15);
 }
 
 /* Triangle / popover arrow */
@@ -427,13 +427,13 @@
 }
 
 .calendar-day-kiss .job-count {
-  background: rgba(245, 158, 11, 0.18);
-  color: #fde68a;
+  background: rgba(230, 126, 34, 0.22);
+  color: #fcd9b6;
 }
 
 .calendar-day-kiss .task-count {
-  background: rgba(34, 211, 238, 0.18);
-  color: #a5f3fc;
+  background: rgba(243, 156, 18, 0.2);
+  color: #fde68a;
 }
 
 /* =========================
@@ -446,17 +446,17 @@
 }
 
 .cancellation-type {
-  color: #fca5a5;
+  color: #f5b7b1;
   font-weight: 700;
 }
 
 .month-header {
-  color: #fca5a5;
+  color: #f5b7b1;
   font-size: 1.2rem;
   font-weight: 700;
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(239, 68, 68, 0.35);
+  border-bottom: 1px solid rgba(231, 76, 60, 0.35);
   text-transform: capitalize;
 }
 
@@ -479,7 +479,7 @@
 .notes-section,
 .tasks-section,
 .selected-date-tasks {
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(17, 24, 39, 0.96));
+  background: linear-gradient(180deg, rgba(26, 16, 8, 0.96), rgba(32, 20, 10, 0.96));
 }
 
 .add-note,
@@ -568,14 +568,14 @@
 
 .note-visibility.public,
 .task-visibility.public {
-  background: rgba(34, 197, 94, 0.16);
-  color: #86efac;
+  background: rgba(39, 174, 96, 0.16);
+  color: #82e0aa;
 }
 
 .note-visibility.private,
 .task-visibility.private {
-  background: rgba(239, 68, 68, 0.16);
-  color: #fca5a5;
+  background: rgba(231, 76, 60, 0.16);
+  color: #f5b7b1;
 }
 
 .delete-note,
@@ -591,7 +591,7 @@
 
 .delete-note:hover,
 .delete-task:hover {
-  background: rgba(239, 68, 68, 0.12);
+  background: rgba(231, 76, 60, 0.12);
 }
 
 .completed-text {
@@ -613,7 +613,7 @@
 }
 
 .task-date-header {
-  background: linear-gradient(135deg, var(--adm-accent), var(--adm-accent-2));
+  background: linear-gradient(135deg, #e67e22, #f39c12);
   color: #fff;
   padding: 0.75rem 1rem;
   margin: 0;
@@ -638,7 +638,7 @@
 }
 
 .selected-date-tasks h4 {
-  color: var(--adm-accent);
+  color: #e67e22;
   font-size: 1.4rem;
   margin-bottom: 1rem;
   text-align: center;
@@ -649,7 +649,7 @@
 ========================= */
 
 .ta-images-section {
-  background: linear-gradient(180deg, rgba(17, 24, 39, 0.96), rgba(15, 23, 42, 0.96));
+  background: linear-gradient(180deg, rgba(32, 20, 10, 0.96), rgba(26, 16, 8, 0.96));
 }
 
 .ta-images-grid {
@@ -772,7 +772,7 @@
   height: 42px;
   border: none;
   border-radius: 999px;
-  background: linear-gradient(135deg, var(--adm-accent), var(--adm-accent-2));
+  background: linear-gradient(135deg, #e67e22, #f39c12);
   color: #fff;
   font-size: 1.5rem;
   cursor: pointer;
