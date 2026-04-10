@@ -683,8 +683,25 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 1.25rem;
   text-align: center;
+}
+
+.admin-grid-sections {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.admin-grid-sections > .ta-images-section,
+.admin-grid-sections > .cancelled-jobs {
+  grid-column: 1 / -1;
+}
+
+.emp-password-card {
+  grid-column: 1 / -1;
 }
 
 /* =========================
@@ -755,7 +772,8 @@
 ========================= */
 
 @media (max-width: 900px) {
-  .admin-apps-section {
+  .admin-apps-section,
+  .admin-grid-sections {
     grid-template-columns: 1fr;
   }
 
