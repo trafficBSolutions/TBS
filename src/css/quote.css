@@ -1,43 +1,329 @@
-.quote-wrap { max-width: 1100px; margin: 0 auto; padding: 16px; }
-.quote-header { display:flex; justify-content:space-between; gap:16px; align-items:flex-start; }
-.quote-header h1 { margin: 0 0 8px; }
-.small { font-size: 12px; opacity: .85; }
+/* =========================
+   QUOTE PAGE – DARK THEME
+========================= */
 
-.quote-info { margin: 14px 0; display:grid; gap:10px; }
-.quote-info label { display:flex; flex-direction:column; gap:6px; font-size: 13px; }
-.row2 { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
-.row3 { display:grid; grid-template-columns: 1fr 120px 160px; gap:10px; }
+.quote-page {
+  background: #0f172a;
+  min-height: 100vh;
+}
 
-.quote-controls { display:flex; flex-wrap:wrap; gap:14px; align-items:end; margin: 8px 0 14px; }
-.quote-controls label { display:flex; flex-direction:column; gap:6px; font-size: 13px; }
-.quote-controls .inline { flex-direction:row; align-items:center; gap:8px; margin-right:auto; }
-.hint { font-size: 11px; opacity: .7; }
+.quote-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
 
-.table-actions { display:flex; justify-content:flex-end; margin-bottom:8px; }
+/* ── Section Tabs ── */
+.quote-section-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
 
-.quote-table table { width:100%; border-collapse:collapse; }
-.quote-table th, .quote-table td { border: 1px solid #d9d9d9; padding: 6px; font-size: 13px; }
-.quote-table thead th { background: #f2f2f2; text-align:left; }
-.quote-table input, .quote-table select {
+.quote-section-tabs button {
+  padding: 0.75rem 2rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: #94a3b8;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quote-section-tabs button:hover {
+  background: rgba(96, 165, 250, 0.12);
+  color: #e2e8f0;
+}
+
+.quote-section-tabs button.active {
+  background: linear-gradient(135deg, #60a5fa, #8b5cf6);
+  color: #fff;
+  border-color: transparent;
+}
+
+/* ── Section Card ── */
+.quote-section-card {
+  background: rgba(30, 41, 59, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.22);
+  padding: 2rem;
+  backdrop-filter: blur(12px);
+}
+
+.quote-section-title {
+  text-align: center;
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  color: #e2e8f0;
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.02em;
+}
+
+/* ── Info Fields ── */
+.quote-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.quote-info label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.quote-info input {
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  color: #e2e8f0;
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.quote-info input:focus {
+  outline: none;
+  border-color: #60a5fa;
+}
+
+/* ── Controls ── */
+.quote-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  align-items: flex-end;
+  margin-bottom: 1.5rem;
+}
+
+.quote-controls label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.quote-controls .inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  margin-right: auto;
+}
+
+.quote-controls input[type="number"],
+.quote-controls input[type="text"] {
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  color: #e2e8f0;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+.quote-controls input[type="checkbox"] {
+  transform: scale(1.2);
+  accent-color: #60a5fa;
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+/* ── Table ── */
+.table-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.75rem;
+}
+
+.btn {
+  padding: 0.65rem 1.25rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: linear-gradient(135deg, #60a5fa, #8b5cf6);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(96, 165, 250, 0.25);
+}
+
+.btn:disabled {
+  background: #334155;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.quote-table {
+  overflow-x: auto;
+}
+
+.quote-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.quote-table th,
+.quote-table td {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.6rem 0.75rem;
+  font-size: 0.9rem;
+  color: #e2e8f0;
+}
+
+.quote-table thead th {
+  background: linear-gradient(135deg, rgba(96, 165, 250, 0.18), rgba(139, 92, 246, 0.18));
+  text-align: left;
+  font-weight: 700;
+  color: #fff;
+}
+
+.quote-table tbody tr {
+  transition: background 0.15s;
+}
+
+.quote-table tbody tr:hover td {
+  background: rgba(96, 165, 250, 0.06);
+}
+
+.quote-table input,
+.quote-table select {
   width: 100%;
   border: none;
   outline: none;
   background: transparent;
-  font-size: 13px;
-  padding: 6px;
+  font-size: 0.9rem;
+  padding: 0.5rem;
+  color: #e2e8f0;
+  font-family: inherit;
 }
-.quote-table tr:hover td { background: #fafafa; }
 
-.center { text-align:center; }
-.right { text-align:right; }
+.quote-table select {
+  cursor: pointer;
+}
 
-.icon-btn { border: none; background: transparent; cursor:pointer; font-size: 16px; }
-.icon-btn:hover { opacity: .7; }
+.quote-table select option {
+  background: #1e293b;
+  color: #e2e8f0;
+}
 
-.quote-totals { display:flex; justify-content:flex-end; margin-top: 12px; }
-.totals-box { width: 340px; border: 1px solid #d9d9d9; border-radius: 10px; padding: 10px; }
-.totals-box .row { display:flex; justify-content:space-between; padding: 6px 2px; }
-.totals-box .total { border-top: 1px solid #e1e1e1; margin-top: 6px; padding-top: 10px; font-size: 15px; }
-.totals-box .deposit { margin-top: 6px; opacity: .95; }
+.center { text-align: center; }
+.right { text-align: right; }
 
-.quote-footer { margin-top: 16px; border-top: 1px dashed #ccc; padding-top: 10px; }
+.icon-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.1rem;
+  color: #fca5a5;
+  transition: all 0.2s;
+}
+
+.icon-btn:hover {
+  color: #ef4444;
+  transform: scale(1.15);
+}
+
+/* ── Totals ── */
+.quote-totals {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-top: 1.25rem;
+}
+
+.totals-box {
+  width: 360px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 1rem 1.25rem;
+}
+
+.totals-box .row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  color: #94a3b8;
+  font-size: 0.95rem;
+}
+
+.totals-box .row strong {
+  color: #e2e8f0;
+}
+
+.totals-box .total {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  font-size: 1.15rem;
+  color: #fff;
+}
+
+.totals-box .total strong {
+  color: #60a5fa;
+}
+
+/* ── Send Button Area ── */
+.quote-send-area {
+  margin-top: 1.25rem;
+  text-align: center;
+}
+
+.quote-send-area .btn {
+  padding: 0.85rem 2.5rem;
+  font-size: 1.05rem;
+}
+
+.quote-send-area .success-msg {
+  color: #34d399;
+  font-weight: 700;
+  margin-top: 0.75rem;
+}
+
+.quote-send-area .error-msg {
+  color: #ef4444;
+  font-weight: 700;
+  margin-top: 0.75rem;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 768px) {
+  .quote-info {
+    grid-template-columns: 1fr;
+  }
+
+  .quote-section-tabs {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .totals-box {
+    width: 100%;
+  }
+
+  .quote-section-card {
+    padding: 1.25rem;
+  }
+}
