@@ -75,6 +75,7 @@ export default function Quote() {
   const [invRows, setInvRows] = useState([blankRow()]);
   const [invSending, setInvSending] = useState(false);
   const [invMessage, setInvMessage] = useState("");
+  const [activeSection, setActiveSection] = useState('quote');
 
   const updateInvRow = (id, patch) => setInvRows(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r));
   const addInvRow = () => setInvRows(prev => [...prev, blankRow()]);
@@ -197,11 +198,18 @@ export default function Quote() {
   };
 
   return (
-    <div>
+    <div className="quote-page">
     <Header />
     <div className="quote-wrap">
-      
 
+      <div className="quote-section-tabs">
+        <button className={activeSection === 'quote' ? 'active' : ''} onClick={() => setActiveSection('quote')}>Quote</button>
+        <button className={activeSection === 'invoice' ? 'active' : ''} onClick={() => setActiveSection('invoice')}>Invoice</button>
+      </div>
+
+      {activeSection === 'quote' && (
+      <div className="quote-section-card">
+        <h2 className="quote-section-title">Sign Shop Quote</h2>
       <section className="quote-info">
         <label>Company/Excavator<input type="text" value={company} onChange={(e) => setCompany(e.target.value.replace(/\b\w/g, c => c.toUpperCase()))} /></label>
         <label>Customer<input type="text" value={customer} onChange={(e) => setCustomer(e.target.value.replace(/\b\w/g, c => c.toUpperCase()))} /></label>
@@ -324,32 +332,28 @@ export default function Quote() {
           <div className="row total"><span>TOTAL</span><strong>{money(computed.total)}</strong></div>
         </div>
 
-        <div style={{ marginTop: '20px', textAlign: 'center' }}>
+        <div className="quote-send-area">
           <button 
             type="button" 
             className="btn" 
             onClick={handleSendQuote}
             disabled={sending}
-            style={{ padding: '12px 30px', fontSize: '16px' }}
           >
             {sending ? 'Sending...' : 'Send Quote to Email'}
           </button>
           {message && (
-            <p style={{ 
-              marginTop: '10px', 
-              color: message.includes('success') ? 'green' : 'red',
-              fontWeight: 'bold'
-            }}>
+            <p className={message.includes('success') ? 'success-msg' : 'error-msg'}>
               {message}
             </p>
           )}
         </div>
       </section>
+      </div>
+      )}
 
-      {/* ════════════════ INVOICE SECTION ════════════════ */}
-      <hr style={{ margin: '40px 0', borderTop: '3px solid #17365D' }} />
-      <h2 style={{ textAlign: 'center', color: '#17365D' }}>INVOICE</h2>
-
+      {activeSection === 'invoice' && (
+      <div className="quote-section-card">
+        <h2 className="quote-section-title">Sign Shop Invoice</h2>
       <section className="quote-info">
         <label>Invoice Number *<input type="text" value={invNumber} onChange={(e) => setInvNumber(e.target.value.toUpperCase())} placeholder="e.g., 2026SS001" /></label>
         <label>Company/Excavator<input type="text" value={invCompany} onChange={(e) => setInvCompany(e.target.value.replace(/\b\w/g, c => c.toUpperCase()))} /></label>
@@ -417,13 +421,15 @@ export default function Quote() {
           <div className="row"><span>Card Fee (3%)</span><strong>{money(invComputed.ccFee)}</strong></div>
           <div className="row total"><span>TOTAL</span><strong>{money(invComputed.total)}</strong></div>
         </div>
-        <div style={{ marginTop: '20px', textAlign: 'center' }}>
-          <button type="button" className="btn" onClick={handleSendInvoice} disabled={invSending} style={{ padding: '12px 30px', fontSize: '16px' }}>
+        <div className="quote-send-area">
+          <button type="button" className="btn" onClick={handleSendInvoice} disabled={invSending}>
             {invSending ? 'Sending...' : 'Send Invoice to Email'}
           </button>
-          {invMessage && <p style={{ marginTop: '10px', color: invMessage.includes('success') ? 'green' : 'red', fontWeight: 'bold' }}>{invMessage}</p>}
+          {invMessage && <p className={invMessage.includes('success') ? 'success-msg' : 'error-msg'}>{invMessage}</p>}
         </div>
       </section>
+      </div>
+      )}
       </div>
 <footer className="footer">
   <div className="site-footer__inner">
@@ -443,9 +449,9 @@ export default function Quote() {
       <p className="contact-info">
         <a className="will-phone" href="tel:+17062630175">Call: 706-263-0175</a>
         <a className="will-email" href="mailto: tbsolutions1999@gmail.com">Email: tbsolutions1999@gmail.com</a>
-        <a className="will-address" href="https://www.google.com/maps/place/Traffic+and+Barrier+Solutions,+LLC/@34.5117779,-84.9474798,123m/data=!3m1!1e3!4m6!3m5!1s0x482edab56d5b039b:0x94615ce25483ace6!8m2!3d34.511583!4d-84.9480585!16s%2Fg%2F11pl8d7p4t?entry=ttu&g_ep=EgoyMDI2MDMzMS4wIKXMDSoASAFQAw%3D%3D"
+        <a className="will-address" href="https://www.google.com/maps/place/Traffic+and+Barrier+Solutions,+LLC/@34.5025307,-84.899317,660m/data=!3m1!1e3!4m6!3m5!1s0x482edab56d5b039b:0x94615ce25483ace6!8m2!3d34.5018691!4d-84.8994308!16s%2Fg%2F11pl8d7p4t?entry=ttu&g_ep=EgoyMDI1MDEyMC4wIKXMDSoASAFQAw%3D%3D"
       >
-        721 N Wall St, Calhoun, GA 30701</a>
+        1995 Dews Pond Rd, Calhoun, GA 30701</a>
       </p>
     </div>
 
