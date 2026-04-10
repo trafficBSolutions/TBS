@@ -158,7 +158,7 @@
   background: linear-gradient(135deg, #e67e22, #f39c12);
   color: #fff;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 2rem;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -187,7 +187,7 @@
 .quote-page .quote-table td {
   border: 1px solid rgba(230, 126, 34, 0.12);
   padding: 0.7rem 0.85rem;
-  font-size: 1rem;
+  font-size: 1.4rem;
   color: #f5e6d3;
 }
 
