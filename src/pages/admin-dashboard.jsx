@@ -47,7 +47,8 @@ const [showCancelledJobs, setShowCancelledJobs] = useState(false);
   const [applicants, setApplicants] = useState([]);
   const [PlanUser, setPlanUser] = useState([]);
   const [allowedForInvoices, setAllowedForInvoices] = useState(false);
-const [currentIndex, setCurrentIndex] = useState(0); // To control the visible slice
+const [currentIndex, setCurrentIndex] = useState(0);
+const [planIndex, setPlanIndex] = useState(0);
 const [jobs, setJobs] = useState([]);
 const [calendarViewDate, setCalendarViewDate] = useState(new Date());
 const [isAdmin, setIsAdmin] = useState(false);
@@ -606,6 +607,8 @@ useEffect(() => {
   </div>
 )}
 
+    <div className="calendar-grid-layout">
+    <div className="calendar-grid-left">
     <DatePicker
 selected={
   viewMode === 'traffic' ? selectedDate
@@ -697,6 +700,8 @@ selected={
     );
   }}
 />
+</div>
+<div className="calendar-grid-right">
 <div className="job-main-info-list">
   {viewMode === 'traffic' && (
     <>
@@ -1070,9 +1075,10 @@ selected={
 )}
 </div>
   </div>
-)}
 
-
+</div>
+</div>
+  )}
 </div>
 
       <div className="admin-grid-sections">
@@ -1389,9 +1395,13 @@ selected={
 </div>
 <div className="admin-plans">
   <h2 className="admin-plans-title">Traffic Control Plans</h2>
-  <div className="plan-list">
-  {PlanUser.length > 0 && PlanUser.map((plan, index) => (
-  <div key={index} className="plan-card">
+  {PlanUser.length > 0 && (
+  <div className="plan-carousel">
+    <div className="plan-list">
+      {PlanUser.slice(planIndex, planIndex + 2).map((plan, i) => {
+        const actualIndex = planIndex + i;
+        return (
+  <div key={actualIndex} className="plan-card">
     <h4 className="job-company">{plan.company}</h4>
     <p><strong>Coordinator:</strong> {plan.name}</p>
     <p><strong>Email:</strong> {plan.email}</p>
@@ -1406,7 +1416,7 @@ selected={
       <button
         className="pdf-link"
         onClick={() => {
-          setSelectedPlanIndex(index); // use current index here
+          setSelectedPlanIndex(actualIndex);
           setPreviewPlan(`/plans/${plan.structure}`);
         }}
       >
@@ -1414,7 +1424,7 @@ selected={
       </button>
     )}
 
-    {selectedPlanIndex === index && previewPlan && (
+    {selectedPlanIndex === actualIndex && previewPlan && (
       <div className="file-preview-container">
         <h3>File Preview</h3>
         <iframe
@@ -1427,8 +1437,19 @@ selected={
       </div>
     )}
   </div>
-))}
+        );
+      })}
+    </div>
+    <div className="admin-applicant-controls">
+      <button className="btn" onClick={() => setPlanIndex(prev => Math.max(prev - 2, 0))} disabled={planIndex === 0}>
+        ◀
+      </button>
+      <button className="btn" onClick={() => setPlanIndex(prev => Math.min(prev + 2, PlanUser.length - 2))} disabled={planIndex + 2 >= PlanUser.length}>
+        ▶
+      </button>
+    </div>
   </div>
+  )}
   </div>
 </section>
       <footer className="footer">
