@@ -130,7 +130,7 @@
   border-radius: 12px;
   padding: 0.85rem 1rem;
   color: #f5e6d3;
-  font-size: 1.05rem;
+  font-size: 1.3rem;
   font-family: inherit;
 }
 
@@ -140,7 +140,7 @@
 }
 
 .quote-page .hint {
-  font-size: 0.85rem;
+  font-size: 1.2rem;
   color: #8b7355;
 }
 
@@ -265,7 +265,7 @@
   justify-content: space-between;
   padding: 0.5rem 0;
   color: #c4a882;
-  font-size: 1.05rem;
+  font-size: 1.3rem;
 }
 
 .quote-page .totals-box .row strong {
