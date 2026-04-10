@@ -67,6 +67,25 @@
   padding: 1.5rem;
 }
 
+.calendar-grid-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+  width: 100%;
+}
+
+.calendar-grid-left {
+  position: sticky;
+  top: 1rem;
+}
+
+.calendar-grid-right {
+  min-height: 200px;
+  overflow-y: auto;
+  max-height: 80vh;
+}
+
 .job-info-list,
 .applicant-list,
 .plan-list {
@@ -773,8 +792,17 @@
 
 @media (max-width: 900px) {
   .admin-apps-section,
-  .admin-grid-sections {
+  .admin-grid-sections,
+  .calendar-grid-layout {
     grid-template-columns: 1fr;
+  }
+
+  .calendar-grid-left {
+    position: static;
+  }
+
+  .calendar-grid-right {
+    max-height: none;
   }
 
   .react-datepicker__day,
