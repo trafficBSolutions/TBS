@@ -81,13 +81,13 @@
 
 .stat-label {
   color: var(--adm-text-soft);
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-weight: 600;
 }
 
 .stat-value {
   color: var(--adm-accent);
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   font-weight: 800;
 }
 
@@ -107,7 +107,7 @@
 }
 
 .zone-tools-title {
-  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  font-size: clamp(2rem, 3.8vw, 3.2rem);
   color: #333;
   margin-bottom: 1.5rem;
 }
@@ -134,13 +134,13 @@
 
 .tool-card h3 {
   color: var(--adm-text);
-  font-size: 1.3rem;
+  font-size: 1.5rem;
   margin: 0;
 }
 
 .tool-card p {
   color: var(--adm-text-soft);
-  font-size: 0.9rem;
+  font-size: 1rem;
   margin: 0;
 }
 
@@ -221,7 +221,7 @@
 ========================= */
 
 .welcome {
-  font-size: clamp(2.4rem, 5vw, 3.6rem);
+  font-size: clamp(2.8rem, 5.5vw, 4.2rem);
   text-align: center;
   margin: 0 0 1rem;
   color: var(--adm-text);
@@ -231,7 +231,7 @@
 .admin-apps-title,
 .admin-plans-title,
 .invoice-h1 {
-  font-size: clamp(2.1rem, 4vw, 3.4rem);
+  font-size: clamp(2.4rem, 4.5vw, 3.8rem);
   text-align: center;
   margin-bottom: 1.5rem;
   color: var(--adm-text);
@@ -242,13 +242,13 @@
   text-align: center;
   margin-bottom: 1.25rem;
   color: var(--adm-text);
-  font-size: clamp(1.5rem, 3vw, 2.3rem);
+  font-size: clamp(1.7rem, 3.2vw, 2.6rem);
 }
 
 .month-summary {
   margin: 0.5rem 0 1.25rem;
   text-align: center;
-  font-size: clamp(1.35rem, 2.8vw, 2.4rem);
+  font-size: clamp(1.5rem, 3vw, 2.6rem);
   color: var(--adm-text-soft);
   font-weight: 700;
 }
@@ -286,7 +286,7 @@
 .cancelled-job { border-left: 4px solid var(--adm-danger); }
 
 .job-company {
-  font-size: 1.7rem;
+  font-size: 1.9rem;
   margin-bottom: 0.75rem;
   color: #fff;
 }
@@ -297,13 +297,13 @@
   margin: 0.45rem 0;
   line-height: 1.55;
   color: var(--adm-text-soft);
-  font-size: 1.05rem;
+  font-size: 1.15rem;
 }
 
 .applicant-card h4,
 .plan-card h4 {
   text-align: center;
-  font-size: 1.8rem;
+  font-size: 2rem;
   margin-bottom: 0.75rem;
   color: #fff;
 }
@@ -312,7 +312,7 @@
   text-align: center;
   margin-bottom: 0.4rem;
   color: var(--adm-text-soft);
-  font-size: 1.2rem;
+  font-size: 1.35rem;
 }
 
 .employment-info,
@@ -337,8 +337,9 @@
   gap: 0.4rem;
   border: 1px solid transparent;
   border-radius: 999px;
-  padding: 0.75rem 1.15rem;
+  padding: 0.8rem 1.3rem;
   font-weight: 700;
+  font-size: 1rem;
   text-decoration: none;
   cursor: pointer;
   transition: var(--adm-transition);
@@ -532,14 +533,14 @@
 
 .calendar-day-kiss .day-number {
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 1.1rem;
   color: #fff;
 }
 
 .calendar-day-kiss .job-count,
 .calendar-day-kiss .task-count {
   width: 90%;
-  font-size: 0.82rem;
+  font-size: 0.9rem;
   padding: 0.2rem 0.35rem;
   border-radius: 999px;
   text-align: center;
@@ -789,7 +790,7 @@
 }
 
 .ta-image-card h4 {
-  font-size: 1.35rem;
+  font-size: 1.5rem;
   margin-bottom: 0.85rem;
   color: #fff;
 }
