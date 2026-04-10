@@ -328,8 +328,56 @@
   color: #fff;
 }
 
+/* Outside-month days */
+.react-datepicker__day--outside-month {
+  color: var(--adm-text-muted);
+  opacity: 0.4;
+}
+
+/* Today highlight */
+.react-datepicker__day--today {
+  border-color: var(--adm-accent);
+  color: var(--adm-accent);
+  font-weight: 700;
+}
+
+/* Week row */
+.react-datepicker__week {
+  display: flex;
+  justify-content: center;
+}
+
+/* Navigation arrows */
 .react-datepicker__navigation {
   top: 1rem;
+}
+
+.react-datepicker__navigation-icon::before {
+  border-color: var(--adm-text-soft);
+}
+
+.react-datepicker__navigation:hover .react-datepicker__navigation-icon::before {
+  border-color: #fff;
+}
+
+/* Year / month dropdowns (if used) */
+.react-datepicker__year-dropdown,
+.react-datepicker__month-dropdown,
+.react-datepicker__year-read-view,
+.react-datepicker__month-read-view {
+  background: var(--adm-surface-solid);
+  border: 1px solid var(--adm-border);
+  color: var(--adm-text);
+}
+
+.react-datepicker__year-option:hover,
+.react-datepicker__month-option:hover {
+  background: rgba(96, 165, 250, 0.15);
+}
+
+/* Triangle / popover arrow */
+.react-datepicker__triangle {
+  display: none;
 }
 
 .calendar-day-kiss {
