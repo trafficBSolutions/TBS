@@ -311,6 +311,12 @@
   font-size: 1.3rem;
 }
 
+.job-card a,
+.applicant-card a,
+.plan-card a {
+  color: #faf0ca;
+}
+
 .job-card td,
 .job-card th {
   color: var(--adm-text-soft);
