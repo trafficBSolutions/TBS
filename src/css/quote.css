@@ -4,7 +4,7 @@
 ========================= */
 
 .quote-page {
-  background: #0f172a;
+  background: #1a1008;
   min-height: 100vh;
 }
 
@@ -27,9 +27,9 @@
 .quote-page .quote-section-tabs button {
   padding: 0.75rem 2rem;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
-  color: #94a3b8;
+  border: 1px solid rgba(230, 126, 34, 0.15);
+  background: rgba(230, 126, 34, 0.06);
+  color: #c4a882;
   font-size: 1.1rem;
   font-weight: 700;
   cursor: pointer;
@@ -37,22 +37,22 @@
 }
 
 .quote-page .quote-section-tabs button:hover {
-  background: rgba(96, 165, 250, 0.12);
-  color: #e2e8f0;
+  background: rgba(230, 126, 34, 0.15);
+  color: #f5e6d3;
 }
 
 .quote-page .quote-section-tabs button.active {
-  background: linear-gradient(135deg, #60a5fa, #8b5cf6);
+  background: linear-gradient(135deg, #e67e22, #f39c12);
   color: #fff;
   border-color: transparent;
 }
 
 /* ── Section Card ── */
 .quote-page .quote-section-card {
-  background: rgba(30, 41, 59, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(42, 28, 12, 0.92);
+  border: 1px solid rgba(230, 126, 34, 0.15);
   border-radius: 16px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.22);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
   padding: 2rem;
   backdrop-filter: blur(12px);
 }
@@ -60,7 +60,7 @@
 .quote-page .quote-section-title {
   text-align: center;
   font-size: clamp(1.8rem, 3.5vw, 2.8rem);
-  color: #e2e8f0;
+  color: #f5e6d3;
   margin-bottom: 1.5rem;
   letter-spacing: 0.02em;
 }
@@ -79,15 +79,15 @@
   gap: 0.4rem;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #94a3b8;
+  color: #c4a882;
 }
 
 .quote-page .quote-info input {
-  background: #0f172a;
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: #1a1008;
+  border: 1px solid rgba(230, 126, 34, 0.12);
   border-radius: 12px;
   padding: 0.75rem 1rem;
-  color: #e2e8f0;
+  color: #f5e6d3;
   font-size: 0.95rem;
   font-family: inherit;
   transition: border-color 0.2s;
@@ -95,7 +95,7 @@
 
 .quote-page .quote-info input:focus {
   outline: none;
-  border-color: #60a5fa;
+  border-color: #e67e22;
 }
 
 /* ── Controls ── */
@@ -113,7 +113,7 @@
   gap: 0.4rem;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #94a3b8;
+  color: #c4a882;
 }
 
 .quote-page .quote-controls .inline {
@@ -125,23 +125,23 @@
 
 .quote-page .quote-controls input[type="number"],
 .quote-page .quote-controls input[type="text"] {
-  background: #0f172a;
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: #1a1008;
+  border: 1px solid rgba(230, 126, 34, 0.12);
   border-radius: 12px;
   padding: 0.75rem 1rem;
-  color: #e2e8f0;
+  color: #f5e6d3;
   font-size: 0.95rem;
   font-family: inherit;
 }
 
 .quote-page .quote-controls input[type="checkbox"] {
   transform: scale(1.2);
-  accent-color: #60a5fa;
+  accent-color: #e67e22;
 }
 
 .quote-page .hint {
   font-size: 0.75rem;
-  color: #64748b;
+  color: #8b7355;
 }
 
 /* ── Table ── */
@@ -155,7 +155,7 @@
   padding: 0.65rem 1.25rem;
   border-radius: 999px;
   border: 1px solid transparent;
-  background: linear-gradient(135deg, #60a5fa, #8b5cf6);
+  background: linear-gradient(135deg, #e67e22, #f39c12);
   color: #fff;
   font-weight: 700;
   cursor: pointer;
@@ -164,12 +164,12 @@
 
 .quote-page .btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 18px rgba(96, 165, 250, 0.25);
+  box-shadow: 0 8px 18px rgba(230, 126, 34, 0.3);
 }
 
 .quote-page .btn:disabled {
-  background: #334155;
-  color: #94a3b8;
+  background: #3d2a14;
+  color: #8b7355;
   cursor: not-allowed;
 }
 
@@ -184,14 +184,14 @@
 
 .quote-page .quote-table th,
 .quote-page .quote-table td {
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(230, 126, 34, 0.12);
   padding: 0.6rem 0.75rem;
   font-size: 0.9rem;
-  color: #e2e8f0;
+  color: #f5e6d3;
 }
 
 .quote-page .quote-table thead th {
-  background: linear-gradient(135deg, rgba(96, 165, 250, 0.18), rgba(139, 92, 246, 0.18));
+  background: linear-gradient(135deg, rgba(230, 126, 34, 0.2), rgba(243, 156, 18, 0.15));
   text-align: left;
   font-weight: 700;
   color: #fff;
@@ -202,7 +202,7 @@
 }
 
 .quote-page .quote-table tbody tr:hover td {
-  background: rgba(96, 165, 250, 0.06);
+  background: rgba(230, 126, 34, 0.08);
 }
 
 .quote-page .quote-table input,
@@ -213,7 +213,7 @@
   background: transparent;
   font-size: 0.9rem;
   padding: 0.5rem;
-  color: #e2e8f0;
+  color: #f5e6d3;
   font-family: inherit;
 }
 
@@ -222,8 +222,8 @@
 }
 
 .quote-page .quote-table select option {
-  background: #1e293b;
-  color: #e2e8f0;
+  background: #2a1c0c;
+  color: #f5e6d3;
 }
 
 .quote-page .center { text-align: center; }
@@ -234,12 +234,12 @@
   background: transparent;
   cursor: pointer;
   font-size: 1.1rem;
-  color: #fca5a5;
+  color: #f5b7b1;
   transition: all 0.2s;
 }
 
 .quote-page .icon-btn:hover {
-  color: #ef4444;
+  color: #e74c3c;
   transform: scale(1.15);
 }
 
@@ -253,8 +253,8 @@
 
 .quote-page .totals-box {
   width: 360px;
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(26, 16, 8, 0.8);
+  border: 1px solid rgba(230, 126, 34, 0.15);
   border-radius: 16px;
   padding: 1rem 1.25rem;
 }
@@ -263,16 +263,16 @@
   display: flex;
   justify-content: space-between;
   padding: 0.5rem 0;
-  color: #94a3b8;
+  color: #c4a882;
   font-size: 0.95rem;
 }
 
 .quote-page .totals-box .row strong {
-  color: #e2e8f0;
+  color: #f5e6d3;
 }
 
 .quote-page .totals-box .total {
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(230, 126, 34, 0.2);
   margin-top: 0.5rem;
   padding-top: 0.75rem;
   font-size: 1.15rem;
@@ -280,7 +280,7 @@
 }
 
 .quote-page .totals-box .total strong {
-  color: #60a5fa;
+  color: #e67e22;
 }
 
 /* ── Send Button Area ── */
@@ -295,13 +295,13 @@
 }
 
 .quote-page .success-msg {
-  color: #34d399;
+  color: #27ae60;
   font-weight: 700;
   margin-top: 0.75rem;
 }
 
 .quote-page .error-msg {
-  color: #ef4444;
+  color: #e74c3c;
   font-weight: 700;
   margin-top: 0.75rem;
 }
