@@ -1,331 +1,400 @@
-/* Make the calendar 100% width */
-.admin-date-picker {
-  font-size: 1.8rem;
+/* =========================
+   ADMIN DASHBOARD TOKENS
+========================= */
+
+:root {
+  --adm-bg: #0f172a;
+  --adm-surface: rgba(30, 41, 59, 0.92);
+  --adm-surface-solid: #1e293b;
+  --adm-card: linear-gradient(180deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
+  --adm-border: rgba(255, 255, 255, 0.08);
+  --adm-text: #e2e8f0;
+  --adm-text-soft: #94a3b8;
+  --adm-text-muted: #64748b;
+  --adm-accent: #60a5fa;
+  --adm-accent-2: #8b5cf6;
+  --adm-accent-3: #34d399;
+  --adm-danger: #ef4444;
+  --adm-radius: 16px;
+  --adm-radius-sm: 12px;
+  --adm-shadow: 0 8px 25px rgba(0, 0, 0, 0.22);
+  --adm-transition: all 0.2s ease;
+}
+
+/* =========================
+   LAYOUT
+========================= */
+
+.admin-dashboard,
+.admin-job-calendar,
+.admin-apps,
+.admin-plans,
+.admin-invoice,
+.cancelled-jobs,
+.ta-images-section,
+.tasks-section,
+.notes-section {
   width: 100%;
-  border-radius: 0px;
-  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+}
+
+.admin-job-calendar,
+.admin-apps,
+.admin-plans,
+.admin-invoice,
+.cancelled-jobs,
+.ta-images-section,
+.tasks-section,
+.notes-section {
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius);
+  box-shadow: var(--adm-shadow);
+  padding: 1.5rem;
+  backdrop-filter: blur(12px);
+}
+
+.admin-apps-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  width: 100%;
+  align-items: start;
+}
+
+.job-main-info-list {
+  background: transparent;
+  padding: 1.5rem;
+}
+
+.job-info-list,
+.applicant-list,
+.plan-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: min(100%, 1100px);
+  margin: 0 auto;
+}
+
+/* =========================
+   HEADINGS
+========================= */
+
+.welcome {
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  text-align: center;
+  margin: 0 0 1.5rem;
+  color: var(--adm-text);
+  letter-spacing: 0.03em;
+}
+
+.admin-apps-title,
+.admin-plans-title,
+.invoice-h1 {
+  font-size: clamp(2.1rem, 4vw, 3.4rem);
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: var(--adm-text);
+}
+
+.admin-job-calendar h2,
+.admin-job-calendar h3 {
+  text-align: center;
+  margin-bottom: 1.25rem;
+  color: var(--adm-text);
+  font-size: clamp(1.5rem, 3vw, 2.3rem);
+}
+
+.month-summary {
+  margin: 0.5rem 0 1.25rem;
+  text-align: center;
+  font-size: clamp(1.35rem, 2.8vw, 2.4rem);
+  color: var(--adm-text-soft);
+  font-weight: 700;
+}
+
+/* =========================
+   SHARED CARDS
+========================= */
+
+.job-card,
+.applicant-card,
+.plan-card,
+.task-item,
+.note-item,
+.ta-image-card,
+.date-tasks-group,
+.selected-date-tasks {
+  background: var(--adm-card);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-sm);
+  box-shadow: var(--adm-shadow);
+}
+
+.job-card,
+.applicant-card,
+.plan-card,
+.task-item,
+.note-item,
+.ta-image-card {
+  padding: 1.2rem 1.3rem;
+}
+
+.job-card { border-left: 4px solid var(--adm-accent); }
+.applicant-card { border-left: 4px solid var(--adm-accent-2); }
+.plan-card { border-left: 4px solid var(--adm-accent-3); }
+.cancelled-job { border-left: 4px solid var(--adm-danger); }
+
+.job-company {
+  font-size: 1.7rem;
+  margin-bottom: 0.75rem;
+  color: #fff;
+}
+
+.job-card p,
+.applicant-card p,
+.plan-card p {
+  margin: 0.45rem 0;
+  line-height: 1.55;
+  color: var(--adm-text-soft);
+  font-size: 1.05rem;
+}
+
+.applicant-card h4,
+.plan-card h4 {
+  text-align: center;
+  font-size: 1.8rem;
+  margin-bottom: 0.75rem;
+  color: #fff;
+}
+
+.applicant-list h5 {
+  text-align: center;
+  margin-bottom: 0.4rem;
+  color: var(--adm-text-soft);
+  font-size: 1.2rem;
+}
+
+.employment-info,
+.background-info,
+.ed-info-admin {
+  padding: 1rem;
+}
+
+/* =========================
+   BUTTONS (shared)
+========================= */
+
+.workorder-btn,
+.invoice-btn,
+.resume-link,
+.pdf-link,
+.view-cancelled-btn,
+.view-toggle button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 0.75rem 1.15rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: var(--adm-transition);
+}
+
+.workorder-btn,
+.invoice-btn,
+.resume-link,
+.pdf-link,
+.view-toggle button.active {
+  background: linear-gradient(135deg, var(--adm-accent), var(--adm-accent-2));
+  color: #fff;
+}
+
+.workorder-btn:hover:not(:disabled),
+.invoice-btn:hover,
+.resume-link:hover,
+.pdf-link:hover,
+.view-toggle button:hover,
+.view-toggle button.active:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(96, 165, 250, 0.25);
+}
+
+.view-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.view-toggle button {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--adm-text-soft);
+  border-color: var(--adm-border);
+}
+
+.view-cancelled-btn {
+  background: linear-gradient(135deg, #b91c1c, var(--adm-danger));
+  color: #fff;
+}
+
+.workorder-btn:disabled {
+  background: #334155;
+  color: #94a3b8;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* =========================
+   CALENDAR
+========================= */
+
+.admin-date-picker {
+  width: 100%;
+  font-size: 1rem;
+  border-radius: var(--adm-radius);
+  overflow: hidden;
+  box-shadow: var(--adm-shadow);
 }
 
 .admin-date-picker .react-datepicker {
   width: 100%;
+  border: 1px solid var(--adm-border);
+  background: var(--adm-surface-solid);
+  color: var(--adm-text);
 }
 
-.admin-date-picker .react-datepicker__month-container {
-  border: none;
-  background-color: #bcc3bd;
-  text-align: center;
-  font-size: 1.5rem;
+.admin-date-picker .react-datepicker__month-container,
+.admin-date-picker .react-datepicker__month,
+.admin-date-picker .react-datepicker__header {
   width: 100%;
-}
-.month-summary {
-  margin: 0.5rem 0 1rem;
-  font-size: 3rem;
-  font-weight: 600;
-  text-align: center;
-}
-
-.admin-date-picker .react-datepicker__month {
-  width: 100%;
+  background: transparent;
 }
 
 .admin-date-picker .react-datepicker__header {
-  background-color: #f7d7bc;
-  color: white;
-  width: 100%;
-  padding: 10px 0;
-  border-bottom: none;
-  border-radius: 8px 8px 0 0;
+  background: linear-gradient(135deg, rgba(96, 165, 250, 0.18), rgba(139, 92, 246, 0.18));
+  border-bottom: 1px solid var(--adm-border);
+  padding: 1rem 0;
 }
 
-/* Adjust day cells to accommodate job count */
+.react-datepicker__current-month {
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
 .react-datepicker__day-name {
   width: 13%;
-  height: 2rem;
   margin: 0.1rem;
-  font-size: 1.5rem;
-  display: inline-flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
-  padding-top: 0.3rem;
-  line-height: 0.1;
-  box-sizing: border-box;
+  color: var(--adm-text-muted);
+  font-size: 0.95rem;
 }
+
 .react-datepicker__day,
 .react-datepicker__time-name {
   width: 13%;
-  height: 6.5rem; /* ⬅️ Increased from 5rem to avoid overlap */
+  min-height: 5.8rem;
   margin: 0.1rem;
-  font-size: 1.5rem;
   display: inline-flex;
   flex-direction: column;
-  justify-content: flex-start;
   align-items: center;
-  padding-top: 0.3rem;
-  line-height: 1.2;
-  box-sizing: border-box;
-}
-.react-datepicker__day {
-  border: 1px solid #999; /* subtle gray lines for grid */
-  box-sizing: border-box;
-}
-
-/* Style for the jobs count text */
-.jobs-count {
-  font-size: 1rem;
-  color: #333;
-  margin-top: 0.5rem;
+  justify-content: flex-start;
+  padding-top: 0.35rem;
+  border-radius: var(--adm-radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--adm-text);
+  transition: var(--adm-transition);
 }
 
-/* Enhance the styling for days with jobs */
+.react-datepicker__day:hover {
+  background: rgba(96, 165, 250, 0.12);
+}
+
+.react-datepicker__day--selected,
 .has-jobs {
-  background-color: #f1a661;
-  color: #000;
-  font-weight: bold;
-  position: relative;
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1); /* subtle outline */
-  border: 2px solid #e6943f;
-  z-index: 1;
+  background: linear-gradient(135deg, rgba(96, 165, 250, 0.25), rgba(139, 92, 246, 0.25));
+  border-color: rgba(96, 165, 250, 0.45);
+  color: #fff;
+  font-weight: 700;
 }
 
-/* Add a hover effect for better user experience */
-.has-jobs:hover {
-  background-color: #ffa94d;
-  cursor: pointer;
-  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
-}
-.react-datepicker__current-month {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 1rem;
+.react-datepicker__day--keyboard-selected {
+  background: rgba(96, 165, 250, 0.18);
+  color: #fff;
 }
 
-/* Adjust selected day styling */
-.react-datepicker__day--selected {
-  color: #000;
-  font-weight: bold;
-  background-color: #f1a661;
-}
-.job-main-info-list {
-  background-color: #efad76;
-  padding: 2rem;
-}
-.job-info-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  max-width: 600px;
-  margin: 0 auto;
-}
-.applicant-list, .plan-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  padding: 1rem;
-  max-width: 800px;
-  margin: 0 auto;
-}
-.admin-apps {
-  background-color: #f7d7bc;
-}
-.applicant-card, .plan-card {
-  background: #fff;
-  border-left: 5px solid #efad76;
-  padding: 1rem 1.5rem;
-  border-radius: 6px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+.react-datepicker__navigation {
+  top: 1rem;
 }
 
-.applicant-card h4, .plan-card h4 {
-  font-size: 2.5rem;
-  text-align: center;
-  margin-bottom: 0.5rem;
-}
-.employment-info, .background-info, .ed-info-admin {
-  padding: 1rem;
-}
-.applicant-card p, .plan-card p {
-  margin: 0.8rem 0;
-  font-size: 1.4rem;
-  line-height: 1.4;
-  color: #444;
-}
-.applicant-list h5 {
-  font-size: 1.7rem;
-  text-align: center;
-  margin-bottom: 0.5rem;
-}
-.resume-link, .pdf-link {
-  display: inline-block;
-  margin-top: 0.5rem;
-  padding: 0.4rem 0.8rem;
-  background-color: #efad76;
-  color: #000;
-  font-weight: bold;
-  text-decoration: none;
-  border-radius: 4px;
-}
-.admin-applicant-controls {
-  text-align: center;
-}
-.resume-link:hover, .pdf-link:hover {
-  background-color: #e6943f;
-}
-.job-card {
-  background: #fdfdfd;
-  border-left: 4px solid #efad76;
-  padding: 1rem 1.5rem;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.job-company {
-  font-size: 2rem;
-  color: #333;
-  margin-bottom: 0.5rem;
-}
-.admin-job-calendar h3 {
-  font-size: 2.5rem;
-  color: #333;
-  padding-top: 1rem;
-  text-align: center;
-  margin-bottom: 2rem;
-}
-.welcome {
-  font-size: 4rem;
-  color: #333;
-  text-align: center;
-  margin-bottom: 2rem;
-}
-.admin-job-calendar h2{
-  font-size: 2.5rem;
-  color: #333;
-  padding-top: 1rem;
-  text-align: center;
-  margin-bottom: 2rem;
-}
-.admin-apps-title, .admin-plans-title {
-  font-size: 5rem;
-  color: #333;
-  padding-top: 1rem;
-  text-align: center;
-  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-  margin-bottom: 2rem;
-}
-.job-card p {
-  margin: 0.3rem 0;
-  font-size: 1.4rem;
-  line-height: 1.4;
-  color: #444;
-}
 .calendar-day-kiss {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  height: 100%;
+  gap: 0.3rem;
   width: 100%;
-  padding: 0.3rem;
-  box-sizing: border-box;
+  height: 100%;
 }
 
 .calendar-day-kiss .day-number {
-  font-weight: bold;
-  font-size: 1.3rem;
-  color: #222;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #fff;
 }
-.react-datepicker__navigation {
-  top: 1rem;
-  right: 1rem;
-  font-size: 1.5rem;
-  color: #333;
-  cursor: pointer;
-  transition: color 0.3s ease;
-  background-color: #333;
+
+.calendar-day-kiss .job-count,
+.calendar-day-kiss .task-count {
+  width: 90%;
+  font-size: 0.82rem;
+  padding: 0.2rem 0.35rem;
+  border-radius: 999px;
+  text-align: center;
+  font-weight: 700;
 }
+
 .calendar-day-kiss .job-count {
-  margin-top: 0.3rem;
-  font-size: 1.1rem;
-  color: #444;
-  font-weight: bold;
-  background-color: rgba(241, 166, 97, 0.3);
-  border-radius: 4px;
-  padding: 2px 4px;
-  width: 80%;
-  text-align: center;
+  background: rgba(245, 158, 11, 0.18);
+  color: #fde68a;
 }
-.applicant-actions {
-  text-align: center;
+
+.calendar-day-kiss .task-count {
+  background: rgba(34, 211, 238, 0.18);
+  color: #a5f3fc;
 }
-.admin-plans {
-  background-color: #d5bbaf;
-}
-.admin-apps, .admin-plans {
-  flex: 1;
-  width: 100%;
-  padding: 0 10px;
-  border: none;
-  text-align: center;
-}
-.admin-apps-section {
-  display: flex;
-  width: 100%;
-  height: auto;
-  flex-wrap: wrap;
-  justify-content: center;
-}
+
+/* =========================
+   STATUS / LABELS
+========================= */
+
 .updated-label {
-  color: green;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
+  color: #86efac;
+  font-weight: 700;
 }
-.cancelled-jobs {
-  background-color: #e0e0e0;
-  padding: 2rem 0;
-  text-align: center;
+
+.cancellation-type {
+  color: #fca5a5;
+  font-weight: 700;
 }
+
+.month-header {
+  color: #fca5a5;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(239, 68, 68, 0.35);
+  text-transform: capitalize;
+}
+
 .cancelled-jobs-list {
   max-height: 600px;
   overflow-y: auto;
   margin-top: 1rem;
-}
-
-.cancelled-job {
-  border-left: 4px solid #dc3545;
-  background-color: #f8f9fa;
-}
-
-.cancellation-type {
-  color: #dc3545;
-  font-weight: bold;
-}
-
-.view-cancelled-btn {
-  margin-bottom: 1rem;
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.view-cancelled-btn:hover {
-  background-color: #c82333;
-}
-.month-group {
-  margin-bottom: 2rem;
-}
-
-.month-header {
-  color: #dc3545;
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #dc3545;
-  text-transform: capitalize;
 }
 
 .month-jobs {
@@ -334,464 +403,40 @@
   gap: 1rem;
 }
 
-.cancelled-jobs-list {
-  max-height: 600px;
-  overflow-y: auto;
-  margin-top: 1rem;
+/* =========================
+   NOTES & TASKS (shared)
+========================= */
+
+.notes-section,
+.tasks-section,
+.selected-date-tasks {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(17, 24, 39, 0.96));
 }
 
-.cancelled-job {
-  border-left: 4px solid #dc3545;
-  background-color: #f8f9fa;
-  margin-left: 1rem; /* Indent jobs under month headers */
-}
-
-.cancellation-type {
-  color: #dc3545;
-  font-weight: bold;
-}
-.job-actions {
-
-  text-align: center;
-  background-color: #cecece;
-}
-
-.workorder-btn {
-  background-color: #efad76;
-  color: #000;
-  font-weight: 700;
-  border: 0;
-  border-radius: 6px;
-  padding: 0.45rem 0.9rem;
-  font-size: 3rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,.12);
-}
-
-.workorder-btn:hover:not(:disabled) {
-  background-color: #e6943f;
-  cursor: pointer;
-}
-
-.workorder-btn:disabled {
-  background-color: #d3d3d3;
-  color: #777;
-  cursor: not-allowed;
-}
-
-.view-toggle {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.view-toggle button {
-  margin: 0 0.5rem;
-  padding: 0.5rem 1rem;
-  border: 2px solid #efad76;
-  background-color: #fff;
-  color: #333;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: all 0.3s ease;
-}
-
-.view-toggle button.active {
-  background-color: #efad76;
-  color: #000;
-}
-
-.view-toggle button:hover {
-  background-color: #e6943f;
-  color: #000;
-}
-
-.pdf-iframe {
-  width: 100%;
-  height: 600px;
-  border: 2px solid #efad76;
-  border-radius: 8px;
-  margin-top: 10px;
-}
-.admin-invoice {
-  padding: 20px 0;
-  text-align: center;
-  display: flex;
-  gap: 20px;
-  flex-direction: column;
-  align-items: center
-}
-.invoice-h1 {
-  text-align: center;
-  font-size: 4rem;
-
-}
-.invoice-btn {
-  margin: 20px 0;
-  padding: 10px 20px;
-  background-color: #efad76;
-  color: #000;
-  font-weight: 700;
-  font-size: 2rem;
-  border: 0;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0,0,0,.12);
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-.invoice-btn:hover {
-  background-color: #e6943f;
-  color: #000
-}
-@media screen and (min-width: 320px) and (max-width: 640px) and (orientation: portrait) {
-  .admin-date-picker {
-    font-size: 1.5rem;
-  }
-  .admin-apps-title, .admin-plans-title  {
-    font-size: 3rem;
-  }
-  .admin-job-calendar h3 {
-    font-size: 2rem;
-  }
-  .welcome {
-    font-size: 3rem;
-  }
-  .admin-job-calendar h2 {
-    font-size: 2rem;
-  }
-  .job-card, .applicant-card, .plan-card {
-    padding: 1rem;
-  }
-  .job-company {
-    font-size: 1.8rem;
-  }
-  .job-card p, .applicant-card p, .plan-card p {
-    font-size: 1rem;
-  }
-  .calendar-day-kiss .day-number {
-    font-size: 1.5rem;
-  }
-  .calendar-day-kiss .job-count {
-    font-size: 1rem;
-    padding: 1px 2px;
-    width: 90%;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    white-space: normal;
-    display: block;
-    line-height: 1.1;
-    background-color: rgba(241, 166, 97, 0.3);
-  }
-  .react-datepicker__day-name {
-    font-size: 1.03rem;
-  }
-  .month-summary {
-    font-size: 1.8rem;
-  }
-}
-@media screen and (max-width: 320px) and (orientation: portrait) {
-  .admin-job-calendar h3 {
-    font-size: 2rem;
-  }
-  .welcome {
-    font-size: 3rem;
-  }
-  .admin-job-calendar h2 {
-    font-size: 2rem;
-  }
-  .job-card {
-    padding: 1rem;
-  }
-  .job-company {
-    font-size: 1.8rem;
-  }
-  .job-card p {
-    font-size: 1.2rem;
-  }
-  .calendar-day-kiss .day-number {
-    font-size: 1.4rem;
-  }
-  .calendar-day-kiss .job-count {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.2rem;
-    font-size: 0.7rem;
-    background-color: rgba(241, 166, 97, 0.3);
-    border-radius: 4px;
-    padding: 1px 4px;
-    width: auto;
-    text-align: center;
-    line-height: 1.2;
-  }  
-  .react-datepicker__navigation {
-    font-size: 1.2rem;
-  }
-  .react-datepicker__current-month {
-    font-size: 1.5rem;
-  }
-  .react-datepicker__day-name {
-    width: 13%;
-    height: 1.3rem;
-    font-size: 0.6rem;
-  }
-}
-@media screen and (max-width: 320px) and (orientation: landscape) {
-  .admin-job-calendar h3 {
-    font-size: 2rem;
-  }
-  .welcome {
-    font-size: 3rem;
-  }
-  .admin-job-calendar h2 {
-    font-size: 2rem;
-  }
-  .job-card {
-    padding: 1rem;
-  }
-  .job-company {
-    font-size: 1.8rem;
-  }
-  .job-card p {
-    font-size: 1.2rem;
-  }
-  .calendar-day-kiss .day-number {
-    font-size: 1.4rem;
-  }
-  .calendar-day-kiss .job-count {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.2rem;
-    font-size: 0.7rem;
-    background-color: rgba(241, 166, 97, 0.3);
-    border-radius: 4px;
-    padding: 1px 4px;
-    width: auto;
-    text-align: center;
-    line-height: 1.2;
-  }  
-  .react-datepicker__navigation {
-    font-size: 1.2rem;
-  }
-  .react-datepicker__current-month {
-    font-size: 1.5rem;
-  }
-  .react-datepicker__day-name {
-    width: 13%;
-    height: 1.3rem;
-    font-size: 0.8rem;
-  }
-}
-
-/* Notes Section Styles */
-.notes-section {
-  margin: 1rem 0;
-  padding: 1rem;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #dee2e6;
-}
-
-.notes-container {
-  margin-top: 1rem;
-}
-
-.add-note {
-  background: white;
-  padding: 1rem;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-  margin-bottom: 1rem;
-}
-
-.add-note textarea {
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 1.4rem;
-  resize: vertical;
-  font-family: inherit;
-}
-
-.note-options {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 0.5rem;
-}
-
-.note-options label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1.4rem;
-}
-
-.notes-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.note-item {
-  background: white;
-  padding: 1rem;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-  position: relative;
-}
-
-.note-item.completed {
-  background-color: #f8f9fa;
-  opacity: 0.8;
-}
-
-.note-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-  font-size: 1.2rem;
-  color: #666;
-}
-
-.note-author {
-  font-weight: bold;
-  color: #333;
-}
-
-.note-timestamp {
-  font-size: 1.1rem;
-}
-
-.note-visibility {
-  padding: 0.2rem 0.5rem;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: bold;
-}
-
-.note-visibility.public {
-  background-color: #d4edda;
-  color: #155724;
-}
-
-.note-visibility.private {
-  background-color: #f8d7da;
-  color: #721c24;
-}
-
-.note-content {
-  margin: 0.5rem 0;
-}
-
-.note-checkbox {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  cursor: pointer;
-  font-size: 1.4rem;
-}
-
-.note-checkbox input[type="checkbox"] {
-  margin-top: 0.2rem;
-  transform: scale(1.2);
-}
-
-.completed-text {
-  text-decoration: line-through;
-  color: #666;
-}
-
-.delete-note {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  cursor: pointer;
-  padding: 0.2rem;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-}
-
-.delete-note:hover {
-  background-color: #f8d7da;
-}
-
-@media screen and (max-width: 640px) {
-  .note-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.3rem;
-  }
-  
-  .note-options {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.5rem;
-  }
-  
-  .add-note textarea {
-    font-size: 1.2rem;
-  }
-  
-  .note-checkbox {
-    font-size: 1.2rem;
-  }
-}
-/* To Do Lists Section Styles */
-.tasks-section {
-  margin: 1rem 0;
-  padding: 1rem;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #dee2e6;
-}
-
-.tasks-container {
-  margin-top: 1rem;
-}
-
+.add-note,
 .add-task {
-  background: white;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-sm);
   padding: 1rem;
-  border-radius: 6px;
-  border: 1px solid #ddd;
   margin-bottom: 1rem;
 }
 
-.task-date-picker {
-  margin-bottom: 1rem;
-}
-
-.task-date-picker label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: bold;
-  font-size: 1.4rem;
-}
-
+.add-note textarea,
+.add-task textarea,
 .task-date-input {
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 1.4rem;
-  width: 200px;
-}
-
-.add-task textarea {
   width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 1.4rem;
-  resize: vertical;
+  background: var(--adm-bg);
+  color: var(--adm-text);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: var(--adm-radius-sm);
+  padding: 0.85rem 1rem;
+  font-size: 1rem;
   font-family: inherit;
+  resize: vertical;
 }
 
+.note-options,
 .task-options {
   display: flex;
   justify-content: space-between;
@@ -799,11 +444,97 @@
   margin-top: 0.5rem;
 }
 
+.note-options label,
 .task-options label {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 1.4rem;
+  color: var(--adm-text-soft);
+}
+
+.note-header,
+.task-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  color: var(--adm-text-muted);
+  font-size: 0.95rem;
+}
+
+.note-author,
+.task-author {
+  color: #fff;
+  font-weight: 700;
+}
+
+.note-item.completed,
+.task-item.completed {
+  opacity: 0.7;
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.note-checkbox,
+.task-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  cursor: pointer;
+  color: var(--adm-text-soft);
+}
+
+.note-checkbox input[type="checkbox"],
+.task-checkbox input[type="checkbox"] {
+  margin-top: 0.2rem;
+  transform: scale(1.2);
+}
+
+.note-visibility,
+.task-visibility {
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.note-visibility.public,
+.task-visibility.public {
+  background: rgba(34, 197, 94, 0.16);
+  color: #86efac;
+}
+
+.note-visibility.private,
+.task-visibility.private {
+  background: rgba(239, 68, 68, 0.16);
+  color: #fca5a5;
+}
+
+.delete-note,
+.delete-task {
+  background: transparent;
+  border: none;
+  color: #fca5a5;
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 0.25rem 0.45rem;
+  transition: var(--adm-transition);
+}
+
+.delete-note:hover,
+.delete-task:hover {
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.completed-text {
+  text-decoration: line-through;
+  color: var(--adm-text-muted);
+}
+
+.notes-list,
+.tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .tasks-by-date {
@@ -812,284 +543,108 @@
   gap: 1.5rem;
 }
 
-.date-tasks-group {
-  background: white;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  overflow: hidden;
-}
-
 .task-date-header {
-  background-color: #efad76;
-  color: #000;
-  padding: 1rem;
+  background: linear-gradient(135deg, var(--adm-accent), var(--adm-accent-2));
+  color: #fff;
+  padding: 0.75rem 1rem;
   margin: 0;
-  font-size: 1.6rem;
-  font-weight: bold;
-  border-bottom: 1px solid #ddd;
-}
-
-.tasks-list {
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.task-item {
-  background: #f8f9fa;
-  padding: 1rem;
-  border-radius: 6px;
-  border: 1px solid #e9ecef;
-  position: relative;
-}
-
-.task-item.completed {
-  background-color: #e8f5e8;
-  opacity: 0.8;
-}
-
-.task-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-  font-size: 1.2rem;
-  color: #666;
-}
-
-.task-author {
-  font-weight: bold;
-  color: #333;
-}
-
-.task-timestamp {
   font-size: 1.1rem;
+  font-weight: 700;
+  border-bottom: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-sm) var(--adm-radius-sm) 0 0;
 }
 
-.task-visibility {
-  padding: 0.2rem 0.5rem;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: bold;
-}
-
-.task-visibility.public {
-  background-color: #d4edda;
-  color: #155724;
-}
-
-.task-visibility.private {
-  background-color: #f8d7da;
-  color: #721c24;
-}
-
-.task-content {
-  margin: 0.5rem 0;
-}
-
-.task-checkbox {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  cursor: pointer;
-  font-size: 1.4rem;
-}
-
-.task-checkbox input[type="checkbox"] {
-  margin-top: 0.2rem;
-  transform: scale(1.2);
-}
-
-.completed-text {
-  text-decoration: line-through;
-  color: #666;
-}
-
-.delete-task {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  cursor: pointer;
-  padding: 0.2rem;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-}
-
-.delete-task:hover {
-  background-color: #f8d7da;
+.task-date-picker label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+  color: var(--adm-text-soft);
 }
 
 .no-tasks {
   text-align: center;
-  color: #666;
+  color: var(--adm-text-muted);
   font-style: italic;
   padding: 2rem;
-  font-size: 1.4rem;
-}
-
-@media screen and (max-width: 640px) {
-  .task-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.3rem;
-  }
-  
-  .task-options {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.5rem;
-  }
-  
-  .add-task textarea {
-    font-size: 1.2rem;
-  }
-  
-  .task-checkbox {
-    font-size: 1.2rem;
-  }
-  
-  .task-date-input {
-    width: 100%;
-  }
-  
-  .task-date-header {
-    font-size: 1.4rem;
-  }
-}
-/* Task count display on calendar */
-.calendar-day-kiss .task-count {
-  margin-top: 0.2rem;
-  font-size: 1rem;
-  color: #444;
-  font-weight: bold;
-  background-color: rgba(52, 152, 219, 0.3);
-  border-radius: 4px;
-  padding: 2px 4px;
-  width: 80%;
-  text-align: center;
-}
-
-@media screen and (max-width: 640px) {
-  .calendar-day-kiss .task-count {
-    font-size: 0.9rem;
-    padding: 1px 2px;
-    width: 90%;
-  }
-}
-
-@media screen and (max-width: 320px) {
-  .calendar-day-kiss .task-count {
-    font-size: 0.7rem;
-    padding: 1px 2px;
-    width: auto;
-  }
-}
-/* Selected date tasks display */
-.selected-date-tasks {
-  background: #e8f4fd;
-  border: 2px solid #3498db;
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 1.5rem;
 }
 
 .selected-date-tasks h4 {
-  color: #2980b9;
-  font-size: 1.8rem;
+  color: var(--adm-accent);
+  font-size: 1.4rem;
   margin-bottom: 1rem;
   text-align: center;
 }
 
-.selected-date-tasks .tasks-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-}
+/* =========================
+   IMAGES / PDF / ACTIONS
+========================= */
 
-.selected-date-tasks .task-item {
-  background: white;
-  border: 1px solid #bdc3c7;
-}
-
-@media screen and (max-width: 640px) {
-  .selected-date-tasks h4 {
-    font-size: 1.5rem;
-  }
-}
-
-/* TA Images Section */
 .ta-images-section {
-  background-color: #f0f0f0;
-  padding: 2rem;
-  text-align: center;
+  background: linear-gradient(180deg, rgba(17, 24, 39, 0.96), rgba(15, 23, 42, 0.96));
 }
 
 .ta-images-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  margin-top: 2rem;
-  max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+  margin-top: 1.5rem;
 }
 
 .ta-image-card {
-  background: white;
-  border: 2px solid #efad76;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  transition: transform 0.3s ease;
+  cursor: pointer;
+  transition: var(--adm-transition);
 }
 
 .ta-image-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.28);
 }
 
 .ta-image-card h4 {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-  color: #333;
+  font-size: 1.35rem;
+  margin-bottom: 0.85rem;
+  color: #fff;
 }
 
-.ta-image-card img {
+.ta-image-card img,
+.pdf-iframe {
   width: 100%;
-  height: auto;
-  border-radius: 4px;
+  border-radius: var(--adm-radius-sm);
+  border: 1px solid var(--adm-border);
 }
 
-@media screen and (max-width: 640px) {
-  .ta-images-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-  
-  .ta-image-card h4 {
-    font-size: 1.5rem;
-  }
+.pdf-iframe {
+  height: 600px;
+  margin-top: 10px;
 }
 
-.ta-image-card {
-  cursor: pointer;
+.job-actions,
+.admin-applicant-controls,
+.applicant-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  background: transparent;
+  margin-top: 1rem;
 }
 
-.ta-image-card img {
-  cursor: pointer;
+.admin-invoice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  text-align: center;
 }
+
+/* =========================
+   MODAL
+========================= */
 
 .image-modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.9);
+  inset: 0;
+  background: rgba(2, 6, 23, 0.92);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1099,50 +654,126 @@
 
 .modal-content {
   position: relative;
-  max-width: 95vw;
+  width: min(95vw, 1100px);
   max-height: 95vh;
-  background: white;
-  border-radius: 12px;
-  padding: 2rem;
+  overflow: auto;
+  background: var(--adm-surface-solid);
+  border: 1px solid var(--adm-border);
+  border-radius: 24px;
+  padding: 1.5rem;
   cursor: default;
 }
 
 .modal-content h3 {
+  color: #fff;
   text-align: center;
   margin-bottom: 1rem;
-  font-size: 2rem;
-  color: #333;
 }
 
 .modal-content img {
-  max-width: 90vw;
-  max-height: 80vh;
-  width: auto;
-  height: auto;
+  max-width: 100%;
+  max-height: 75vh;
   display: block;
   margin: 0 auto;
-  cursor: zoom-in;
+  border-radius: 14px;
 }
 
 .modal-close {
   position: absolute;
   top: 1rem;
   right: 1rem;
-  background: #efad76;
+  width: 42px;
+  height: 42px;
   border: none;
-  font-size: 2.5rem;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--adm-accent), var(--adm-accent-2));
+  color: #fff;
+  font-size: 1.5rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  line-height: 1;
-  color: #000;
-  font-weight: bold;
+  transition: var(--adm-transition);
 }
 
 .modal-close:hover {
-  background: #e6943f;
+  transform: scale(1.1);
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 900px) {
+  .admin-apps-section {
+    grid-template-columns: 1fr;
+  }
+
+  .react-datepicker__day,
+  .react-datepicker__time-name {
+    min-height: 5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-job-calendar,
+  .admin-apps,
+  .admin-plans,
+  .admin-invoice,
+  .cancelled-jobs,
+  .ta-images-section,
+  .tasks-section,
+  .notes-section {
+    padding: 1rem;
+  }
+
+  .job-card,
+  .applicant-card,
+  .plan-card,
+  .task-item,
+  .note-item,
+  .ta-image-card {
+    padding: 1rem;
+  }
+
+  .job-company {
+    font-size: 1.35rem;
+  }
+
+  .job-card p,
+  .applicant-card p,
+  .plan-card p {
+    font-size: 0.95rem;
+  }
+
+  .note-header,
+  .task-header,
+  .note-options,
+  .task-options {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .calendar-day-kiss .job-count,
+  .calendar-day-kiss .task-count {
+    font-size: 0.72rem;
+    width: 95%;
+  }
+
+  .ta-images-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .ta-image-card h4 {
+    font-size: 1.1rem;
+  }
+
+  .task-date-input {
+    width: 100%;
+  }
+
+  .selected-date-tasks h4 {
+    font-size: 1.2rem;
+  }
 }
