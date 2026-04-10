@@ -80,6 +80,7 @@ const [empConfirmPassword, setEmpConfirmPassword] = useState('');
 const [empPasswordMsg, setEmpPasswordMsg] = useState('');
 const [empPasswordLoading, setEmpPasswordLoading] = useState(false);
 const [successMessage, setSuccessMessage] = useState('');
+const [allowedForEmpPassword, setAllowedForEmpPassword] = useState(false);
 const handleChangeEmpPassword = async () => {
   if (!empNewPassword.trim()) { setEmpPasswordMsg('Please enter a new password.'); return; }
   if (empNewPassword.length < 6) { setEmpPasswordMsg('Password must be at least 6 characters.'); return; }
@@ -259,6 +260,13 @@ useEffect(() => {
       'tbsolutions9@gmail.com'
     ]);
     setAllowedForDiscipline(disciplineEmails.has(user.email));
+
+    const empPasswordEmails = new Set([
+      'tbsolutions9@gmail.com',
+      'tbsolutions4@gmail.com',
+      'tbsolutions1999@gmail.com'
+    ]);
+    setAllowedForEmpPassword(empPasswordEmails.has(user.email));
   }
 }, []);
 const fetchComplaintsForDay = async (date) => {
@@ -1187,6 +1195,7 @@ selected={
   </div>
 )}
 
+{allowedForEmpPassword && (
 <div className="admin-invoice">
   <h1 className="invoice-h1">Employee Login Password</h1>
   <p style={{ fontSize: '13px', color: '#555', marginBottom: '10px' }}>Change the password for the employee login (tbsolutions55@gmail.com)</p>
@@ -1220,6 +1229,7 @@ selected={
     </p>
   )}
 </div>
+)}
 <div className="cancelled-jobs">
   <h2 className="admin-apps-title">Cancelled Jobs</h2> 
   <button
