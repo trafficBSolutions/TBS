@@ -28,7 +28,7 @@ export default function Home() {
           </div>
         </section>
         <section className="section-featured">
-          <div className="map-contain-home">
+          <div className="map-contain-home" style={{ backgroundImage: `url(${images['../assets/buffer and tapers/road.jpg'].default})` }}>
             <h1 className="schedule-title">Need to Schedule a Job?</h1>
             <img src={images['../assets/flaggers/Flagger SVG Symbol With Slow White.svg'].default} alt="Map" className="flag-image" />
             <p className="schedule-text">Click here to schedule a job</p>
