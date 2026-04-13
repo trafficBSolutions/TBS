@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/headerviews/HeaderAdmin';
+import Header from '../components/headerviews/HeaderEmpDash';
 import images from '../utils/tbsImages';
 import SignatureCanvas from 'react-signature-canvas';
 import '../css/employee.css';
