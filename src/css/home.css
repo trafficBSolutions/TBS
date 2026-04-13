@@ -580,7 +580,7 @@ body {
 }
 .section-sales-promo {
   background-color: #fdf2e9;
-  padding: 3rem 1.5rem;
+  padding: 0 10px;;
   flex: 1;
   margin: 0;
 }
