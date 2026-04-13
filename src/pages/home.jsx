@@ -5,6 +5,7 @@ import '../css/footer.css';
 import HomePhotoGallery from '../components/homephotogal'; 
 import Header from '../components/headerviews/HeaderDrop'
 import images from '../utils/tbsImages';
+import roadBg from '../assets/buffer and tapers/road.jpg';
 export default function Home() {
     return (
       <div>
@@ -28,7 +29,7 @@ export default function Home() {
           </div>
         </section>
         <section className="section-featured">
-          <div className="map-contain-home" style={{ backgroundImage: `url(${images['../assets/buffer and tapers/road.jpg'].default})` }}>
+          <div className="map-contain-home" style={{ backgroundImage: `url(${roadBg})` }}>
             <h1 className="schedule-title">Need to Schedule a Job?</h1>
             <img src={images['../assets/flaggers/Flagger SVG Symbol With Slow White.svg'].default} alt="Map" className="flag-image" />
             <p className="schedule-text">Click here to schedule a job</p>
