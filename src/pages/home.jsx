@@ -76,6 +76,7 @@ export default function Home() {
 </section>
         <section className="section-will-featured">
         <div className="material-website-container">
+  <img src={images['../assets/tbs_companies/website-icon.svg'].default} alt="Website" className="web-icon-svg" />
   <h1 className="contact-materialX">Need a Website That Works?</h1>
   <p className="contact-descript">
     Stop renting from Wix. Get a fast, custom website that’s fully yours with no limits, and no fluff. Request edits or updates anytime after publication.
