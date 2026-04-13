@@ -77,8 +77,20 @@ input[type=text], input[type=number], input[type=time], input[type=date], select
     padding: 0 10px;
     border: none;
     text-align: center;
-    background-color: rgb(219, 219, 219);
+    background: url(../assets/buffer\ and\ tapers/road.jpg) center center / cover no-repeat;
     flex: 1;
+    position: relative;
+}
+.map-contain-home::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 0;
+}
+.map-contain-home > * {
+  position: relative;
+  z-index: 1;
 }
 .plan-contain-home {
   flex: 1;
@@ -92,6 +104,16 @@ input[type=text], input[type=number], input[type=time], input[type=date], select
   padding: 10px;
   text-align: center;
   font-family: "Arial Black", Gadget, sans-serif;
+}
+.map-contain-home .schedule-title,
+.map-contain-home .schedule-text {
+  color: #fff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+.map-contain-home .schedule-btn {
+  background-color: #e67e22;
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
 }
 .plan-h3 {
   font-size: 30px;
