@@ -231,6 +231,10 @@ body {
   background-color: #b9b1ab;
   text-align: center;
   padding: 0.7rem;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
  .contact-materialX {
     font-size: 2.7rem;
@@ -548,9 +552,14 @@ body {
   margin: 0 auto;
   padding: 0 3.2rem;
 }
+.section-sales-web-row {
+  display: flex;
+  width: 100%;
+}
 .section-sales-promo {
   background-color: #fdf2e9;
   padding: 3rem 1.5rem;
+  flex: 1;
 }
 
 .sales-promo-box {
@@ -1123,7 +1132,8 @@ body {
     width: 100%;
     height: auto;
   }
-  .section-featured {
+  .section-featured,
+  .section-sales-web-row {
     display: block;
   }
   .hero {
@@ -1284,7 +1294,8 @@ body {
 .established-year-text, .sign-established-text, .plan-established-text, .control-job-established-text {
   font-size: 2rem;
 }
-.section-featured {
+.section-featured,
+.section-sales-web-row {
   display: block;
 }
 .map-h1, .photo-note {
@@ -1399,7 +1410,8 @@ body {
 .established-year-text, .sign-established-text, .plan-established-text, .control-job-established-text {
   font-size: 2rem;
 }
-.section-featured {
+.section-featured,
+.section-sales-web-row {
   display: block;
 }
 .map-h1, .photo-note {
