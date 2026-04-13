@@ -241,6 +241,13 @@ body {
     font-family: "Moveo Sans W00 Bold";
     margin: 1rem;
  }
+ .web-icon-svg {
+    width: 100%;
+    max-width: 220px;
+    height: auto;
+    margin: 1rem auto;
+    display: block;
+ }
  .contact-descript {
     color: #333;
     font-family: Arial, sans-serif;
