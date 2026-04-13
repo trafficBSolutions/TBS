@@ -572,8 +572,11 @@ body {
 }
 .section-sales-web-row {
   display: flex;
-  width: 100%;
-  gap: 0;
+    width: 100%;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    gap: 0;
 }
 .section-sales-promo {
   background-color: #fdf2e9;
