@@ -62,7 +62,7 @@ export default function EmployeeLogin() {
             required
           />
           <button className="btn btn--full submit-app"type="submit">Log In</button>
-          <p style={{marginTop:'10px',textAlign:'center',fontSize:'14px'}}>Forgot password? Please contact Carson <a href="tel:+17065814465" style={{color:'#007bff'}}>(706) 581-4465</a> to reset it.</p>
+          <p style={{marginTop:'10px',textAlign:'center',fontSize:'14px'}}>Forgot password? Please contact Carson <a href="tel:+17065814465" style={{color:'#007bff'}}>(706) 581-4465</a> to get help.</p>
           {error && <p className="error-message">{error}</p>}
         </form>
       </div>
