@@ -80,6 +80,7 @@ input[type=text], input[type=number], input[type=time], input[type=date], select
     background: url(../assets/flaggers/road.jpg) center center / cover no-repeat;
     flex: 1;
     position: relative;
+    margin: 0;
 }
 .map-contain-home::before {
   content: "";
@@ -98,6 +99,7 @@ input[type=text], input[type=number], input[type=time], input[type=date], select
     padding: 0 10px;
     border: none;
     text-align: center;
+    margin: 0;
 }
 .schedule-title, .plan-title {
   font-size: 50px;
@@ -235,10 +237,14 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-.section-featured,
-.section-sales-web-row {
   margin: 0;
+}
+.section-featured {
+  margin: 0;
+  padding: 0;
+}
+.section-sales-web-row {
+  margin-top: -1px;
   padding: 0;
 }
  .contact-materialX {
@@ -573,6 +579,7 @@ body {
   background-color: #fdf2e9;
   padding: 3rem 1.5rem;
   flex: 1;
+  margin: 0;
 }
 
 .sales-promo-box {
