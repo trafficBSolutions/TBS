@@ -77,9 +77,7 @@ input[type=text], input[type=number], input[type=time], input[type=date], select
     padding: 0 10px;
     border: none;
     text-align: center;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+    background: url(../assets/buffer\ and\ tapers/road.jpg) center center / cover no-repeat;
     flex: 1;
     position: relative;
 }
@@ -87,10 +85,6 @@ input[type=text], input[type=number], input[type=time], input[type=date], select
   content: "";
   position: absolute;
   inset: 0;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
   background: rgba(0, 0, 0, 0.45);
   z-index: 0;
 }
