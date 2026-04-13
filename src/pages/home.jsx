@@ -41,6 +41,7 @@ export default function Home() {
             <a href="/trafficplanning" className="plan-btn">Plan a Job</a>
           </div>
         </section>
+        <div className="section-sales-web-row">
         <section className="section-sales-promo">
   <div className="sales-promo-box">
     <h2 className="sales-promo-title">
@@ -99,7 +100,7 @@ export default function Home() {
   </div>
 </div>
 </section>
-        
+        </div>
         <section className="now-hiring">
           <div className="now-hiring-container">
             <h1 className="now-hiring-title">APPLY NOW</h1>
