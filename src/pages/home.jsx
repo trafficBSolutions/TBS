@@ -36,7 +36,7 @@ export default function Home() {
           </div>
           <div className="plan-contain-home">
             <h1 className="plan-title">Traffic Control Plans</h1>
-            <img src={images['../assets/flaggers/Traffic Plan (1).svg'].default} alt="Map" className="plan-image" />
+            <img src={images['../assets/flaggers/Traffic-Plan.svg'].default} alt="Map" className="plan-image" />
             <h3 className="plan-h3">Need to Plan a Job?</h3>
             <a href="/trafficplanning" className="plan-btn">Plan a Job</a>
           </div>
