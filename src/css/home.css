@@ -232,7 +232,7 @@ body {
 .section-will-featured {
   background-color: #b9b1ab;
   text-align: center;
-  padding: 0.7rem;
+  padding: 0 10px;
   flex: 1;
   display: flex;
   align-items: center;
@@ -580,7 +580,7 @@ body {
 }
 .section-sales-promo {
   background-color: #fdf2e9;
-  padding: 0 10px;;
+  padding: 0 10px;
   flex: 1;
   margin: 0;
 }
