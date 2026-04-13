@@ -29,8 +29,12 @@ export default function EmployeeLogin() {
       toast.success('Welcome!');
       nav(redirectTo, { replace: true });
     } catch (err) {
-      console.error('Employee login failed:', err);
-      toast.error('Login failed. Please check your credentials and try again.');
+      const status = err.response?.status;
+      if (status === 401) {
+        setError('Password is incorrect');
+      } else {
+        setError('Email or password is incorrect');
+      }
     }
   };
 
@@ -58,6 +62,7 @@ export default function EmployeeLogin() {
             required
           />
           <button className="btn btn--full submit-app"type="submit">Log In</button>
+          <p style={{marginTop:'10px',textAlign:'center'}}><a href="/employee-reset-password" style={{color:'#007bff',textDecoration:'underline',cursor:'pointer'}}>Forgot Password?</a></p>
           {error && <p className="error-message">{error}</p>}
         </form>
       </div>
@@ -79,9 +84,9 @@ export default function EmployeeLogin() {
       <p className="contact-info">
         <a className="will-phone" href="tel:+17062630175">Call: 706-263-0175</a>
         <a className="will-email" href="mailto: tbsolutions1999@gmail.com">Email: tbsolutions1999@gmail.com</a>
-        <a className="will-address" href="https://www.google.com/maps/place/Traffic+and+Barrier+Solutions,+LLC/@34.5117779,-84.9474798,123m/data=!3m1!1e3!4m6!3m5!1s0x482edab56d5b039b:0x94615ce25483ace6!8m2!3d34.511583!4d-84.9480585!16s%2Fg%2F11pl8d7p4t?entry=ttu&g_ep=EgoyMDI2MDMzMS4wIKXMDSoASAFQAw%3D%3D"
+        <a className="will-address" href="https://www.google.com/maps/place/Traffic+and+Barrier+Solutions,+LLC/@34.5025307,-84.899317,660m/data=!3m1!1e3!4m6!3m5!1s0x482edab56d5b039b:0x94615ce25483ace6!8m2!3d34.5018691!4d-84.8994308!16s%2Fg%2F11pl8d7p4t?entry=ttu&g_ep=EgoyMDI1MDEyMC4wIKXMDSoASAFQAw%3D%3D"
       >
-        721 N Wall St, Calhoun, GA 30701</a>
+        1995 Dews Pond Rd, Calhoun, GA 30701</a>
       </p>
     </div>
 
@@ -112,7 +117,7 @@ export default function EmployeeLogin() {
   </div>
 </footer>
 <div className="footer-copyright">
-      <p className="footer-copy-p">&copy; 2026 Traffic & Barrier Solutions, LLC - 
+      <p className="footer-copy-p">&copy; 2025 Traffic & Barrier Solutions, LLC - 
         Website Created & Deployed by <a className="footer-face"href="https://www.facebook.com/will.rowell.779" target="_blank" rel="noopener noreferrer">William Rowell</a> - All Rights Reserved.</p>
     </div>
             </div>
