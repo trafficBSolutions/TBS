@@ -787,7 +787,7 @@ body {
   object-fit: cover; /* Maintain aspect ratio and fill the area */
 }
 .section-featured {
-  background-color: #fdf2e9;
+  background-color: #ffffff;
   display: flex;
   width: 100%;
   height: auto;
