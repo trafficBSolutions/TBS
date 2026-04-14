@@ -4,6 +4,8 @@ import '../css/header.css'
 import '../css/footer.css'
 import axios from 'axios';
 import ReCAPTCHA from 'react-google-recaptcha';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Header from '../components/headerviews/HeaderDropBollard'
 import images from '../utils/tbsImages';
 const states = [
@@ -26,9 +28,9 @@ export default function BollardsWheels() {
   const [addedBollard, setAddedBollard] = useState([]);
   const [addedWheel, setAddedWheel] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
-   const [recaptchaSize, setRecaptchaSize] = useState('normal');
-   const [recaptchaToken, setRecaptchaToken] = useState('');
-   const recaptchaWrapRef = useRef(null);
+  const [recaptchaSize, setRecaptchaSize] = useState('normal');
+  const [recaptchaToken, setRecaptchaToken] = useState('');
+  const recaptchaWrapRef = useRef(null);
   const [formData, setFormData] = useState({
     first: '',
     last: '',
@@ -44,10 +46,8 @@ export default function BollardsWheels() {
     message: ''
   });
   const [errors, setErrors] = useState({});
-  const [newErrors, setNewErrors] = useState({});
   const [submissionMessage, setSubmissionMessage] = useState('');
   const [submissionErrorMessage, setSubmissionErrorMessage] = useState('');
-  const [recaptchaError, setRecaptchaError] = useState('');
 useEffect(() => {
   const mq = window.matchMedia('(min-width: 320px) and (max-width: 640px) and (orientation: portrait)');
   const update = () => setRecaptchaSize(mq.matches ? 'compact' : 'normal');
@@ -104,6 +104,11 @@ useEffect(() => {
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMessage('');
+    setSubmissionMessage('');
+    setSubmissionErrorMessage('');
+
+    const newErrors = {};
     const requiredFields = ['first', 'last', 'company', 'email', 'phone', 'address', 'city', 'state', 'zip', 'message'];
     
     requiredFields.forEach(field => {
@@ -121,28 +126,23 @@ useEffect(() => {
             newErrors[field] = `${fieldLabel} is required!`;
         }
     });
-  
-    // Check if either bollards or wheel stops are selected
-    /*
-    if (!selectedBollard && !selectedWheel) {
-      newErrors['bollardWheel'] = 'Please select either Bollards or Wheel Stops';
+
+    const token = recaptchaRef.current?.getValue();
+    if (!token) {
+      newErrors.recaptcha = 'Please complete the reCAPTCHA verification.';
     }
-  */
-    
-  
-    const token = recaptchaRef.current.getValue();
-    if (!recaptchaToken && recaptchaToken !== 'bypass') {
-      newErrors.recaptcha = 'Please complete the reCAPTCHA.';
-    }
-if (Object.keys(newErrors).length > 0) {
-      setErrorMessage('Required fields are missing.');
+
+    if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       if (newErrors.recaptcha) {
+        toast.error('Please complete the reCAPTCHA verification.');
         recaptchaWrapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else {
+        toast.error('Required fields are missing.');
       }
-      setIsSubmitting(false);
       return;
     }
+
     try {
       const bollardString = addedBollard.join(', ');
       const wheelString = addedWheel.join(', ')
@@ -175,17 +175,18 @@ if (Object.keys(newErrors).length > 0) {
         message: ''
       });
       setErrors({});
-      setNewErrors({})
       setPhone('');
       setAddedBollard([]);
       setAddedWheel([]);
-      recaptchaRef.current.reset();
-      setSubmissionMessage('Bollard/Wheel Stop Request Submitted! We will be with you within 48 hours!');
+      recaptchaRef.current?.reset();
+      setRecaptchaToken('');
+      toast.success('Bollard/Wheel Stop Request Submitted! We will be with you within 48 hours!');
     } catch (error) {
       console.error('Error submitting Bollard/Wheel Stop Request:', error);
       const msg = error.response?.data?.error || 'An error occurred. Please try again.';
-      setSubmissionErrorMessage(msg);
-      recaptchaRef.current.reset();
+      toast.error(msg);
+      recaptchaRef.current?.reset();
+      setRecaptchaToken('');
     }
   };
     return (
@@ -410,38 +411,21 @@ if (Object.keys(newErrors).length > 0) {
   {submissionMessage && (
 <div className="submission-message">{submissionMessage}</div> )}
 </div>
-<div
-  ref={recaptchaWrapRef}
-  className={`recaptcha-wrap ${errors.recaptcha ? 'has-error' : ''}`}
-  style={{ marginTop: '12px' }}
->
+<div ref={recaptchaWrapRef} style={{ marginTop: '12px' }}>
   <ReCAPTCHA
     ref={recaptchaRef}
     sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
-    size={recaptchaSize}  
-    onChange={(token) => {
-      setRecaptchaToken(token || '');
-      if (token) setErrors((prev) => ({ ...prev, recaptcha: '' }));
+    size={recaptchaSize}
+    onChange={(val) => {
+      setRecaptchaToken(val || '');
+      if (val) setErrors((prev) => ({ ...prev, recaptcha: '' }));
     }}
-    onExpired={() => {
-      setRecaptchaToken('');
-      setErrors((prev) => ({ ...prev, recaptcha: 'Please complete the reCAPTCHA.' }));
-    }}
-    onErrored={() => {
-      console.warn('reCAPTCHA error - continuing without verification');
-      setRecaptchaToken('bypass');
-      setErrors((prev) => ({ ...prev, recaptcha: '' }));
-    }}
+    onExpired={() => setRecaptchaToken('')}
   />
+  {errors.recaptcha && <div className="error-message">{errors.recaptcha}</div>}
 </div>
-{recaptchaError && <div className="error-message">{recaptchaError}</div>}
 <button type="button" className="btn btn--full submit-bollard" onClick={handleSubmit}>SUBMIT BOLLARD & WHEEL STOP</button>
-{submissionErrorMessage &&
-            <div className="submission-error-message">{submissionErrorMessage}</div>
-          }
-          {errorMessage &&
-            <div className="submission-error-message">{errorMessage}</div>
-          }
+<ToastContainer position="top-center" autoClose={5000} />
     </div>
         </div>
         
