@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import '../css/bollard.css'
 import '../css/header.css'
 import '../css/footer.css'
@@ -26,6 +26,7 @@ export default function BollardsWheels() {
   const [addedBollard, setAddedBollard] = useState([]);
   const [addedWheel, setAddedWheel] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
+   const [recaptchaSize, setRecaptchaSize] = useState('normal');
   const [formData, setFormData] = useState({
     first: '',
     last: '',
@@ -44,7 +45,13 @@ export default function BollardsWheels() {
   const [newErrors, setNewErrors] = useState({}); // Using useState for newErrors
   const [submissionMessage, setSubmissionMessage] = useState('');
   const [submissionErrorMessage, setSubmissionErrorMessage] = useState('');
-
+useEffect(() => {
+  const mq = window.matchMedia('(min-width: 320px) and (max-width: 640px) and (orientation: portrait)');
+  const update = () => setRecaptchaSize(mq.matches ? 'compact' : 'normal');
+  update();
+  mq.addEventListener?.('change', update);
+  return () => mq.removeEventListener?.('change', update);
+}, []);
   const handlePhoneChange = (event) => {
     const input = event.target.value;
     const formatted = input.replace(/\D/g, '').replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
@@ -397,7 +404,7 @@ export default function BollardsWheels() {
 </div>
 <ReCAPTCHA
   sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
-  size="invisible"
+  size={recaptchaSize}  
   ref={recaptchaRef}
 />
 <button type="button" className="btn btn--full submit-bollard" onClick={handleSubmit}>SUBMIT BOLLARD & WHEEL STOP</button>
