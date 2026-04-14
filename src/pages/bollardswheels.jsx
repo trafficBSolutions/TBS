@@ -1,64 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import '../css/bollard.css'
 import '../css/header.css'
 import '../css/footer.css'
 import axios from 'axios';
+import ReCAPTCHA from 'react-google-recaptcha';
 import Header from '../components/headerviews/HeaderDropBollard'
 import images from '../utils/tbsImages';
 const states = [
   { abbreviation: 'AL', name: 'Alabama' },
-  { abbreviation: 'AK', name: 'Alaska' },
-  { abbreviation: 'AZ', name: 'Arizona' },
-  { abbreviation: 'AR', name: 'Arkansas' },
-  { abbreviation: 'CA', name: 'California' },
-  { abbreviation: 'CO', name: 'Colorado' },
-  { abbreviation: 'CT', name: 'Connecticut' },
-  { abbreviation: 'DE', name: 'Delaware' },
   { abbreviation: 'FL', name: 'Florida' },
   { abbreviation: 'GA', name: 'Georgia' },
-  { abbreviation: 'HI', name: 'Hawaii' },
-  { abbreviation: 'ID', name: 'Idaho' },
-  { abbreviation: 'IL', name: 'Illinois' },
-  { abbreviation: 'IN', name: 'Indiana' },
-  { abbreviation: 'IA', name: 'Iowa' },
-  { abbreviation: 'KS', name: 'Kansas' },
   { abbreviation: 'KY', name: 'Kentucky' },
-  { abbreviation: 'LA', name: 'Louisiana' },
-  { abbreviation: 'ME', name: 'Maine' },
-  { abbreviation: 'MD', name: 'Maryland' },
-  { abbreviation: 'MA', name: 'Massachusetts' },
-  { abbreviation: 'MI', name: 'Michigan' },
-  { abbreviation: 'MN', name: 'Minnesota' },
-  { abbreviation: 'MS', name: 'Mississippi' },
-  { abbreviation: 'MO', name: 'Missouri' },
-  { abbreviation: 'MT', name: 'Montana' },
-  { abbreviation: 'NE', name: 'Nebraska' },
-  { abbreviation: 'NV', name: 'Nevada' },
-  { abbreviation: 'NH', name: 'New Hampshire' },
-  { abbreviation: 'NJ', name: 'New Jersey' },
-  { abbreviation: 'NM', name: 'New Mexico' },
-  { abbreviation: 'NY', name: 'New York' },
   { abbreviation: 'NC', name: 'North Carolina' },
-  { abbreviation: 'ND', name: 'North Dakota' },
-  { abbreviation: 'OH', name: 'Ohio' },
-  { abbreviation: 'OK', name: 'Oklahoma' },
-  { abbreviation: 'OR', name: 'Oregon' },
-  { abbreviation: 'PA', name: 'Pennsylvania' },
-  { abbreviation: 'RI', name: 'Rhode Island' },
   { abbreviation: 'SC', name: 'South Carolina' },
-  { abbreviation: 'SD', name: 'South Dakota' },
-  { abbreviation: 'TN', name: 'Tennessee' },
-  { abbreviation: 'TX', name: 'Texas' },
-  { abbreviation: 'UT', name: 'Utah' },
-  { abbreviation: 'VT', name: 'Vermont' },
-  { abbreviation: 'VA', name: 'Virginia' },
-  { abbreviation: 'WA', name: 'Washington' },
-  { abbreviation: 'WV', name: 'West Virginia' },
-  { abbreviation: 'WI', name: 'Wisconsin' },
-  { abbreviation: 'WY', name: 'Wyoming' }
+  { abbreviation: 'TN', name: 'Tennessee' }
 ];
 
 export default function BollardsWheels() {
+  const recaptchaRef = useRef();
   const [phone, setPhone] = useState('');
   const [selectedBollard, setSelectedBollard] = useState('');
   const [selectedWheel, setSelectedWheel] = useState('')
@@ -166,13 +125,21 @@ export default function BollardsWheels() {
     }
   
     try {
-      // Populate bollardwheel field based on user's selections
+      const token = await recaptchaRef.current.executeAsync();
+      recaptchaRef.current.reset();
+
+      if (!token) {
+        setSubmissionErrorMessage('reCAPTCHA verification failed.');
+        return;
+      }
+
       const bollardString = addedBollard.join(', ');
       const wheelString = addedWheel.join(', ')
       const formDataToSend = {
         ...formData,
-        bollard: bollardString, // Update the equipment field with added equipment
+        bollard: bollardString,
         wheel: wheelString,
+        token,
       };
   
       const response = await axios.post('/bollardswheels', formDataToSend, {
@@ -428,6 +395,11 @@ export default function BollardsWheels() {
   {submissionMessage && (
 <div className="submission-message">{submissionMessage}</div> )}
 </div>
+<ReCAPTCHA
+  sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+  size="invisible"
+  ref={recaptchaRef}
+/>
 <button type="button" className="btn btn--full submit-bollard" onClick={handleSubmit}>SUBMIT BOLLARD & WHEEL STOP</button>
 {submissionErrorMessage &&
             <div className="submission-error-message">{submissionErrorMessage}</div>
