@@ -95,7 +95,7 @@ export default function Home() {
     </p>
 
     <a className="home-web-button" href="https://www.material-worx.com/new-website">Get a Website Quote</a>
-    <a className="home-web-button" href="https://william-rowell.netlify.app/" target="_blank" rel="noopener noreferrer">
+    <a className="home-web-button" href="https://www.material-worx.com/portfolio" target="_blank" rel="noopener noreferrer">
       View Some Work
     </a>
   </div>
