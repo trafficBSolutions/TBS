@@ -102,6 +102,38 @@ export default function Home() {
 </div>
 </section>
         </div>
+        <section className="section-bollard-home">
+          <div className="bollard-home-container">
+            <h1 className="bollard-home-title">Bollard & Wheel Stop Installation</h1>
+            <p className="bollard-home-text">Need bollards or wheel stops installed? We provide professional installation for commercial and residential properties.</p>
+            <div className="bollard-home-icons">
+              <div className="bollard-home-icon-box">
+                <svg className="bollard-home-svg" viewBox="0 0 100 140" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="30" y="10" width="40" height="100" rx="6" fill="#e67e22" stroke="#333" strokeWidth="3"/>
+                  <rect x="25" y="100" width="50" height="12" rx="3" fill="#555" stroke="#333" strokeWidth="2"/>
+                  <rect x="20" y="112" width="60" height="18" rx="4" fill="#888" stroke="#333" strokeWidth="2"/>
+                  <ellipse cx="50" cy="40" rx="8" ry="8" fill="#f5c518" stroke="#333" strokeWidth="2"/>
+                  <rect x="36" y="55" width="28" height="4" rx="2" fill="#fff" opacity="0.6"/>
+                  <rect x="36" y="65" width="28" height="4" rx="2" fill="#fff" opacity="0.6"/>
+                </svg>
+                <h3 className="bollard-home-icon-label">Bollards</h3>
+                <p className="bollard-home-icon-desc">Concrete & metal bollards to protect property and control traffic.</p>
+              </div>
+              <div className="bollard-home-icon-box">
+                <svg className="bollard-home-svg" viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="10" y="20" width="140" height="30" rx="5" fill="#ffd966" stroke="#333" strokeWidth="3"/>
+                  <rect x="10" y="50" width="140" height="10" rx="3" fill="#888" stroke="#333" strokeWidth="2"/>
+                  <rect x="30" y="25" width="20" height="20" rx="2" fill="#333"/>
+                  <rect x="70" y="25" width="20" height="20" rx="2" fill="#333"/>
+                  <rect x="110" y="25" width="20" height="20" rx="2" fill="#333"/>
+                </svg>
+                <h3 className="bollard-home-icon-label">Wheel Stops</h3>
+                <p className="bollard-home-icon-desc">Concrete & rubber wheel stops for organized, safe parking lots.</p>
+              </div>
+            </div>
+            <a href="/bollardswheelstops" className="schedule-btn bollard-home-btn">Request Installation</a>
+          </div>
+        </section>
         <section className="now-hiring">
           <div className="now-hiring-container">
             <h1 className="now-hiring-title">APPLY NOW</h1>
