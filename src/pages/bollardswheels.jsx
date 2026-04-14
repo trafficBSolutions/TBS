@@ -42,9 +42,10 @@ export default function BollardsWheels() {
     message: ''
   });
   const [errors, setErrors] = useState({});
-  const [newErrors, setNewErrors] = useState({}); // Using useState for newErrors
+  const [newErrors, setNewErrors] = useState({});
   const [submissionMessage, setSubmissionMessage] = useState('');
   const [submissionErrorMessage, setSubmissionErrorMessage] = useState('');
+  const [recaptchaError, setRecaptchaError] = useState('');
 useEffect(() => {
   const mq = window.matchMedia('(min-width: 320px) and (max-width: 640px) and (orientation: portrait)');
   const update = () => setRecaptchaSize(mq.matches ? 'compact' : 'normal');
@@ -131,15 +132,14 @@ useEffect(() => {
       return;
     }
   
+    const token = recaptchaRef.current.getValue();
+    if (!token) {
+      setRecaptchaError('Please complete the reCAPTCHA verification.');
+      return;
+    }
+    setRecaptchaError('');
+
     try {
-      const token = await recaptchaRef.current.executeAsync();
-      recaptchaRef.current.reset();
-
-      if (!token) {
-        setSubmissionErrorMessage('reCAPTCHA verification failed.');
-        return;
-      }
-
       const bollardString = addedBollard.join(', ');
       const wheelString = addedWheel.join(', ')
       const formDataToSend = {
@@ -173,11 +173,15 @@ useEffect(() => {
       setErrors({});
       setNewErrors({})
       setPhone('');
-      setAddedBollard([]); // Clear added Bollard
+      setAddedBollard([]);
       setAddedWheel([]);
+      recaptchaRef.current.reset();
       setSubmissionMessage('Bollard/Wheel Stop Request Submitted! We will be with you within 48 hours!');
     } catch (error) {
       console.error('Error submitting Bollard/Wheel Stop Request:', error);
+      const msg = error.response?.data?.error || 'An error occurred. Please try again.';
+      setSubmissionErrorMessage(msg);
+      recaptchaRef.current.reset();
     }
   };
     return (
@@ -404,9 +408,11 @@ useEffect(() => {
 </div>
 <ReCAPTCHA
   sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
-  size={recaptchaSize}  
+  size={recaptchaSize}
   ref={recaptchaRef}
+  onChange={() => setRecaptchaError('')}
 />
+{recaptchaError && <div className="error-message">{recaptchaError}</div>}
 <button type="button" className="btn btn--full submit-bollard" onClick={handleSubmit}>SUBMIT BOLLARD & WHEEL STOP</button>
 {submissionErrorMessage &&
             <div className="submission-error-message">{submissionErrorMessage}</div>
