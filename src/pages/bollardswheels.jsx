@@ -28,6 +28,7 @@ export default function BollardsWheels() {
   const [errorMessage, setErrorMessage] = useState('');
    const [recaptchaSize, setRecaptchaSize] = useState('normal');
    const [recaptchaToken, setRecaptchaToken] = useState('');
+   const recaptchaWrapRef = useRef(null);
   const [formData, setFormData] = useState({
     first: '',
     last: '',
@@ -127,17 +128,21 @@ useEffect(() => {
       newErrors['bollardWheel'] = 'Please select either Bollards or Wheel Stops';
     }
   */
-    if (Object.keys(newErrors).length > 0) {
-      setErrorMessage('Required fields are Missing.');
-      setErrors(newErrors);
-      return;
-    }
+    
   
     const token = recaptchaRef.current.getValue();
     if (!recaptchaToken && recaptchaToken !== 'bypass') {
       newErrors.recaptcha = 'Please complete the reCAPTCHA.';
     }
-
+if (Object.keys(newErrors).length > 0) {
+      setErrorMessage('Required fields are missing.');
+      setErrors(newErrors);
+      if (newErrors.recaptcha) {
+        recaptchaWrapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      setIsSubmitting(false);
+      return;
+    }
     try {
       const bollardString = addedBollard.join(', ');
       const wheelString = addedWheel.join(', ')
@@ -405,7 +410,12 @@ useEffect(() => {
   {submissionMessage && (
 <div className="submission-message">{submissionMessage}</div> )}
 </div>
-<ReCAPTCHA
+<div
+  ref={recaptchaWrapRef}
+  className={`recaptcha-wrap ${errors.recaptcha ? 'has-error' : ''}`}
+  style={{ marginTop: '12px' }}
+>
+  <ReCAPTCHA
     ref={recaptchaRef}
     sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
     size={recaptchaSize}  
@@ -423,6 +433,7 @@ useEffect(() => {
       setErrors((prev) => ({ ...prev, recaptcha: '' }));
     }}
   />
+</div>
 {recaptchaError && <div className="error-message">{recaptchaError}</div>}
 <button type="button" className="btn btn--full submit-bollard" onClick={handleSubmit}>SUBMIT BOLLARD & WHEEL STOP</button>
 {submissionErrorMessage &&
