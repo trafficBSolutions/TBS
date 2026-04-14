@@ -131,7 +131,7 @@ export default function Home() {
                 <p className="bollard-home-icon-desc">Concrete & rubber wheel stops for organized, safe parking lots.</p>
               </div>
             </div>
-            <a href="/bollardswheelstops" className="schedule-btn bollard-home-btn">Request Installation</a>
+            <a href="/bollardswheels" className="schedule-btn bollard-home-btn">Request Installation</a>
           </div>
         </section>
         <section className="now-hiring">
