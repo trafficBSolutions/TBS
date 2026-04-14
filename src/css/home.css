@@ -1478,3 +1478,66 @@ body {
   font-size: 1.3rem;
 }
 }
+
+/* Bollard & Wheel Stop Home Section */
+.section-bollard-home {
+  background-color: #2c2c2c;
+  padding: 40px 20px;
+  text-align: center;
+}
+.bollard-home-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+.bollard-home-title {
+  font-size: 3.2rem;
+  color: #e67e22;
+  font-family: "Moveo Sans W00 Bold";
+  margin-bottom: 1rem;
+}
+.bollard-home-text {
+  font-size: 1.6rem;
+  color: #ddd;
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+.bollard-home-icons {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+.bollard-home-icon-box {
+  background: rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 20px;
+  width: 220px;
+  text-align: center;
+}
+.bollard-home-svg {
+  width: 120px;
+  height: auto;
+  margin-bottom: 10px;
+}
+.bollard-home-icon-label {
+  font-size: 1.8rem;
+  color: #e67e22;
+  margin-bottom: 6px;
+}
+.bollard-home-icon-desc {
+  font-size: 1.2rem;
+  color: #ccc;
+  line-height: 1.4;
+}
+.bollard-home-btn {
+  margin-top: 1rem;
+}
+@media screen and (max-width: 640px) {
+  .bollard-home-title { font-size: 2.2rem; }
+  .bollard-home-text { font-size: 1.3rem; }
+  .bollard-home-icons { gap: 20px; }
+  .bollard-home-icon-box { width: 160px; padding: 14px; }
+  .bollard-home-svg { width: 90px; }
+}
