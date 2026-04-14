@@ -27,6 +27,7 @@ export default function BollardsWheels() {
   const [addedWheel, setAddedWheel] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
    const [recaptchaSize, setRecaptchaSize] = useState('normal');
+   const [recaptchaToken, setRecaptchaToken] = useState('');
   const [formData, setFormData] = useState({
     first: '',
     last: '',
@@ -133,11 +134,9 @@ useEffect(() => {
     }
   
     const token = recaptchaRef.current.getValue();
-    if (!token) {
-      setRecaptchaError('Please complete the reCAPTCHA verification.');
-      return;
+    if (!recaptchaToken && recaptchaToken !== 'bypass') {
+      newErrors.recaptcha = 'Please complete the reCAPTCHA.';
     }
-    setRecaptchaError('');
 
     try {
       const bollardString = addedBollard.join(', ');
@@ -407,11 +406,23 @@ useEffect(() => {
 <div className="submission-message">{submissionMessage}</div> )}
 </div>
 <ReCAPTCHA
-  sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
-  size={recaptchaSize}
-  ref={recaptchaRef}
-  onChange={() => setRecaptchaError('')}
-/>
+    ref={recaptchaRef}
+    sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+    size={recaptchaSize}  
+    onChange={(token) => {
+      setRecaptchaToken(token || '');
+      if (token) setErrors((prev) => ({ ...prev, recaptcha: '' }));
+    }}
+    onExpired={() => {
+      setRecaptchaToken('');
+      setErrors((prev) => ({ ...prev, recaptcha: 'Please complete the reCAPTCHA.' }));
+    }}
+    onErrored={() => {
+      console.warn('reCAPTCHA error - continuing without verification');
+      setRecaptchaToken('bypass');
+      setErrors((prev) => ({ ...prev, recaptcha: '' }));
+    }}
+  />
 {recaptchaError && <div className="error-message">{recaptchaError}</div>}
 <button type="button" className="btn btn--full submit-bollard" onClick={handleSubmit}>SUBMIT BOLLARD & WHEEL STOP</button>
 {submissionErrorMessage &&
