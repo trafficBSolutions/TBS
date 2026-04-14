@@ -82,6 +82,9 @@ const [empPasswordMsg, setEmpPasswordMsg] = useState('');
 const [empPasswordLoading, setEmpPasswordLoading] = useState(false);
 const [successMessage, setSuccessMessage] = useState('');
 const [allowedForEmpPassword, setAllowedForEmpPassword] = useState(false);
+const [bollardDate, setBollardDate] = useState(new Date());
+const [bollardList, setBollardList] = useState([]);
+const [bollardMonthly, setBollardMonthly] = useState({});
 const handleChangeEmpPassword = async () => {
   if (!empNewPassword.trim()) { setEmpPasswordMsg('Please enter a new password.'); return; }
   if (empNewPassword.length < 6) { setEmpPasswordMsg('Password must be at least 6 characters.'); return; }
@@ -124,6 +127,35 @@ const allowed = new Set([
   'tbsellen@gmail.com',
   'tbsolutions1995@gmail.com'
 ]);
+const fetchMonthlyBollards = async (date) => {
+  try {
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+    const res = await axios.get(`/bollardswheels/month?month=${month}&year=${year}`);
+    const grouped = {};
+    (res.data || []).forEach(b => {
+      const dateStr = new Date(b.createdAt || b.date).toISOString().split('T')[0];
+      (grouped[dateStr] ||= []).push(b);
+    });
+    setBollardMonthly(grouped);
+  } catch (e) {
+    console.error('Failed to fetch monthly bollard quotes:', e);
+    setBollardMonthly({});
+  }
+};
+
+const fetchBollardsForDay = async (date) => {
+  if (!date) return;
+  try {
+    const dateStr = date.toISOString().split('T')[0];
+    const res = await axios.get(`/bollardswheels/day?date=${dateStr}`);
+    setBollardList(res.data || []);
+  } catch (e) {
+    console.error('Failed to fetch daily bollard quotes:', e);
+    setBollardList([]);
+  }
+};
+
 const fetchMonthlyDiscipline = async (date) => {
   try {
     const month = date.getMonth() + 1;
@@ -399,6 +431,13 @@ useEffect(() => {
     fetchQuotesForDay(quotesDate);
   }
 }, [quotesDate, allowedForQuotes]);
+
+useEffect(() => {
+  if (bollardDate) {
+    fetchMonthlyBollards(bollardDate);
+    fetchBollardsForDay(bollardDate);
+  }
+}, [bollardDate]);
 // Update the fetchMonthlyJobs function to focus only on active jobs
 const fetchMonthlyJobs = async (date) => {
   try {
@@ -529,6 +568,7 @@ useEffect(() => {
       {allowedForQuotes && (
         <button className={`btn ${viewMode === 'quotes' ? 'active' : ''}`} onClick={() => setViewMode('quotes')}>Material WorX</button>
       )}
+      <button className={`btn ${viewMode === 'bollards' ? 'active' : ''}`} onClick={() => setViewMode('bollards')}>Bollards/Wheels</button>
       <button className={`btn ${viewMode === 'complaints' ? 'active' : ''}`} onClick={() => setViewMode('complaints')}>Complaints</button>
       <button className={`btn ${viewMode === 'tasks' ? 'active' : ''}`} onClick={() => setViewMode('tasks')}>Tasks</button>
     </div>
@@ -548,6 +588,7 @@ selected={
     : viewMode === 'complaints' ? complaintsDate
     : viewMode === 'discipline' ? disciplineDate
     : viewMode === 'quotes' ? quotesDate
+    : viewMode === 'bollards' ? bollardDate
     : taskDate
 }
   onChange={(date) => {
@@ -556,6 +597,7 @@ selected={
   else if (viewMode === 'complaints') setComplaintsDate(date);
   else if (viewMode === 'discipline') setDisciplineDate(date);
   else if (viewMode === 'quotes') setQuotesDate(date);
+  else if (viewMode === 'bollards') setBollardDate(date);
   else setTaskDate(date);
 }}
   onMonthChange={(date) => {
@@ -565,6 +607,7 @@ selected={
   else if (viewMode === 'complaints') fetchMonthlyComplaints(date);
   else if (viewMode === 'discipline') fetchMonthlyDiscipline(date);
   else if (viewMode === 'quotes') fetchMonthlyQuotes(date);
+  else if (viewMode === 'bollards') fetchMonthlyBollards(date);
   else fetchTasks();
 }}
   calendarClassName="admin-date-picker"
@@ -590,6 +633,7 @@ selected={
   : viewMode === 'complaints' ? complaintsMonthly
   : viewMode === 'discipline' ? disciplineMonthly
   : viewMode === 'quotes' ? quotesMonthly
+  : viewMode === 'bollards' ? bollardMonthly
   : tasks;
     const hasItems = dataSource[dateStr] && dataSource[dateStr].length > 0;
     return hasItems ? 'has-jobs' : '';
@@ -610,6 +654,8 @@ selected={
       dataSource = tasks;
     } else if (viewMode === 'quotes') {
       dataSource = quotesMonthly;
+    } else if (viewMode === 'bollards') {
+      dataSource = bollardMonthly;
     }
     
     const itemsOnDate = dataSource?.[dateStr];
@@ -625,6 +671,7 @@ selected={
             : viewMode === 'complaints' ? 'Complaints'
             : viewMode === 'discipline' ? 'Discipline'
             : viewMode === 'quotes' ? 'Quotes'
+            : viewMode === 'bollards' ? 'Bollard Quotes'
             : 'Tasks'} {itemCount}
           </div>
         )}
@@ -970,6 +1017,25 @@ selected={
         </div>
       ))}
       {complaintsList.length === 0 && <p>No complaints on this day.</p>}
+    </div>
+  </>
+)}
+{viewMode === 'bollards' && (
+  <>
+    <h3>Bollard & Wheel Stop Quotes on {bollardDate?.toLocaleDateString()}</h3>
+    <div className="job-info-list">
+      {bollardList.map((b, i) => (
+        <div key={b._id || i} className="job-card">
+          <h4 className="job-company">{b.first} {b.last} - {b.company}</h4>
+          <p><strong>Email:</strong> {b.email}</p>
+          <p><strong>Phone:</strong> <a href={`tel:${b.phone}`}>{b.phone}</a></p>
+          <p><strong>Address:</strong> {b.address}, {b.city}, {b.state} {b.zip}</p>
+          {b.bollard && <p><strong>Bollards:</strong> {b.bollard}</p>}
+          {b.wheel && <p><strong>Wheel Stops:</strong> {b.wheel}</p>}
+          <p><strong>Message:</strong> {b.message}</p>
+        </div>
+      ))}
+      {bollardList.length === 0 && <p>No bollard/wheel stop quotes on this day.</p>}
     </div>
   </>
 )}
