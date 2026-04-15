@@ -304,7 +304,7 @@ function EmployeeDiscipline() {
             )}
           </fieldset>
 
-          <label>Employer/Supervisor Statement<textarea value={form.employerStatement} onChange={e=>setForm({...form,employerStatement:sentenceCap(e.target.value)})} style={{fontFamily:'Arial',fontWeight:'normal',height:100}} /></label>
+          <label>Employer/Supervisor Statement<textarea value={form.employerStatement} onChange={e=>setForm({...form,employerStatement:sentenceCap(e.target.value)})} style={{fontFamily:'Arial',fontWeight:'normal',height:'100%'}} /></label>
 
           {/* Points Input */}
           <div style={{background:'#f0f4ff',border:'2px solid #1e3a8a',borderRadius:8,padding:15,margin:'15px 0'}}>
