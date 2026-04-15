@@ -92,6 +92,8 @@ const [signShopMonthly, setSignShopMonthly] = useState({});
 const [signShopTitle, setSignShopTitle] = useState('');
 const [signShopCustomer, setSignShopCustomer] = useState('');
 const [signShopDesc, setSignShopDesc] = useState('');
+const [signShopPhotos, setSignShopPhotos] = useState([]);
+const [signShopPreview, setSignShopPreview] = useState(null);
 const handleChangeEmpPassword = async () => {
   if (!empNewPassword.trim()) { setEmpPasswordMsg('Please enter a new password.'); return; }
   if (empNewPassword.length < 6) { setEmpPasswordMsg('Password must be at least 6 characters.'); return; }
@@ -167,13 +169,14 @@ const addSignShopJob = async () => {
   if (!signShopTitle.trim()) return;
   const dateStr = signShopDate.toISOString().split('T')[0];
   try {
-    const res = await axios.post('/signshop-jobs', {
-      title: signShopTitle,
-      customer: signShopCustomer,
-      description: signShopDesc,
-      date: dateStr,
-      author: adminName
-    });
+    const fd = new FormData();
+    fd.append('title', signShopTitle);
+    fd.append('customer', signShopCustomer);
+    fd.append('description', signShopDesc);
+    fd.append('date', dateStr);
+    fd.append('author', adminName);
+    signShopPhotos.forEach(f => fd.append('photos', f));
+    const res = await axios.post('/signshop-jobs', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
     const updated = { ...signShopMonthly };
     (updated[dateStr] ||= []).push(res.data);
     setSignShopMonthly(updated);
@@ -183,6 +186,7 @@ const addSignShopJob = async () => {
     setSignShopTitle('');
     setSignShopCustomer('');
     setSignShopDesc('');
+    setSignShopPhotos([]);
   } catch (e) {
     console.error('Failed to add sign shop job:', e);
   }
@@ -1144,6 +1148,8 @@ selected={
       <input type="text" placeholder="Job title *" value={signShopTitle} onChange={(e) => setSignShopTitle(e.target.value)} />
       <input type="text" placeholder="Customer" value={signShopCustomer} onChange={(e) => setSignShopCustomer(e.target.value)} />
       <textarea placeholder="Description" rows="2" style={{height: '100%', color: '#ffffff'}} value={signShopDesc} onChange={(e) => setSignShopDesc(e.target.value)} />
+      <label style={{fontSize:'13px',marginTop:'6px'}}>Attach Photos (max 5):</label>
+      <input type="file" accept="image/*" multiple onChange={(e) => setSignShopPhotos([...e.target.files].slice(0, 5))} />
       <button className="btn" onClick={addSignShopJob}>Add Sign Shop Job</button>
     </div>
     <div className="job-info-list">
@@ -1162,6 +1168,16 @@ selected={
             {job.description && <p style={{margin: '2px 0 0 24px', fontSize: '1.4rem', color: '#ffffff', height: 'auto'}}>{job.description}</p>}
           </div>
           <button className="delete-task" onClick={() => deleteSignShopJob(job._id)}>🗑️</button>
+          {job.photos && job.photos.length > 0 && (
+            <div style={{display:'flex',gap:'6px',flexWrap:'wrap',marginTop:'8px'}}>
+              {job.photos.map((photo, idx) => (
+                <img key={idx} src={`/signshop-photos/${photo}`} alt={`Sign shop ${idx+1}`}
+                  style={{width:'80px',height:'80px',objectFit:'cover',borderRadius:'6px',border:'1px solid #ddd',cursor:'pointer'}}
+                  onClick={() => setSignShopPreview(`/signshop-photos/${photo}`)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       ))}
       {signShopList.length === 0 && <p>No sign shop jobs on this day.</p>}
@@ -1572,6 +1588,14 @@ selected={
       <button className="modal-close" onClick={() => setSelectedImage(null)}>×</button>
       <h3>{selectedImage.title}</h3>
       <img src={selectedImage.src} alt={selectedImage.title} />
+    </div>
+  </div>
+)}
+{signShopPreview && (
+  <div className="image-modal" onClick={() => setSignShopPreview(null)}>
+    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <button className="modal-close" onClick={() => setSignShopPreview(null)}>×</button>
+      <img src={signShopPreview} alt="Sign Shop Photo" style={{maxWidth:'100%',maxHeight:'80vh'}} />
     </div>
   </div>
 )}
