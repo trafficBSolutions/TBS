@@ -85,6 +85,13 @@ const [allowedForEmpPassword, setAllowedForEmpPassword] = useState(false);
 const [bollardDate, setBollardDate] = useState(new Date());
 const [bollardList, setBollardList] = useState([]);
 const [bollardMonthly, setBollardMonthly] = useState({});
+const [allowedForSignShop, setAllowedForSignShop] = useState(false);
+const [signShopDate, setSignShopDate] = useState(new Date());
+const [signShopList, setSignShopList] = useState([]);
+const [signShopMonthly, setSignShopMonthly] = useState({});
+const [signShopTitle, setSignShopTitle] = useState('');
+const [signShopCustomer, setSignShopCustomer] = useState('');
+const [signShopDesc, setSignShopDesc] = useState('');
 const handleChangeEmpPassword = async () => {
   if (!empNewPassword.trim()) { setEmpPasswordMsg('Please enter a new password.'); return; }
   if (empNewPassword.length < 6) { setEmpPasswordMsg('Password must be at least 6 characters.'); return; }
@@ -127,6 +134,92 @@ const allowed = new Set([
   'tbsellen@gmail.com',
   'tbsolutions1995@gmail.com'
 ]);
+const fetchMonthlySignShop = async (date) => {
+  try {
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+    const res = await axios.get(`/signshop-jobs/month?month=${month}&year=${year}`);
+    const grouped = {};
+    (res.data || []).forEach(j => {
+      const d = j.date;
+      (grouped[d] ||= []).push(j);
+    });
+    setSignShopMonthly(grouped);
+  } catch (e) {
+    console.error('Failed to fetch monthly sign shop jobs:', e);
+    setSignShopMonthly({});
+  }
+};
+
+const fetchSignShopForDay = async (date) => {
+  if (!date) return;
+  try {
+    const dateStr = date.toISOString().split('T')[0];
+    const res = await axios.get(`/signshop-jobs/day?date=${dateStr}`);
+    setSignShopList(res.data || []);
+  } catch (e) {
+    console.error('Failed to fetch daily sign shop jobs:', e);
+    setSignShopList([]);
+  }
+};
+
+const addSignShopJob = async () => {
+  if (!signShopTitle.trim()) return;
+  const dateStr = signShopDate.toISOString().split('T')[0];
+  try {
+    const res = await axios.post('/signshop-jobs', {
+      title: signShopTitle,
+      customer: signShopCustomer,
+      description: signShopDesc,
+      date: dateStr,
+      author: adminName
+    });
+    const updated = { ...signShopMonthly };
+    (updated[dateStr] ||= []).push(res.data);
+    setSignShopMonthly(updated);
+    if (signShopDate.toISOString().split('T')[0] === dateStr) {
+      setSignShopList(prev => [...prev, res.data]);
+    }
+    setSignShopTitle('');
+    setSignShopCustomer('');
+    setSignShopDesc('');
+  } catch (e) {
+    console.error('Failed to add sign shop job:', e);
+  }
+};
+
+const toggleSignShopComplete = async (id) => {
+  try {
+    const job = signShopList.find(j => j._id === id);
+    if (!job) return;
+    const res = await axios.put(`/signshop-jobs/${id}`, { completed: !job.completed });
+    setSignShopList(prev => prev.map(j => j._id === id ? res.data : j));
+    const dateStr = job.date;
+    setSignShopMonthly(prev => ({
+      ...prev,
+      [dateStr]: (prev[dateStr] || []).map(j => j._id === id ? res.data : j)
+    }));
+  } catch (e) {
+    console.error('Failed to toggle sign shop job:', e);
+  }
+};
+
+const deleteSignShopJob = async (id) => {
+  try {
+    const job = signShopList.find(j => j._id === id);
+    await axios.delete(`/signshop-jobs/${id}`);
+    setSignShopList(prev => prev.filter(j => j._id !== id));
+    if (job) {
+      setSignShopMonthly(prev => ({
+        ...prev,
+        [job.date]: (prev[job.date] || []).filter(j => j._id !== id)
+      }));
+    }
+  } catch (e) {
+    console.error('Failed to delete sign shop job:', e);
+  }
+};
+
 const fetchMonthlyBollards = async (date) => {
   try {
     const month = date.getMonth() + 1;
@@ -300,6 +393,13 @@ useEffect(() => {
       'tbsolutions1999@gmail.com'
     ]);
     setAllowedForEmpPassword(empPasswordEmails.has(user.email));
+
+    const signShopEmails = new Set([
+      'tbsolutions9@gmail.com',
+      'tbsolutions1999@gmail.com',
+      'tbsolutions4@gmail.com'
+    ]);
+    setAllowedForSignShop(signShopEmails.has(user.email));
   }
 }, []);
 const fetchComplaintsForDay = async (date) => {
@@ -438,6 +538,13 @@ useEffect(() => {
     fetchBollardsForDay(bollardDate);
   }
 }, [bollardDate]);
+
+useEffect(() => {
+  if (signShopDate && allowedForSignShop) {
+    fetchMonthlySignShop(signShopDate);
+    fetchSignShopForDay(signShopDate);
+  }
+}, [signShopDate, allowedForSignShop]);
 // Update the fetchMonthlyJobs function to focus only on active jobs
 const fetchMonthlyJobs = async (date) => {
   try {
@@ -569,6 +676,9 @@ useEffect(() => {
         <button className={`btn ${viewMode === 'quotes' ? 'active' : ''}`} onClick={() => setViewMode('quotes')}>Material WorX</button>
       )}
       <button className={`btn ${viewMode === 'bollards' ? 'active' : ''}`} onClick={() => setViewMode('bollards')}>Bollards/Wheels</button>
+      {allowedForSignShop && (
+        <button className={`btn ${viewMode === 'signshop' ? 'active' : ''}`} onClick={() => setViewMode('signshop')}>Sign Shop</button>
+      )}
       <button className={`btn ${viewMode === 'complaints' ? 'active' : ''}`} onClick={() => setViewMode('complaints')}>Complaints</button>
       <button className={`btn ${viewMode === 'tasks' ? 'active' : ''}`} onClick={() => setViewMode('tasks')}>Tasks</button>
     </div>
@@ -589,6 +699,7 @@ selected={
     : viewMode === 'discipline' ? disciplineDate
     : viewMode === 'quotes' ? quotesDate
     : viewMode === 'bollards' ? bollardDate
+    : viewMode === 'signshop' ? signShopDate
     : taskDate
 }
   onChange={(date) => {
@@ -598,6 +709,7 @@ selected={
   else if (viewMode === 'discipline') setDisciplineDate(date);
   else if (viewMode === 'quotes') setQuotesDate(date);
   else if (viewMode === 'bollards') setBollardDate(date);
+  else if (viewMode === 'signshop') setSignShopDate(date);
   else setTaskDate(date);
 }}
   onMonthChange={(date) => {
@@ -608,6 +720,7 @@ selected={
   else if (viewMode === 'discipline') fetchMonthlyDiscipline(date);
   else if (viewMode === 'quotes') fetchMonthlyQuotes(date);
   else if (viewMode === 'bollards') fetchMonthlyBollards(date);
+  else if (viewMode === 'signshop') fetchMonthlySignShop(date);
   else fetchTasks();
 }}
   calendarClassName="admin-date-picker"
@@ -634,6 +747,7 @@ selected={
   : viewMode === 'discipline' ? disciplineMonthly
   : viewMode === 'quotes' ? quotesMonthly
   : viewMode === 'bollards' ? bollardMonthly
+  : viewMode === 'signshop' ? signShopMonthly
   : tasks;
     const hasItems = dataSource[dateStr] && dataSource[dateStr].length > 0;
     return hasItems ? 'has-jobs' : '';
@@ -656,6 +770,8 @@ selected={
       dataSource = quotesMonthly;
     } else if (viewMode === 'bollards') {
       dataSource = bollardMonthly;
+    } else if (viewMode === 'signshop') {
+      dataSource = signShopMonthly;
     }
     
     const itemsOnDate = dataSource?.[dateStr];
@@ -672,6 +788,7 @@ selected={
             : viewMode === 'discipline' ? 'Discipline'
             : viewMode === 'quotes' ? 'Quotes'
             : viewMode === 'bollards' ? 'Bollard Quotes'
+            : viewMode === 'signshop' ? 'Sign Jobs'
             : 'Tasks'} {itemCount}
           </div>
         )}
@@ -1017,6 +1134,37 @@ selected={
         </div>
       ))}
       {complaintsList.length === 0 && <p>No complaints on this day.</p>}
+    </div>
+  </>
+)}
+{viewMode === 'signshop' && (
+  <>
+    <h3>🏭 Sign Shop Jobs on {signShopDate?.toLocaleDateString()}</h3>
+    <div className="add-task" style={{marginBottom: '1rem'}}>
+      <input type="text" placeholder="Job title *" value={signShopTitle} onChange={(e) => setSignShopTitle(e.target.value)} />
+      <input type="text" placeholder="Customer" value={signShopCustomer} onChange={(e) => setSignShopCustomer(e.target.value)} />
+      <textarea placeholder="Description" rows="2" value={signShopDesc} onChange={(e) => setSignShopDesc(e.target.value)} />
+      <button className="btn" onClick={addSignShopJob}>Add Sign Shop Job</button>
+    </div>
+    <div className="job-info-list">
+      {signShopList.map((job) => (
+        <div key={job._id} className={`task-item ${job.completed ? 'completed' : ''}`}>
+          <div className="task-header">
+            <span className="task-author">{job.author}</span>
+            <span className="task-timestamp">{new Date(job.createdAt).toLocaleString()}</span>
+          </div>
+          <div className="task-content">
+            <label className="task-checkbox">
+              <input type="checkbox" checked={job.completed} onChange={() => toggleSignShopComplete(job._id)} />
+              <span className={job.completed ? 'completed-text' : ''}><strong>{job.title}</strong></span>
+            </label>
+            {job.customer && <p style={{margin: '4px 0 0 24px', fontSize: '13px'}}>Customer: {job.customer}</p>}
+            {job.description && <p style={{margin: '2px 0 0 24px', fontSize: '13px', color: '#666'}}>{job.description}</p>}
+          </div>
+          <button className="delete-task" onClick={() => deleteSignShopJob(job._id)}>🗑️</button>
+        </div>
+      ))}
+      {signShopList.length === 0 && <p>No sign shop jobs on this day.</p>}
     </div>
   </>
 )}
