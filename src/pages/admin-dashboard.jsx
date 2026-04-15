@@ -1143,7 +1143,7 @@ selected={
 )}
 {viewMode === 'signshop' && (
   <>
-    <h3>🏭 Sign Shop Jobs on {signShopDate?.toLocaleDateString()}</h3>
+    <h3>🪧 Sign Shop Jobs on {signShopDate?.toLocaleDateString()}</h3>
     <div className="add-task" style={{marginBottom: '1rem'}}>
       <input type="text" placeholder="Job title *" value={signShopTitle} onChange={(e) => setSignShopTitle(e.target.value)} />
       <input type="text" placeholder="Customer" value={signShopCustomer} onChange={(e) => setSignShopCustomer(e.target.value)} />
