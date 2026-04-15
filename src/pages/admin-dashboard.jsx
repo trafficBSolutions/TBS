@@ -1148,7 +1148,7 @@ selected={
       <input type="text" placeholder="Job title *" value={signShopTitle} onChange={(e) => setSignShopTitle(e.target.value)} />
       <input type="text" placeholder="Customer" value={signShopCustomer} onChange={(e) => setSignShopCustomer(e.target.value)} />
       <textarea placeholder="Description" rows="2" style={{height: '100%', color: '#ffffff'}} value={signShopDesc} onChange={(e) => setSignShopDesc(e.target.value)} />
-      <label style={{fontSize:'13px',marginTop:'6px'}}>Attach Photos (max 5):</label>
+      <label style={{fontSize:'13px',marginTop:'6px', color: '#ffffff'}}>Attach Photos (max 5):</label>
       <input type="file" accept="image/*" multiple onChange={(e) => setSignShopPhotos([...e.target.files].slice(0, 5))} />
       <button className="btn" onClick={addSignShopJob}>Add Sign Shop Job</button>
     </div>
