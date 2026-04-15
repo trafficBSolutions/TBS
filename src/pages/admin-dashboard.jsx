@@ -1143,7 +1143,7 @@ selected={
     <div className="add-task" style={{marginBottom: '1rem'}}>
       <input type="text" placeholder="Job title *" value={signShopTitle} onChange={(e) => setSignShopTitle(e.target.value)} />
       <input type="text" placeholder="Customer" value={signShopCustomer} onChange={(e) => setSignShopCustomer(e.target.value)} />
-      <textarea placeholder="Description" rows="2" value={signShopDesc} onChange={(e) => setSignShopDesc(e.target.value)} />
+      <textarea placeholder="Description" rows="2" style={{height: '100%', color: '#ffffff'}} value={signShopDesc} onChange={(e) => setSignShopDesc(e.target.value)} />
       <button className="btn" onClick={addSignShopJob}>Add Sign Shop Job</button>
     </div>
     <div className="job-info-list">
@@ -1159,7 +1159,7 @@ selected={
               <span className={job.completed ? 'completed-text' : ''}><strong>{job.title}</strong></span>
             </label>
             {job.customer && <p style={{margin: '4px 0 0 24px', fontSize: '1.4rem', color: '#ffffff'}}>Customer: {job.customer}</p>}
-            {job.description && <p style={{margin: '2px 0 0 24px', fontSize: '1.4rem', color: '#ffffff'}}>{job.description}</p>}
+            {job.description && <p style={{margin: '2px 0 0 24px', fontSize: '1.4rem', color: '#ffffff', height: 'auto'}}>{job.description}</p>}
           </div>
           <button className="delete-task" onClick={() => deleteSignShopJob(job._id)}>🗑️</button>
         </div>
