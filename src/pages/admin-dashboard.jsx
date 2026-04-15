@@ -1158,8 +1158,8 @@ selected={
               <input type="checkbox" checked={job.completed} onChange={() => toggleSignShopComplete(job._id)} />
               <span className={job.completed ? 'completed-text' : ''}><strong>{job.title}</strong></span>
             </label>
-            {job.customer && <p style={{margin: '4px 0 0 24px', fontSize: '13px'}}>Customer: {job.customer}</p>}
-            {job.description && <p style={{margin: '2px 0 0 24px', fontSize: '13px', color: '#666'}}>{job.description}</p>}
+            {job.customer && <p style={{margin: '4px 0 0 24px', fontSize: '1.4rem', color: '#ffffff'}}>Customer: {job.customer}</p>}
+            {job.description && <p style={{margin: '2px 0 0 24px', fontSize: '1.4rem', color: '#ffffff'}}>{job.description}</p>}
           </div>
           <button className="delete-task" onClick={() => deleteSignShopJob(job._id)}>🗑️</button>
         </div>
