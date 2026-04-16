@@ -56,6 +56,9 @@ export default function Quote() {
   const [requireDeposit] = useState(true);
   const [depositRate] = useState(0.5);                   // 50% down
 
+  const [cardType, setCardType] = useState("");
+  const [cardLast4, setCardLast4] = useState("");
+
   const [rows, setRows] = useState([blankRow()]);
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState("");
@@ -72,6 +75,8 @@ export default function Quote() {
   const [invIsTaxExempt, setInvIsTaxExempt] = useState(false);
   const [invTaxExemptNumber, setInvTaxExemptNumber] = useState("");
   const [invPayMethod, setInvPayMethod] = useState("Check");
+  const [invCardType, setInvCardType] = useState("");
+  const [invCardLast4, setInvCardLast4] = useState("");
   const [invRows, setInvRows] = useState([blankRow()]);
   const [invSending, setInvSending] = useState(false);
   const [invMessage, setInvMessage] = useState("");
@@ -108,7 +113,8 @@ export default function Quote() {
         date: invDate, company: invCompany, customer: invCustomer,
         email: invEmail, phone: invPhone,
         taxRate: invTaxRate, isTaxExempt: invIsTaxExempt, taxExemptNumber: invTaxExemptNumber,
-        payMethod: invPayMethod, rows: invRows, computed: invComputed
+        payMethod: invPayMethod, cardType: invCardType, cardLast4: invCardLast4,
+        rows: invRows, computed: invComputed
       });
       setInvMessage("Invoice sent successfully!");
     } catch {
@@ -185,6 +191,8 @@ export default function Quote() {
         isTaxExempt,
         taxExemptNumber,
         payMethod,
+        cardType,
+        cardLast4,
         rows,
         computed
       });
@@ -258,6 +266,23 @@ export default function Quote() {
           />
           Credit Card (adds 3% fee)
         </label>
+
+        {payMethod === "Card" && (
+          <>
+            <label>Card Type
+              <select value={cardType} onChange={(e) => setCardType(e.target.value)}>
+                <option value="">Select...</option>
+                <option>Visa</option>
+                <option>MasterCard</option>
+                <option>Amex</option>
+                <option>Discover</option>
+              </select>
+            </label>
+            <label>Last 4 Digits
+              <input type="text" maxLength={4} value={cardLast4} onChange={(e) => setCardLast4(e.target.value.replace(/\D/g, '').slice(0, 4))} placeholder="1234" />
+            </label>
+          </>
+        )}
       </section>
 
       <section className="quote-table">
@@ -394,6 +419,23 @@ export default function Quote() {
           />
           Credit Card (adds 3% fee)
         </label>
+
+        {invPayMethod === "Card" && (
+          <>
+            <label>Card Type
+              <select value={invCardType} onChange={(e) => setInvCardType(e.target.value)}>
+                <option value="">Select...</option>
+                <option>Visa</option>
+                <option>MasterCard</option>
+                <option>Amex</option>
+                <option>Discover</option>
+              </select>
+            </label>
+            <label>Last 4 Digits
+              <input type="text" maxLength={4} value={invCardLast4} onChange={(e) => setInvCardLast4(e.target.value.replace(/\D/g, '').slice(0, 4))} placeholder="1234" />
+            </label>
+          </>
+        )}
       </section>
 
       <section className="quote-table">
