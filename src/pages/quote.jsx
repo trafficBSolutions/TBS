@@ -249,6 +249,15 @@ export default function Quote() {
           />
           <span className="hint">0.08 = 8%</span>
         </label>
+
+        <label className="inline">
+          <input
+            type="checkbox"
+            checked={payMethod === "Card"}
+            onChange={(e) => setPayMethod(e.target.checked ? "Card" : "Check")}
+          />
+          Credit Card (adds 3% fee)
+        </label>
       </section>
 
       <section className="quote-table">
@@ -375,6 +384,15 @@ export default function Quote() {
         <label>Tax Rate
           <input type="number" step="0.001" value={invTaxRate} onChange={(e) => setInvTaxRate(Number(e.target.value))} />
           <span className="hint">0.08 = 8%</span>
+        </label>
+
+        <label className="inline">
+          <input
+            type="checkbox"
+            checked={invPayMethod === "Card"}
+            onChange={(e) => setInvPayMethod(e.target.checked ? "Card" : "Check")}
+          />
+          Credit Card (adds 3% fee)
         </label>
       </section>
 
