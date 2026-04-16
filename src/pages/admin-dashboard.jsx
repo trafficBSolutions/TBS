@@ -94,6 +94,9 @@ const [signShopCustomer, setSignShopCustomer] = useState('');
 const [signShopDesc, setSignShopDesc] = useState('');
 const [signShopPhotos, setSignShopPhotos] = useState([]);
 const [signShopPreview, setSignShopPreview] = useState(null);
+const [editingSignShopId, setEditingSignShopId] = useState(null);
+const [editSignShop, setEditSignShop] = useState({ title: '', customer: '', description: '' });
+const [editSignShopPhotos, setEditSignShopPhotos] = useState([]);
 const handleChangeEmpPassword = async () => {
   if (!empNewPassword.trim()) { setEmpPasswordMsg('Please enter a new password.'); return; }
   if (empNewPassword.length < 6) { setEmpPasswordMsg('Password must be at least 6 characters.'); return; }
@@ -196,7 +199,9 @@ const toggleSignShopComplete = async (id) => {
   try {
     const job = signShopList.find(j => j._id === id);
     if (!job) return;
-    const res = await axios.put(`/signshop-jobs/${id}`, { completed: !job.completed });
+    const fd = new FormData();
+    fd.append('completed', !job.completed);
+    const res = await axios.put(`/signshop-jobs/${id}`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
     setSignShopList(prev => prev.map(j => j._id === id ? res.data : j));
     const dateStr = job.date;
     setSignShopMonthly(prev => ({
@@ -205,6 +210,54 @@ const toggleSignShopComplete = async (id) => {
     }));
   } catch (e) {
     console.error('Failed to toggle sign shop job:', e);
+  }
+};
+
+const startEditSignShop = (job) => {
+  setEditingSignShopId(job._id);
+  setEditSignShop({ title: job.title, customer: job.customer || '', description: job.description || '' });
+  setEditSignShopPhotos([]);
+};
+
+const cancelEditSignShop = () => {
+  setEditingSignShopId(null);
+  setEditSignShop({ title: '', customer: '', description: '' });
+  setEditSignShopPhotos([]);
+};
+
+const saveSignShopEdit = async (id) => {
+  try {
+    const fd = new FormData();
+    fd.append('title', editSignShop.title);
+    fd.append('customer', editSignShop.customer);
+    fd.append('description', editSignShop.description);
+    editSignShopPhotos.forEach(f => fd.append('photos', f));
+    const res = await axios.put(`/signshop-jobs/${id}`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+    setSignShopList(prev => prev.map(j => j._id === id ? res.data : j));
+    const dateStr = res.data.date;
+    setSignShopMonthly(prev => ({
+      ...prev,
+      [dateStr]: (prev[dateStr] || []).map(j => j._id === id ? res.data : j)
+    }));
+    cancelEditSignShop();
+  } catch (e) {
+    console.error('Failed to save sign shop edit:', e);
+  }
+};
+
+const removeSignShopPhoto = async (id, photo) => {
+  try {
+    const fd = new FormData();
+    fd.append('removePhotos', JSON.stringify([photo]));
+    const res = await axios.put(`/signshop-jobs/${id}`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+    setSignShopList(prev => prev.map(j => j._id === id ? res.data : j));
+    const dateStr = res.data.date;
+    setSignShopMonthly(prev => ({
+      ...prev,
+      [dateStr]: (prev[dateStr] || []).map(j => j._id === id ? res.data : j)
+    }));
+  } catch (e) {
+    console.error('Failed to remove photo:', e);
   }
 };
 
@@ -1159,24 +1212,53 @@ selected={
             <span className="task-author">{job.author}</span>
             <span className="task-timestamp">{new Date(job.createdAt).toLocaleString()}</span>
           </div>
-          <div className="task-content">
-            <label className="task-checkbox">
-              <input type="checkbox" checked={job.completed} onChange={() => toggleSignShopComplete(job._id)} />
-              <span className={job.completed ? 'completed-text' : ''}><strong>{job.title}</strong></span>
-            </label>
-            {job.customer && <p style={{margin: '4px 0 0 24px', fontSize: '1.4rem', color: '#ffffff'}}>Customer: {job.customer}</p>}
-            {job.description && <p style={{margin: '2px 0 0 24px', fontSize: '1.4rem', color: '#ffffff', height: 'auto'}}>{job.description}</p>}
-          </div>
-          <button className="delete-task" onClick={() => deleteSignShopJob(job._id)}>🗑️</button>
-          {job.photos && job.photos.length > 0 && (
-            <div style={{display:'flex',gap:'6px',flexWrap:'wrap',marginTop:'8px'}}>
-              {job.photos.map((photo, idx) => (
-                <img key={idx} src={`/signshop-photos/${photo}`} alt={`Sign shop ${idx+1}`}
-                  style={{width:'80px',height:'80px',objectFit:'cover',borderRadius:'6px',border:'1px solid #ddd',cursor:'pointer'}}
-                  onClick={() => setSignShopPreview(`/signshop-photos/${photo}`)}
-                />
-              ))}
+          {editingSignShopId === job._id ? (
+            <div style={{padding:'8px 0'}}>
+              <input type="text" value={editSignShop.title} onChange={(e) => setEditSignShop({...editSignShop, title: e.target.value})} placeholder="Job title" />
+              <input type="text" value={editSignShop.customer} onChange={(e) => setEditSignShop({...editSignShop, customer: e.target.value})} placeholder="Customer" />
+              <textarea rows="2" value={editSignShop.description} onChange={(e) => setEditSignShop({...editSignShop, description: e.target.value})} placeholder="Description" />
+              {job.photos && job.photos.length > 0 && (
+                <div style={{display:'flex',gap:'6px',flexWrap:'wrap',margin:'8px 0'}}>
+                  {job.photos.map((photo, idx) => (
+                    <div key={idx} style={{position:'relative'}}>
+                      <img src={`/signshop-photos/${photo}`} alt={`Photo ${idx+1}`} style={{width:'70px',height:'70px',objectFit:'cover',borderRadius:'6px',border:'1px solid #ddd'}} />
+                      <button onClick={() => removeSignShopPhoto(job._id, photo)} style={{position:'absolute',top:'-6px',right:'-6px',background:'#f44336',color:'#fff',border:'none',borderRadius:'50%',width:'20px',height:'20px',cursor:'pointer',fontSize:'12px',lineHeight:'20px',padding:0}}>×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <label style={{fontSize:'13px',marginTop:'4px',color:'#ccc'}}>Add more photos:</label>
+              <input type="file" accept="image/*" multiple onChange={(e) => setEditSignShopPhotos([...e.target.files].slice(0, 5))} />
+              <div style={{display:'flex',gap:'8px',marginTop:'8px'}}>
+                <button className="btn" onClick={() => saveSignShopEdit(job._id)}>Save</button>
+                <button className="btn" style={{background:'#888'}} onClick={cancelEditSignShop}>Cancel</button>
+              </div>
             </div>
+          ) : (
+            <>
+              <div className="task-content">
+                <label className="task-checkbox">
+                  <input type="checkbox" checked={job.completed} onChange={() => toggleSignShopComplete(job._id)} />
+                  <span className={job.completed ? 'completed-text' : ''}><strong>{job.title}</strong></span>
+                </label>
+                {job.customer && <p style={{margin: '4px 0 0 24px', fontSize: '1.4rem', color: '#ffffff'}}>Customer: {job.customer}</p>}
+                {job.description && <p style={{margin: '2px 0 0 24px', fontSize: '1.4rem', color: '#ffffff', height: 'auto'}}>{job.description}</p>}
+              </div>
+              <div style={{display:'flex',gap:'6px',marginTop:'4px'}}>
+                <button className="btn" style={{padding:'4px 12px',fontSize:'12px'}} onClick={() => startEditSignShop(job)}>✏️ Edit</button>
+                <button className="delete-task" onClick={() => deleteSignShopJob(job._id)}>🗑️</button>
+              </div>
+              {job.photos && job.photos.length > 0 && (
+                <div style={{display:'flex',gap:'6px',flexWrap:'wrap',marginTop:'8px'}}>
+                  {job.photos.map((photo, idx) => (
+                    <img key={idx} src={`/signshop-photos/${photo}`} alt={`Sign shop ${idx+1}`}
+                      style={{width:'80px',height:'80px',objectFit:'cover',borderRadius:'6px',border:'1px solid #ddd',cursor:'pointer'}}
+                      onClick={() => setSignShopPreview(`/signshop-photos/${photo}`)}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       ))}
