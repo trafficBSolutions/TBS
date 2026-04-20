@@ -1241,8 +1241,8 @@ selected={
                   <input type="checkbox" checked={job.completed} onChange={() => toggleSignShopComplete(job._id)} />
                   <span className={job.completed ? 'completed-text' : ''}><strong>{job.title}</strong></span>
                 </label>
-                {job.customer && <p style={{margin: '4px 0 0 24px', fontSize: '1.4rem', color: '#ffffff'}}>Customer: {job.customer}</p>}
-                {job.description && <p style={{margin: '2px 0 0 24px', fontSize: '1.4rem', color: '#ffffff', height: 'auto'}}>{job.description}</p>}
+                {job.customer && <p style={{margin: '4px 0 0 24px', fontSize: '1.4rem', color: '#000000'}}>Customer: {job.customer}</p>}
+                {job.description && <p style={{margin: '2px 0 0 24px', fontSize: '1.4rem', color: '#000000', height: 'auto'}}>{job.description}</p>}
               </div>
               <div style={{display:'flex',gap:'6px',marginTop:'4px'}}>
                 <button className="btn" style={{padding:'4px 12px',fontSize:'12px'}} onClick={() => startEditSignShop(job)}>✏️ Edit</button>
