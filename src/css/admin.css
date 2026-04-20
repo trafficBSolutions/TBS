@@ -3,10 +3,10 @@
 ========================= */
 
 :root {
-  --adm-bg: #1a1008;
-  --adm-surface: rgba(42, 28, 12, 0.92);
-  --adm-surface-solid: #2a1c0c;
-  --adm-card: linear-gradient(180deg, rgba(42, 28, 12, 0.95), rgba(26, 16, 8, 0.95));
+  --adm-bg: #f5f5f5;
+  --adm-surface: rgba(255, 255, 255, 0.95);
+  --adm-surface-solid: #ffffff;
+  --adm-card: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(245, 245, 245, 0.98));
   --adm-border: rgba(230, 126, 34, 0.15);
   --adm-text: #f5e6d3;
   --adm-text-soft: #c4a882;
