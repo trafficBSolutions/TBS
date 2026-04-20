@@ -7,17 +7,17 @@
   --adm-surface: rgba(255, 255, 255, 0.95);
   --adm-surface-solid: #ffffff;
   --adm-card: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(245, 245, 245, 0.98));
-  --adm-border: rgba(230, 126, 34, 0.15);
-  --adm-text: #f5e6d3;
-  --adm-text-soft: #c4a882;
-  --adm-text-muted: #8b7355;
+  --adm-border: rgba(200, 200, 200, 0.6);
+  --adm-text: #1a1a1a;
+  --adm-text-soft: #4a4a4a;
+  --adm-text-muted: #888888;
   --adm-accent: #e67e22;
   --adm-accent-2: #f39c12;
   --adm-accent-3: #27ae60;
   --adm-danger: #e74c3c;
   --adm-radius: 16px;
   --adm-radius-sm: 12px;
-  --adm-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  --adm-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
   --adm-transition: all 0.2s ease;
 }
 
@@ -172,14 +172,14 @@
 }
 
 .emp-password-row input::placeholder {
-  color: #fff;
-  opacity: 0.6;
+  color: #888;
+  opacity: 1;
 }
 
 .add-task textarea::placeholder,
 .task-date-input::placeholder {
-  color: #fff;
-  opacity: 0.6;
+  color: #888;
+  opacity: 1;
 }
 
 .msg-success { color: var(--adm-accent-3); font-weight: 700; margin-top: 0.5rem; }
@@ -299,7 +299,7 @@
 .job-company {
   font-size: 1.9rem;
   margin-bottom: 0.75rem;
-  color: #fff;
+  color: #1a1a1a;
 }
 
 .job-card p,
@@ -327,7 +327,7 @@
   text-align: center;
   font-size: 2.3rem;
   margin-bottom: 0.75rem;
-  color: #fff;
+  color: #1a1a1a;
 }
 
 .applicant-list h5 {
@@ -440,13 +440,13 @@
 }
 
 .admin-date-picker .react-datepicker__header {
-  background: linear-gradient(135deg, rgba(230, 126, 34, 0.25), rgba(243, 156, 18, 0.18));
+  background: linear-gradient(135deg, rgba(230, 126, 34, 0.1), rgba(243, 156, 18, 0.08));
   border-bottom: 1px solid var(--adm-border);
   padding: 1rem 0;
 }
 
 .admin-date-picker .react-datepicker__current-month {
-  color: #fff;
+  color: #1a1a1a;
   font-size: 1.5rem;
   font-weight: 700;
 }
@@ -469,8 +469,8 @@
   justify-content: flex-start;
   padding-top: 0.35rem;
   border-radius: var(--adm-radius-sm);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: rgba(255, 255, 255, 0.5);
   color: var(--adm-text);
   transition: var(--adm-transition);
 }
@@ -483,13 +483,13 @@
 .admin-date-picker .has-jobs {
   background: linear-gradient(135deg, rgba(230, 126, 34, 0.3), rgba(243, 156, 18, 0.25));
   border-color: rgba(230, 126, 34, 0.5);
-  color: #fff;
+  color: #1a1a1a;
   font-weight: 700;
 }
 
 .admin-date-picker .react-datepicker__day--keyboard-selected {
   background: rgba(230, 126, 34, 0.2);
-  color: #fff;
+  color: #1a1a1a;
 }
 
 /* Outside-month days */
@@ -504,6 +504,7 @@
   color: var(--adm-accent);
   font-weight: 700;
 }
+
 
 /* Week row */
 .admin-date-picker .react-datepicker__week {
@@ -556,7 +557,7 @@
 .calendar-day-kiss .day-number {
   font-weight: 700;
   font-size: 1.1rem;
-  color: #fff;
+  color: #1a1a1a;
 }
 
 .calendar-day-kiss .job-count,
@@ -621,7 +622,7 @@
 
 .notes-section,
 .selected-date-tasks {
-  background: linear-gradient(180deg, rgba(26, 16, 8, 0.96), rgba(32, 20, 10, 0.96));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(245, 245, 245, 0.96));
 }
 
 .add-note,
@@ -675,7 +676,7 @@
 
 .note-author,
 .task-author {
-  color: #fff;
+  color: #1a1a1a;
   font-weight: 700;
 }
 
@@ -791,7 +792,7 @@
 ========================= */
 
 .ta-images-section {
-  background: linear-gradient(180deg, rgba(32, 20, 10, 0.96), rgba(26, 16, 8, 0.96));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(245, 245, 245, 0.96));
 }
 
 .ta-images-grid {
@@ -814,7 +815,7 @@
 .ta-image-card h4 {
   font-size: 1.5rem;
   margin-bottom: 0.85rem;
-  color: #fff;
+  color: #1a1a1a;
 }
 
 .ta-image-card img,
@@ -856,7 +857,7 @@
 .image-modal {
   position: fixed;
   inset: 0;
-  background: rgba(2, 6, 23, 0.92);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -877,7 +878,7 @@
 }
 
 .modal-content h3 {
-  color: #fff;
+  color: #1a1a1a;
   text-align: center;
   margin-bottom: 1rem;
 }
