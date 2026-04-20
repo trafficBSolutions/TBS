@@ -314,7 +314,7 @@
 .job-card a,
 .applicant-card a,
 .plan-card a {
-  color: #faf0ca;
+  color: #c0600a;
 }
 
 .job-card td,
@@ -522,7 +522,7 @@
 }
 
 .admin-date-picker .react-datepicker__navigation:hover .react-datepicker__navigation-icon::before {
-  border-color: #fff;
+  border-color: #1a1a1a;
 }
 
 /* Year / month dropdowns (if used) */
@@ -571,13 +571,13 @@
 }
 
 .calendar-day-kiss .job-count {
-  background: rgba(230, 126, 34, 0.22);
-  color: #fcd9b6;
+  background: rgba(230, 126, 34, 0.15);
+  color: #b35a00;
 }
 
 .calendar-day-kiss .task-count {
-  background: rgba(243, 156, 18, 0.2);
-  color: #fde68a;
+  background: rgba(243, 156, 18, 0.15);
+  color: #9a6700;
 }
 
 /* =========================
@@ -585,17 +585,17 @@
 ========================= */
 
 .updated-label {
-  color: #86efac;
+  color: #1a8a42;
   font-weight: 700;
 }
 
 .cancellation-type {
-  color: #f5b7b1;
+  color: #c0392b;
   font-weight: 700;
 }
 
 .month-header {
-  color: #f5b7b1;
+  color: #c0392b;
   font-size: 1.2rem;
   font-weight: 700;
   margin-bottom: 1rem;
@@ -711,21 +711,21 @@
 
 .note-visibility.public,
 .task-visibility.public {
-  background: rgba(39, 174, 96, 0.16);
-  color: #82e0aa;
+  background: rgba(39, 174, 96, 0.12);
+  color: #1a8a42;
 }
 
 .note-visibility.private,
 .task-visibility.private {
-  background: rgba(231, 76, 60, 0.16);
-  color: #f5b7b1;
+  background: rgba(231, 76, 60, 0.12);
+  color: #c0392b;
 }
 
 .delete-note,
 .delete-task {
   background: transparent;
   border: none;
-  color: #fca5a5;
+  color: #e74c3c;
   cursor: pointer;
   border-radius: 8px;
   padding: 0.25rem 0.45rem;
