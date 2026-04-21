@@ -58,6 +58,8 @@ export default function Quote() {
 
   const [cardType, setCardType] = useState("");
   const [cardLast4, setCardLast4] = useState("");
+  const [isCheckPayment, setIsCheckPayment] = useState(false);
+  const [checkNumber, setCheckNumber] = useState("");
 
   const [rows, setRows] = useState([blankRow()]);
   const [sending, setSending] = useState(false);
@@ -77,6 +79,8 @@ export default function Quote() {
   const [invPayMethod, setInvPayMethod] = useState("Check");
   const [invCardType, setInvCardType] = useState("");
   const [invCardLast4, setInvCardLast4] = useState("");
+  const [invIsCheckPayment, setInvIsCheckPayment] = useState(false);
+  const [invCheckNumber, setInvCheckNumber] = useState("");
   const [invRows, setInvRows] = useState([blankRow()]);
   const [invSending, setInvSending] = useState(false);
   const [invMessage, setInvMessage] = useState("");
@@ -91,11 +95,11 @@ export default function Quote() {
     const subtotal = lineTotals.reduce((s, v) => s + v, 0);
     const taxableSubtotal = invIsTaxExempt ? 0 : invRows.reduce((s, r, i) => r.taxable ? s + lineTotals[i] : s, 0);
     const taxDue = taxableSubtotal * (Number(invTaxRate) || 0);
-    const ccFee = invPayMethod === "Card" ? (subtotal + taxDue) * ccFeeRate : 0;
+    const ccFee = (invPayMethod === "Card" && !invIsCheckPayment) ? (subtotal + taxDue) * ccFeeRate : 0;
     const total = invIsTaxExempt ? subtotal + ccFee : subtotal + taxDue + ccFee;
     const depositDue = requireDeposit ? total * depositRate : 0;
     return { lineTotals, subtotal, taxDue, ccFee, total, depositDue };
-  }, [invRows, invTaxRate, invIsTaxExempt, invPayMethod, ccFeeRate, requireDeposit, depositRate]);
+  }, [invRows, invTaxRate, invIsTaxExempt, invPayMethod, invIsCheckPayment, ccFeeRate, requireDeposit, depositRate]);
 
   const handleInvPhoneChange = (e) => {
     const raw = e.target.value.replace(/\D/g, '');
@@ -113,7 +117,8 @@ export default function Quote() {
         date: invDate, company: invCompany, customer: invCustomer,
         email: invEmail, phone: invPhone,
         taxRate: invTaxRate, isTaxExempt: invIsTaxExempt, taxExemptNumber: invTaxExemptNumber,
-        payMethod: invPayMethod, cardType: invCardType, cardLast4: invCardLast4,
+        payMethod: invIsCheckPayment ? 'Check' : invPayMethod, cardType: invCardType, cardLast4: invCardLast4,
+        checkNumber: invIsCheckPayment ? invCheckNumber : '',
         rows: invRows, computed: invComputed
       });
       setInvMessage("Invoice sent successfully!");
@@ -147,14 +152,14 @@ export default function Quote() {
     const taxDue = taxableSubtotal * (Number(taxRate) || 0);
 
     const ccFee =
-      payMethod === "Card" ? (subtotal + taxDue) * ccFeeRate : 0;
+      (payMethod === "Card" && !isCheckPayment) ? (subtotal + taxDue) * ccFeeRate : 0;
 
     const total = isTaxExempt ? subtotal + ccFee : subtotal + taxDue + ccFee;
 
     const depositDue = requireDeposit ? total * depositRate : 0;
 
     return { lineTotals, subtotal, taxDue, ccFee, total, depositDue };
-  }, [rows, taxRate, isTaxExempt, payMethod, ccFeeRate, requireDeposit, depositRate]);
+  }, [rows, taxRate, isTaxExempt, payMethod, isCheckPayment, ccFeeRate, requireDeposit, depositRate]);
  const handlePhoneChange = (event) => {
     const input = event.target.value;
     const rawInput = input.replace(/\D/g, ''); // Remove non-digit characters
@@ -190,9 +195,10 @@ export default function Quote() {
         taxRate,
         isTaxExempt,
         taxExemptNumber,
-        payMethod,
+        payMethod: isCheckPayment ? 'Check' : payMethod,
         cardType,
         cardLast4,
+        checkNumber: isCheckPayment ? checkNumber : '',
         rows,
         computed
       });
@@ -261,13 +267,32 @@ export default function Quote() {
         <label className="inline">
           <input
             type="checkbox"
+            checked={isCheckPayment}
+            onChange={(e) => {
+              setIsCheckPayment(e.target.checked);
+              if (e.target.checked) setPayMethod('Check');
+            }}
+          />
+          Check Number (no card fee)
+        </label>
+
+        {isCheckPayment && (
+          <label>Check Number
+            <input type="text" value={checkNumber} onChange={(e) => setCheckNumber(e.target.value)} placeholder="Enter check number" />
+          </label>
+        )}
+
+        <label className="inline">
+          <input
+            type="checkbox"
             checked={payMethod === "Card"}
+            disabled={isCheckPayment}
             onChange={(e) => setPayMethod(e.target.checked ? "Card" : "Check")}
           />
           Credit Card (adds 3% fee)
         </label>
 
-        {payMethod === "Card" && (
+        {payMethod === "Card" && !isCheckPayment && (
           <>
             <label>Card Type
               <select value={cardType} onChange={(e) => setCardType(e.target.value)}>
@@ -414,13 +439,32 @@ export default function Quote() {
         <label className="inline">
           <input
             type="checkbox"
+            checked={invIsCheckPayment}
+            onChange={(e) => {
+              setInvIsCheckPayment(e.target.checked);
+              if (e.target.checked) setInvPayMethod('Check');
+            }}
+          />
+          Check Number (no card fee)
+        </label>
+
+        {invIsCheckPayment && (
+          <label>Check Number
+            <input type="text" value={invCheckNumber} onChange={(e) => setInvCheckNumber(e.target.value)} placeholder="Enter check number" />
+          </label>
+        )}
+
+        <label className="inline">
+          <input
+            type="checkbox"
             checked={invPayMethod === "Card"}
+            disabled={invIsCheckPayment}
             onChange={(e) => setInvPayMethod(e.target.checked ? "Card" : "Check")}
           />
           Credit Card (adds 3% fee)
         </label>
 
-        {invPayMethod === "Card" && (
+        {invPayMethod === "Card" && !invIsCheckPayment && (
           <>
             <label>Card Type
               <select value={invCardType} onChange={(e) => setInvCardType(e.target.value)}>
