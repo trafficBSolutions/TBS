@@ -1,0 +1,262 @@
+.tcp-designer {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  font-family: Arial, Helvetica, sans-serif;
+}
+.tcp-designer h1 {
+  text-align: center;
+  font-size: clamp(2rem, 4vw, 3rem);
+  margin-bottom: 1rem;
+  color: #1a1a1a;
+}
+.tcp-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  align-items: center;
+}
+.tcp-toolbar button, .tcp-toolbar select {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  cursor: pointer;
+  background: #f9f9f9;
+  transition: all 0.2s;
+}
+.tcp-toolbar button:hover { background: #e67e22; color: #fff; border-color: #e67e22; }
+.tcp-toolbar button.active { background: #e67e22; color: #fff; border-color: #e67e22; }
+.tcp-toolbar .toolbar-divider {
+  width: 1px;
+  height: 30px;
+  background: #ddd;
+  margin: 0 0.25rem;
+}
+.tcp-map-area {
+  position: relative;
+  width: 100%;
+  height: 600px;
+  border: 2px solid #333;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+  cursor: crosshair;
+}
+.tcp-map-area .map-container { width: 100%; height: 100%; }
+.tcp-canvas-overlay {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+.tcp-canvas-overlay.drawing { pointer-events: auto; cursor: crosshair; }
+.tcp-draggable {
+  position: absolute;
+  z-index: 3;
+  cursor: grab;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #333;
+  text-align: center;
+}
+.tcp-draggable:active { cursor: grabbing; }
+.tcp-draggable .icon-label {
+  background: rgba(255,255,255,0.9);
+  padding: 1px 4px;
+  border-radius: 4px;
+  margin-top: 2px;
+  white-space: nowrap;
+  font-size: 0.65rem;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tcp-draggable .remove-icon {
+  position: absolute;
+  top: -8px; right: -8px;
+  width: 16px; height: 16px;
+  background: #e74c3c;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  font-size: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+}
+.tcp-phases {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+.tcp-phases h2 { font-size: 1.5rem; margin-bottom: 0.75rem; color: #1a1a1a; }
+.phase-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+.phase-tabs button {
+  padding: 0.5rem 1.2rem;
+  border-radius: 999px;
+  border: 1px solid #ccc;
+  background: #f5f5f5;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+}
+.phase-tabs button.active { background: #e67e22; color: #fff; border-color: #e67e22; }
+.phase-tabs button.add-phase { background: #27ae60; color: #fff; border-color: #27ae60; }
+.phase-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+.phase-form label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #333;
+}
+.phase-form label.full-width { grid-column: 1 / -1; }
+.phase-form input, .phase-form select, .phase-form textarea {
+  margin-top: 0.25rem;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: #1a1a1a;
+  background: #fafafa;
+}
+.phase-form textarea { resize: vertical; min-height: 80px; }
+.sign-count-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.5rem;
+  grid-column: 1 / -1;
+}
+.sign-count-grid label {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+.sign-count-grid input {
+  width: 50px;
+  text-align: center;
+}
+.tcp-form-section {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+.tcp-form-section h2 { font-size: 1.5rem; margin-bottom: 0.75rem; color: #1a1a1a; }
+.tcp-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+.tcp-form-grid label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #333;
+}
+.tcp-form-grid label.full-width { grid-column: 1 / -1; }
+.tcp-form-grid input, .tcp-form-grid select, .tcp-form-grid textarea {
+  margin-top: 0.25rem;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: #1a1a1a;
+  background: #fafafa;
+}
+.tcp-form-grid textarea { resize: vertical; min-height: 80px; }
+.tcp-export-bar {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+.tcp-export-bar button {
+  padding: 0.8rem 2rem;
+  border-radius: 999px;
+  border: none;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tcp-export-bar .export-pdf {
+  background: linear-gradient(135deg, #e67e22, #f39c12);
+  color: #fff;
+}
+.tcp-export-bar .export-pdf:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(230,126,34,0.4); }
+.tcp-export-bar .export-pdf:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+.msg-board-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+.msg-board-inputs input {
+  padding: 0.35rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+.tcp-legend {
+  display: flex;
+  gap: 1.5rem;
+  padding: 0.75rem 1rem;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  flex-wrap: wrap;
+}
+.tcp-legend span { display: flex; align-items: center; gap: 0.4rem; }
+.legend-line {
+  width: 30px;
+  height: 4px;
+  border-radius: 2px;
+  display: inline-block;
+}
+.legend-buffer { background: #f1c40f; }
+.legend-taper { background: #e67e22; }
+.legend-crossing { background: #27ae60; }
+@media (max-width: 768px) {
+  .tcp-map-area { height: 400px; }
+  .phase-form, .tcp-form-grid { grid-template-columns: 1fr; }
+  .sign-count-grid { grid-template-columns: 1fr 1fr; }
+  .tcp-toolbar { justify-content: center; }
+}
