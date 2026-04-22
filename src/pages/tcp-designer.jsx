@@ -19,6 +19,7 @@ const SIGN_TYPES = [
   'Right Lane Closed Ahead', 'Left Lane Closed Ahead', 'One Lane Closed Ahead',
   '2 Right Lanes Closed Ahead', '2 Right Lanes Closed 1500FT', '2 Right Lanes Closed 500FT',
   '2 Right Lanes Closed 1000FT', '2 Right Lanes Closed 1/2 Mile',
+  'Detour Ahead', 'End Detour', 'End Road Work',
 ];
 
 const DRAGGABLE_ITEMS = [
@@ -59,56 +60,83 @@ const emptyPhase = () => ({
   signCounts: Object.fromEntries(SIGN_TYPES.map(s => [s, 0])),
 });
 
+// Helper: pixel (relative to map container) → LatLng
+const pixelToLatLng = (overlay, x, y) => {
+  const proj = overlay.getProjection();
+  if (!proj) return null;
+  const topRight = proj.fromLatLngToContainerPixel(overlay.getMap().getBounds().getNorthEast());
+  const bottomLeft = proj.fromLatLngToContainerPixel(overlay.getMap().getBounds().getSouthWest());
+  // fromContainerPixelToLatLng takes a google.maps.Point
+  return proj.fromContainerPixelToLatLng(new window.google.maps.Point(x, y));
+};
+
+// Helper: LatLng → pixel (relative to map container)
+const latLngToPixel = (overlay, lat, lng) => {
+  const proj = overlay.getProjection();
+  if (!proj) return null;
+  const pt = proj.fromLatLngToContainerPixel(new window.google.maps.LatLng(lat, lng));
+  return pt ? { x: pt.x, y: pt.y } : null;
+};
+
 const TCPDesigner = () => {
   const navigate = useNavigate();
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
+  const overlayRef = useRef(null);
   const canvasRef = useRef(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [mapMoveKey, setMapMoveKey] = useState(0); // triggers re-render on map pan/zoom
 
-  // Plan info
   const [planInfo, setPlanInfo] = useState({
     projectAddress: '', city: '', state: 'TN', zip: '',
     prismId: '', roadName: '', email: 'tbsolutions9@gmail.com',
   });
 
-  // Phases
   const [phases, setPhases] = useState([emptyPhase()]);
   const [activePhaseIdx, setActivePhaseIdx] = useState(0);
 
-  // Placed items per phase
+  // Items stored with lat/lng
   const [placedItems, setPlacedItems] = useState({ [phases[0].id]: [] });
 
-  // Drawing
+  // Lines stored with lat/lng points
   const [drawMode, setDrawMode] = useState(null);
   const [lines, setLines] = useState({ [phases[0].id]: [] });
-  const [currentLine, setCurrentLine] = useState(null);
+  const [currentLine, setCurrentLine] = useState(null); // pixel-based while drawing, converted on mouseUp
 
-  // Dragging
   const [dragItem, setDragItem] = useState(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
-  // Message board editing
-  const [msgBoardEdit, setMsgBoardEdit] = useState(null);
-
-  // Export
   const [exporting, setExporting] = useState(false);
   const [exportMsg, setExportMsg] = useState('');
 
   const activePhase = phases[activePhaseIdx];
   const phaseId = activePhase?.id;
 
-  // Load Google Maps
+  // Load Google Maps + create OverlayView for projection access
   useEffect(() => {
     const init = () => {
       if (!mapRef.current || mapInstanceRef.current) return;
-      mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
+      const map = new window.google.maps.Map(mapRef.current, {
         center: { lat: 35.0689, lng: -85.0481 },
         zoom: 15,
         mapTypeId: 'hybrid',
         disableDefaultUI: false,
         gestureHandling: 'greedy',
       });
+      mapInstanceRef.current = map;
+
+      // Create a dummy OverlayView just to access its projection
+      const overlay = new window.google.maps.OverlayView();
+      overlay.onAdd = () => {};
+      overlay.draw = () => {};
+      overlay.onRemove = () => {};
+      overlay.setMap(map);
+      overlayRef.current = overlay;
+
+      // Re-render items/lines whenever map moves
+      map.addListener('idle', () => setMapMoveKey(k => k + 1));
+      map.addListener('zoom_changed', () => setMapMoveKey(k => k + 1));
+
       setMapLoaded(true);
     };
     if (window.google?.maps) { init(); return; }
@@ -119,7 +147,6 @@ const TCPDesigner = () => {
     document.body.appendChild(script);
   }, []);
 
-  // Geocode address
   const geocodeAddress = useCallback(() => {
     const { projectAddress, city, state, zip } = planInfo;
     if (!projectAddress || !window.google) return;
@@ -132,7 +159,19 @@ const TCPDesigner = () => {
     });
   }, [planInfo]);
 
-  // Canvas drawing
+  // Convert item lat/lng to pixel for rendering
+  const getItemPixel = (item) => {
+    if (!overlayRef.current?.getProjection()) return null;
+    return latLngToPixel(overlayRef.current, item.lat, item.lng);
+  };
+
+  // Convert line lat/lng points to pixel for canvas drawing
+  const lineToPixels = (line) => {
+    if (!overlayRef.current?.getProjection()) return [];
+    return line.points.map(p => latLngToPixel(overlayRef.current, p.lat, p.lng)).filter(Boolean);
+  };
+
+  // Redraw canvas whenever map moves, lines change, or phase changes
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -153,11 +192,20 @@ const TCPDesigner = () => {
       ctx.stroke();
     };
 
+    // Draw saved lines (convert lat/lng → pixel)
     const phaseLines = lines[phaseId] || [];
-    phaseLines.forEach(l => drawLine(l.points, l.color));
-    if (currentLine) drawLine(currentLine.points, currentLine.color);
-  }, [lines, currentLine, phaseId]);
+    phaseLines.forEach(l => {
+      const pixels = lineToPixels(l);
+      drawLine(pixels, l.color);
+    });
 
+    // Draw current in-progress line (already in pixels)
+    if (currentLine && currentLine.points.length >= 2) {
+      drawLine(currentLine.points, currentLine.color);
+    }
+  }, [lines, currentLine, phaseId, mapMoveKey]);
+
+  // --- Drawing handlers (pixel while drawing, convert to lat/lng on save) ---
   const handleCanvasMouseDown = (e) => {
     if (!drawMode) return;
     const rect = canvasRef.current.getBoundingClientRect();
@@ -175,25 +223,43 @@ const TCPDesigner = () => {
 
   const handleCanvasMouseUp = () => {
     if (!currentLine || currentLine.points.length < 2) { setCurrentLine(null); return; }
-    setLines(prev => ({
-      ...prev,
-      [phaseId]: [...(prev[phaseId] || []), currentLine],
-    }));
+    const overlay = overlayRef.current;
+    if (!overlay?.getProjection()) { setCurrentLine(null); return; }
+
+    // Convert pixel points → lat/lng for permanent storage
+    const geoPoints = currentLine.points.map(pt => {
+      const ll = pixelToLatLng(overlay, pt.x, pt.y);
+      return ll ? { lat: ll.lat(), lng: ll.lng() } : null;
+    }).filter(Boolean);
+
+    if (geoPoints.length >= 2) {
+      setLines(prev => ({
+        ...prev,
+        [phaseId]: [...(prev[phaseId] || []), { mode: currentLine.mode, color: currentLine.color, points: geoPoints }],
+      }));
+    }
     setCurrentLine(null);
   };
 
-  // Drop item on map
+  // --- Place item (click on map area → convert pixel to lat/lng) ---
   const handleMapClick = (e) => {
-    if (drawMode || !dragItem) return;
+    if (drawMode || !dragItem || dragItem.placed) return;
+    const overlay = overlayRef.current;
+    if (!overlay?.getProjection()) return;
+
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
+    const ll = pixelToLatLng(overlay, x, y);
+    if (!ll) return;
+
     const newItem = {
       id: Date.now(),
       type: dragItem.type,
       label: dragItem.label,
       emoji: dragItem.emoji,
-      x, y,
+      lat: ll.lat(),
+      lng: ll.lng(),
       signType: dragItem.type === 'sign' ? SIGN_TYPES[0] : undefined,
       msgLine1: '', msgLine2: '',
     };
@@ -204,22 +270,31 @@ const TCPDesigner = () => {
     setDragItem(null);
   };
 
-  // Drag placed items
+  // --- Drag placed items (move in lat/lng) ---
   const startDragPlaced = (e, item) => {
     e.stopPropagation();
-    const rect = e.currentTarget.parentElement.getBoundingClientRect();
-    setDragOffset({ x: e.clientX - item.x - rect.left, y: e.clientY - item.y - rect.top });
+    e.preventDefault();
+    const px = getItemPixel(item);
+    if (!px) return;
+    const rect = mapRef.current.getBoundingClientRect();
+    setDragOffset({ x: e.clientX - px.x, y: e.clientY - px.y });
     setDragItem({ ...item, placed: true });
   };
 
   const handleMapMouseMove = (e) => {
     if (!dragItem?.placed) return;
+    const overlay = overlayRef.current;
+    if (!overlay?.getProjection()) return;
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left - dragOffset.x;
-    const y = e.clientY - rect.top - dragOffset.y;
+    const x = e.clientX - rect.left - dragOffset.x + 16; // +16 to center
+    const y = e.clientY - rect.top - dragOffset.y + 16;
+    const ll = pixelToLatLng(overlay, x, y);
+    if (!ll) return;
     setPlacedItems(prev => ({
       ...prev,
-      [phaseId]: (prev[phaseId] || []).map(it => it.id === dragItem.id ? { ...it, x, y } : it),
+      [phaseId]: (prev[phaseId] || []).map(it =>
+        it.id === dragItem.id ? { ...it, lat: ll.lat(), lng: ll.lng() } : it
+      ),
     }));
   };
 
@@ -260,36 +335,22 @@ const TCPDesigner = () => {
     ));
   };
 
-  const clearDrawing = () => {
-    setLines(prev => ({ ...prev, [phaseId]: [] }));
-  };
+  const clearDrawing = () => setLines(prev => ({ ...prev, [phaseId]: [] }));
+  const undoLastLine = () => setLines(prev => ({ ...prev, [phaseId]: (prev[phaseId] || []).slice(0, -1) }));
 
-  const undoLastLine = () => {
-    setLines(prev => ({
-      ...prev,
-      [phaseId]: (prev[phaseId] || []).slice(0, -1),
-    }));
-  };
-
-  // Export PDF & email
+  // Export
   const handleExport = async () => {
     setExporting(true);
     setExportMsg('');
     try {
-      // Capture canvas as image
       const canvas = canvasRef.current;
       const canvasImage = canvas?.toDataURL('image/png') || '';
-
       const payload = {
         planInfo,
-        phases: phases.map(p => ({
-          ...p,
-          items: placedItems[p.id] || [],
-        })),
+        phases: phases.map(p => ({ ...p, items: placedItems[p.id] || [], lines: lines[p.id] || [] })),
         canvasImage,
         email: planInfo.email,
       };
-
       const res = await axios.post('/tcp-designer/export', payload);
       setExportMsg(res.data?.message || 'TTCP exported and emailed successfully!');
     } catch (err) {
@@ -306,7 +367,6 @@ const TCPDesigner = () => {
       <div className="tcp-designer">
         <h1>🚧 Traffic Control Plan Designer</h1>
 
-        {/* Legend */}
         <div className="tcp-legend">
           <span><span className="legend-line legend-buffer" /> Buffer (Yellow/Gold)</span>
           <span><span className="legend-line legend-taper" /> Taper (Orange)</span>
@@ -343,7 +403,7 @@ const TCPDesigner = () => {
         {/* Map Area */}
         <div
           className="tcp-map-area"
-          onClick={!drawMode && dragItem && !dragItem.placed ? handleMapClick : undefined}
+          onClick={handleMapClick}
           onMouseMove={handleMapMouseMove}
           onMouseUp={handleMapMouseUp}
         >
@@ -356,76 +416,57 @@ const TCPDesigner = () => {
             onMouseUp={handleCanvasMouseUp}
             onMouseLeave={handleCanvasMouseUp}
           />
-          {(placedItems[phaseId] || []).map(item => (
-            <div
-              key={item.id}
-              className="tcp-draggable"
-              style={{ left: item.x - 16, top: item.y - 16 }}
-              onMouseDown={(e) => startDragPlaced(e, item)}
-            >
-              <button className="remove-icon" onClick={(e) => { e.stopPropagation(); removeItem(item.id); }}>×</button>
-              <span style={{ fontSize: '1.8rem' }}>{item.emoji}</span>
-              {item.type === 'sign' && (
-                <select
-                  value={item.signType}
-                  onClick={e => e.stopPropagation()}
-                  onChange={e => updateItemProp(item.id, 'signType', e.target.value)}
-                  style={{ fontSize: '0.6rem', maxWidth: '90px', padding: '1px' }}
-                >
-                  {SIGN_TYPES.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-              )}
-              {item.type === 'messageBoard' && (
-                <div className="msg-board-inputs" onClick={e => e.stopPropagation()}>
-                  <input placeholder="Line 1" value={item.msgLine1} onChange={e => updateItemProp(item.id, 'msgLine1', e.target.value)} />
-                  <input placeholder="Line 2" value={item.msgLine2} onChange={e => updateItemProp(item.id, 'msgLine2', e.target.value)} />
-                </div>
-              )}
-              {item.type !== 'sign' && item.type !== 'messageBoard' && (
-                <span className="icon-label">{item.label}</span>
-              )}
-            </div>
-          ))}
+          {/* Render placed items at their pixel position derived from lat/lng */}
+          {(placedItems[phaseId] || []).map(item => {
+            const px = getItemPixel(item);
+            if (!px) return null;
+            return (
+              <div
+                key={item.id}
+                className="tcp-draggable"
+                style={{ left: px.x - 16, top: px.y - 16 }}
+                onMouseDown={(e) => startDragPlaced(e, item)}
+              >
+                <button className="remove-icon" onClick={(e) => { e.stopPropagation(); removeItem(item.id); }}>×</button>
+                <span style={{ fontSize: '1.8rem' }}>{item.emoji}</span>
+                {item.type === 'sign' && (
+                  <select
+                    value={item.signType}
+                    onClick={e => e.stopPropagation()}
+                    onMouseDown={e => e.stopPropagation()}
+                    onChange={e => updateItemProp(item.id, 'signType', e.target.value)}
+                    style={{ fontSize: '0.6rem', maxWidth: '90px', padding: '1px' }}
+                  >
+                    {SIGN_TYPES.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                )}
+                {item.type === 'messageBoard' && (
+                  <div className="msg-board-inputs" onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()}>
+                    <input placeholder="Line 1" value={item.msgLine1} onChange={e => updateItemProp(item.id, 'msgLine1', e.target.value)} />
+                    <input placeholder="Line 2" value={item.msgLine2} onChange={e => updateItemProp(item.id, 'msgLine2', e.target.value)} />
+                  </div>
+                )}
+                {item.type !== 'sign' && item.type !== 'messageBoard' && (
+                  <span className="icon-label">{item.label}</span>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {/* Plan Info */}
         <div className="tcp-form-section">
           <h2>📋 TTCP Plan Information</h2>
           <div className="tcp-form-grid">
-            <label>
-              Prism ID Number
-              <input value={planInfo.prismId} onChange={e => setPlanInfo(p => ({ ...p, prismId: e.target.value }))} />
-            </label>
-            <label>
-              Road Name
-              <input value={planInfo.roadName} onChange={e => setPlanInfo(p => ({ ...p, roadName: e.target.value }))} placeholder="e.g. U.S Hwy 64" />
-            </label>
-            <label>
-              Project Address
-              <input value={planInfo.projectAddress} onChange={e => setPlanInfo(p => ({ ...p, projectAddress: e.target.value }))} placeholder="9200 AMOS RD" />
-            </label>
-            <label>
-              City
-              <input value={planInfo.city} onChange={e => setPlanInfo(p => ({ ...p, city: e.target.value }))} placeholder="OOLTEWAH" />
-            </label>
-            <label>
-              State
-              <input value={planInfo.state} onChange={e => setPlanInfo(p => ({ ...p, state: e.target.value }))} />
-            </label>
-            <label>
-              Zip
-              <input value={planInfo.zip} onChange={e => setPlanInfo(p => ({ ...p, zip: e.target.value }))} placeholder="37363" />
-            </label>
-            <label>
-              Email (PDF will be sent here)
-              <input value={planInfo.email} onChange={e => setPlanInfo(p => ({ ...p, email: e.target.value }))} />
-            </label>
-            <label>
-              <br />
-              <button
-                onClick={geocodeAddress}
-                style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid #e67e22', background: '#e67e22', color: '#fff', cursor: 'pointer', fontWeight: 700 }}
-              >
+            <label>Prism ID Number<input value={planInfo.prismId} onChange={e => setPlanInfo(p => ({ ...p, prismId: e.target.value }))} /></label>
+            <label>Road Name<input value={planInfo.roadName} onChange={e => setPlanInfo(p => ({ ...p, roadName: e.target.value }))} placeholder="e.g. U.S Hwy 64" /></label>
+            <label>Project Address<input value={planInfo.projectAddress} onChange={e => setPlanInfo(p => ({ ...p, projectAddress: e.target.value }))} placeholder="9200 AMOS RD" /></label>
+            <label>City<input value={planInfo.city} onChange={e => setPlanInfo(p => ({ ...p, city: e.target.value }))} placeholder="OOLTEWAH" /></label>
+            <label>State<input value={planInfo.state} onChange={e => setPlanInfo(p => ({ ...p, state: e.target.value }))} /></label>
+            <label>Zip<input value={planInfo.zip} onChange={e => setPlanInfo(p => ({ ...p, zip: e.target.value }))} placeholder="37363" /></label>
+            <label>Email (PDF sent here)<input value={planInfo.email} onChange={e => setPlanInfo(p => ({ ...p, email: e.target.value }))} /></label>
+            <label><br />
+              <button onClick={geocodeAddress} style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid #e67e22', background: '#e67e22', color: '#fff', cursor: 'pointer', fontWeight: 700 }}>
                 📍 Go to Address on Map
               </button>
             </label>
@@ -443,99 +484,40 @@ const TCPDesigner = () => {
             ))}
             <button className="add-phase" onClick={addPhase}>+ Add Phase</button>
           </div>
-
           {activePhase && (
             <div className="phase-form">
-              <label>
-                Typical Application (TA)
+              <label>Typical Application (TA)
                 <select value={activePhase.taType} onChange={e => updatePhase('taType', e.target.value)}>
                   {TA_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
               </label>
-              <label>
-                Speed Limit (mph)
-                <input type="number" value={activePhase.speedLimit} onChange={e => updatePhase('speedLimit', e.target.value)} />
+              <label>Speed Limit (mph)<input type="number" value={activePhase.speedLimit} onChange={e => updatePhase('speedLimit', e.target.value)} /></label>
+              <label className="full-width">Phase Description
+                <textarea value={activePhase.description} onChange={e => updatePhase('description', e.target.value)} placeholder="Traffic lanes will be reduced to one lane of traffic..." />
               </label>
-              <label className="full-width">
-                Phase Description
-                <textarea
-                  value={activePhase.description}
-                  onChange={e => updatePhase('description', e.target.value)}
-                  placeholder="Traffic lanes will be reduced to one lane of traffic..."
-                />
-              </label>
-              <label>
-                Total Signs
-                <input type="number" value={activePhase.totalSigns} onChange={e => updatePhase('totalSigns', e.target.value)} />
-              </label>
-              <label>
-                Sign Spacing (ft) on Main Road
-                <input type="number" value={activePhase.signSpacing} onChange={e => updatePhase('signSpacing', e.target.value)} />
-              </label>
-              <label>
-                Sign Spacing (ft) on Side Roads
-                <input type="number" value={activePhase.roadSignSpacing} onChange={e => updatePhase('roadSignSpacing', e.target.value)} />
-              </label>
-              <label>
-                Arrow Boards
-                <input type="number" value={activePhase.arrowBoards} onChange={e => updatePhase('arrowBoards', e.target.value)} />
-              </label>
-              <label>
-                Total Flaggers
-                <input value={activePhase.totalFlaggers} onChange={e => updatePhase('totalFlaggers', e.target.value)} placeholder="e.g. 3-4" />
-              </label>
-              <label>
-                Total Crews
-                <input type="number" value={activePhase.totalCrews} onChange={e => updatePhase('totalCrews', e.target.value)} />
-              </label>
-              <label>
-                Workspace Min (ft)
-                <input type="number" value={activePhase.workspaceMin} onChange={e => updatePhase('workspaceMin', e.target.value)} />
-              </label>
-              <label>
-                Workspace Max (ft)
-                <input type="number" value={activePhase.workspaceMax} onChange={e => updatePhase('workspaceMax', e.target.value)} />
-              </label>
-              <label>
-                Taper Device
+              <label>Total Signs<input type="number" value={activePhase.totalSigns} onChange={e => updatePhase('totalSigns', e.target.value)} /></label>
+              <label>Sign Spacing (ft) Main Road<input type="number" value={activePhase.signSpacing} onChange={e => updatePhase('signSpacing', e.target.value)} /></label>
+              <label>Sign Spacing (ft) Side Roads<input type="number" value={activePhase.roadSignSpacing} onChange={e => updatePhase('roadSignSpacing', e.target.value)} /></label>
+              <label>Arrow Boards<input type="number" value={activePhase.arrowBoards} onChange={e => updatePhase('arrowBoards', e.target.value)} /></label>
+              <label>Total Flaggers<input value={activePhase.totalFlaggers} onChange={e => updatePhase('totalFlaggers', e.target.value)} placeholder="e.g. 3-4" /></label>
+              <label>Total Crews<input type="number" value={activePhase.totalCrews} onChange={e => updatePhase('totalCrews', e.target.value)} /></label>
+              <label>Workspace Min (ft)<input type="number" value={activePhase.workspaceMin} onChange={e => updatePhase('workspaceMin', e.target.value)} /></label>
+              <label>Workspace Max (ft)<input type="number" value={activePhase.workspaceMax} onChange={e => updatePhase('workspaceMax', e.target.value)} /></label>
+              <label>Taper Device
                 <select value={activePhase.taperDevice} onChange={e => updatePhase('taperDevice', e.target.value)}>
                   {TAPER_DEVICE_OPTIONS.map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
               </label>
-              <label>
-                Cone Spacing - Taper (ft)
-                <input type="number" value={activePhase.coneSpacingTaper} onChange={e => updatePhase('coneSpacingTaper', e.target.value)} />
-              </label>
-              <label>
-                Cone Spacing - Past Taper (ft)
-                <input type="number" value={activePhase.coneSpacingPast} onChange={e => updatePhase('coneSpacingPast', e.target.value)} />
-              </label>
-              <label>
-                Buffer Space (ft)
-                <input type="number" value={activePhase.bufferSpace} onChange={e => updatePhase('bufferSpace', e.target.value)} />
-              </label>
-              <label>
-                Taper/Transition Length (ft)
-                <input type="number" value={activePhase.taperLength} onChange={e => updatePhase('taperLength', e.target.value)} />
-              </label>
-              <label>
-                Stop Sight Distance (ft)
-                <input type="number" value={activePhase.stopSightDistance} onChange={e => updatePhase('stopSightDistance', e.target.value)} />
-              </label>
-
-              {/* Sign counts */}
-              <label className="full-width" style={{ fontWeight: 700, fontSize: '1.1rem', marginTop: '0.5rem' }}>
-                Sign Breakdown:
-              </label>
+              <label>Cone Spacing - Taper (ft)<input type="number" value={activePhase.coneSpacingTaper} onChange={e => updatePhase('coneSpacingTaper', e.target.value)} /></label>
+              <label>Cone Spacing - Past Taper (ft)<input type="number" value={activePhase.coneSpacingPast} onChange={e => updatePhase('coneSpacingPast', e.target.value)} /></label>
+              <label>Buffer Space (ft)<input type="number" value={activePhase.bufferSpace} onChange={e => updatePhase('bufferSpace', e.target.value)} /></label>
+              <label>Taper/Transition Length (ft)<input type="number" value={activePhase.taperLength} onChange={e => updatePhase('taperLength', e.target.value)} /></label>
+              <label>Stop Sight Distance (ft)<input type="number" value={activePhase.stopSightDistance} onChange={e => updatePhase('stopSightDistance', e.target.value)} /></label>
+              <label className="full-width" style={{ fontWeight: 700, fontSize: '1.1rem', marginTop: '0.5rem' }}>Sign Breakdown:</label>
               <div className="sign-count-grid">
                 {SIGN_TYPES.map(s => (
                   <label key={s}>
-                    <input
-                      type="number"
-                      min="0"
-                      value={activePhase.signCounts[s]}
-                      onChange={e => updateSignCount(s, e.target.value)}
-                    />
+                    <input type="number" min="0" value={activePhase.signCounts[s]} onChange={e => updateSignCount(s, e.target.value)} />
                     {s}
                   </label>
                 ))}
@@ -544,19 +526,13 @@ const TCPDesigner = () => {
           )}
         </div>
 
-        {/* Export */}
         <div className="tcp-export-bar">
           <button className="export-pdf" onClick={handleExport} disabled={exporting}>
             {exporting ? '⏳ Generating & Emailing PDF...' : '📄 Export PDF & Email'}
           </button>
         </div>
         {exportMsg && (
-          <p style={{
-            textAlign: 'center',
-            fontWeight: 700,
-            color: exportMsg.includes('success') ? '#27ae60' : '#e74c3c',
-            fontSize: '1.1rem',
-          }}>
+          <p style={{ textAlign: 'center', fontWeight: 700, color: exportMsg.includes('success') ? '#27ae60' : '#e74c3c', fontSize: '1.1rem' }}>
             {exportMsg}
           </p>
         )}
