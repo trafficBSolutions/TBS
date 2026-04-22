@@ -1335,6 +1335,12 @@ selected={
   </div>
 
   <div className="tool-card">
+    <h3>🚧 TCP Designer</h3>
+    <p>Design Traffic Control Plans</p>
+    <button className="btn workorder-btn" onClick={() => navigate('/admin-dashboard/tcp-designer')}>Open Designer</button>
+  </div>
+
+  <div className="tool-card">
     <h3>📋 Add Task</h3>
     <p>Create tasks for any date</p>
     <button className={`btn ${showTasks ? 'active' : ''}`} onClick={() => setShowTasks(!showTasks)}>{showTasks ? 'Hide' : 'Open'}</button>
