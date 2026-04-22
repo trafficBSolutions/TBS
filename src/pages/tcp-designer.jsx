@@ -1,0 +1,568 @@
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { GOOGLE_MAPS_API_KEY } from '../constants/constantapi';
+import Header from '../components/headerviews/HeaderAdminDash';
+import '../css/tcp-designer.css';
+
+const TA_TYPES = [
+  { value: 'TA-10', label: 'TA-10 - Work Beyond Shoulder' },
+  { value: 'TA-22', label: 'TA-22 - Lane Closure on Two-Lane Road' },
+  { value: 'TA-33', label: 'TA-33 - Lane Closure on Multi-Lane Road' },
+  { value: 'TA-37', label: 'TA-37 - Multi-Lane Road Closure' },
+  { value: 'Rolling Roadblock', label: 'Rolling Roadblock' },
+];
+
+const SIGN_TYPES = [
+  'Utility Work Ahead', 'Be Prepared to Stop', 'Merge Left Symbol', 'Flagger Ahead',
+  'Road Closed Ahead', 'Detour Left', 'Detour Right', 'Detour Straight',
+  'Right Lane Closed Ahead', 'Left Lane Closed Ahead', 'One Lane Closed Ahead',
+  '2 Right Lanes Closed Ahead', '2 Right Lanes Closed 1500FT', '2 Right Lanes Closed 500FT',
+  '2 Right Lanes Closed 1000FT', '2 Right Lanes Closed 1/2 Mile',
+];
+
+const DRAGGABLE_ITEMS = [
+  { type: 'sign', label: 'Sign', emoji: '🪧' },
+  { type: 'flagger', label: 'Flagger', emoji: '🧑‍🦺' },
+  { type: 'arrowBoard', label: 'Arrow Board', emoji: '➡️' },
+  { type: 'messageBoard', label: 'Msg Board', emoji: '📺' },
+  { type: 'police', label: 'Police', emoji: '👮' },
+];
+
+const DRAW_MODES = [
+  { mode: 'buffer', label: 'Buffer (Yellow)', color: '#f1c40f' },
+  { mode: 'taper', label: 'Taper (Orange)', color: '#e67e22' },
+  { mode: 'crossing', label: 'Crossing (Green)', color: '#27ae60' },
+];
+
+const TAPER_DEVICE_OPTIONS = ['CONES', 'BARRELS'];
+
+const emptyPhase = () => ({
+  id: Date.now(),
+  taType: 'TA-10',
+  description: '',
+  speedLimit: '45',
+  totalSigns: '',
+  signSpacing: '350',
+  roadSignSpacing: '100',
+  arrowBoards: '1',
+  totalFlaggers: '',
+  totalCrews: '',
+  workspaceMin: '100',
+  workspaceMax: '300',
+  taperDevice: 'CONES',
+  coneSpacingTaper: '45',
+  coneSpacingPast: '90',
+  bufferSpace: '360',
+  taperLength: '540',
+  stopSightDistance: '540',
+  signCounts: Object.fromEntries(SIGN_TYPES.map(s => [s, 0])),
+});
+
+const TCPDesigner = () => {
+  const navigate = useNavigate();
+  const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const canvasRef = useRef(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
+
+  // Plan info
+  const [planInfo, setPlanInfo] = useState({
+    projectAddress: '', city: '', state: 'TN', zip: '',
+    prismId: '', roadName: '', email: 'tbsolutions9@gmail.com',
+  });
+
+  // Phases
+  const [phases, setPhases] = useState([emptyPhase()]);
+  const [activePhaseIdx, setActivePhaseIdx] = useState(0);
+
+  // Placed items per phase
+  const [placedItems, setPlacedItems] = useState({ [phases[0].id]: [] });
+
+  // Drawing
+  const [drawMode, setDrawMode] = useState(null);
+  const [lines, setLines] = useState({ [phases[0].id]: [] });
+  const [currentLine, setCurrentLine] = useState(null);
+
+  // Dragging
+  const [dragItem, setDragItem] = useState(null);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+
+  // Message board editing
+  const [msgBoardEdit, setMsgBoardEdit] = useState(null);
+
+  // Export
+  const [exporting, setExporting] = useState(false);
+  const [exportMsg, setExportMsg] = useState('');
+
+  const activePhase = phases[activePhaseIdx];
+  const phaseId = activePhase?.id;
+
+  // Load Google Maps
+  useEffect(() => {
+    const init = () => {
+      if (!mapRef.current || mapInstanceRef.current) return;
+      mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
+        center: { lat: 35.0689, lng: -85.0481 },
+        zoom: 15,
+        mapTypeId: 'hybrid',
+        disableDefaultUI: false,
+        gestureHandling: 'greedy',
+      });
+      setMapLoaded(true);
+    };
+    if (window.google?.maps) { init(); return; }
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=geometry,places`;
+    script.async = true;
+    script.onload = init;
+    document.body.appendChild(script);
+  }, []);
+
+  // Geocode address
+  const geocodeAddress = useCallback(() => {
+    const { projectAddress, city, state, zip } = planInfo;
+    if (!projectAddress || !window.google) return;
+    const geocoder = new window.google.maps.Geocoder();
+    geocoder.geocode({ address: `${projectAddress}, ${city}, ${state} ${zip}` }, (results, status) => {
+      if (status === 'OK' && results[0]) {
+        mapInstanceRef.current?.setCenter(results[0].geometry.location);
+        mapInstanceRef.current?.setZoom(17);
+      }
+    });
+  }, [planInfo]);
+
+  // Canvas drawing
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const drawLine = (pts, color) => {
+      if (pts.length < 2) return;
+      ctx.beginPath();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+      ctx.setLineDash(color === '#27ae60' ? [8, 6] : []);
+      ctx.moveTo(pts[0].x, pts[0].y);
+      pts.slice(1).forEach(p => ctx.lineTo(p.x, p.y));
+      ctx.stroke();
+    };
+
+    const phaseLines = lines[phaseId] || [];
+    phaseLines.forEach(l => drawLine(l.points, l.color));
+    if (currentLine) drawLine(currentLine.points, currentLine.color);
+  }, [lines, currentLine, phaseId]);
+
+  const handleCanvasMouseDown = (e) => {
+    if (!drawMode) return;
+    const rect = canvasRef.current.getBoundingClientRect();
+    const pt = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    const color = DRAW_MODES.find(d => d.mode === drawMode)?.color || '#fff';
+    setCurrentLine({ mode: drawMode, color, points: [pt] });
+  };
+
+  const handleCanvasMouseMove = (e) => {
+    if (!currentLine) return;
+    const rect = canvasRef.current.getBoundingClientRect();
+    const pt = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    setCurrentLine(prev => ({ ...prev, points: [...prev.points, pt] }));
+  };
+
+  const handleCanvasMouseUp = () => {
+    if (!currentLine || currentLine.points.length < 2) { setCurrentLine(null); return; }
+    setLines(prev => ({
+      ...prev,
+      [phaseId]: [...(prev[phaseId] || []), currentLine],
+    }));
+    setCurrentLine(null);
+  };
+
+  // Drop item on map
+  const handleMapClick = (e) => {
+    if (drawMode || !dragItem) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const newItem = {
+      id: Date.now(),
+      type: dragItem.type,
+      label: dragItem.label,
+      emoji: dragItem.emoji,
+      x, y,
+      signType: dragItem.type === 'sign' ? SIGN_TYPES[0] : undefined,
+      msgLine1: '', msgLine2: '',
+    };
+    setPlacedItems(prev => ({
+      ...prev,
+      [phaseId]: [...(prev[phaseId] || []), newItem],
+    }));
+    setDragItem(null);
+  };
+
+  // Drag placed items
+  const startDragPlaced = (e, item) => {
+    e.stopPropagation();
+    const rect = e.currentTarget.parentElement.getBoundingClientRect();
+    setDragOffset({ x: e.clientX - item.x - rect.left, y: e.clientY - item.y - rect.top });
+    setDragItem({ ...item, placed: true });
+  };
+
+  const handleMapMouseMove = (e) => {
+    if (!dragItem?.placed) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left - dragOffset.x;
+    const y = e.clientY - rect.top - dragOffset.y;
+    setPlacedItems(prev => ({
+      ...prev,
+      [phaseId]: (prev[phaseId] || []).map(it => it.id === dragItem.id ? { ...it, x, y } : it),
+    }));
+  };
+
+  const handleMapMouseUp = () => {
+    if (dragItem?.placed) setDragItem(null);
+  };
+
+  const removeItem = (id) => {
+    setPlacedItems(prev => ({
+      ...prev,
+      [phaseId]: (prev[phaseId] || []).filter(it => it.id !== id),
+    }));
+  };
+
+  const updateItemProp = (id, key, val) => {
+    setPlacedItems(prev => ({
+      ...prev,
+      [phaseId]: (prev[phaseId] || []).map(it => it.id === id ? { ...it, [key]: val } : it),
+    }));
+  };
+
+  // Phase management
+  const addPhase = () => {
+    const np = emptyPhase();
+    setPhases(prev => [...prev, np]);
+    setPlacedItems(prev => ({ ...prev, [np.id]: [] }));
+    setLines(prev => ({ ...prev, [np.id]: [] }));
+    setActivePhaseIdx(phases.length);
+  };
+
+  const updatePhase = (key, val) => {
+    setPhases(prev => prev.map((p, i) => i === activePhaseIdx ? { ...p, [key]: val } : p));
+  };
+
+  const updateSignCount = (signType, val) => {
+    setPhases(prev => prev.map((p, i) =>
+      i === activePhaseIdx ? { ...p, signCounts: { ...p.signCounts, [signType]: parseInt(val) || 0 } } : p
+    ));
+  };
+
+  const clearDrawing = () => {
+    setLines(prev => ({ ...prev, [phaseId]: [] }));
+  };
+
+  const undoLastLine = () => {
+    setLines(prev => ({
+      ...prev,
+      [phaseId]: (prev[phaseId] || []).slice(0, -1),
+    }));
+  };
+
+  // Export PDF & email
+  const handleExport = async () => {
+    setExporting(true);
+    setExportMsg('');
+    try {
+      // Capture canvas as image
+      const canvas = canvasRef.current;
+      const canvasImage = canvas?.toDataURL('image/png') || '';
+
+      const payload = {
+        planInfo,
+        phases: phases.map(p => ({
+          ...p,
+          items: placedItems[p.id] || [],
+        })),
+        canvasImage,
+        email: planInfo.email,
+      };
+
+      const res = await axios.post('/tcp-designer/export', payload);
+      setExportMsg(res.data?.message || 'TTCP exported and emailed successfully!');
+    } catch (err) {
+      console.error('Export failed:', err);
+      setExportMsg(err.response?.data?.message || 'Export failed. Please try again.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  return (
+    <div>
+      <Header />
+      <div className="tcp-designer">
+        <h1>🚧 Traffic Control Plan Designer</h1>
+
+        {/* Legend */}
+        <div className="tcp-legend">
+          <span><span className="legend-line legend-buffer" /> Buffer (Yellow/Gold)</span>
+          <span><span className="legend-line legend-taper" /> Taper (Orange)</span>
+          <span><span className="legend-line legend-crossing" /> Crossing (Green)</span>
+        </div>
+
+        {/* Toolbar */}
+        <div className="tcp-toolbar">
+          {DRAGGABLE_ITEMS.map(item => (
+            <button
+              key={item.type}
+              className={dragItem?.type === item.type && !dragItem.placed ? 'active' : ''}
+              onClick={() => { setDragItem(item); setDrawMode(null); }}
+            >
+              {item.emoji} {item.label}
+            </button>
+          ))}
+          <div className="toolbar-divider" />
+          {DRAW_MODES.map(dm => (
+            <button
+              key={dm.mode}
+              className={drawMode === dm.mode ? 'active' : ''}
+              style={drawMode === dm.mode ? { background: dm.color, borderColor: dm.color } : {}}
+              onClick={() => { setDrawMode(drawMode === dm.mode ? null : dm.mode); setDragItem(null); }}
+            >
+              ✏️ {dm.label}
+            </button>
+          ))}
+          <div className="toolbar-divider" />
+          <button onClick={undoLastLine}>↩️ Undo Line</button>
+          <button onClick={clearDrawing}>🗑️ Clear Lines</button>
+        </div>
+
+        {/* Map Area */}
+        <div
+          className="tcp-map-area"
+          onClick={!drawMode && dragItem && !dragItem.placed ? handleMapClick : undefined}
+          onMouseMove={handleMapMouseMove}
+          onMouseUp={handleMapMouseUp}
+        >
+          <div ref={mapRef} className="map-container" />
+          <canvas
+            ref={canvasRef}
+            className={`tcp-canvas-overlay ${drawMode ? 'drawing' : ''}`}
+            onMouseDown={handleCanvasMouseDown}
+            onMouseMove={handleCanvasMouseMove}
+            onMouseUp={handleCanvasMouseUp}
+            onMouseLeave={handleCanvasMouseUp}
+          />
+          {(placedItems[phaseId] || []).map(item => (
+            <div
+              key={item.id}
+              className="tcp-draggable"
+              style={{ left: item.x - 16, top: item.y - 16 }}
+              onMouseDown={(e) => startDragPlaced(e, item)}
+            >
+              <button className="remove-icon" onClick={(e) => { e.stopPropagation(); removeItem(item.id); }}>×</button>
+              <span style={{ fontSize: '1.8rem' }}>{item.emoji}</span>
+              {item.type === 'sign' && (
+                <select
+                  value={item.signType}
+                  onClick={e => e.stopPropagation()}
+                  onChange={e => updateItemProp(item.id, 'signType', e.target.value)}
+                  style={{ fontSize: '0.6rem', maxWidth: '90px', padding: '1px' }}
+                >
+                  {SIGN_TYPES.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              )}
+              {item.type === 'messageBoard' && (
+                <div className="msg-board-inputs" onClick={e => e.stopPropagation()}>
+                  <input placeholder="Line 1" value={item.msgLine1} onChange={e => updateItemProp(item.id, 'msgLine1', e.target.value)} />
+                  <input placeholder="Line 2" value={item.msgLine2} onChange={e => updateItemProp(item.id, 'msgLine2', e.target.value)} />
+                </div>
+              )}
+              {item.type !== 'sign' && item.type !== 'messageBoard' && (
+                <span className="icon-label">{item.label}</span>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Plan Info */}
+        <div className="tcp-form-section">
+          <h2>📋 TTCP Plan Information</h2>
+          <div className="tcp-form-grid">
+            <label>
+              Prism ID Number
+              <input value={planInfo.prismId} onChange={e => setPlanInfo(p => ({ ...p, prismId: e.target.value }))} />
+            </label>
+            <label>
+              Road Name
+              <input value={planInfo.roadName} onChange={e => setPlanInfo(p => ({ ...p, roadName: e.target.value }))} placeholder="e.g. U.S Hwy 64" />
+            </label>
+            <label>
+              Project Address
+              <input value={planInfo.projectAddress} onChange={e => setPlanInfo(p => ({ ...p, projectAddress: e.target.value }))} placeholder="9200 AMOS RD" />
+            </label>
+            <label>
+              City
+              <input value={planInfo.city} onChange={e => setPlanInfo(p => ({ ...p, city: e.target.value }))} placeholder="OOLTEWAH" />
+            </label>
+            <label>
+              State
+              <input value={planInfo.state} onChange={e => setPlanInfo(p => ({ ...p, state: e.target.value }))} />
+            </label>
+            <label>
+              Zip
+              <input value={planInfo.zip} onChange={e => setPlanInfo(p => ({ ...p, zip: e.target.value }))} placeholder="37363" />
+            </label>
+            <label>
+              Email (PDF will be sent here)
+              <input value={planInfo.email} onChange={e => setPlanInfo(p => ({ ...p, email: e.target.value }))} />
+            </label>
+            <label>
+              <br />
+              <button
+                onClick={geocodeAddress}
+                style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid #e67e22', background: '#e67e22', color: '#fff', cursor: 'pointer', fontWeight: 700 }}
+              >
+                📍 Go to Address on Map
+              </button>
+            </label>
+          </div>
+        </div>
+
+        {/* Phases */}
+        <div className="tcp-phases">
+          <h2>📐 Phases</h2>
+          <div className="phase-tabs">
+            {phases.map((p, i) => (
+              <button key={p.id} className={i === activePhaseIdx ? 'active' : ''} onClick={() => setActivePhaseIdx(i)}>
+                Phase {i + 1} ({p.taType})
+              </button>
+            ))}
+            <button className="add-phase" onClick={addPhase}>+ Add Phase</button>
+          </div>
+
+          {activePhase && (
+            <div className="phase-form">
+              <label>
+                Typical Application (TA)
+                <select value={activePhase.taType} onChange={e => updatePhase('taType', e.target.value)}>
+                  {TA_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </select>
+              </label>
+              <label>
+                Speed Limit (mph)
+                <input type="number" value={activePhase.speedLimit} onChange={e => updatePhase('speedLimit', e.target.value)} />
+              </label>
+              <label className="full-width">
+                Phase Description
+                <textarea
+                  value={activePhase.description}
+                  onChange={e => updatePhase('description', e.target.value)}
+                  placeholder="Traffic lanes will be reduced to one lane of traffic..."
+                />
+              </label>
+              <label>
+                Total Signs
+                <input type="number" value={activePhase.totalSigns} onChange={e => updatePhase('totalSigns', e.target.value)} />
+              </label>
+              <label>
+                Sign Spacing (ft) on Main Road
+                <input type="number" value={activePhase.signSpacing} onChange={e => updatePhase('signSpacing', e.target.value)} />
+              </label>
+              <label>
+                Sign Spacing (ft) on Side Roads
+                <input type="number" value={activePhase.roadSignSpacing} onChange={e => updatePhase('roadSignSpacing', e.target.value)} />
+              </label>
+              <label>
+                Arrow Boards
+                <input type="number" value={activePhase.arrowBoards} onChange={e => updatePhase('arrowBoards', e.target.value)} />
+              </label>
+              <label>
+                Total Flaggers
+                <input value={activePhase.totalFlaggers} onChange={e => updatePhase('totalFlaggers', e.target.value)} placeholder="e.g. 3-4" />
+              </label>
+              <label>
+                Total Crews
+                <input type="number" value={activePhase.totalCrews} onChange={e => updatePhase('totalCrews', e.target.value)} />
+              </label>
+              <label>
+                Workspace Min (ft)
+                <input type="number" value={activePhase.workspaceMin} onChange={e => updatePhase('workspaceMin', e.target.value)} />
+              </label>
+              <label>
+                Workspace Max (ft)
+                <input type="number" value={activePhase.workspaceMax} onChange={e => updatePhase('workspaceMax', e.target.value)} />
+              </label>
+              <label>
+                Taper Device
+                <select value={activePhase.taperDevice} onChange={e => updatePhase('taperDevice', e.target.value)}>
+                  {TAPER_DEVICE_OPTIONS.map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+              </label>
+              <label>
+                Cone Spacing - Taper (ft)
+                <input type="number" value={activePhase.coneSpacingTaper} onChange={e => updatePhase('coneSpacingTaper', e.target.value)} />
+              </label>
+              <label>
+                Cone Spacing - Past Taper (ft)
+                <input type="number" value={activePhase.coneSpacingPast} onChange={e => updatePhase('coneSpacingPast', e.target.value)} />
+              </label>
+              <label>
+                Buffer Space (ft)
+                <input type="number" value={activePhase.bufferSpace} onChange={e => updatePhase('bufferSpace', e.target.value)} />
+              </label>
+              <label>
+                Taper/Transition Length (ft)
+                <input type="number" value={activePhase.taperLength} onChange={e => updatePhase('taperLength', e.target.value)} />
+              </label>
+              <label>
+                Stop Sight Distance (ft)
+                <input type="number" value={activePhase.stopSightDistance} onChange={e => updatePhase('stopSightDistance', e.target.value)} />
+              </label>
+
+              {/* Sign counts */}
+              <label className="full-width" style={{ fontWeight: 700, fontSize: '1.1rem', marginTop: '0.5rem' }}>
+                Sign Breakdown:
+              </label>
+              <div className="sign-count-grid">
+                {SIGN_TYPES.map(s => (
+                  <label key={s}>
+                    <input
+                      type="number"
+                      min="0"
+                      value={activePhase.signCounts[s]}
+                      onChange={e => updateSignCount(s, e.target.value)}
+                    />
+                    {s}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Export */}
+        <div className="tcp-export-bar">
+          <button className="export-pdf" onClick={handleExport} disabled={exporting}>
+            {exporting ? '⏳ Generating & Emailing PDF...' : '📄 Export PDF & Email'}
+          </button>
+        </div>
+        {exportMsg && (
+          <p style={{
+            textAlign: 'center',
+            fontWeight: 700,
+            color: exportMsg.includes('success') ? '#27ae60' : '#e74c3c',
+            fontSize: '1.1rem',
+          }}>
+            {exportMsg}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default TCPDesigner;
