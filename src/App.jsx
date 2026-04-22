@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate} from 'react-router-dom'
 import { About, EmployeeHandbook, Quote, ConfirmAdditionalFlagger, EmployeeDiscipline, Invoice, Work, ManageJobTest, CancelJobTest, ManageJob, CancelJob, AdminLog, AdminDashboard, Contact, Apply, Home, TrafficControl, TrafficPlan, Rentals, PPE, Signs, BollardsWheels, Error, TService, Product, TrafficControlTest, EmployeeDashboard, EmployeeComplaintForm } from './pages';
+import TCPDesigner from './pages/tcp-designer';
 import axios from 'axios';
 import RescheduleJob from './pages/RescheduleJob';
 import Navbar from './components/Navbar';
@@ -114,6 +115,7 @@ function App() {
   <Route path="/admin-dashboard/quote" element={<Quote />} />
 </Route>
 <Route path="/admin-dashboard/disciplinary-action" element={<RequireStaff><EmployeeDiscipline /></RequireStaff>} />
+<Route path="/admin-dashboard/tcp-designer" element={isAdminAuthenticated() ? <TCPDesigner /> : <Navigate to="/admin-login" />} />
 <Route
   path="/admin-dashboard/work-order"
   element={
