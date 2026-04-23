@@ -146,6 +146,11 @@ const TCPDesigner = () => {
   const [exporting, setExporting] = useState(false);
   const [exportMsg, setExportMsg] = useState('');
 
+  // Measure tool state
+  const [measureMode, setMeasureMode] = useState(false);
+  const [measurePoints, setMeasurePoints] = useState([]); // [{lat,lng,px}]
+  const [measureDistanceFt, setMeasureDistanceFt] = useState(null);
+
   const activePhase = phases[activePhaseIdx];
   const phaseId = activePhase?.id;
 
@@ -240,7 +245,47 @@ const TCPDesigner = () => {
     if (currentLine && currentLine.points.length >= 2) {
       drawLine(currentLine.points, currentLine.color);
     }
-  }, [lines, currentLine, phaseId, mapMoveKey]);
+
+    // Draw measure line
+    if (measurePoints.length >= 1) {
+      const mPts = measurePoints.map(p => latLngToPixel(overlayRef.current, p.lat, p.lng)).filter(Boolean);
+      if (mPts.length >= 1) {
+        // Draw dots
+        mPts.forEach(pt => {
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, 6, 0, Math.PI * 2);
+          ctx.fillStyle = '#3498db';
+          ctx.fill();
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        });
+        // Draw dashed line + label
+        if (mPts.length === 2 && measureDistanceFt !== null) {
+          ctx.beginPath();
+          ctx.setLineDash([6, 4]);
+          ctx.strokeStyle = '#3498db';
+          ctx.lineWidth = 3;
+          ctx.moveTo(mPts[0].x, mPts[0].y);
+          ctx.lineTo(mPts[1].x, mPts[1].y);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          // Label at midpoint
+          const mx = (mPts[0].x + mPts[1].x) / 2;
+          const my = (mPts[0].y + mPts[1].y) / 2;
+          const text = `${measureDistanceFt} ft`;
+          ctx.font = 'bold 14px Arial';
+          const tw = ctx.measureText(text).width;
+          ctx.fillStyle = 'rgba(0,0,0,0.75)';
+          ctx.fillRect(mx - tw / 2 - 6, my - 12, tw + 12, 24);
+          ctx.fillStyle = '#fff';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(text, mx, my);
+        }
+      }
+    }
+  }, [lines, currentLine, phaseId, mapMoveKey, measurePoints, measureDistanceFt]);
 
   // --- Drawing handlers (pixel while drawing, convert to lat/lng on save) ---
   const handleCanvasMouseDown = (e) => {
@@ -278,8 +323,47 @@ const TCPDesigner = () => {
     setCurrentLine(null);
   };
 
+  // --- Snap helper: find nearest placed item within threshold px ---
+  const snapToItem = (x, y, threshold = 30) => {
+    const items = placedItems[phaseId] || [];
+    let best = null, bestDist = threshold;
+    items.forEach(item => {
+      const px = getItemPixel(item);
+      if (!px) return;
+      const d = Math.hypot(px.x - x, px.y - y);
+      if (d < bestDist) { bestDist = d; best = { lat: item.lat, lng: item.lng, label: item.label || item.type }; }
+    });
+    return best;
+  };
+
+  // --- Measure click handler ---
+  const handleMeasureClick = (e) => {
+    const overlay = overlayRef.current;
+    if (!overlay?.getProjection()) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const snapped = snapToItem(x, y);
+    const ll = snapped || (() => { const p = pixelToLatLng(overlay, x, y); return p ? { lat: p.lat(), lng: p.lng() } : null; })();
+    if (!ll) return;
+
+    if (measurePoints.length === 0) {
+      setMeasurePoints([ll]);
+      setMeasureDistanceFt(null);
+    } else {
+      const p1 = new window.google.maps.LatLng(measurePoints[0].lat, measurePoints[0].lng);
+      const p2 = new window.google.maps.LatLng(ll.lat, ll.lng);
+      const meters = window.google.maps.geometry.spherical.computeDistanceBetween(p1, p2);
+      const feet = meters * 3.28084;
+      setMeasurePoints([measurePoints[0], ll]);
+      setMeasureDistanceFt(Math.round(feet));
+    }
+  };
+
   // --- Place item (click on map area → convert pixel to lat/lng) ---
   const handleMapClick = (e) => {
+    if (measureMode) { handleMeasureClick(e); return; }
     if (drawMode || !dragItem || dragItem.placed) return;
     const overlay = overlayRef.current;
     if (!overlay?.getProjection()) return;
@@ -435,6 +519,27 @@ const TCPDesigner = () => {
           <div className="toolbar-divider" />
           <button onClick={undoLastLine}>↩️ Undo Line</button>
           <button onClick={clearDrawing}>🗑️ Clear Lines</button>
+          <div className="toolbar-divider" />
+          <button
+            className={measureMode ? 'active measure-active' : ''}
+            onClick={() => {
+              setMeasureMode(m => !m);
+              setMeasurePoints([]);
+              setMeasureDistanceFt(null);
+              setDrawMode(null);
+              setDragItem(null);
+            }}
+          >
+            📏 Measure
+          </button>
+          {measureMode && measureDistanceFt !== null && (
+            <span className="measure-result">📐 {measureDistanceFt} ft</span>
+          )}
+          {measureMode && (
+            <button onClick={() => { setMeasurePoints([]); setMeasureDistanceFt(null); }}>
+              ✖ Clear Measure
+            </button>
+          )}
         </div>
 
         {/* Map Area */}
