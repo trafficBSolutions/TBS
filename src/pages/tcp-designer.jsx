@@ -136,7 +136,7 @@ const TCPDesigner = () => {
   const canvasRef = useRef(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapMoveKey, setMapMoveKey] = useState(0); // triggers re-render on map pan/zoom
-
+const [dragItem, setDragItem] = useState(null);
   const [planInfo, setPlanInfo] = useState({
     projectAddress: '', city: '', state: 'TN', zip: '',
     prismId: '', roadName: '', email: 'tbsolutions9@gmail.com',
