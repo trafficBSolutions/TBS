@@ -394,11 +394,12 @@ const TCPDesigner = () => {
 
 
   // --- Drag placed items to reposition ---
-  const draggingRef = useRef(null); // { id, offsetX, offsetY }
+  const draggingRef = useRef(null);
 
   const startDragPlaced = (e, item) => {
     e.stopPropagation();
     e.preventDefault();
+    const currentPhaseId = phaseId;
     draggingRef.current = { id: item.id };
     mapInstanceRef.current?.setOptions({ draggable: false });
 
@@ -411,10 +412,12 @@ const TCPDesigner = () => {
       const y = ev.clientY - r.top;
       const ll = pixelToLatLng(overlay, x, y);
       if (!ll) return;
+      const newLat = ll.lat();
+      const newLng = ll.lng();
       setPlacedItems(prev => ({
         ...prev,
-        [phaseId]: (prev[phaseId] || []).map(it =>
-          it.id === draggingRef.current.id ? { ...it, lat: ll.lat(), lng: ll.lng() } : it
+        [currentPhaseId]: (prev[currentPhaseId] || []).map(it =>
+          it.id === draggingRef.current?.id ? { ...it, lat: newLat, lng: newLng } : it
         ),
       }));
     };
