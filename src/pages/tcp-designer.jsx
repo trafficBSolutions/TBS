@@ -144,8 +144,9 @@ const [selectedItemId, setSelectedItemId] = useState(null);
 
   // Measure tool state
   const [measureMode, setMeasureMode] = useState(false);
-  const [measurePoints, setMeasurePoints] = useState([]); // [{lat,lng,px}]
-  const [measureDistanceFt, setMeasureDistanceFt] = useState(null);
+const [measureStart, setMeasureStart] = useState(null);       // { lat, lng } | null
+const [measurePreview, setMeasurePreview] = useState(null);   // { lat, lng } | null
+const [savedMeasurements, setSavedMeasurements] = useState({}); // { [phaseId]: [{ id, start, end, feet }] }
 const selectedItem = (placedItems[phaseId] || []).find(it => it.id === selectedItemId);
   const activePhase = phases[activePhaseIdx];
   const phaseId = activePhase?.id;
@@ -190,10 +191,16 @@ const selectedItem = (placedItems[phaseId] || []).find(it => it.id === selectedI
 
   // Build divIcon HTML for an item
   const buildIconHtml = (item) => {
-    const inner = item.svgSrc
-      ? `<img src="${item.svgSrc}" alt="${item.label}" class="tcp-marker-svg" draggable="false" />`
-      : `<span style="font-size:1.2rem">${item.emoji}</span>`;
+  const inner = item.svgSrc
+    ? `<img src="${item.svgSrc}" alt="${item.label}" class="tcp-marker-svg" draggable="false" />`
+    : `<span style="font-size:1.2rem">${item.emoji || ''}</span>`;
 
+  return `
+    <div class="tcp-marker ${item.markerStyle || 'gold-pin'}">
+      <div class="tcp-marker-circle">${inner}</div>
+      <div class="tcp-marker-pointer"></div>
+    </div>
+  `;
     let controls = '';
     if (item.type === 'sign') {
       const opts = SIGN_TYPES.map(s =>
@@ -410,13 +417,70 @@ const selectedItem = (placedItems[phaseId] || []).find(it => it.id === selectedI
     setCurrentLine({ mode: drawMode, color, points: [pt] });
   };
 
-  const handleCanvasMouseMove = (e) => {
-    if (!currentLine) return;
-    const rect = canvasRef.current.getBoundingClientRect();
-    const pt = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-    setCurrentLine(prev => ({ ...prev, points: [...prev.points, pt] }));
-  };
+ const handleCanvasMouseMove = (e) => {
+  const rect = canvasRef.current.getBoundingClientRect();
+  const pt = { x: e.clientX - rect.left, y: e.clientY - rect.top };
 
+  if (currentLine) {
+    setCurrentLine(prev => ({ ...prev, points: [...prev.points, pt] }));
+  }
+
+  // Draw saved measurement lines
+(savedMeasurements[phaseId] || []).forEach(m => {
+  const startPx = latLngToPixel(mapInstanceRef.current, m.start.lat, m.start.lng);
+  const endPx = latLngToPixel(mapInstanceRef.current, m.end.lat, m.end.lng);
+  if (startPx && endPx) {
+    drawMeasurement(startPx, endPx, m.feet, false);
+  }
+});
+
+// Draw live preview measurement
+if (measureMode && measureStart && measurePreview) {
+  const startPx = latLngToPixel(mapInstanceRef.current, measureStart.lat, measureStart.lng);
+  const endPx = latLngToPixel(mapInstanceRef.current, measurePreview.lat, measurePreview.lng);
+
+  if (startPx && endPx) {
+    const feet = Math.round(
+      L.latLng(measureStart.lat, measureStart.lng)
+        .distanceTo(L.latLng(measurePreview.lat, measurePreview.lng)) * 3.28084
+    );
+
+    drawMeasurement(startPx, endPx, feet, true);
+  }
+}
+};
+const drawMeasurement = (startPx, endPx, feet, isPreview = false) => {
+  ctx.beginPath();
+  ctx.setLineDash(isPreview ? [10, 6] : [6, 4]);
+  ctx.strokeStyle = isPreview ? '#00bcd4' : '#3498db';
+  ctx.lineWidth = 3;
+  ctx.moveTo(startPx.x, startPx.y);
+  ctx.lineTo(endPx.x, endPx.y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  [startPx, endPx].forEach(pt => {
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, 5, 0, Math.PI * 2);
+    ctx.fillStyle = isPreview ? '#00bcd4' : '#3498db';
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  });
+
+  const mx = (startPx.x + endPx.x) / 2;
+  const my = (startPx.y + endPx.y) / 2;
+  const text = `${feet} ft`;
+  ctx.font = 'bold 14px Arial';
+  const tw = ctx.measureText(text).width;
+  ctx.fillStyle = 'rgba(0,0,0,0.75)';
+  ctx.fillRect(mx - tw / 2 - 6, my - 12, tw + 12, 24);
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, mx, my);
+};
   const handleCanvasMouseUp = () => {
     if (!currentLine || currentLine.points.length < 2) { setCurrentLine(null); return; }
     const map = mapInstanceRef.current;
@@ -454,28 +518,46 @@ const selectedItem = (placedItems[phaseId] || []).find(it => it.id === selectedI
 
   // --- Measure click handler ---
   const handleMeasureClick = (e) => {
-    const map = mapInstanceRef.current;
-    if (!map) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+  const map = mapInstanceRef.current;
+  if (!map) return;
 
-    const snapped = snapToItem(x, y);
-    const ll = snapped || (() => { const p = pixelToLatLng(map, x, y); return p ? { lat: p.lat, lng: p.lng } : null; })();
-    if (!ll) return;
+  const rect = e.currentTarget.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
 
-    if (measurePoints.length === 0) {
-      setMeasurePoints([ll]);
-      setMeasureDistanceFt(null);
-    } else {
-      const p1 = L.latLng(measurePoints[0].lat, measurePoints[0].lng);
-      const p2 = L.latLng(ll.lat, ll.lng);
-      const meters = p1.distanceTo(p2);
-      const feet = meters * 3.28084;
-      setMeasurePoints([measurePoints[0], ll]);
-      setMeasureDistanceFt(Math.round(feet));
-    }
+  const snapped = snapToItem(x, y);
+  const ll = snapped || (() => {
+    const p = pixelToLatLng(map, x, y);
+    return p ? { lat: p.lat, lng: p.lng } : null;
+  })();
+
+  if (!ll) return;
+
+  if (!measureStart) {
+    setMeasureStart(ll);
+    setMeasurePreview(ll);
+    return;
+  }
+
+  const p1 = L.latLng(measureStart.lat, measureStart.lng);
+  const p2 = L.latLng(ll.lat, ll.lng);
+  const feet = Math.round(p1.distanceTo(p2) * 3.28084);
+
+  const newMeasurement = {
+    id: Date.now(),
+    start: measureStart,
+    end: ll,
+    feet,
   };
+
+  setSavedMeasurements(prev => ({
+    ...prev,
+    [phaseId]: [...(prev[phaseId] || []), newMeasurement],
+  }));
+
+  setMeasureStart(null);
+  setMeasurePreview(null);
+};
 
   // --- Place item (click on map area → convert pixel to lat/lng) ---
   const handleMapClick = (e) => {
@@ -518,12 +600,13 @@ const selectedItem = (placedItems[phaseId] || []).find(it => it.id === selectedI
 
   // Phase management
   const addPhase = () => {
-    const np = emptyPhase();
-    setPhases(prev => [...prev, np]);
-    setPlacedItems(prev => ({ ...prev, [np.id]: [] }));
-    setLines(prev => ({ ...prev, [np.id]: [] }));
-    setActivePhaseIdx(phases.length);
-  };
+  const np = emptyPhase();
+  setPhases(prev => [...prev, np]);
+  setPlacedItems(prev => ({ ...prev, [np.id]: [] }));
+  setLines(prev => ({ ...prev, [np.id]: [] }));
+  setSavedMeasurements(prev => ({ ...prev, [np.id]: [] }));
+  setActivePhaseIdx(phases.length);
+};
 
   const updatePhase = (key, val) => {
     setPhases(prev => prev.map((p, i) => i === activePhaseIdx ? { ...p, [key]: val } : p));
@@ -611,14 +694,25 @@ const selectedItem = (placedItems[phaseId] || []).find(it => it.id === selectedI
           >
             📏 Measure
           </button>
-          {measureMode && measureDistanceFt !== null && (
-            <span className="measure-result">📐 {measureDistanceFt} ft</span>
-          )}
+          {measureMode && measureStart && measurePreview && (
+  <span className="measure-result">
+    📐 {Math.round(
+      L.latLng(measureStart.lat, measureStart.lng)
+        .distanceTo(L.latLng(measurePreview.lat, measurePreview.lng)) * 3.28084
+    )} ft
+  </span>
+)}
           {measureMode && (
-            <button onClick={() => { setMeasurePoints([]); setMeasureDistanceFt(null); }}>
-              ✖ Clear Measure
-            </button>
-          )}
+  <button
+    onClick={() => {
+      setMeasureStart(null);
+      setMeasurePreview(null);
+      setSavedMeasurements(prev => ({ ...prev, [phaseId]: [] }));
+    }}
+  >
+    ✖ Clear Measurements
+  </button>
+)}
         </div>
 
         {/* Map Area */}
@@ -636,11 +730,8 @@ const selectedItem = (placedItems[phaseId] || []).find(it => it.id === selectedI
           />
           {/* Invisible click layer — only active when a tool is selected */}
           {(dragItem || measureMode) && (
-            <div
-              className="tcp-click-overlay"
-              onClick={handleMapClick}
-            />
-          )}
+  <div className="tcp-click-overlay" onClick={handleMapClick} />
+)}
 
         </div>
 
