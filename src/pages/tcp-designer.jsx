@@ -4,7 +4,26 @@ import axios from 'axios';
 import { GOOGLE_MAPS_API_KEY } from '../constants/constantapi';
 import Header from '../components/headerviews/HeaderAdminDash';
 import '../css/tcp-designer.css';
-
+import utilityWorkAhead from '@assets/tcp/Utility Work Ahead.svg';
+import bePreparedToStop from '@assets/tcp/Be Prepared to Stop.svg';
+import mergeLeft from '@assets/tcp/Merge Left.svg';
+import flaggerAhead from '@assets/tcp/Flagger Ahead.svg';
+import roadClosedAhead from '@assets/tcp/Road Closed Ahead.svg';
+import detourLeft from '@assets/tcp/Detour Left.svg';
+import detourRight from '@assets/tcp/Detour Right.svg';
+import detourStraight from '@assets/tcp/Detour Straight.svg';
+import detourAhead from '@assets/tcp/Detour Ahead.svg';
+import endDetour from '@assets/tcp/End Detour.svg';
+import endRoadWork from '@assets/tcp/End Road Work.svg';
+import leftLaneClosedAhead from '@assets/tcp/Left Lane Closed Ahead.svg';
+import rightLaneClosedAhead from '@assets/tcp/Right Lane Closed Ahead.svg';
+import oneLaneClosedAhead from '@assets/tcp/One Lane Closed Ahead.svg';
+import twoRightLanesClosedAhead from '@assets/tcp/2 Right Lanes Closed Ahead.svg';
+import twoRightLanesClosed1500 from '@assets/tcp/2 Right Lanes Closed 1500ft.svg';
+import twoRightLanesClosed1000 from '@assets/tcp/2 Right Lanes Closed 1000ft.svg';
+import twoRightLanesClosed500 from '@assets/tcp/2 Right Lanes Closed 500ft.svg';
+import twoRightLanesClosedHalfMile from '@assets/tcp/2 Right Lanes Closed Half Mile.svg';
+import flaggerStop from '@assets/tcp/Flagger SVG Symbol With Stop.svg';
 const TA_TYPES = [
   { value: 'TA-10', label: 'TA-10 - Work Beyond Shoulder' },
   { value: 'TA-22', label: 'TA-22 - Lane Closure on Two-Lane Road' },
@@ -12,6 +31,27 @@ const TA_TYPES = [
   { value: 'TA-37', label: 'TA-37 - Multi-Lane Road Closure' },
   { value: 'Rolling Roadblock', label: 'Rolling Roadblock' },
 ];
+export const SIGN_ASSETS = {
+  'Utility Work Ahead': utilityWorkAhead,
+  'Be Prepared to Stop': bePreparedToStop,
+  'Merge Left Symbol': mergeLeft,
+  'Flagger Ahead': flaggerAhead,
+  'Road Closed Ahead': roadClosedAhead,
+  'Detour Left': detourLeft,
+  'Detour Right': detourRight,
+  'Detour Straight': detourStraight,
+  'Detour Ahead': detourAhead,
+  'End Detour': endDetour,
+  'End Road Work': endRoadWork,
+  'Left Lane Closed Ahead': leftLaneClosedAhead,
+  'Right Lane Closed Ahead': rightLaneClosedAhead,
+  'One Lane Closed Ahead': oneLaneClosedAhead,
+  '2 Right Lanes Closed Ahead': twoRightLanesClosedAhead,
+  '2 Right Lanes Closed 1500FT': twoRightLanesClosed1500,
+  '2 Right Lanes Closed 1000FT': twoRightLanesClosed1000,
+  '2 Right Lanes Closed 500FT': twoRightLanesClosed500,
+  '2 Right Lanes Closed 1/2 Mile': twoRightLanesClosedHalfMile,
+};
 
 const SIGN_TYPES = [
   'Utility Work Ahead', 'Be Prepared to Stop', 'Merge Left Symbol', 'Flagger Ahead',
@@ -22,13 +62,23 @@ const SIGN_TYPES = [
   'Detour Ahead', 'End Detour', 'End Road Work',
 ];
 
-const DRAGGABLE_ITEMS = [
-  { type: 'sign', label: 'Sign', emoji: '🪧' },
-  { type: 'flagger', label: 'Flagger', emoji: '🧑‍🦺' },
-  { type: 'arrowBoard', label: 'Arrow Board', emoji: '➡️' },
-  { type: 'messageBoard', label: 'Msg Board', emoji: '📺' },
-  { type: 'police', label: 'Police', emoji: '👮' },
-];
+const newItem = {
+  id: Date.now(),
+  type: dragItem.type,
+  label: dragItem.label,
+  markerStyle: dragItem.markerStyle,
+  lat: ll.lat(),
+  lng: ll.lng(),
+  signType: dragItem.type === 'sign' ? SIGN_TYPES[0] : undefined,
+  svgSrc:
+    dragItem.type === 'sign'
+      ? SIGN_ASSETS[SIGN_TYPES[0]]
+      : dragItem.type === 'flagger'
+      ? flaggerSymbol
+      : trafficPlanIcon,
+  msgLine1: '',
+  msgLine2: '',
+};
 
 const DRAW_MODES = [
   { mode: 'buffer', label: 'Buffer (Yellow)', color: '#f1c40f' },
@@ -428,13 +478,27 @@ const TCPDesigner = () => {
                 onMouseDown={(e) => startDragPlaced(e, item)}
               >
                 <button className="remove-icon" onClick={(e) => { e.stopPropagation(); removeItem(item.id); }}>×</button>
-                <span style={{ fontSize: '1.8rem' }}>{item.emoji}</span>
+                <div className={`tcp-marker ${item.markerStyle}`}>
+  <div className="tcp-marker-circle">
+    <img
+      src={item.svgSrc}
+      alt={item.label}
+      className="tcp-marker-svg"
+      draggable={false}
+    />
+  </div>
+  <div className="tcp-marker-pointer" />
+</div>
                 {item.type === 'sign' && (
                   <select
                     value={item.signType}
                     onClick={e => e.stopPropagation()}
                     onMouseDown={e => e.stopPropagation()}
-                    onChange={e => updateItemProp(item.id, 'signType', e.target.value)}
+                    onChange={e => {
+  const nextType = e.target.value;
+  updateItemProp(item.id, 'signType', nextType);
+  updateItemProp(item.id, 'svgSrc', SIGN_ASSETS[nextType]);
+}}
                     style={{ fontSize: '0.6rem', maxWidth: '90px', padding: '1px' }}
                   >
                     {SIGN_TYPES.map(s => <option key={s} value={s}>{s}</option>)}
