@@ -1,382 +1,730 @@
-.tcp-designer {
-  max-width: 1600px;
-  margin: 0 auto;
-  padding: 1.5rem;
-  font-family: Arial, Helvetica, sans-serif;
-}
-.tcp-designer h1 {
-  text-align: center;
-  font-size: clamp(2rem, 4vw, 3rem);
-  margin-bottom: 1rem;
-  color: #1a1a1a;
-}
-.tcp-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  padding: 1rem;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  margin-bottom: 1rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-  align-items: center;
-}
-.tcp-toolbar button, .tcp-toolbar select {
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-  cursor: pointer;
-  background: #f9f9f9;
-  transition: all 0.2s;
-}
-.tcp-toolbar button:hover { background: #e67e22; color: #fff; border-color: #e67e22; }
-.tcp-toolbar button.active { background: #e67e22; color: #fff; border-color: #e67e22; }
-.tcp-toolbar .toolbar-divider {
-  width: 1px;
-  height: 30px;
-  background: #ddd;
-  margin: 0 0.25rem;
-}
-.tcp-map-area {
-  position: relative;
-  width: 100%;
-  height: 600px;
-  border: 2px solid #333;
-  border-radius: 12px;
-  overflow: hidden;
-  margin-bottom: 1rem;
-  cursor: crosshair;
-}
-.tcp-map-area .map-container { width: 100%; height: 100%; }
-.tcp-canvas-overlay {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  pointer-events: none;
-  z-index: 450;
-}
-.tcp-canvas-overlay.drawing { pointer-events: auto; cursor: crosshair; }
-.tcp-draggable {
-  position: absolute;
-  z-index: 500;
-  pointer-events: none;
-  user-select: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: #333;
-  text-align: center;
-}
-.tcp-draggable .remove-icon,
-.tcp-draggable select,
-.tcp-draggable .msg-board-inputs,
-.tcp-draggable .tcp-marker {
-  pointer-events: auto;
-}
-.tcp-draggable .tcp-marker {
-  cursor: grab;
-}
-.tcp-draggable .tcp-marker:active {
-  cursor: grabbing;
-}
-.tcp-draggable .icon-label {
-  background: rgba(255,255,255,0.9);
-  padding: 1px 4px;
-  border-radius: 4px;
-  margin-top: 2px;
-  white-space: nowrap;
-  font-size: 0.65rem;
-  max-width: 80px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.tcp-draggable .remove-icon {
-  position: absolute;
-  top: -8px; right: -8px;
-  width: 16px; height: 16px;
-  background: #e74c3c;
-  color: #fff;
-  border: none;
-  border-radius: 50%;
-  font-size: 10px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  padding: 0;
-}
-.tcp-phases {
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-}
-.tcp-phases h2 { font-size: 1.5rem; margin-bottom: 0.75rem; color: #1a1a1a; }
-.phase-tabs {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-}
-.phase-tabs button {
-  padding: 0.5rem 1.2rem;
-  border-radius: 999px;
-  border: 1px solid #ccc;
-  background: #f5f5f5;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.95rem;
-  transition: all 0.2s;
-}
-.phase-tabs button.active { background: #e67e22; color: #fff; border-color: #e67e22; }
-.phase-tabs button.add-phase { background: #27ae60; color: #fff; border-color: #27ae60; }
-.phase-form {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-}
-.phase-form label {
-  display: flex;
-  flex-direction: column;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #333;
-}
-.phase-form label.full-width { grid-column: 1 / -1; }
-.phase-form input, .phase-form select, .phase-form textarea {
-  margin-top: 0.25rem;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-family: inherit;
-  color: #1a1a1a;
-  background: #fafafa;
-}
-.phase-form textarea { resize: vertical; min-height: 80px; }
-.sign-count-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 0.5rem;
-  grid-column: 1 / -1;
-}
-.sign-count-grid label {
-  flex-direction: row;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-}
-.sign-count-grid input {
-  width: 50px;
-  text-align: center;
-}
-.tcp-form-section {
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  padding: 1.25rem;
-  margin-bottom: 1rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-}
-.tcp-form-section h2 { font-size: 1.5rem; margin-bottom: 0.75rem; color: #1a1a1a; }
-.tcp-form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-}
-.tcp-form-grid label {
-  display: flex;
-  flex-direction: column;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #333;
-}
-.tcp-form-grid label.full-width { grid-column: 1 / -1; }
-.tcp-form-grid input, .tcp-form-grid select, .tcp-form-grid textarea {
-  margin-top: 0.25rem;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-family: inherit;
-  color: #1a1a1a;
-  background: #fafafa;
-}
-.tcp-form-grid textarea { resize: vertical; min-height: 80px; }
-.tcp-export-bar {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  padding: 1.5rem;
-}
-.tcp-export-bar button {
-  padding: 0.8rem 2rem;
-  border-radius: 999px;
-  border: none;
-  font-size: 1.1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.tcp-export-bar .export-pdf {
-  background: linear-gradient(135deg, #e67e22, #f39c12);
-  color: #fff;
-}
-.tcp-export-bar .export-pdf:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(230,126,34,0.4); }
-.tcp-export-bar .export-pdf:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
-.msg-board-inputs {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  margin-top: 0.25rem;
-}
-.msg-board-inputs input {
-  padding: 0.35rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 0.85rem;
-}
-.tcp-legend {
-  display: flex;
-  gap: 1.5rem;
-  padding: 0.75rem 1rem;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  flex-wrap: wrap;
-}
-.tcp-legend span { display: flex; align-items: center; gap: 0.4rem; }
-.legend-line {
-  width: 30px;
-  height: 4px;
-  border-radius: 2px;
-  display: inline-block;
-}
-.legend-buffer { background: #f1c40f; }
-.legend-taper { background: #e67e22; }
-.legend-crossing { background: #27ae60; }
-@media (max-width: 768px) {
-  .tcp-map-area { height: 400px; }
-  .phase-form, .tcp-form-grid { grid-template-columns: 1fr; }
-  .sign-count-grid { grid-template-columns: 1fr 1fr; }
-  .tcp-toolbar { justify-content: center; }
-}
-.tcp-marker {
-  position: relative;
-  width: 44px;
-  height: 56px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-}
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import Header from '../components/headerviews/HeaderAdminDash';
+import '../css/tcp-designer.css';
+import utilityWorkAhead from '@assets/tcp/Utility Work Ahead.svg';
+import bePreparedToStop from '@assets/tcp/Be Prepared to Stop.svg';
+import mergeLeft from '@assets/tcp/Merge Left.svg';
+import flaggerAhead from '@assets/tcp/Flagger Ahead.svg';
+import roadClosedAhead from '@assets/tcp/Road Closed Ahead.svg';
+import detourLeft from '@assets/tcp/Detour Left.svg';
+import detourRight from '@assets/tcp/Detour Right.svg';
+import detourStraight from '@assets/tcp/Detour Straight.svg';
+import detourAhead from '@assets/tcp/Detour Ahead.svg';
+import endDetour from '@assets/tcp/End Detour.svg';
+import endRoadWork from '@assets/tcp/End Road Work.svg';
+import leftLaneClosedAhead from '@assets/tcp/Left Lane Closed Ahead.svg';
+import rightLaneClosedAhead from '@assets/tcp/Right Lane Closed Ahead.svg';
+import oneLaneClosedAhead from '@assets/tcp/One Lane Closed Ahead.svg';
+import twoRightLanesClosedAhead from '@assets/tcp/2 Right Lanes Closed Ahead.svg';
+import twoRightLanesClosed1500 from '@assets/tcp/2 Right Lanes Closed 1500ft.svg';
+import twoRightLanesClosed1000 from '@assets/tcp/2 Right Lanes Closed 1000ft.svg';
+import twoRightLanesClosed500 from '@assets/tcp/2 Right Lanes Closed 500ft.svg';
+import twoRightLanesClosedHalfMile from '@assets/tcp/2 Right Lanes Closed Half Mile.svg';
+import flaggerStop from '@assets/tcp/Flagger SVG Symbol With Stop.svg';
+const TA_TYPES = [
+  { value: 'TA-10', label: 'TA-10 - Work Beyond Shoulder' },
+  { value: 'TA-22', label: 'TA-22 - Lane Closure on Two-Lane Road' },
+  { value: 'TA-33', label: 'TA-33 - Lane Closure on Multi-Lane Road' },
+  { value: 'TA-37', label: 'TA-37 - Multi-Lane Road Closure' },
+  { value: 'Rolling Roadblock', label: 'Rolling Roadblock' },
+];
+export const SIGN_ASSETS = {
+  'Utility Work Ahead': utilityWorkAhead,
+  'Be Prepared to Stop': bePreparedToStop,
+  'Merge Left Symbol': mergeLeft,
+  'Flagger Ahead': flaggerAhead,
+  'Road Closed Ahead': roadClosedAhead,
+  'Detour Left': detourLeft,
+  'Detour Right': detourRight,
+  'Detour Straight': detourStraight,
+  'Detour Ahead': detourAhead,
+  'End Detour': endDetour,
+  'End Road Work': endRoadWork,
+  'Left Lane Closed Ahead': leftLaneClosedAhead,
+  'Right Lane Closed Ahead': rightLaneClosedAhead,
+  'One Lane Closed Ahead': oneLaneClosedAhead,
+  '2 Right Lanes Closed Ahead': twoRightLanesClosedAhead,
+  '2 Right Lanes Closed 1500FT': twoRightLanesClosed1500,
+  '2 Right Lanes Closed 1000FT': twoRightLanesClosed1000,
+  '2 Right Lanes Closed 500FT': twoRightLanesClosed500,
+  '2 Right Lanes Closed 1/2 Mile': twoRightLanesClosedHalfMile,
+};
 
-.tcp-marker-circle {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: #ffffff;
-  border: 3px solid #d4af37;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.3);
-  overflow: hidden;
-}
+const SIGN_TYPES = [
+  'Utility Work Ahead', 'Be Prepared to Stop', 'Merge Left Symbol', 'Flagger Ahead',
+  'Road Closed Ahead', 'Detour Left', 'Detour Right', 'Detour Straight',
+  'Right Lane Closed Ahead', 'Left Lane Closed Ahead', 'One Lane Closed Ahead',
+  '2 Right Lanes Closed Ahead', '2 Right Lanes Closed 1500FT', '2 Right Lanes Closed 500FT',
+  '2 Right Lanes Closed 1000FT', '2 Right Lanes Closed 1/2 Mile',
+  'Detour Ahead', 'End Detour', 'End Road Work',
+];
 
-.tcp-marker-pointer {
-  width: 0;
-  height: 0;
-  border-left: 9px solid transparent;
-  border-right: 9px solid transparent;
-  border-top: 14px solid #d4af37;
-  margin-top: -2px;
-}
+const DRAGGABLE_ITEMS = [
+  { type: 'sign', label: 'Sign', emoji: '🪧', markerStyle: 'gold-pin' },
+  { type: 'flagger', label: 'Flagger', emoji: '🧑', markerStyle: 'flagger-pin' },
+  { type: 'messageBoard', label: 'Message Board', emoji: '📺', markerStyle: 'hazard-pin' },
+];
 
-.tcp-marker-svg {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-  pointer-events: none;
-  user-select: none;
-}
+const DRAW_MODES = [
+  { mode: 'buffer', label: 'Buffer (Yellow)', color: '#f1c40f' },
+  { mode: 'taper', label: 'Taper (Orange)', color: '#e67e22' },
+  { mode: 'crossing', label: 'Crossing (Green)', color: '#27ae60' },
+];
 
-/* sign pin */
-.gold-pin .tcp-marker-circle {
-  border-color: #d4af37;
-  background: #fffdf5;
-}
-.gold-pin .tcp-marker-pointer {
-  border-top-color: #d4af37;
-}
+const TAPER_DEVICE_OPTIONS = ['CONES', 'BARRELS'];
 
-/* flagger pin */
-.flagger-pin .tcp-marker-circle {
-  border-color: #ff8c00;
-  background: #fff8f0;
-}
-.flagger-pin .tcp-marker-pointer {
-  border-top-color: #ff8c00;
-}
+const emptyPhase = () => ({
+  id: Date.now(),
+  taType: 'TA-10',
+  description: '',
+  speedLimit: '45',
+  totalSigns: '',
+  signSpacing: '350',
+  roadSignSpacing: '100',
+  arrowBoards: '1',
+  totalFlaggers: '',
+  totalCrews: '',
+  workspaceMin: '100',
+  workspaceMax: '300',
+  taperDevice: 'CONES',
+  coneSpacingTaper: '45',
+  coneSpacingPast: '90',
+  bufferSpace: '360',
+  taperLength: '540',
+  stopSightDistance: '540',
+  signCounts: Object.fromEntries(SIGN_TYPES.map(s => [s, 0])),
+});
 
-/* hazard pin */
-.hazard-pin .tcp-marker-circle {
-  border-color: #f1c40f;
-  background: #fffbea;
-}
-.hazard-pin .tcp-marker-pointer {
-  border-top-color: #f1c40f;
-}
+// Helper: pixel (relative to map container) → LatLng
+const pixelToLatLng = (map, x, y) => {
+  if (!map) return null;
+  return map.containerPointToLatLng(L.point(x, y));
+};
+
+// Helper: LatLng → pixel (relative to map container)
+const latLngToPixel = (map, lat, lng) => {
+  if (!map) return null;
+  const pt = map.latLngToContainerPoint(L.latLng(lat, lng));
+  return { x: pt.x, y: pt.y };
+};
+
+const TCPDesigner = () => {
+  const navigate = useNavigate();
+  const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const canvasRef = useRef(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [mapMoveKey, setMapMoveKey] = useState(0); // triggers re-render on map pan/zoom
+  const [isZooming, setIsZooming] = useState(false);
+  const [planInfo, setPlanInfo] = useState({
+    projectAddress: '', city: '', state: 'TN', zip: '',
+    prismId: '', roadName: '', email: 'tbsolutions9@gmail.com',
+  });
+
+  const [phases, setPhases] = useState([emptyPhase()]);
+  const [activePhaseIdx, setActivePhaseIdx] = useState(0);
+
+  // Items stored with lat/lng
+  const [placedItems, setPlacedItems] = useState({ [phases[0].id]: [] });
+
+  // Lines stored with lat/lng points
+  const [drawMode, setDrawMode] = useState(null);
+  const [lines, setLines] = useState({ [phases[0].id]: [] });
+  const [currentLine, setCurrentLine] = useState(null); // pixel-based while drawing, converted on mouseUp
+
+  const [dragItem, setDragItem] = useState(null);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+
+  const [exporting, setExporting] = useState(false);
+  const [exportMsg, setExportMsg] = useState('');
+
+  // Measure tool state
+  const [measureMode, setMeasureMode] = useState(false);
+  const [measurePoints, setMeasurePoints] = useState([]); // [{lat,lng,px}]
+  const [measureDistanceFt, setMeasureDistanceFt] = useState(null);
+
+  const activePhase = phases[activePhaseIdx];
+  const phaseId = activePhase?.id;
+
+  // Load Leaflet map
+  useEffect(() => {
+    if (!mapRef.current || mapInstanceRef.current) return;
+    const map = L.map(mapRef.current, {
+      center: [35.0689, -85.0481],
+      zoom: 15,
+    });
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: '&copy; Esri',
+    }).addTo(map);
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', {
+      attribution: '',
+    }).addTo(map);
+    mapInstanceRef.current = map;
+
+    const update = () => setMapMoveKey(k => k + 1);
+    map.on('move', update);
+    map.on('moveend', update);
+    map.on('zoomstart', () => setIsZooming(true));
+    map.on('zoomend', () => { setIsZooming(false); update(); });
+
+    setMapLoaded(true);
+    return () => { map.remove(); mapInstanceRef.current = null; };
+  }, []);
+
+  const geocodeAddress = useCallback(async () => {
+    const { projectAddress, city, state, zip } = planInfo;
+    if (!projectAddress) return;
+    try {
+      const q = encodeURIComponent(`${projectAddress}, ${city}, ${state} ${zip}`);
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1`);
+      const data = await res.json();
+      if (data[0]) {
+        mapInstanceRef.current?.setView([parseFloat(data[0].lat), parseFloat(data[0].lon)], 17);
+      }
+    } catch (err) {
+      console.error('Geocode failed:', err);
+    }
+  }, [planInfo]);
+
+  // Convert item lat/lng to pixel for rendering
+  const getItemPixel = (item) => {
+    if (!mapInstanceRef.current) return null;
+    return latLngToPixel(mapInstanceRef.current, item.lat, item.lng);
+  };
+
+  // Convert line lat/lng points to pixel for canvas drawing
+  const lineToPixels = (line) => {
+    if (!mapInstanceRef.current) return [];
+    return line.points.map(p => latLngToPixel(mapInstanceRef.current, p.lat, p.lng)).filter(Boolean);
+  };
+
+  // Redraw canvas whenever map moves, lines change, or phase changes
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const drawLine = (pts, color) => {
+      if (pts.length < 2) return;
+      ctx.beginPath();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+      ctx.setLineDash(color === '#27ae60' ? [8, 6] : []);
+      ctx.moveTo(pts[0].x, pts[0].y);
+      pts.slice(1).forEach(p => ctx.lineTo(p.x, p.y));
+      ctx.stroke();
+    };
+
+    // Draw saved lines (convert lat/lng → pixel)
+    const phaseLines = lines[phaseId] || [];
+    phaseLines.forEach(l => {
+      const pixels = lineToPixels(l);
+      drawLine(pixels, l.color);
+    });
+
+    // Draw current in-progress line (already in pixels)
+    if (currentLine && currentLine.points.length >= 2) {
+      drawLine(currentLine.points, currentLine.color);
+    }
+
+    // Draw measure line
+    if (measurePoints.length >= 1) {
+      const mPts = measurePoints.map(p => latLngToPixel(mapInstanceRef.current, p.lat, p.lng)).filter(Boolean);
+      if (mPts.length >= 1) {
+        // Draw dots
+        mPts.forEach(pt => {
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, 6, 0, Math.PI * 2);
+          ctx.fillStyle = '#3498db';
+          ctx.fill();
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        });
+        // Draw dashed line + label
+        if (mPts.length === 2 && measureDistanceFt !== null) {
+          ctx.beginPath();
+          ctx.setLineDash([6, 4]);
+          ctx.strokeStyle = '#3498db';
+          ctx.lineWidth = 3;
+          ctx.moveTo(mPts[0].x, mPts[0].y);
+          ctx.lineTo(mPts[1].x, mPts[1].y);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          // Label at midpoint
+          const mx = (mPts[0].x + mPts[1].x) / 2;
+          const my = (mPts[0].y + mPts[1].y) / 2;
+          const text = `${measureDistanceFt} ft`;
+          ctx.font = 'bold 14px Arial';
+          const tw = ctx.measureText(text).width;
+          ctx.fillStyle = 'rgba(0,0,0,0.75)';
+          ctx.fillRect(mx - tw / 2 - 6, my - 12, tw + 12, 24);
+          ctx.fillStyle = '#fff';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(text, mx, my);
+        }
+      }
+    }
+  }, [lines, currentLine, phaseId, mapMoveKey, measurePoints, measureDistanceFt]);
+
+  // --- Drawing handlers (pixel while drawing, convert to lat/lng on save) ---
+  const handleCanvasMouseDown = (e) => {
+    if (!drawMode) return;
+    const rect = canvasRef.current.getBoundingClientRect();
+    const pt = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    const color = DRAW_MODES.find(d => d.mode === drawMode)?.color || '#fff';
+    setCurrentLine({ mode: drawMode, color, points: [pt] });
+  };
+
+  const handleCanvasMouseMove = (e) => {
+    if (!currentLine) return;
+    const rect = canvasRef.current.getBoundingClientRect();
+    const pt = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    setCurrentLine(prev => ({ ...prev, points: [...prev.points, pt] }));
+  };
+
+  const handleCanvasMouseUp = () => {
+    if (!currentLine || currentLine.points.length < 2) { setCurrentLine(null); return; }
+    const map = mapInstanceRef.current;
+    if (!map) { setCurrentLine(null); return; }
+
+    // Convert pixel points → lat/lng for permanent storage
+    const geoPoints = currentLine.points.map(pt => {
+      const ll = pixelToLatLng(map, pt.x, pt.y);
+      return ll ? { lat: ll.lat, lng: ll.lng } : null;
+    }).filter(Boolean);
+
+    if (geoPoints.length >= 2) {
+      setLines(prev => ({
+        ...prev,
+        [phaseId]: [...(prev[phaseId] || []), { mode: currentLine.mode, color: currentLine.color, points: geoPoints }],
+      }));
+    }
+    setCurrentLine(null);
+  };
+
+  // --- Snap helper: find nearest placed item within threshold px ---
+  const snapToItem = (x, y, threshold = 30) => {
+    const items = placedItems[phaseId] || [];
+    let best = null, bestDist = threshold;
+    items.forEach(item => {
+      const px = getItemPixel(item);
+      if (!px) return;
+      const d = Math.hypot(px.x - x, px.y - y);
+      if (d < bestDist) { bestDist = d; best = { lat: item.lat, lng: item.lng, label: item.label || item.type }; }
+    });
+    return best;
+  };
+
+  // --- Measure click handler ---
+  const handleMeasureClick = (e) => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const snapped = snapToItem(x, y);
+    const ll = snapped || (() => { const p = pixelToLatLng(map, x, y); return p ? { lat: p.lat, lng: p.lng } : null; })();
+    if (!ll) return;
+
+    if (measurePoints.length === 0) {
+      setMeasurePoints([ll]);
+      setMeasureDistanceFt(null);
+    } else {
+      const p1 = L.latLng(measurePoints[0].lat, measurePoints[0].lng);
+      const p2 = L.latLng(ll.lat, ll.lng);
+      const meters = p1.distanceTo(p2);
+      const feet = meters * 3.28084;
+      setMeasurePoints([measurePoints[0], ll]);
+      setMeasureDistanceFt(Math.round(feet));
+    }
+  };
+
+  // --- Place item (click on map area → convert pixel to lat/lng) ---
+  const handleMapClick = (e) => {
+    if (measureMode) { handleMeasureClick(e); return; }
+    if (drawMode || !dragItem || dragItem.placed) return;
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const ll = pixelToLatLng(map, x, y);
+    if (!ll) return;
+
+    const defaultSignType = SIGN_TYPES[0];
+    const newItem = {
+      id: Date.now(),
+      type: dragItem.type,
+      label: dragItem.label,
+      emoji: dragItem.emoji,
+      markerStyle: dragItem.markerStyle,
+      lat: ll.lat,
+      lng: ll.lng,
+      signType: dragItem.type === 'sign' ? defaultSignType : undefined,
+      svgSrc: dragItem.type === 'sign' ? SIGN_ASSETS[defaultSignType]
+            : dragItem.type === 'flagger' ? flaggerStop
+            : undefined,
+      msgLine1: '', msgLine2: '',
+    };
+    setPlacedItems(prev => ({
+      ...prev,
+      [phaseId]: [...(prev[phaseId] || []), newItem],
+    }));
+    setDragItem(null);
+  };
 
 
-/* Measure tool */
-.tcp-toolbar button.measure-active {
-  background: #3498db !important;
-  border-color: #3498db !important;
-  color: #fff !important;
-}
-.measure-result {
-  font-weight: 700;
-  font-size: 1rem;
-  color: #3498db;
-  padding: 0.4rem 0.75rem;
-  background: #eaf4fd;
-  border-radius: 8px;
-  border: 1px solid #3498db;
-  white-space: nowrap;
-}
 
+  // --- Drag placed items to reposition ---
+  const draggingRef = useRef(null);
 
-/* Coordinates label */
-.tcp-coords {
-  font-size: 0.55rem;
-  font-weight: 600;
-  color: #fff;
-  background: rgba(0,0,0,0.7);
-  padding: 1px 4px;
-  border-radius: 4px;
-  margin-top: 2px;
-  white-space: nowrap;
-  pointer-events: none;
-}
+  const startDragPlaced = (e, item) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const currentPhaseId = phaseId;
+    draggingRef.current = { id: item.id };
+    mapInstanceRef.current?.dragging.disable();
 
+    const onMove = (ev) => {
+      if (!draggingRef.current) return;
+      const map = mapInstanceRef.current;
+      if (!map) return;
+      const r = mapRef.current.parentElement.getBoundingClientRect();
+      const x = ev.clientX - r.left;
+      const y = ev.clientY - r.top;
+      const ll = pixelToLatLng(map, x, y);
+      if (!ll) return;
+      const newLat = ll.lat;
+      const newLng = ll.lng;
+      setPlacedItems(prev => ({
+        ...prev,
+        [currentPhaseId]: (prev[currentPhaseId] || []).map(it =>
+          it.id === draggingRef.current?.id ? { ...it, lat: newLat, lng: newLng } : it
+        ),
+      }));
+    };
 
-/* Click overlay - only rendered when a tool is active */
-.tcp-click-overlay {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  z-index: 550;
-  cursor: crosshair;
-  background: transparent;
-}
+    const onUp = () => {
+      draggingRef.current = null;
+      mapInstanceRef.current?.dragging.enable();
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  };
+
+  const removeItem = (id) => {
+    setPlacedItems(prev => ({
+      ...prev,
+      [phaseId]: (prev[phaseId] || []).filter(it => it.id !== id),
+    }));
+  };
+
+  const updateItemProp = (id, key, val) => {
+    setPlacedItems(prev => ({
+      ...prev,
+      [phaseId]: (prev[phaseId] || []).map(it => it.id === id ? { ...it, [key]: val } : it),
+    }));
+  };
+
+  // Phase management
+  const addPhase = () => {
+    const np = emptyPhase();
+    setPhases(prev => [...prev, np]);
+    setPlacedItems(prev => ({ ...prev, [np.id]: [] }));
+    setLines(prev => ({ ...prev, [np.id]: [] }));
+    setActivePhaseIdx(phases.length);
+  };
+
+  const updatePhase = (key, val) => {
+    setPhases(prev => prev.map((p, i) => i === activePhaseIdx ? { ...p, [key]: val } : p));
+  };
+
+  const updateSignCount = (signType, val) => {
+    setPhases(prev => prev.map((p, i) =>
+      i === activePhaseIdx ? { ...p, signCounts: { ...p.signCounts, [signType]: parseInt(val) || 0 } } : p
+    ));
+  };
+
+  const clearDrawing = () => setLines(prev => ({ ...prev, [phaseId]: [] }));
+  const undoLastLine = () => setLines(prev => ({ ...prev, [phaseId]: (prev[phaseId] || []).slice(0, -1) }));
+
+  // Export
+  const handleExport = async () => {
+    setExporting(true);
+    setExportMsg('');
+    try {
+      const canvas = canvasRef.current;
+      const canvasImage = canvas?.toDataURL('image/png') || '';
+      const payload = {
+        planInfo,
+        phases: phases.map(p => ({ ...p, items: placedItems[p.id] || [], lines: lines[p.id] || [] })),
+        canvasImage,
+        email: planInfo.email,
+      };
+      const res = await axios.post('/tcp-designer/export', payload);
+      setExportMsg(res.data?.message || 'TTCP exported and emailed successfully!');
+    } catch (err) {
+      console.error('Export failed:', err);
+      setExportMsg(err.response?.data?.message || 'Export failed. Please try again.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  return (
+    <div>
+      <Header />
+      <div className="tcp-designer">
+        <h1>🚧 Traffic Control Plan Designer</h1>
+
+        <div className="tcp-legend">
+          <span><span className="legend-line legend-buffer" /> Buffer (Yellow/Gold)</span>
+          <span><span className="legend-line legend-taper" /> Taper (Orange)</span>
+          <span><span className="legend-line legend-crossing" /> Crossing (Green)</span>
+        </div>
+
+        {/* Toolbar */}
+        <div className="tcp-toolbar">
+          {DRAGGABLE_ITEMS.map(item => (
+            <button
+              key={item.type}
+              className={dragItem?.type === item.type && !dragItem.placed ? 'active' : ''}
+              onClick={() => { setDragItem(item); setDrawMode(null); }}
+            >
+              {item.emoji} {item.label}
+            </button>
+          ))}
+          <div className="toolbar-divider" />
+          {DRAW_MODES.map(dm => (
+            <button
+              key={dm.mode}
+              className={drawMode === dm.mode ? 'active' : ''}
+              style={drawMode === dm.mode ? { background: dm.color, borderColor: dm.color } : {}}
+              onClick={() => { setDrawMode(drawMode === dm.mode ? null : dm.mode); setDragItem(null); }}
+            >
+              ✏️ {dm.label}
+            </button>
+          ))}
+          <div className="toolbar-divider" />
+          <button onClick={undoLastLine}>↩️ Undo Line</button>
+          <button onClick={clearDrawing}>🗑️ Clear Lines</button>
+          <div className="toolbar-divider" />
+          <button
+            className={measureMode ? 'active measure-active' : ''}
+            onClick={() => {
+              setMeasureMode(m => !m);
+              setMeasurePoints([]);
+              setMeasureDistanceFt(null);
+              setDrawMode(null);
+              setDragItem(null);
+            }}
+          >
+            📏 Measure
+          </button>
+          {measureMode && measureDistanceFt !== null && (
+            <span className="measure-result">📐 {measureDistanceFt} ft</span>
+          )}
+          {measureMode && (
+            <button onClick={() => { setMeasurePoints([]); setMeasureDistanceFt(null); }}>
+              ✖ Clear Measure
+            </button>
+          )}
+        </div>
+
+        {/* Map Area */}
+        <div
+          className="tcp-map-area"
+        >
+          <div ref={mapRef} className="map-container" />
+          <canvas
+            ref={canvasRef}
+            className={`tcp-canvas-overlay ${drawMode ? 'drawing' : ''}`}
+            onMouseDown={handleCanvasMouseDown}
+            onMouseMove={handleCanvasMouseMove}
+            onMouseUp={handleCanvasMouseUp}
+            onMouseLeave={handleCanvasMouseUp}
+          />
+          {/* Invisible click layer — only active when a tool is selected */}
+          {(dragItem || measureMode) && (
+            <div
+              className="tcp-click-overlay"
+              onClick={handleMapClick}
+            />
+          )}
+          {/* Render placed items at their pixel position derived from lat/lng */}
+          {!isZooming && (placedItems[phaseId] || []).map(item => {
+            const px = getItemPixel(item);
+            if (!px) return null;
+            return (
+              <div
+  key={item.id}
+  className="tcp-draggable"
+  style={{ left: px.x - 22, top: px.y - 52 }}
+>
+  <button
+    className="remove-icon"
+    onClick={(e) => {
+      e.stopPropagation();
+      removeItem(item.id);
+    }}
+  >
+    ×
+  </button>
+
+  <div
+    className={`tcp-marker ${item.markerStyle}`}
+    onMouseDown={(e) => startDragPlaced(e, item)}
+  >
+    <div className="tcp-marker-circle">
+      {item.svgSrc
+        ? <img src={item.svgSrc} alt={item.label} className="tcp-marker-svg" draggable={false} />
+        : <span style={{ fontSize: '1.2rem' }}>{item.emoji}</span>}
+    </div>
+    <div className="tcp-marker-pointer" />
+  </div>
+
+  {item.type === 'sign' && (
+    <select
+      value={item.signType}
+      onClick={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
+      onChange={(e) => {
+        const nextType = e.target.value;
+        updateItemProp(item.id, 'signType', nextType);
+        updateItemProp(item.id, 'svgSrc', SIGN_ASSETS[nextType]);
+      }}
+      style={{ fontSize: '0.65rem', maxWidth: '130px', padding: '2px' }}
+    >
+      {SIGN_TYPES.map((s) => (
+        <option key={s} value={s}>{s}</option>
+      ))}
+    </select>
+  )}
+
+  {item.type === 'messageBoard' && (
+    <div
+      className="msg-board-inputs"
+      onClick={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
+    >
+      <input
+        placeholder="Line 1"
+        value={item.msgLine1}
+        onChange={(e) => updateItemProp(item.id, 'msgLine1', e.target.value)}
+      />
+      <input
+        placeholder="Line 2"
+        value={item.msgLine2}
+        onChange={(e) => updateItemProp(item.id, 'msgLine2', e.target.value)}
+      />
+    </div>
+  )}
+  <span className="tcp-coords">{item.lat.toFixed(6)}, {item.lng.toFixed(6)}</span>
+</div>
+            );
+          })}
+        </div>
+
+        {/* Plan Info */}
+        <div className="tcp-form-section">
+          <h2>📋 TTCP Plan Information</h2>
+          <div className="tcp-form-grid">
+            <label>Prism ID Number<input value={planInfo.prismId} onChange={e => setPlanInfo(p => ({ ...p, prismId: e.target.value }))} /></label>
+            <label>Road Name<input value={planInfo.roadName} onChange={e => setPlanInfo(p => ({ ...p, roadName: e.target.value }))} placeholder="e.g. U.S Hwy 64" /></label>
+            <label>Project Address<input value={planInfo.projectAddress} onChange={e => setPlanInfo(p => ({ ...p, projectAddress: e.target.value }))} placeholder="9200 AMOS RD" /></label>
+            <label>City<input value={planInfo.city} onChange={e => setPlanInfo(p => ({ ...p, city: e.target.value }))} placeholder="OOLTEWAH" /></label>
+            <label>State<input value={planInfo.state} onChange={e => setPlanInfo(p => ({ ...p, state: e.target.value }))} /></label>
+            <label>Zip<input value={planInfo.zip} onChange={e => setPlanInfo(p => ({ ...p, zip: e.target.value }))} placeholder="37363" /></label>
+            <label>Email (PDF sent here)<input value={planInfo.email} onChange={e => setPlanInfo(p => ({ ...p, email: e.target.value }))} /></label>
+            <label><br />
+              <button onClick={geocodeAddress} style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid #e67e22', background: '#e67e22', color: '#fff', cursor: 'pointer', fontWeight: 700 }}>
+                📍 Go to Address on Map
+              </button>
+            </label>
+          </div>
+        </div>
+
+        {/* Phases */}
+        <div className="tcp-phases">
+          <h2>📐 Phases</h2>
+          <div className="phase-tabs">
+            {phases.map((p, i) => (
+              <button key={p.id} className={i === activePhaseIdx ? 'active' : ''} onClick={() => setActivePhaseIdx(i)}>
+                Phase {i + 1} ({p.taType})
+              </button>
+            ))}
+            <button className="add-phase" onClick={addPhase}>+ Add Phase</button>
+          </div>
+          {activePhase && (
+            <div className="phase-form">
+              <label>Typical Application (TA)
+                <select value={activePhase.taType} onChange={e => updatePhase('taType', e.target.value)}>
+                  {TA_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </select>
+              </label>
+              <label>Speed Limit (mph)<input type="number" value={activePhase.speedLimit} onChange={e => updatePhase('speedLimit', e.target.value)} /></label>
+              <label className="full-width">Phase Description
+                <textarea value={activePhase.description} onChange={e => updatePhase('description', e.target.value)} placeholder="Traffic lanes will be reduced to one lane of traffic..." />
+              </label>
+              <label>Total Signs<input type="number" value={activePhase.totalSigns} onChange={e => updatePhase('totalSigns', e.target.value)} /></label>
+              <label>Sign Spacing (ft) Main Road<input type="number" value={activePhase.signSpacing} onChange={e => updatePhase('signSpacing', e.target.value)} /></label>
+              <label>Sign Spacing (ft) Side Roads<input type="number" value={activePhase.roadSignSpacing} onChange={e => updatePhase('roadSignSpacing', e.target.value)} /></label>
+              <label>Arrow Boards<input type="number" value={activePhase.arrowBoards} onChange={e => updatePhase('arrowBoards', e.target.value)} /></label>
+              <label>Total Flaggers<input value={activePhase.totalFlaggers} onChange={e => updatePhase('totalFlaggers', e.target.value)} placeholder="e.g. 3-4" /></label>
+              <label>Total Crews<input type="number" value={activePhase.totalCrews} onChange={e => updatePhase('totalCrews', e.target.value)} /></label>
+              <label>Workspace Min (ft)<input type="number" value={activePhase.workspaceMin} onChange={e => updatePhase('workspaceMin', e.target.value)} /></label>
+              <label>Workspace Max (ft)<input type="number" value={activePhase.workspaceMax} onChange={e => updatePhase('workspaceMax', e.target.value)} /></label>
+              <label>Taper Device
+                <select value={activePhase.taperDevice} onChange={e => updatePhase('taperDevice', e.target.value)}>
+                  {TAPER_DEVICE_OPTIONS.map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+              </label>
+              <label>Cone Spacing - Taper (ft)<input type="number" value={activePhase.coneSpacingTaper} onChange={e => updatePhase('coneSpacingTaper', e.target.value)} /></label>
+              <label>Cone Spacing - Past Taper (ft)<input type="number" value={activePhase.coneSpacingPast} onChange={e => updatePhase('coneSpacingPast', e.target.value)} /></label>
+              <label>Buffer Space (ft)<input type="number" value={activePhase.bufferSpace} onChange={e => updatePhase('bufferSpace', e.target.value)} /></label>
+              <label>Taper/Transition Length (ft)<input type="number" value={activePhase.taperLength} onChange={e => updatePhase('taperLength', e.target.value)} /></label>
+              <label>Stop Sight Distance (ft)<input type="number" value={activePhase.stopSightDistance} onChange={e => updatePhase('stopSightDistance', e.target.value)} /></label>
+              <label className="full-width" style={{ fontWeight: 700, fontSize: '1.1rem', marginTop: '0.5rem' }}>Sign Breakdown:</label>
+              <div className="sign-count-grid">
+                {SIGN_TYPES.map(s => (
+                  <label key={s}>
+                    <input type="number" min="0" value={activePhase.signCounts[s]} onChange={e => updateSignCount(s, e.target.value)} />
+                    {s}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="tcp-export-bar">
+          <button className="export-pdf" onClick={handleExport} disabled={exporting}>
+            {exporting ? '⏳ Generating & Emailing PDF...' : '📄 Export PDF & Email'}
+          </button>
+        </div>
+        {exportMsg && (
+          <p style={{ textAlign: 'center', fontWeight: 700, color: exportMsg.includes('success') ? '#27ae60' : '#e74c3c', fontSize: '1.1rem' }}>
+            {exportMsg}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default TCPDesigner;
