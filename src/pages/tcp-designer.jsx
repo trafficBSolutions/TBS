@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { GOOGLE_MAPS_API_KEY } from '../constants/constantapi';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import Header from '../components/headerviews/HeaderAdminDash';
 import '../css/tcp-designer.css';
 import utilityWorkAhead from '@assets/tcp/Utility Work Ahead.svg';
@@ -99,28 +100,22 @@ const emptyPhase = () => ({
 });
 
 // Helper: pixel (relative to map container) → LatLng
-const pixelToLatLng = (overlay, x, y) => {
-  const proj = overlay.getProjection();
-  if (!proj) return null;
-  const topRight = proj.fromLatLngToContainerPixel(overlay.getMap().getBounds().getNorthEast());
-  const bottomLeft = proj.fromLatLngToContainerPixel(overlay.getMap().getBounds().getSouthWest());
-  // fromContainerPixelToLatLng takes a google.maps.Point
-  return proj.fromContainerPixelToLatLng(new window.google.maps.Point(x, y));
+const pixelToLatLng = (map, x, y) => {
+  if (!map) return null;
+  return map.containerPointToLatLng(L.point(x, y));
 };
 
 // Helper: LatLng → pixel (relative to map container)
-const latLngToPixel = (overlay, lat, lng) => {
-  const proj = overlay.getProjection();
-  if (!proj) return null;
-  const pt = proj.fromLatLngToContainerPixel(new window.google.maps.LatLng(lat, lng));
-  return pt ? { x: pt.x, y: pt.y } : null;
+const latLngToPixel = (map, lat, lng) => {
+  if (!map) return null;
+  const pt = map.latLngToContainerPoint(L.latLng(lat, lng));
+  return { x: pt.x, y: pt.y };
 };
 
 const TCPDesigner = () => {
   const navigate = useNavigate();
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
-  const overlayRef = useRef(null);
   const canvasRef = useRef(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapMoveKey, setMapMoveKey] = useState(0); // triggers re-render on map pan/zoom
@@ -154,63 +149,54 @@ const TCPDesigner = () => {
   const activePhase = phases[activePhaseIdx];
   const phaseId = activePhase?.id;
 
-  // Load Google Maps + create OverlayView for projection access
+  // Load Leaflet map
   useEffect(() => {
-    const init = () => {
-      if (!mapRef.current || mapInstanceRef.current) return;
-      const map = new window.google.maps.Map(mapRef.current, {
-        center: { lat: 35.0689, lng: -85.0481 },
-        zoom: 15,
-        mapTypeId: 'hybrid',
-        disableDefaultUI: false,
-        gestureHandling: 'greedy',
-      });
-      mapInstanceRef.current = map;
+    if (!mapRef.current || mapInstanceRef.current) return;
+    const map = L.map(mapRef.current, {
+      center: [35.0689, -85.0481],
+      zoom: 15,
+    });
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: '&copy; Esri',
+    }).addTo(map);
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', {
+      attribution: '',
+    }).addTo(map);
+    mapInstanceRef.current = map;
 
-      // Create a dummy OverlayView just to access its projection
-      const overlay = new window.google.maps.OverlayView();
-      overlay.onAdd = () => {};
-      overlay.draw = () => {};
-      overlay.onRemove = () => {};
-      overlay.setMap(map);
-      overlayRef.current = overlay;
+    const update = () => setMapMoveKey(k => k + 1);
+    map.on('moveend', update);
+    map.on('zoomend', update);
 
-      // Re-render items/lines whenever map moves
-      map.addListener('idle', () => setMapMoveKey(k => k + 1));
-      map.addListener('zoom_changed', () => setMapMoveKey(k => k + 1));
-
-      setMapLoaded(true);
-    };
-    if (window.google?.maps) { init(); return; }
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=geometry,places`;
-    script.async = true;
-    script.onload = init;
-    document.body.appendChild(script);
+    setMapLoaded(true);
+    return () => { map.remove(); mapInstanceRef.current = null; };
   }, []);
 
-  const geocodeAddress = useCallback(() => {
+  const geocodeAddress = useCallback(async () => {
     const { projectAddress, city, state, zip } = planInfo;
-    if (!projectAddress || !window.google) return;
-    const geocoder = new window.google.maps.Geocoder();
-    geocoder.geocode({ address: `${projectAddress}, ${city}, ${state} ${zip}` }, (results, status) => {
-      if (status === 'OK' && results[0]) {
-        mapInstanceRef.current?.setCenter(results[0].geometry.location);
-        mapInstanceRef.current?.setZoom(17);
+    if (!projectAddress) return;
+    try {
+      const q = encodeURIComponent(`${projectAddress}, ${city}, ${state} ${zip}`);
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1`);
+      const data = await res.json();
+      if (data[0]) {
+        mapInstanceRef.current?.setView([parseFloat(data[0].lat), parseFloat(data[0].lon)], 17);
       }
-    });
+    } catch (err) {
+      console.error('Geocode failed:', err);
+    }
   }, [planInfo]);
 
   // Convert item lat/lng to pixel for rendering
   const getItemPixel = (item) => {
-    if (!overlayRef.current?.getProjection()) return null;
-    return latLngToPixel(overlayRef.current, item.lat, item.lng);
+    if (!mapInstanceRef.current) return null;
+    return latLngToPixel(mapInstanceRef.current, item.lat, item.lng);
   };
 
   // Convert line lat/lng points to pixel for canvas drawing
   const lineToPixels = (line) => {
-    if (!overlayRef.current?.getProjection()) return [];
-    return line.points.map(p => latLngToPixel(overlayRef.current, p.lat, p.lng)).filter(Boolean);
+    if (!mapInstanceRef.current) return [];
+    return line.points.map(p => latLngToPixel(mapInstanceRef.current, p.lat, p.lng)).filter(Boolean);
   };
 
   // Redraw canvas whenever map moves, lines change, or phase changes
@@ -248,7 +234,7 @@ const TCPDesigner = () => {
 
     // Draw measure line
     if (measurePoints.length >= 1) {
-      const mPts = measurePoints.map(p => latLngToPixel(overlayRef.current, p.lat, p.lng)).filter(Boolean);
+      const mPts = measurePoints.map(p => latLngToPixel(mapInstanceRef.current, p.lat, p.lng)).filter(Boolean);
       if (mPts.length >= 1) {
         // Draw dots
         mPts.forEach(pt => {
@@ -305,13 +291,13 @@ const TCPDesigner = () => {
 
   const handleCanvasMouseUp = () => {
     if (!currentLine || currentLine.points.length < 2) { setCurrentLine(null); return; }
-    const overlay = overlayRef.current;
-    if (!overlay?.getProjection()) { setCurrentLine(null); return; }
+    const map = mapInstanceRef.current;
+    if (!map) { setCurrentLine(null); return; }
 
     // Convert pixel points → lat/lng for permanent storage
     const geoPoints = currentLine.points.map(pt => {
-      const ll = pixelToLatLng(overlay, pt.x, pt.y);
-      return ll ? { lat: ll.lat(), lng: ll.lng() } : null;
+      const ll = pixelToLatLng(map, pt.x, pt.y);
+      return ll ? { lat: ll.lat, lng: ll.lng } : null;
     }).filter(Boolean);
 
     if (geoPoints.length >= 2) {
@@ -338,23 +324,23 @@ const TCPDesigner = () => {
 
   // --- Measure click handler ---
   const handleMeasureClick = (e) => {
-    const overlay = overlayRef.current;
-    if (!overlay?.getProjection()) return;
+    const map = mapInstanceRef.current;
+    if (!map) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
     const snapped = snapToItem(x, y);
-    const ll = snapped || (() => { const p = pixelToLatLng(overlay, x, y); return p ? { lat: p.lat(), lng: p.lng() } : null; })();
+    const ll = snapped || (() => { const p = pixelToLatLng(map, x, y); return p ? { lat: p.lat, lng: p.lng } : null; })();
     if (!ll) return;
 
     if (measurePoints.length === 0) {
       setMeasurePoints([ll]);
       setMeasureDistanceFt(null);
     } else {
-      const p1 = new window.google.maps.LatLng(measurePoints[0].lat, measurePoints[0].lng);
-      const p2 = new window.google.maps.LatLng(ll.lat, ll.lng);
-      const meters = window.google.maps.geometry.spherical.computeDistanceBetween(p1, p2);
+      const p1 = L.latLng(measurePoints[0].lat, measurePoints[0].lng);
+      const p2 = L.latLng(ll.lat, ll.lng);
+      const meters = p1.distanceTo(p2);
       const feet = meters * 3.28084;
       setMeasurePoints([measurePoints[0], ll]);
       setMeasureDistanceFt(Math.round(feet));
@@ -365,13 +351,13 @@ const TCPDesigner = () => {
   const handleMapClick = (e) => {
     if (measureMode) { handleMeasureClick(e); return; }
     if (drawMode || !dragItem || dragItem.placed) return;
-    const overlay = overlayRef.current;
-    if (!overlay?.getProjection()) return;
+    const map = mapInstanceRef.current;
+    if (!map) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    const ll = pixelToLatLng(overlay, x, y);
+    const ll = pixelToLatLng(map, x, y);
     if (!ll) return;
 
     const newItem = {
@@ -379,8 +365,8 @@ const TCPDesigner = () => {
       type: dragItem.type,
       label: dragItem.label,
       emoji: dragItem.emoji,
-      lat: ll.lat(),
-      lng: ll.lng(),
+      lat: ll.lat,
+      lng: ll.lng,
       signType: dragItem.type === 'sign' ? SIGN_TYPES[0] : undefined,
       msgLine1: '', msgLine2: '',
     };
@@ -401,19 +387,19 @@ const TCPDesigner = () => {
     e.preventDefault();
     const currentPhaseId = phaseId;
     draggingRef.current = { id: item.id };
-    mapInstanceRef.current?.setOptions({ draggable: false });
+    mapInstanceRef.current?.dragging.disable();
 
     const onMove = (ev) => {
       if (!draggingRef.current) return;
-      const overlay = overlayRef.current;
-      if (!overlay?.getProjection()) return;
+      const map = mapInstanceRef.current;
+      if (!map) return;
       const r = mapRef.current.parentElement.getBoundingClientRect();
       const x = ev.clientX - r.left;
       const y = ev.clientY - r.top;
-      const ll = pixelToLatLng(overlay, x, y);
+      const ll = pixelToLatLng(map, x, y);
       if (!ll) return;
-      const newLat = ll.lat();
-      const newLng = ll.lng();
+      const newLat = ll.lat;
+      const newLng = ll.lng;
       setPlacedItems(prev => ({
         ...prev,
         [currentPhaseId]: (prev[currentPhaseId] || []).map(it =>
@@ -424,7 +410,7 @@ const TCPDesigner = () => {
 
     const onUp = () => {
       draggingRef.current = null;
-      mapInstanceRef.current?.setOptions({ draggable: true });
+      mapInstanceRef.current?.dragging.enable();
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseup', onUp);
     };
