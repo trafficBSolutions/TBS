@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import L from 'leaflet';
+import * as L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import Header from '../components/headerviews/HeaderAdminDash';
 import '../css/tcp-designer.css';
@@ -64,9 +64,9 @@ const SIGN_TYPES = [
 ];
 
 const DRAGGABLE_ITEMS = [
-  { type: 'sign', label: 'Sign', emoji: '🪧', markerStyle: 'gold-pin' },
-  { type: 'flagger', label: 'Flagger', emoji: '🧑', markerStyle: 'flagger-pin' },
-  { type: 'messageBoard', label: 'Message Board', emoji: '📺', markerStyle: 'hazard-pin' },
+  { type: 'sign', label: 'Sign', emoji: '🪧', markerStyle: 'sign-marker' },
+  { type: 'flagger', label: 'Flagger', emoji: '🧑', markerStyle: 'flagger-marker' },
+  { type: 'messageBoard', label: 'Message Board', emoji: '📺', markerStyle: 'board-marker' },
 ];
 
 const DRAW_MODES = [
@@ -118,8 +118,7 @@ const TCPDesigner = () => {
   const mapInstanceRef = useRef(null);
   const canvasRef = useRef(null);
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [mapMoveKey, setMapMoveKey] = useState(0);
-  const leafletMarkersRef = useRef({}); // { [itemId]: L.marker }
+  const [mapMoveKey, setMapMoveKey] = useState(0); // triggers re-render on map pan/zoom
   const [planInfo, setPlanInfo] = useState({
     projectAddress: '', city: '', state: 'TN', zip: '',
     prismId: '', roadName: '', email: 'tbsolutions9@gmail.com',
@@ -130,7 +129,7 @@ const TCPDesigner = () => {
 
   // Items stored with lat/lng
   const [placedItems, setPlacedItems] = useState({ [phases[0].id]: [] });
-const [selectedItemId, setSelectedItemId] = useState(null);
+
   // Lines stored with lat/lng points
   const [drawMode, setDrawMode] = useState(null);
   const [lines, setLines] = useState({ [phases[0].id]: [] });
@@ -144,10 +143,9 @@ const [selectedItemId, setSelectedItemId] = useState(null);
 
   // Measure tool state
   const [measureMode, setMeasureMode] = useState(false);
-const [measureStart, setMeasureStart] = useState(null);       // { lat, lng } | null
-const [measurePreview, setMeasurePreview] = useState(null);   // { lat, lng } | null
-const [savedMeasurements, setSavedMeasurements] = useState({}); // { [phaseId]: [{ id, start, end, feet }] }
-const selectedItem = (placedItems[phaseId] || []).find(it => it.id === selectedItemId);
+  const [measurePoints, setMeasurePoints] = useState([]); // [{lat,lng,px}]
+  const [measureDistanceFt, setMeasureDistanceFt] = useState(null);
+
   const activePhase = phases[activePhaseIdx];
   const phaseId = activePhase?.id;
 
@@ -189,144 +187,11 @@ const selectedItem = (placedItems[phaseId] || []).find(it => it.id === selectedI
     }
   }, [planInfo]);
 
-  // Build divIcon HTML for an item
-  const buildIconHtml = (item) => {
-  const inner = item.svgSrc
-    ? `<img src="${item.svgSrc}" alt="${item.label}" class="tcp-marker-svg" draggable="false" />`
-    : `<span style="font-size:1.2rem">${item.emoji || ''}</span>`;
-
-  return `
-    <div class="tcp-marker ${item.markerStyle || 'gold-pin'}">
-      <div class="tcp-marker-circle">${inner}</div>
-      <div class="tcp-marker-pointer"></div>
-    </div>
-  `;
-    let controls = '';
-    if (item.type === 'sign') {
-      const opts = SIGN_TYPES.map(s =>
-        `<option value="${s}" ${s === item.signType ? 'selected' : ''}>${s}</option>`
-      ).join('');
-      controls = `<select class="tcp-marker-select" data-item-id="${item.id}" style="font-size:0.65rem;max-width:130px;padding:2px">${opts}</select>`;
-    } else if (item.type === 'messageBoard') {
-      controls = `<div class="msg-board-inputs">
-        <input class="tcp-msg-input" data-item-id="${item.id}" data-field="msgLine1" placeholder="Line 1" value="${item.msgLine1 || ''}" />
-        <input class="tcp-msg-input" data-item-id="${item.id}" data-field="msgLine2" placeholder="Line 2" value="${item.msgLine2 || ''}" />
-      </div>`;
-    }
-
-    const buildIconHtml = (item) => {
-  const inner = item.svgSrc
-    ? `<img src="${item.svgSrc}" alt="${item.label}" class="tcp-marker-svg" draggable="false" />`
-    : `<span style="font-size:1.2rem">${item.emoji || ''}</span>`;
-
-  return `
-    <div class="tcp-marker ${item.markerStyle || 'gold-pin'}">
-      <div class="tcp-marker-circle">${inner}</div>
-      <div class="tcp-marker-pointer"></div>
-    </div>
-  `;
-};
+  // Convert item lat/lng to pixel for rendering
+  const getItemPixel = (item) => {
+    if (!mapInstanceRef.current) return null;
+    return latLngToPixel(mapInstanceRef.current, item.lat, item.lng);
   };
-
-  // Sync Leaflet markers with placedItems for the active phase
-  useEffect(() => {
-    const map = mapInstanceRef.current;
-    if (!map) return;
-    const items = placedItems[phaseId] || [];
-    const currentIds = new Set(items.map(it => it.id));
-    const markers = leafletMarkersRef.current;
-
-    // Remove markers no longer in items
-    Object.keys(markers).forEach(id => {
-      if (!currentIds.has(Number(id))) {
-        markers[id].remove();
-        delete markers[id];
-      }
-    });
-
-    // Add or update markers
-    items.forEach(item => {
-      const icon = L.divIcon({
-  className: 'tcp-leaflet-marker',
-  html: buildIconHtml(item),
-  iconSize: [44, 56],
-  iconAnchor: [22, 56],
-});
-
-      if (markers[item.id]) {
-        markers[item.id].setLatLng([item.lat, item.lng]);
-        markers[item.id].setIcon(icon);
-      } else {
-        const m = L.marker([item.lat, item.lng], { icon, draggable: true }).addTo(map);
-        m._itemId = item.id;
-
-        m.on('dragend', () => {
-          const pos = m.getLatLng();
-          setPlacedItems(prev => ({
-            ...prev,
-            [phaseId]: (prev[phaseId] || []).map(it =>
-              it.id === item.id ? { ...it, lat: pos.lat, lng: pos.lng } : it
-            ),
-          }));
-        });
-
-        // Event delegation on the marker container
-        const el = m.getElement();
-        if (el) {
-          el.addEventListener('click', (e) => {
-            const removeBtn = e.target.closest('.remove-icon');
-            if (removeBtn) {
-              e.stopPropagation();
-              const id = Number(removeBtn.dataset.itemId);
-              setPlacedItems(prev => ({
-                ...prev,
-                [phaseId]: (prev[phaseId] || []).filter(it => it.id !== id),
-              }));
-            }
-          });
-          m.on('click', () => {
-  setSelectedItemId(item.id);
-});
-          el.addEventListener('change', (e) => {
-            const sel = e.target.closest('.tcp-marker-select');
-            if (sel) {
-              const id = Number(sel.dataset.itemId);
-              const nextType = sel.value;
-              setPlacedItems(prev => ({
-                ...prev,
-                [phaseId]: (prev[phaseId] || []).map(it =>
-                  it.id === id ? { ...it, signType: nextType, svgSrc: SIGN_ASSETS[nextType] } : it
-                ),
-              }));
-            }
-          });
-          el.addEventListener('input', (e) => {
-            const inp = e.target.closest('.tcp-msg-input');
-            if (inp) {
-              const id = Number(inp.dataset.itemId);
-              const field = inp.dataset.field;
-              setPlacedItems(prev => ({
-                ...prev,
-                [phaseId]: (prev[phaseId] || []).map(it =>
-                  it.id === id ? { ...it, [field]: inp.value } : it
-                ),
-              }));
-            }
-          });
-        }
-
-        markers[item.id] = m;
-      }
-    });
-  }, [placedItems, phaseId, mapLoaded]);
-
-  // Clean up all markers when phase changes
-  useEffect(() => {
-    return () => {
-      Object.values(leafletMarkersRef.current).forEach(m => m.remove());
-      leafletMarkersRef.current = {};
-    };
-  }, [phaseId]);
 
   // Convert line lat/lng points to pixel for canvas drawing
   const lineToPixels = (line) => {
@@ -417,70 +282,13 @@ const selectedItem = (placedItems[phaseId] || []).find(it => it.id === selectedI
     setCurrentLine({ mode: drawMode, color, points: [pt] });
   };
 
- const handleCanvasMouseMove = (e) => {
-  const rect = canvasRef.current.getBoundingClientRect();
-  const pt = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-
-  if (currentLine) {
+  const handleCanvasMouseMove = (e) => {
+    if (!currentLine) return;
+    const rect = canvasRef.current.getBoundingClientRect();
+    const pt = { x: e.clientX - rect.left, y: e.clientY - rect.top };
     setCurrentLine(prev => ({ ...prev, points: [...prev.points, pt] }));
-  }
+  };
 
-  // Draw saved measurement lines
-(savedMeasurements[phaseId] || []).forEach(m => {
-  const startPx = latLngToPixel(mapInstanceRef.current, m.start.lat, m.start.lng);
-  const endPx = latLngToPixel(mapInstanceRef.current, m.end.lat, m.end.lng);
-  if (startPx && endPx) {
-    drawMeasurement(startPx, endPx, m.feet, false);
-  }
-});
-
-// Draw live preview measurement
-if (measureMode && measureStart && measurePreview) {
-  const startPx = latLngToPixel(mapInstanceRef.current, measureStart.lat, measureStart.lng);
-  const endPx = latLngToPixel(mapInstanceRef.current, measurePreview.lat, measurePreview.lng);
-
-  if (startPx && endPx) {
-    const feet = Math.round(
-      L.latLng(measureStart.lat, measureStart.lng)
-        .distanceTo(L.latLng(measurePreview.lat, measurePreview.lng)) * 3.28084
-    );
-
-    drawMeasurement(startPx, endPx, feet, true);
-  }
-}
-};
-const drawMeasurement = (startPx, endPx, feet, isPreview = false) => {
-  ctx.beginPath();
-  ctx.setLineDash(isPreview ? [10, 6] : [6, 4]);
-  ctx.strokeStyle = isPreview ? '#00bcd4' : '#3498db';
-  ctx.lineWidth = 3;
-  ctx.moveTo(startPx.x, startPx.y);
-  ctx.lineTo(endPx.x, endPx.y);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  [startPx, endPx].forEach(pt => {
-    ctx.beginPath();
-    ctx.arc(pt.x, pt.y, 5, 0, Math.PI * 2);
-    ctx.fillStyle = isPreview ? '#00bcd4' : '#3498db';
-    ctx.fill();
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-  });
-
-  const mx = (startPx.x + endPx.x) / 2;
-  const my = (startPx.y + endPx.y) / 2;
-  const text = `${feet} ft`;
-  ctx.font = 'bold 14px Arial';
-  const tw = ctx.measureText(text).width;
-  ctx.fillStyle = 'rgba(0,0,0,0.75)';
-  ctx.fillRect(mx - tw / 2 - 6, my - 12, tw + 12, 24);
-  ctx.fillStyle = '#fff';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(text, mx, my);
-};
   const handleCanvasMouseUp = () => {
     if (!currentLine || currentLine.points.length < 2) { setCurrentLine(null); return; }
     const map = mapInstanceRef.current;
@@ -504,11 +312,9 @@ const drawMeasurement = (startPx, endPx, feet, isPreview = false) => {
   // --- Snap helper: find nearest placed item within threshold px ---
   const snapToItem = (x, y, threshold = 30) => {
     const items = placedItems[phaseId] || [];
-    const map = mapInstanceRef.current;
     let best = null, bestDist = threshold;
     items.forEach(item => {
-      if (!map) return;
-      const px = latLngToPixel(map, item.lat, item.lng);
+      const px = getItemPixel(item);
       if (!px) return;
       const d = Math.hypot(px.x - x, px.y - y);
       if (d < bestDist) { bestDist = d; best = { lat: item.lat, lng: item.lng, label: item.label || item.type }; }
@@ -518,46 +324,28 @@ const drawMeasurement = (startPx, endPx, feet, isPreview = false) => {
 
   // --- Measure click handler ---
   const handleMeasureClick = (e) => {
-  const map = mapInstanceRef.current;
-  if (!map) return;
+    const map = mapInstanceRef.current;
+    if (!map) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
 
-  const rect = e.currentTarget.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
+    const snapped = snapToItem(x, y);
+    const ll = snapped || (() => { const p = pixelToLatLng(map, x, y); return p ? { lat: p.lat, lng: p.lng } : null; })();
+    if (!ll) return;
 
-  const snapped = snapToItem(x, y);
-  const ll = snapped || (() => {
-    const p = pixelToLatLng(map, x, y);
-    return p ? { lat: p.lat, lng: p.lng } : null;
-  })();
-
-  if (!ll) return;
-
-  if (!measureStart) {
-    setMeasureStart(ll);
-    setMeasurePreview(ll);
-    return;
-  }
-
-  const p1 = L.latLng(measureStart.lat, measureStart.lng);
-  const p2 = L.latLng(ll.lat, ll.lng);
-  const feet = Math.round(p1.distanceTo(p2) * 3.28084);
-
-  const newMeasurement = {
-    id: Date.now(),
-    start: measureStart,
-    end: ll,
-    feet,
+    if (measurePoints.length === 0) {
+      setMeasurePoints([ll]);
+      setMeasureDistanceFt(null);
+    } else {
+      const p1 = L.latLng(measurePoints[0].lat, measurePoints[0].lng);
+      const p2 = L.latLng(ll.lat, ll.lng);
+      const meters = p1.distanceTo(p2);
+      const feet = meters * 3.28084;
+      setMeasurePoints([measurePoints[0], ll]);
+      setMeasureDistanceFt(Math.round(feet));
+    }
   };
-
-  setSavedMeasurements(prev => ({
-    ...prev,
-    [phaseId]: [...(prev[phaseId] || []), newMeasurement],
-  }));
-
-  setMeasureStart(null);
-  setMeasurePreview(null);
-};
 
   // --- Place item (click on map area → convert pixel to lat/lng) ---
   const handleMapClick = (e) => {
@@ -572,19 +360,14 @@ const drawMeasurement = (startPx, endPx, feet, isPreview = false) => {
     const ll = pixelToLatLng(map, x, y);
     if (!ll) return;
 
-    const defaultSignType = SIGN_TYPES[0];
     const newItem = {
       id: Date.now(),
       type: dragItem.type,
       label: dragItem.label,
       emoji: dragItem.emoji,
-      markerStyle: dragItem.markerStyle,
       lat: ll.lat,
       lng: ll.lng,
-      signType: dragItem.type === 'sign' ? defaultSignType : undefined,
-      svgSrc: dragItem.type === 'sign' ? SIGN_ASSETS[defaultSignType]
-            : dragItem.type === 'flagger' ? flaggerStop
-            : undefined,
+      signType: dragItem.type === 'sign' ? SIGN_TYPES[0] : undefined,
       msgLine1: '', msgLine2: '',
     };
     setPlacedItems(prev => ({
@@ -596,17 +379,68 @@ const drawMeasurement = (startPx, endPx, feet, isPreview = false) => {
 
 
 
+  // --- Drag placed items to reposition ---
+  const draggingRef = useRef(null);
 
+  const startDragPlaced = (e, item) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const currentPhaseId = phaseId;
+    draggingRef.current = { id: item.id };
+    mapInstanceRef.current?.dragging.disable();
+
+    const onMove = (ev) => {
+      if (!draggingRef.current) return;
+      const map = mapInstanceRef.current;
+      if (!map) return;
+      const r = mapRef.current.parentElement.getBoundingClientRect();
+      const x = ev.clientX - r.left;
+      const y = ev.clientY - r.top;
+      const ll = pixelToLatLng(map, x, y);
+      if (!ll) return;
+      const newLat = ll.lat;
+      const newLng = ll.lng;
+      setPlacedItems(prev => ({
+        ...prev,
+        [currentPhaseId]: (prev[currentPhaseId] || []).map(it =>
+          it.id === draggingRef.current?.id ? { ...it, lat: newLat, lng: newLng } : it
+        ),
+      }));
+    };
+
+    const onUp = () => {
+      draggingRef.current = null;
+      mapInstanceRef.current?.dragging.enable();
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  };
+
+  const removeItem = (id) => {
+    setPlacedItems(prev => ({
+      ...prev,
+      [phaseId]: (prev[phaseId] || []).filter(it => it.id !== id),
+    }));
+  };
+
+  const updateItemProp = (id, key, val) => {
+    setPlacedItems(prev => ({
+      ...prev,
+      [phaseId]: (prev[phaseId] || []).map(it => it.id === id ? { ...it, [key]: val } : it),
+    }));
+  };
 
   // Phase management
   const addPhase = () => {
-  const np = emptyPhase();
-  setPhases(prev => [...prev, np]);
-  setPlacedItems(prev => ({ ...prev, [np.id]: [] }));
-  setLines(prev => ({ ...prev, [np.id]: [] }));
-  setSavedMeasurements(prev => ({ ...prev, [np.id]: [] }));
-  setActivePhaseIdx(phases.length);
-};
+    const np = emptyPhase();
+    setPhases(prev => [...prev, np]);
+    setPlacedItems(prev => ({ ...prev, [np.id]: [] }));
+    setLines(prev => ({ ...prev, [np.id]: [] }));
+    setActivePhaseIdx(phases.length);
+  };
 
   const updatePhase = (key, val) => {
     setPhases(prev => prev.map((p, i) => i === activePhaseIdx ? { ...p, [key]: val } : p));
@@ -694,25 +528,14 @@ const drawMeasurement = (startPx, endPx, feet, isPreview = false) => {
           >
             📏 Measure
           </button>
-          {measureMode && measureStart && measurePreview && (
-  <span className="measure-result">
-    📐 {Math.round(
-      L.latLng(measureStart.lat, measureStart.lng)
-        .distanceTo(L.latLng(measurePreview.lat, measurePreview.lng)) * 3.28084
-    )} ft
-  </span>
-)}
+          {measureMode && measureDistanceFt !== null && (
+            <span className="measure-result">📐 {measureDistanceFt} ft</span>
+          )}
           {measureMode && (
-  <button
-    onClick={() => {
-      setMeasureStart(null);
-      setMeasurePreview(null);
-      setSavedMeasurements(prev => ({ ...prev, [phaseId]: [] }));
-    }}
-  >
-    ✖ Clear Measurements
-  </button>
-)}
+            <button onClick={() => { setMeasurePoints([]); setMeasureDistanceFt(null); }}>
+              ✖ Clear Measure
+            </button>
+          )}
         </div>
 
         {/* Map Area */}
@@ -730,91 +553,101 @@ const drawMeasurement = (startPx, endPx, feet, isPreview = false) => {
           />
           {/* Invisible click layer — only active when a tool is selected */}
           {(dragItem || measureMode) && (
-  <div className="tcp-click-overlay" onClick={handleMapClick} />
-)}
+            <div
+              className="tcp-click-overlay"
+              onClick={handleMapClick}
+            />
+          )}
+          {/* Render placed items at their pixel position derived from lat/lng */}
+          {(placedItems[phaseId] || []).map(item => {
+            const px = getItemPixel(item);
+            if (!px) return null;
+            return (
+              <div
+  key={item.id}
+  className="tcp-draggable"
+  style={{ left: px.x - 22, top: px.y - 52 }}
+>
+  <button
+    className="remove-icon"
+    onClick={(e) => {
+      e.stopPropagation();
+      removeItem(item.id);
+    }}
+  >
+    ×
+  </button>
 
+  <div
+    className={`tcp-marker ${item.markerStyle}`}
+    onMouseDown={(e) => startDragPlaced(e, item)}
+  >
+    <div className="tcp-marker-circle">
+      <img src={item.svgSrc} alt={item.label} className="tcp-marker-svg" draggable={false} />
+    </div>
+    <div className="tcp-marker-pointer" />
+  </div>
+
+  {item.type === 'sign' && (
+    <select
+      value={item.signType}
+      onClick={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
+      onChange={(e) => {
+        const nextType = e.target.value;
+        updateItemProp(item.id, 'signType', nextType);
+        updateItemProp(item.id, 'svgSrc', SIGN_ASSETS[nextType]);
+      }}
+      style={{ fontSize: '0.65rem', maxWidth: '130px', padding: '2px' }}
+    >
+      {SIGN_TYPES.map((s) => (
+        <option key={s} value={s}>{s}</option>
+      ))}
+    </select>
+  )}
+
+  {item.type === 'messageBoard' && (
+    <div
+      className="msg-board-inputs"
+      onClick={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
+    >
+      <input
+        placeholder="Line 1"
+        value={item.msgLine1}
+        onChange={(e) => updateItemProp(item.id, 'msgLine1', e.target.value)}
+      />
+      <input
+        placeholder="Line 2"
+        value={item.msgLine2}
+        onChange={(e) => updateItemProp(item.id, 'msgLine2', e.target.value)}
+      />
+    </div>
+  )}
+  <span className="tcp-coords">{item.lat.toFixed(6)}, {item.lng.toFixed(6)}</span>
+</div>
+            );
+          })}
         </div>
 
         {/* Plan Info */}
-        
-
-{selectedItem && (
-  <div className="tcp-form-section">
-    <h2>Selected Item</h2>
-
-    {selectedItem.type === 'sign' && (
-      <label>
-        Sign Type
-        <select
-          value={selectedItem.signType}
-          onChange={(e) => {
-            const nextType = e.target.value;
-            setPlacedItems(prev => ({
-              ...prev,
-              [phaseId]: (prev[phaseId] || []).map(it =>
-                it.id === selectedItemId
-                  ? { ...it, signType: nextType, svgSrc: SIGN_ASSETS[nextType] }
-                  : it
-              ),
-            }));
-          }}
-        >
-          {SIGN_TYPES.map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </select>
-      </label>
-    )}
-
-    {selectedItem.type === 'messageBoard' && (
-      <>
-        <label>
-          Line 1
-          <input
-            value={selectedItem.msgLine1 || ''}
-            onChange={(e) => {
-              const value = e.target.value;
-              setPlacedItems(prev => ({
-                ...prev,
-                [phaseId]: (prev[phaseId] || []).map(it =>
-                  it.id === selectedItemId ? { ...it, msgLine1: value } : it
-                ),
-              }));
-            }}
-          />
-        </label>
-
-        <label>
-          Line 2
-          <input
-            value={selectedItem.msgLine2 || ''}
-            onChange={(e) => {
-              const value = e.target.value;
-              setPlacedItems(prev => ({
-                ...prev,
-                [phaseId]: (prev[phaseId] || []).map(it =>
-                  it.id === selectedItemId ? { ...it, msgLine2: value } : it
-                ),
-              }));
-            }}
-          />
-        </label>
-      </>
-    )}
-
-    <button
-      onClick={() => {
-        setPlacedItems(prev => ({
-          ...prev,
-          [phaseId]: (prev[phaseId] || []).filter(it => it.id !== selectedItemId),
-        }));
-        setSelectedItemId(null);
-      }}
-    >
-      Remove Item
-    </button>
-  </div>
-)}
+        <div className="tcp-form-section">
+          <h2>📋 TTCP Plan Information</h2>
+          <div className="tcp-form-grid">
+            <label>Prism ID Number<input value={planInfo.prismId} onChange={e => setPlanInfo(p => ({ ...p, prismId: e.target.value }))} /></label>
+            <label>Road Name<input value={planInfo.roadName} onChange={e => setPlanInfo(p => ({ ...p, roadName: e.target.value }))} placeholder="e.g. U.S Hwy 64" /></label>
+            <label>Project Address<input value={planInfo.projectAddress} onChange={e => setPlanInfo(p => ({ ...p, projectAddress: e.target.value }))} placeholder="9200 AMOS RD" /></label>
+            <label>City<input value={planInfo.city} onChange={e => setPlanInfo(p => ({ ...p, city: e.target.value }))} placeholder="OOLTEWAH" /></label>
+            <label>State<input value={planInfo.state} onChange={e => setPlanInfo(p => ({ ...p, state: e.target.value }))} /></label>
+            <label>Zip<input value={planInfo.zip} onChange={e => setPlanInfo(p => ({ ...p, zip: e.target.value }))} placeholder="37363" /></label>
+            <label>Email (PDF sent here)<input value={planInfo.email} onChange={e => setPlanInfo(p => ({ ...p, email: e.target.value }))} /></label>
+            <label><br />
+              <button onClick={geocodeAddress} style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid #e67e22', background: '#e67e22', color: '#fff', cursor: 'pointer', fontWeight: 700 }}>
+                📍 Go to Address on Map
+              </button>
+            </label>
+          </div>
+        </div>
 
         {/* Phases */}
         <div className="tcp-phases">
