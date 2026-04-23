@@ -391,37 +391,8 @@ const TCPDesigner = () => {
     setDragItem(null);
   };
 
-  // --- Drag placed items (move in lat/lng) ---
-  const startDragPlaced = (e, item) => {
-    e.stopPropagation();
-    e.preventDefault();
-    const px = getItemPixel(item);
-    if (!px) return;
-    const rect = mapRef.current.parentElement.getBoundingClientRect();
-    setDragOffset({ x: e.clientX - rect.left - px.x, y: e.clientY - rect.top - px.y });
-    setDragItem({ ...item, placed: true });
-  };
-
-  const handleMapMouseMove = (e) => {
-    if (!dragItem?.placed) return;
-    const overlay = overlayRef.current;
-    if (!overlay?.getProjection()) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left - dragOffset.x;
-    const y = e.clientY - rect.top - dragOffset.y;
-    const ll = pixelToLatLng(overlay, x, y);
-    if (!ll) return;
-    setPlacedItems(prev => ({
-      ...prev,
-      [phaseId]: (prev[phaseId] || []).map(it =>
-        it.id === dragItem.id ? { ...it, lat: ll.lat(), lng: ll.lng() } : it
-      ),
-    }));
-  };
-
-  const handleMapMouseUp = () => {
-    if (dragItem?.placed) setDragItem(null);
-  };
+  const handleMapMouseMove = () => {};
+  const handleMapMouseUp = () => {};
 
   const removeItem = (id) => {
     setPlacedItems(prev => ({
@@ -567,7 +538,7 @@ const TCPDesigner = () => {
   key={item.id}
   className="tcp-draggable"
   style={{ left: px.x - 22, top: px.y - 52 }}
-  onMouseDown={(e) => startDragPlaced(e, item)}
+
 >
   <button
     className="remove-icon"
@@ -622,6 +593,7 @@ const TCPDesigner = () => {
       />
     </div>
   )}
+  <span className="tcp-coords">{item.lat.toFixed(6)}, {item.lng.toFixed(6)}</span>
 </div>
             );
           })}
