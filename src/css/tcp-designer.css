@@ -260,3 +260,70 @@
   .sign-count-grid { grid-template-columns: 1fr 1fr; }
   .tcp-toolbar { justify-content: center; }
 }
+.tcp-marker {
+  position: relative;
+  width: 44px;
+  height: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  pointer-events: none;
+}
+
+.tcp-marker-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid #d4af37;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+  overflow: hidden;
+}
+
+.tcp-marker-pointer {
+  width: 0;
+  height: 0;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-top: 14px solid #d4af37;
+  margin-top: -2px;
+}
+
+.tcp-marker-svg {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* sign pin */
+.gold-pin .tcp-marker-circle {
+  border-color: #d4af37;
+  background: #fffdf5;
+}
+.gold-pin .tcp-marker-pointer {
+  border-top-color: #d4af37;
+}
+
+/* flagger pin */
+.flagger-pin .tcp-marker-circle {
+  border-color: #ff8c00;
+  background: #fff8f0;
+}
+.flagger-pin .tcp-marker-pointer {
+  border-top-color: #ff8c00;
+}
+
+/* hazard pin */
+.hazard-pin .tcp-marker-circle {
+  border-color: #f1c40f;
+  background: #fffbea;
+}
+.hazard-pin .tcp-marker-pointer {
+  border-top-color: #f1c40f;
+}
