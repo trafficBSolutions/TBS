@@ -391,8 +391,7 @@ const TCPDesigner = () => {
     setDragItem(null);
   };
 
-  const handleMapMouseMove = () => {};
-  const handleMapMouseUp = () => {};
+
 
   const removeItem = (id) => {
     setPlacedItems(prev => ({
@@ -516,9 +515,6 @@ const TCPDesigner = () => {
         {/* Map Area */}
         <div
           className="tcp-map-area"
-          onClick={handleMapClick}
-          onMouseMove={handleMapMouseMove}
-          onMouseUp={handleMapMouseUp}
         >
           <div ref={mapRef} className="map-container" />
           <canvas
@@ -529,6 +525,13 @@ const TCPDesigner = () => {
             onMouseUp={handleCanvasMouseUp}
             onMouseLeave={handleCanvasMouseUp}
           />
+          {/* Invisible click layer — only active when a tool is selected */}
+          {(dragItem || measureMode) && (
+            <div
+              className="tcp-click-overlay"
+              onClick={handleMapClick}
+            />
+          )}
           {/* Render placed items at their pixel position derived from lat/lng */}
           {(placedItems[phaseId] || []).map(item => {
             const px = getItemPixel(item);
