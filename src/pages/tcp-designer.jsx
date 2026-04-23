@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import * as L from 'leaflet';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import Header from '../components/headerviews/HeaderAdminDash';
 import '../css/tcp-designer.css';
@@ -360,14 +360,19 @@ const TCPDesigner = () => {
     const ll = pixelToLatLng(map, x, y);
     if (!ll) return;
 
+    const defaultSignType = SIGN_TYPES[0];
     const newItem = {
       id: Date.now(),
       type: dragItem.type,
       label: dragItem.label,
       emoji: dragItem.emoji,
+      markerStyle: dragItem.markerStyle,
       lat: ll.lat,
       lng: ll.lng,
-      signType: dragItem.type === 'sign' ? SIGN_TYPES[0] : undefined,
+      signType: dragItem.type === 'sign' ? defaultSignType : undefined,
+      svgSrc: dragItem.type === 'sign' ? SIGN_ASSETS[defaultSignType]
+            : dragItem.type === 'flagger' ? flaggerStop
+            : undefined,
       msgLine1: '', msgLine2: '',
     };
     setPlacedItems(prev => ({
