@@ -130,7 +130,7 @@ const TCPDesigner = () => {
 
   // Items stored with lat/lng
   const [placedItems, setPlacedItems] = useState({ [phases[0].id]: [] });
-
+const [selectedItemId, setSelectedItemId] = useState(null);
   // Lines stored with lat/lng points
   const [drawMode, setDrawMode] = useState(null);
   const [lines, setLines] = useState({ [phases[0].id]: [] });
@@ -146,7 +146,7 @@ const TCPDesigner = () => {
   const [measureMode, setMeasureMode] = useState(false);
   const [measurePoints, setMeasurePoints] = useState([]); // [{lat,lng,px}]
   const [measureDistanceFt, setMeasureDistanceFt] = useState(null);
-
+const selectedItem = (placedItems[phaseId] || []).find(it => it.id === selectedItemId);
   const activePhase = phases[activePhaseIdx];
   const phaseId = activePhase?.id;
 
@@ -207,15 +207,18 @@ const TCPDesigner = () => {
       </div>`;
     }
 
-    return `<div class="tcp-draggable-inner">
-      <button class="remove-icon" data-item-id="${item.id}">×</button>
-      <div class="tcp-marker ${item.markerStyle || ''}">
-        <div class="tcp-marker-circle">${inner}</div>
-        <div class="tcp-marker-pointer"></div>
-      </div>
-      ${controls}
-      <span class="tcp-coords">${item.lat.toFixed(6)}, ${item.lng.toFixed(6)}</span>
-    </div>`;
+    const buildIconHtml = (item) => {
+  const inner = item.svgSrc
+    ? `<img src="${item.svgSrc}" alt="${item.label}" class="tcp-marker-svg" draggable="false" />`
+    : `<span style="font-size:1.2rem">${item.emoji || ''}</span>`;
+
+  return `
+    <div class="tcp-marker ${item.markerStyle || 'gold-pin'}">
+      <div class="tcp-marker-circle">${inner}</div>
+      <div class="tcp-marker-pointer"></div>
+    </div>
+  `;
+};
   };
 
   // Sync Leaflet markers with placedItems for the active phase
@@ -237,11 +240,11 @@ const TCPDesigner = () => {
     // Add or update markers
     items.forEach(item => {
       const icon = L.divIcon({
-        className: 'tcp-leaflet-marker',
-        html: buildIconHtml(item),
-        iconSize: [44, 70],
-        iconAnchor: [22, 56],
-      });
+  className: 'tcp-leaflet-marker',
+  html: buildIconHtml(item),
+  iconSize: [44, 56],
+  iconAnchor: [22, 56],
+});
 
       if (markers[item.id]) {
         markers[item.id].setLatLng([item.lat, item.lng]);
@@ -274,6 +277,9 @@ const TCPDesigner = () => {
               }));
             }
           });
+          m.on('click', () => {
+  setSelectedItemId(item.id);
+});
           el.addEventListener('change', (e) => {
             const sel = e.target.closest('.tcp-marker-select');
             if (sel) {
@@ -639,23 +645,85 @@ const TCPDesigner = () => {
         </div>
 
         {/* Plan Info */}
-        <div className="tcp-form-section">
-          <h2>📋 TTCP Plan Information</h2>
-          <div className="tcp-form-grid">
-            <label>Prism ID Number<input value={planInfo.prismId} onChange={e => setPlanInfo(p => ({ ...p, prismId: e.target.value }))} /></label>
-            <label>Road Name<input value={planInfo.roadName} onChange={e => setPlanInfo(p => ({ ...p, roadName: e.target.value }))} placeholder="e.g. U.S Hwy 64" /></label>
-            <label>Project Address<input value={planInfo.projectAddress} onChange={e => setPlanInfo(p => ({ ...p, projectAddress: e.target.value }))} placeholder="9200 AMOS RD" /></label>
-            <label>City<input value={planInfo.city} onChange={e => setPlanInfo(p => ({ ...p, city: e.target.value }))} placeholder="OOLTEWAH" /></label>
-            <label>State<input value={planInfo.state} onChange={e => setPlanInfo(p => ({ ...p, state: e.target.value }))} /></label>
-            <label>Zip<input value={planInfo.zip} onChange={e => setPlanInfo(p => ({ ...p, zip: e.target.value }))} placeholder="37363" /></label>
-            <label>Email (PDF sent here)<input value={planInfo.email} onChange={e => setPlanInfo(p => ({ ...p, email: e.target.value }))} /></label>
-            <label><br />
-              <button onClick={geocodeAddress} style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid #e67e22', background: '#e67e22', color: '#fff', cursor: 'pointer', fontWeight: 700 }}>
-                📍 Go to Address on Map
-              </button>
-            </label>
-          </div>
-        </div>
+        
+
+{selectedItem && (
+  <div className="tcp-form-section">
+    <h2>Selected Item</h2>
+
+    {selectedItem.type === 'sign' && (
+      <label>
+        Sign Type
+        <select
+          value={selectedItem.signType}
+          onChange={(e) => {
+            const nextType = e.target.value;
+            setPlacedItems(prev => ({
+              ...prev,
+              [phaseId]: (prev[phaseId] || []).map(it =>
+                it.id === selectedItemId
+                  ? { ...it, signType: nextType, svgSrc: SIGN_ASSETS[nextType] }
+                  : it
+              ),
+            }));
+          }}
+        >
+          {SIGN_TYPES.map((s) => (
+            <option key={s} value={s}>{s}</option>
+          ))}
+        </select>
+      </label>
+    )}
+
+    {selectedItem.type === 'messageBoard' && (
+      <>
+        <label>
+          Line 1
+          <input
+            value={selectedItem.msgLine1 || ''}
+            onChange={(e) => {
+              const value = e.target.value;
+              setPlacedItems(prev => ({
+                ...prev,
+                [phaseId]: (prev[phaseId] || []).map(it =>
+                  it.id === selectedItemId ? { ...it, msgLine1: value } : it
+                ),
+              }));
+            }}
+          />
+        </label>
+
+        <label>
+          Line 2
+          <input
+            value={selectedItem.msgLine2 || ''}
+            onChange={(e) => {
+              const value = e.target.value;
+              setPlacedItems(prev => ({
+                ...prev,
+                [phaseId]: (prev[phaseId] || []).map(it =>
+                  it.id === selectedItemId ? { ...it, msgLine2: value } : it
+                ),
+              }));
+            }}
+          />
+        </label>
+      </>
+    )}
+
+    <button
+      onClick={() => {
+        setPlacedItems(prev => ({
+          ...prev,
+          [phaseId]: (prev[phaseId] || []).filter(it => it.id !== selectedItemId),
+        }));
+        setSelectedItemId(null);
+      }}
+    >
+      Remove Item
+    </button>
+  </div>
+)}
 
         {/* Phases */}
         <div className="tcp-phases">
