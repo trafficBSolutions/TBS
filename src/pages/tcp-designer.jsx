@@ -119,6 +119,7 @@ const TCPDesigner = () => {
   const canvasRef = useRef(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapMoveKey, setMapMoveKey] = useState(0); // triggers re-render on map pan/zoom
+  const [isZooming, setIsZooming] = useState(false);
   const [planInfo, setPlanInfo] = useState({
     projectAddress: '', city: '', state: 'TN', zip: '',
     prismId: '', roadName: '', email: 'tbsolutions9@gmail.com',
@@ -165,8 +166,10 @@ const TCPDesigner = () => {
     mapInstanceRef.current = map;
 
     const update = () => setMapMoveKey(k => k + 1);
+    map.on('move', update);
     map.on('moveend', update);
-    map.on('zoomend', update);
+    map.on('zoomstart', () => setIsZooming(true));
+    map.on('zoomend', () => { setIsZooming(false); update(); });
 
     setMapLoaded(true);
     return () => { map.remove(); mapInstanceRef.current = null; };
@@ -564,7 +567,7 @@ const TCPDesigner = () => {
             />
           )}
           {/* Render placed items at their pixel position derived from lat/lng */}
-          {(placedItems[phaseId] || []).map(item => {
+          {!isZooming && (placedItems[phaseId] || []).map(item => {
             const px = getItemPixel(item);
             if (!px) return null;
             return (
