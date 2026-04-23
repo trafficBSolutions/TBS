@@ -274,8 +274,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.3);
   overflow: hidden;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.3);
 }
 
 .tcp-marker-pointer {
@@ -291,8 +291,6 @@
   width: 24px;
   height: 24px;
   object-fit: contain;
-  pointer-events: none;
-  user-select: none;
 }
 
 /* sign pin */
