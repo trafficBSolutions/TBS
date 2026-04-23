@@ -62,23 +62,11 @@ const SIGN_TYPES = [
   'Detour Ahead', 'End Detour', 'End Road Work',
 ];
 
-const newItem = {
-  id: Date.now(),
-  type: dragItem.type,
-  label: dragItem.label,
-  markerStyle: dragItem.markerStyle,
-  lat: ll.lat(),
-  lng: ll.lng(),
-  signType: dragItem.type === 'sign' ? SIGN_TYPES[0] : undefined,
-  svgSrc:
-    dragItem.type === 'sign'
-      ? SIGN_ASSETS[SIGN_TYPES[0]]
-      : dragItem.type === 'flagger'
-      ? flaggerSymbol
-      : trafficPlanIcon,
-  msgLine1: '',
-  msgLine2: '',
-};
+const DRAGGABLE_ITEMS = [
+  { type: 'sign', label: 'Sign', emoji: '🪧', markerStyle: 'sign-marker' },
+  { type: 'flagger', label: 'Flagger', emoji: '🧑', markerStyle: 'flagger-marker' },
+  { type: 'messageBoard', label: 'Message Board', emoji: '📺', markerStyle: 'board-marker' },
+];
 
 const DRAW_MODES = [
   { mode: 'buffer', label: 'Buffer (Yellow)', color: '#f1c40f' },
