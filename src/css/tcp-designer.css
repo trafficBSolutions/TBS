@@ -327,3 +327,21 @@
 .hazard-pin .tcp-marker-pointer {
   border-top-color: #f1c40f;
 }
+
+
+/* Measure tool */
+.tcp-toolbar button.measure-active {
+  background: #3498db !important;
+  border-color: #3498db !important;
+  color: #fff !important;
+}
+.measure-result {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #3498db;
+  padding: 0.4rem 0.75rem;
+  background: #eaf4fd;
+  border-radius: 8px;
+  border: 1px solid #3498db;
+  white-space: nowrap;
+}
