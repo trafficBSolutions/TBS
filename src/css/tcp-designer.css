@@ -345,3 +345,17 @@
   border: 1px solid #3498db;
   white-space: nowrap;
 }
+
+
+/* Coordinates label */
+.tcp-coords {
+  font-size: 0.55rem;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(0,0,0,0.7);
+  padding: 1px 4px;
+  border-radius: 4px;
+  margin-top: 2px;
+  white-space: nowrap;
+  pointer-events: none;
+}
