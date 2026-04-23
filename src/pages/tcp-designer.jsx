@@ -472,48 +472,65 @@ const TCPDesigner = () => {
             if (!px) return null;
             return (
               <div
-                key={item.id}
-                className="tcp-draggable"
-                style={{ left: px.x - 16, top: px.y - 16 }}
-                onMouseDown={(e) => startDragPlaced(e, item)}
-              >
-                <button className="remove-icon" onClick={(e) => { e.stopPropagation(); removeItem(item.id); }}>×</button>
-                <div className={`tcp-marker ${item.markerStyle}`}>
-  <div className="tcp-marker-circle">
-    <img
-      src={item.svgSrc}
-      alt={item.label}
-      className="tcp-marker-svg"
-      draggable={false}
-    />
+  key={item.id}
+  className="tcp-draggable"
+  style={{ left: px.x - 22, top: px.y - 52 }}
+  onMouseDown={(e) => startDragPlaced(e, item)}
+>
+  <button
+    className="remove-icon"
+    onClick={(e) => {
+      e.stopPropagation();
+      removeItem(item.id);
+    }}
+  >
+    ×
+  </button>
+
+  <div className={`tcp-marker ${item.markerStyle}`}>
+    <div className="tcp-marker-circle">
+      <img src={item.svgSrc} alt={item.label} className="tcp-marker-svg" draggable={false} />
+    </div>
+    <div className="tcp-marker-pointer" />
   </div>
-  <div className="tcp-marker-pointer" />
+
+  {item.type === 'sign' && (
+    <select
+      value={item.signType}
+      onClick={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
+      onChange={(e) => {
+        const nextType = e.target.value;
+        updateItemProp(item.id, 'signType', nextType);
+        updateItemProp(item.id, 'svgSrc', SIGN_ASSETS[nextType]);
+      }}
+      style={{ fontSize: '0.65rem', maxWidth: '130px', padding: '2px' }}
+    >
+      {SIGN_TYPES.map((s) => (
+        <option key={s} value={s}>{s}</option>
+      ))}
+    </select>
+  )}
+
+  {item.type === 'messageBoard' && (
+    <div
+      className="msg-board-inputs"
+      onClick={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
+    >
+      <input
+        placeholder="Line 1"
+        value={item.msgLine1}
+        onChange={(e) => updateItemProp(item.id, 'msgLine1', e.target.value)}
+      />
+      <input
+        placeholder="Line 2"
+        value={item.msgLine2}
+        onChange={(e) => updateItemProp(item.id, 'msgLine2', e.target.value)}
+      />
+    </div>
+  )}
 </div>
-                {item.type === 'sign' && (
-                  <select
-                    value={item.signType}
-                    onClick={e => e.stopPropagation()}
-                    onMouseDown={e => e.stopPropagation()}
-                    onChange={e => {
-  const nextType = e.target.value;
-  updateItemProp(item.id, 'signType', nextType);
-  updateItemProp(item.id, 'svgSrc', SIGN_ASSETS[nextType]);
-}}
-                    style={{ fontSize: '0.6rem', maxWidth: '90px', padding: '1px' }}
-                  >
-                    {SIGN_TYPES.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                )}
-                {item.type === 'messageBoard' && (
-                  <div className="msg-board-inputs" onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()}>
-                    <input placeholder="Line 1" value={item.msgLine1} onChange={e => updateItemProp(item.id, 'msgLine1', e.target.value)} />
-                    <input placeholder="Line 2" value={item.msgLine2} onChange={e => updateItemProp(item.id, 'msgLine2', e.target.value)} />
-                  </div>
-                )}
-                {item.type !== 'sign' && item.type !== 'messageBoard' && (
-                  <span className="icon-label">{item.label}</span>
-                )}
-              </div>
             );
           })}
         </div>
