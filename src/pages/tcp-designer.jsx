@@ -391,51 +391,36 @@ const TCPDesigner = () => {
     setDragItem(null);
   };
 
-
-
-  // --- Drag placed items to reposition ---
-  const draggingRef = useRef(null); // { id, offsetX, offsetY }
-
+  // --- Drag placed items (move in lat/lng) ---
   const startDragPlaced = (e, item) => {
     e.stopPropagation();
     e.preventDefault();
     const px = getItemPixel(item);
     if (!px) return;
-    const rect = mapRef.current.parentElement.getBoundingClientRect();
-    draggingRef.current = {
-      id: item.id,
-      offsetX: e.clientX - rect.left - px.x,
-      offsetY: e.clientY - rect.top - px.y,
-    };
-    // Disable map dragging while repositioning icon
-    mapInstanceRef.current?.setOptions({ draggable: false });
+    const rect = mapRef.current.getBoundingClientRect();
+    setDragOffset({ x: e.clientX - px.x, y: e.clientY - px.y });
+    setDragItem({ ...item, placed: true });
+  };
 
-    const onMove = (ev) => {
-      if (!draggingRef.current) return;
-      const overlay = overlayRef.current;
-      if (!overlay?.getProjection()) return;
-      const r = mapRef.current.parentElement.getBoundingClientRect();
-      const x = ev.clientX - r.left - draggingRef.current.offsetX;
-      const y = ev.clientY - r.top - draggingRef.current.offsetY;
-      const ll = pixelToLatLng(overlay, x, y);
-      if (!ll) return;
-      setPlacedItems(prev => ({
-        ...prev,
-        [phaseId]: (prev[phaseId] || []).map(it =>
-          it.id === draggingRef.current.id ? { ...it, lat: ll.lat(), lng: ll.lng() } : it
-        ),
-      }));
-    };
+  const handleMapMouseMove = (e) => {
+    if (!dragItem?.placed) return;
+    const overlay = overlayRef.current;
+    if (!overlay?.getProjection()) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left - dragOffset.x + 16; // +16 to center
+    const y = e.clientY - rect.top - dragOffset.y + 16;
+    const ll = pixelToLatLng(overlay, x, y);
+    if (!ll) return;
+    setPlacedItems(prev => ({
+      ...prev,
+      [phaseId]: (prev[phaseId] || []).map(it =>
+        it.id === dragItem.id ? { ...it, lat: ll.lat(), lng: ll.lng() } : it
+      ),
+    }));
+  };
 
-    const onUp = () => {
-      draggingRef.current = null;
-      mapInstanceRef.current?.setOptions({ draggable: true });
-      document.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseup', onUp);
-    };
-
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onUp);
+  const handleMapMouseUp = () => {
+    if (dragItem?.placed) setDragItem(null);
   };
 
   const removeItem = (id) => {
@@ -560,6 +545,9 @@ const TCPDesigner = () => {
         {/* Map Area */}
         <div
           className="tcp-map-area"
+          onClick={handleMapClick}
+          onMouseMove={handleMapMouseMove}
+          onMouseUp={handleMapMouseUp}
         >
           <div ref={mapRef} className="map-container" />
           <canvas
@@ -570,13 +558,6 @@ const TCPDesigner = () => {
             onMouseUp={handleCanvasMouseUp}
             onMouseLeave={handleCanvasMouseUp}
           />
-          {/* Invisible click layer — only active when a tool is selected */}
-          {(dragItem || measureMode) && (
-            <div
-              className="tcp-click-overlay"
-              onClick={handleMapClick}
-            />
-          )}
           {/* Render placed items at their pixel position derived from lat/lng */}
           {(placedItems[phaseId] || []).map(item => {
             const px = getItemPixel(item);
@@ -585,7 +566,7 @@ const TCPDesigner = () => {
               <div
   key={item.id}
   className="tcp-draggable"
-  style={{ left: px.x - 22, top: px.y - 52, cursor: 'grab' }}
+  style={{ left: px.x - 22, top: px.y - 52 }}
   onMouseDown={(e) => startDragPlaced(e, item)}
 >
   <button
@@ -641,7 +622,6 @@ const TCPDesigner = () => {
       />
     </div>
   )}
-  <span className="tcp-coords">{item.lat.toFixed(6)}, {item.lng.toFixed(6)}</span>
 </div>
             );
           })}
