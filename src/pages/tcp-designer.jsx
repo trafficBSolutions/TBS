@@ -146,7 +146,7 @@ const [selectedItemId, setSelectedItemId] = useState(null);
   const [measureMode, setMeasureMode] = useState(false);
   const [measurePoints, setMeasurePoints] = useState([]); // [{lat,lng,px}]
   const [measureDistanceFt, setMeasureDistanceFt] = useState(null);
-
+const selectedItem = (placedItems[phaseId] || []).find(it => it.id === selectedItemId);
   const activePhase = phases[activePhaseIdx];
   const phaseId = activePhase?.id;
 
