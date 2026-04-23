@@ -399,15 +399,7 @@ const TCPDesigner = () => {
   const startDragPlaced = (e, item) => {
     e.stopPropagation();
     e.preventDefault();
-    const px = getItemPixel(item);
-    if (!px) return;
-    const rect = mapRef.current.parentElement.getBoundingClientRect();
-    draggingRef.current = {
-      id: item.id,
-      offsetX: e.clientX - rect.left - px.x,
-      offsetY: e.clientY - rect.top - px.y,
-    };
-    // Disable map dragging while repositioning icon
+    draggingRef.current = { id: item.id };
     mapInstanceRef.current?.setOptions({ draggable: false });
 
     const onMove = (ev) => {
@@ -415,8 +407,8 @@ const TCPDesigner = () => {
       const overlay = overlayRef.current;
       if (!overlay?.getProjection()) return;
       const r = mapRef.current.parentElement.getBoundingClientRect();
-      const x = ev.clientX - r.left - draggingRef.current.offsetX;
-      const y = ev.clientY - r.top - draggingRef.current.offsetY;
+      const x = ev.clientX - r.left;
+      const y = ev.clientY - r.top;
       const ll = pixelToLatLng(overlay, x, y);
       if (!ll) return;
       setPlacedItems(prev => ({
@@ -585,8 +577,7 @@ const TCPDesigner = () => {
               <div
   key={item.id}
   className="tcp-draggable"
-  style={{ left: px.x - 22, top: px.y - 52, cursor: 'grab' }}
-  onMouseDown={(e) => startDragPlaced(e, item)}
+  style={{ left: px.x - 22, top: px.y - 52 }}
 >
   <button
     className="remove-icon"
@@ -598,7 +589,10 @@ const TCPDesigner = () => {
     ×
   </button>
 
-  <div className={`tcp-marker ${item.markerStyle}`}>
+  <div
+    className={`tcp-marker ${item.markerStyle}`}
+    onMouseDown={(e) => startDragPlaced(e, item)}
+  >
     <div className="tcp-marker-circle">
       <img src={item.svgSrc} alt={item.label} className="tcp-marker-svg" draggable={false} />
     </div>
