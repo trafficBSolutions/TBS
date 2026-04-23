@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import * as L from 'leaflet';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import Header from '../components/headerviews/HeaderAdminDash';
 import '../css/tcp-designer.css';
@@ -64,9 +64,9 @@ const SIGN_TYPES = [
 ];
 
 const DRAGGABLE_ITEMS = [
-  { type: 'sign', label: 'Sign', emoji: '🪧', markerStyle: 'sign-marker' },
-  { type: 'flagger', label: 'Flagger', emoji: '🧑', markerStyle: 'flagger-marker' },
-  { type: 'messageBoard', label: 'Message Board', emoji: '📺', markerStyle: 'board-marker' },
+  { type: 'sign', label: 'Sign', emoji: '🪧', markerStyle: 'gold-pin' },
+  { type: 'flagger', label: 'Flagger', emoji: '🧑', markerStyle: 'flagger-pin' },
+  { type: 'messageBoard', label: 'Message Board', emoji: '📺', markerStyle: 'hazard-pin' },
 ];
 
 const DRAW_MODES = [
@@ -360,14 +360,19 @@ const TCPDesigner = () => {
     const ll = pixelToLatLng(map, x, y);
     if (!ll) return;
 
+    const defaultSignType = SIGN_TYPES[0];
     const newItem = {
       id: Date.now(),
       type: dragItem.type,
       label: dragItem.label,
       emoji: dragItem.emoji,
+      markerStyle: dragItem.markerStyle,
       lat: ll.lat,
       lng: ll.lng,
-      signType: dragItem.type === 'sign' ? SIGN_TYPES[0] : undefined,
+      signType: dragItem.type === 'sign' ? defaultSignType : undefined,
+      svgSrc: dragItem.type === 'sign' ? SIGN_ASSETS[defaultSignType]
+            : dragItem.type === 'flagger' ? flaggerStop
+            : undefined,
       msgLine1: '', msgLine2: '',
     };
     setPlacedItems(prev => ({
@@ -583,7 +588,9 @@ const TCPDesigner = () => {
     onMouseDown={(e) => startDragPlaced(e, item)}
   >
     <div className="tcp-marker-circle">
-      <img src={item.svgSrc} alt={item.label} className="tcp-marker-svg" draggable={false} />
+      {item.svgSrc
+        ? <img src={item.svgSrc} alt={item.label} className="tcp-marker-svg" draggable={false} />
+        : <span style={{ fontSize: '1.2rem' }}>{item.emoji}</span>}
     </div>
     <div className="tcp-marker-pointer" />
   </div>
