@@ -397,8 +397,8 @@ const TCPDesigner = () => {
     e.preventDefault();
     const px = getItemPixel(item);
     if (!px) return;
-    const rect = mapRef.current.getBoundingClientRect();
-    setDragOffset({ x: e.clientX - px.x, y: e.clientY - px.y });
+    const rect = mapRef.current.parentElement.getBoundingClientRect();
+    setDragOffset({ x: e.clientX - rect.left - px.x, y: e.clientY - rect.top - px.y });
     setDragItem({ ...item, placed: true });
   };
 
@@ -407,8 +407,8 @@ const TCPDesigner = () => {
     const overlay = overlayRef.current;
     if (!overlay?.getProjection()) return;
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left - dragOffset.x + 16; // +16 to center
-    const y = e.clientY - rect.top - dragOffset.y + 16;
+    const x = e.clientX - rect.left - dragOffset.x;
+    const y = e.clientY - rect.top - dragOffset.y;
     const ll = pixelToLatLng(overlay, x, y);
     if (!ll) return;
     setPlacedItems(prev => ({
