@@ -61,7 +61,7 @@
 .tcp-draggable {
   position: absolute;
   z-index: 3;
-  cursor: grab;
+  pointer-events: none;
   user-select: none;
   display: flex;
   flex-direction: column;
@@ -71,7 +71,11 @@
   color: #333;
   text-align: center;
 }
-.tcp-draggable:active { cursor: grabbing; }
+.tcp-draggable .remove-icon,
+.tcp-draggable select,
+.tcp-draggable .msg-board-inputs {
+  pointer-events: auto;
+}
 .tcp-draggable .icon-label {
   background: rgba(255,255,255,0.9);
   padding: 1px 4px;
