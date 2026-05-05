@@ -65,6 +65,7 @@ export default function Quote() {
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState("");
   const [taxExemptNumber, setTaxExemptNumber] = useState("");
+  const [donation, setDonation] = useState(0);
 
   // ── Invoice state ──
   const [invNumber, setInvNumber] = useState("");
@@ -154,12 +155,13 @@ export default function Quote() {
     const ccFee =
       (payMethod === "Card" && !isCheckPayment) ? (subtotal + taxDue) * ccFeeRate : 0;
 
-    const total = isTaxExempt ? subtotal + ccFee : subtotal + taxDue + ccFee;
+    const donationAmt = Number(donation) || 0;
+    const total = (isTaxExempt ? subtotal + ccFee : subtotal + taxDue + ccFee) - donationAmt;
 
     const depositDue = requireDeposit ? total * depositRate : 0;
 
-    return { lineTotals, subtotal, taxDue, ccFee, total, depositDue };
-  }, [rows, taxRate, isTaxExempt, payMethod, isCheckPayment, ccFeeRate, requireDeposit, depositRate]);
+    return { lineTotals, subtotal, taxDue, ccFee, total, depositDue, donation: donationAmt };
+  }, [rows, taxRate, isTaxExempt, payMethod, isCheckPayment, ccFeeRate, requireDeposit, depositRate, donation]);
  const handlePhoneChange = (event) => {
     const input = event.target.value;
     const rawInput = input.replace(/\D/g, ''); // Remove non-digit characters
@@ -199,6 +201,7 @@ export default function Quote() {
         cardType,
         cardLast4,
         checkNumber: isCheckPayment ? checkNumber : '',
+        donation: computed.donation,
         rows,
         computed
       });
@@ -388,6 +391,17 @@ export default function Quote() {
           <div className="row"><span>Subtotal</span><strong>{money(computed.subtotal)}</strong></div>
           <div className="row"><span>Tax Due</span><strong>{money(computed.taxDue)}</strong></div>
           <div className="row"><span>Card Fee (3%)</span><strong>{money(computed.ccFee)}</strong></div>
+          <div className="row" style={{ color: 'red' }}>
+            <span>Donation</span>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={donation}
+              onChange={(e) => setDonation(Number(e.target.value))}
+              style={{ width: '100px', marginLeft: '10px' }}
+            />
+          </div>
           <div className="row total"><span>TOTAL</span><strong>{money(computed.total)}</strong></div>
         </div>
 
