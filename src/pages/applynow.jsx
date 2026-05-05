@@ -824,6 +824,60 @@ if (!data.background) {
       </div>
     </div>
 </section>
+
+<section className="carrier-section">
+    <h2 className="carrierh2">🚛 TRAFFIC CONTROL CDL DRIVER</h2>
+    <p className="carrier-ops">
+      TBS is actively hiring CDL Drivers to support our traffic control operations across Georgia!
+      As a Traffic Control CDL Driver, you are the backbone of our field operations — responsible for safely transporting
+      signs, barricades, arrow boards, crash attenuators (TMA trucks), and other traffic control devices to active work zones.
+      You'll work closely with foremen and flaggers to ensure crews have the equipment they need to keep roadways safe.
+      This position offers competitive pay, consistent hours, and the opportunity to grow within a rapidly expanding company.
+      If you take pride in safe driving and want to be part of a team that protects lives on the road every day, apply now!
+    </p>
+    <div className="job-lists">
+      <div className="duty-div">
+        <h2 className="duties-div">Job Duties</h2>
+        <li>Safely transport traffic control equipment (signs, barricades, cones, arrow boards, message boards, attenuators) to and from jobsites</li>
+        <li>Operate TMA (Truck Mounted Attenuator) vehicles on active highways and interstates when required</li>
+        <li>Perform thorough pre-trip and post-trip vehicle inspections per DOT/FMCSA regulations</li>
+        <li>Load, secure, and unload equipment following proper cargo securement standards</li>
+        <li>Assist with setting up and tearing down traffic control zones as needed</li>
+        <li>Maintain accurate daily vehicle logs (ELD/paper logs) and delivery documentation</li>
+        <li>Communicate with dispatch, foremen, and project managers regarding schedules and route changes</li>
+        <li>Keep vehicle clean, fueled, and report any mechanical issues immediately</li>
+        <li>Follow all DOT, OSHA, and MUTCD safety standards at all times</li>
+        <li>Respond to emergency callouts for lane closures or incident management when needed</li>
+      </div>
+      <div className="require-div">
+        <h2 className="requirements">Requirements</h2>
+        <li>Valid Class A or Class B CDL (Class A preferred)</li>
+        <li>Minimum 1 year of commercial driving experience (traffic control or construction industry preferred)</li>
+        <li>Clean driving record — no DUIs, reckless driving, or major violations in the past 3 years</li>
+        <li>Current DOT medical card (or ability to obtain one before start date)</li>
+        <li>Must pass DOT drug screening and background check</li>
+        <li>Must comply with FMCSA Hours of Service (HOS) regulations</li>
+        <li>Able to work early mornings, nights, weekends, and holidays as needed</li>
+        <li>Able to work in ALL weather conditions (heat, rain, cold)</li>
+        <li>Must be able to lift up to 75 lbs and perform physical labor when assisting crews</li>
+        <li>Must have reliable transportation to report to the yard or jobsite</li>
+        <li>Must follow company dress code and PPE requirements</li>
+      </div>
+      <div className="skills-div">
+        <h2 className="skills-required">Skills Needed</h2>
+        <li>Safe and defensive driving techniques, especially in work zones and high-traffic areas</li>
+        <li>Knowledge of DOT/FMCSA regulations and compliance</li>
+        <li>Ability to read and follow traffic control plans and work zone layouts</li>
+        <li>Strong time management — ability to meet tight delivery schedules</li>
+        <li>Good communication skills for coordinating with dispatch and field crews</li>
+        <li>Basic mechanical knowledge to identify vehicle issues</li>
+        <li>Ability to navigate using GPS, maps, and verbal directions</li>
+        <li>Situational awareness and ability to stay alert in hazardous work zone environments</li>
+        <li>Dependability and a strong work ethic</li>
+      </div>
+    </div>
+</section>
+
         <form
           className="apply-set"
           method="post"
@@ -1028,7 +1082,7 @@ if (!data.background) {
             <div className="position-info">
   <label className="position-name">Position *</label>
   <p className="position-look">What position are you applying for?</p>
-  {["Traffic Control Safety Advisor", "Foreman", "Traffic Control Flagger"].map((pos) => (
+  {["Traffic Control Safety Advisor", "Foreman", "Traffic Control Flagger", "Traffic Control CDL Driver"].map((pos) => (
     <div key={pos}>
       <input className="position-checkbox" id={`pos-${pos}`} type="radio" name="position"
         value={pos}
