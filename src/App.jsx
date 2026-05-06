@@ -96,7 +96,6 @@ function App() {
     <Route path="/ppe" element={<PPE/>}/>
     <Route path="/signs" element={<Signs/>}/>
     <Route path="/bollardswheels" element={<BollardsWheels/>}/>
-    <Route path="*" element={<Error/>}/>
     <Route path="/traffic-control-services" element={<TService/>}/>
     <Route path="/product-services" element={<Product/>}/>
     <Route path="/contact-us" element={<Contact/>}/>
@@ -135,6 +134,7 @@ function App() {
     <Route path="/work-order/:id" element={<Work />} />
    <Route path="/manage-job/:id" element={<ManageJob />} />
     <Route path="/confirm-additional-flagger" element={<ConfirmAdditionalFlagger />} />
+    <Route path="*" element={<Error/>}/>
   </Routes>
 </>
 
