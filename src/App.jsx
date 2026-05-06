@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate} from 'react-router-dom'
 import { About, EmployeeHandbook, Quote, ConfirmAdditionalFlagger, EmployeeDiscipline, Invoice, Work, ManageJobTest, CancelJobTest, ManageJob, CancelJob, AdminLog, AdminDashboard, Contact, Apply, Home, TrafficControl, TrafficPlan, Rentals, PPE, Signs, BollardsWheels, Error, TService, Product, TrafficControlTest, EmployeeDashboard, EmployeeComplaintForm } from './pages';
 import TCPDesigner from './pages/tcp-designer';
+import ShopWorkOrder from './pages/shop-work-order';
 import axios from 'axios';
 import RescheduleJob from './pages/RescheduleJob';
 import Navbar from './components/Navbar';
@@ -126,6 +127,8 @@ function App() {
 />
     <Route path="/employee-dashboard" element={<RequireStaff><EmployeeDashboard /></RequireStaff>} />
     <Route path="/employee-dashboard/work-order" element={<RequireStaff><Work /></RequireStaff>} />
+    <Route path="/employee-dashboard/shop-work-order" element={<RequireStaff><ShopWorkOrder /></RequireStaff>} />
+    <Route path="/admin-dashboard/shop-work-order" element={<RequireStaff><ShopWorkOrder /></RequireStaff>} />
     <Route path="/employee-dashboard/employee-complaint-form" element={<RequireStaff><EmployeeComplaintForm /></RequireStaff>} />
     <Route path="/employee-dashboard/employee-handbook" element={<RequireStaff><EmployeeHandbook /></RequireStaff>} />
     <Route path="/cancel-job/:id" element={<CancelJob />} />
