@@ -49,6 +49,17 @@ const EmployeeDashboard = () => {
               <p className="text-gray-600">Read and acknowledge the employee handbook</p>
             </div>
           </Link>
+
+          <Link 
+            to="/employee-dashboard/shop-work-order"
+            className="btn-links"
+          >
+            <div className="text-center">
+              <div className="work-order-icon">🏗️</div>
+              <h2 className="work-order-title">Shop Work Order</h2>
+              <p className="text-gray-600">Submit a shop work order for supervisor approval</p>
+            </div>
+          </Link>
         </div>
 </div>
         <div className="ta-images-emp-section">
