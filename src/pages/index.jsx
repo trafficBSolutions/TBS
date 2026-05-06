@@ -29,7 +29,8 @@ import RescheduleJob from './RescheduleJob'
 import EmployeeHandbook from './employee-handbook'
 import Quote from './quote'
 import TCPDesigner from './tcp-designer'
-export { AdminDashboard, TCPDesigner, Quote, EmployeeHandbook, RescheduleJob, EmployeeDiscipline, ConfirmAdditionalFlagger, EmployeeLogin, EmployeeDashboard, EmployeeComplaintForm, Work, Invoice, CancelJob, About, Contact, Apply, Home, AdminLog, TrafficControl, TrafficPlan, BollardsWheels, Signs, Rentals, PPE, Error, TService, Product, ManageJob, TrafficControlTest, ManageJobTest, CancelJobTest };
+import ShopWorkOrder from './shop-work-order'
+export { AdminDashboard, ShopWorkOrder, TCPDesigner, Quote, EmployeeHandbook, RescheduleJob, EmployeeDiscipline, ConfirmAdditionalFlagger, EmployeeLogin, EmployeeDashboard, EmployeeComplaintForm, Work, Invoice, CancelJob, About, Contact, Apply, Home, AdminLog, TrafficControl, TrafficPlan, BollardsWheels, Signs, Rentals, PPE, Error, TService, Product, ManageJob, TrafficControlTest, ManageJobTest, CancelJobTest };
 
 
 
