@@ -55,7 +55,7 @@ const EmployeeDashboard = () => {
             className="btn-links"
           >
             <div className="text-center">
-              <div className="work-order-icon">🏗️</div>
+              <div className="work-order-icon">🪧</div>
               <h2 className="work-order-title">Shop Work Order</h2>
               <p className="text-gray-600">Submit a shop work order for supervisor approval</p>
             </div>
