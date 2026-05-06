@@ -97,6 +97,10 @@ const [signShopPreview, setSignShopPreview] = useState(null);
 const [editingSignShopId, setEditingSignShopId] = useState(null);
 const [editSignShop, setEditSignShop] = useState({ title: '', customer: '', description: '' });
 const [editSignShopPhotos, setEditSignShopPhotos] = useState([]);
+const [shopWoDate, setShopWoDate] = useState(new Date());
+const [shopWoList, setShopWoList] = useState([]);
+const [shopWoMonthly, setShopWoMonthly] = useState({});
+const [allowedForShopWo, setAllowedForShopWo] = useState(false);
 const handleChangeEmpPassword = async () => {
   if (!empNewPassword.trim()) { setEmpPasswordMsg('Please enter a new password.'); return; }
   if (empNewPassword.length < 6) { setEmpPasswordMsg('Password must be at least 6 characters.'); return; }
@@ -274,6 +278,35 @@ const deleteSignShopJob = async (id) => {
     }
   } catch (e) {
     console.error('Failed to delete sign shop job:', e);
+  }
+};
+
+const fetchMonthlyShopWo = async (date) => {
+  try {
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+    const res = await axios.get(`/shop-work-orders?month=${month}&year=${year}`);
+    const grouped = {};
+    (res.data || []).forEach(wo => {
+      const d = wo.date;
+      (grouped[d] ||= []).push(wo);
+    });
+    setShopWoMonthly(grouped);
+  } catch (e) {
+    console.error('Failed to fetch monthly shop work orders:', e);
+    setShopWoMonthly({});
+  }
+};
+
+const fetchShopWoForDay = async (date) => {
+  if (!date) return;
+  try {
+    const dateStr = date.toISOString().split('T')[0];
+    const res = await axios.get(`/shop-work-orders?date=${dateStr}`);
+    setShopWoList(res.data || []);
+  } catch (e) {
+    console.error('Failed to fetch daily shop work orders:', e);
+    setShopWoList([]);
   }
 };
 
@@ -457,6 +490,13 @@ useEffect(() => {
       'tbsolutions4@gmail.com'
     ]);
     setAllowedForSignShop(signShopEmails.has(user.email));
+
+    const shopWoEmails = new Set([
+      'tbsolutions9@gmail.com',
+      'tbsolutions1999@gmail.com',
+      'tbsolutions4@gmail.com'
+    ]);
+    setAllowedForShopWo(shopWoEmails.has(user.email));
   }
 }, []);
 const fetchComplaintsForDay = async (date) => {
@@ -602,6 +642,13 @@ useEffect(() => {
     fetchSignShopForDay(signShopDate);
   }
 }, [signShopDate, allowedForSignShop]);
+
+useEffect(() => {
+  if (shopWoDate && allowedForShopWo) {
+    fetchMonthlyShopWo(shopWoDate);
+    fetchShopWoForDay(shopWoDate);
+  }
+}, [shopWoDate, allowedForShopWo]);
 // Update the fetchMonthlyJobs function to focus only on active jobs
 const fetchMonthlyJobs = async (date) => {
   try {
@@ -736,6 +783,9 @@ useEffect(() => {
       {allowedForSignShop && (
         <button className={`btn ${viewMode === 'signshop' ? 'active' : ''}`} onClick={() => setViewMode('signshop')}>Sign Shop</button>
       )}
+      {allowedForShopWo && (
+        <button className={`btn ${viewMode === 'shopwo' ? 'active' : ''}`} onClick={() => setViewMode('shopwo')}>Shop Work Orders</button>
+      )}
       <button className={`btn ${viewMode === 'complaints' ? 'active' : ''}`} onClick={() => setViewMode('complaints')}>Complaints</button>
       <button className={`btn ${viewMode === 'tasks' ? 'active' : ''}`} onClick={() => setViewMode('tasks')}>Tasks</button>
     </div>
@@ -757,6 +807,7 @@ selected={
     : viewMode === 'quotes' ? quotesDate
     : viewMode === 'bollards' ? bollardDate
     : viewMode === 'signshop' ? signShopDate
+    : viewMode === 'shopwo' ? shopWoDate
     : taskDate
 }
   onChange={(date) => {
@@ -767,6 +818,7 @@ selected={
   else if (viewMode === 'quotes') setQuotesDate(date);
   else if (viewMode === 'bollards') setBollardDate(date);
   else if (viewMode === 'signshop') setSignShopDate(date);
+  else if (viewMode === 'shopwo') setShopWoDate(date);
   else setTaskDate(date);
 }}
   onMonthChange={(date) => {
@@ -778,6 +830,7 @@ selected={
   else if (viewMode === 'quotes') fetchMonthlyQuotes(date);
   else if (viewMode === 'bollards') fetchMonthlyBollards(date);
   else if (viewMode === 'signshop') fetchMonthlySignShop(date);
+  else if (viewMode === 'shopwo') fetchMonthlyShopWo(date);
   else fetchTasks();
 }}
   calendarClassName="admin-date-picker"
@@ -805,6 +858,7 @@ selected={
   : viewMode === 'quotes' ? quotesMonthly
   : viewMode === 'bollards' ? bollardMonthly
   : viewMode === 'signshop' ? signShopMonthly
+  : viewMode === 'shopwo' ? shopWoMonthly
   : tasks;
     const hasItems = dataSource[dateStr] && dataSource[dateStr].length > 0;
     return hasItems ? 'has-jobs' : '';
@@ -829,6 +883,8 @@ selected={
       dataSource = bollardMonthly;
     } else if (viewMode === 'signshop') {
       dataSource = signShopMonthly;
+    } else if (viewMode === 'shopwo') {
+      dataSource = shopWoMonthly;
     }
     
     const itemsOnDate = dataSource?.[dateStr];
@@ -846,6 +902,7 @@ selected={
             : viewMode === 'quotes' ? 'Quotes'
             : viewMode === 'bollards' ? 'Bollard Quotes'
             : viewMode === 'signshop' ? 'Sign Jobs'
+            : viewMode === 'shopwo' ? 'Shop WOs'
             : 'Tasks'} {itemCount}
           </div>
         )}
@@ -1285,6 +1342,29 @@ selected={
     </div>
   </>
 )}
+{viewMode === 'shopwo' && (
+  <>
+    <h3>Shop Work Orders on {shopWoDate?.toLocaleDateString()}</h3>
+    <div className="job-info-list">
+      {shopWoList.map((wo, i) => (
+        <div key={wo._id || i} className={`job-card ${wo.status === 'approved' ? '' : wo.status === 'disapproved' ? 'cancelled-job' : ''}`}>
+          <h4 className="job-company">{wo.employeeNames}</h4>
+          <p><strong>Status:</strong> <span style={{color: wo.status === 'approved' ? '#4CAF50' : wo.status === 'disapproved' ? '#f44336' : '#ff9800', fontWeight: 'bold'}}>{wo.status === 'approved' ? '✅ Approved' : wo.status === 'disapproved' ? '❌ Disapproved (VOID)' : '⏳ Pending Approval'}</span></p>
+          {wo.approvedBy && <p><strong>Approved By:</strong> {wo.approvedBy}</p>}
+          <p><strong>Date:</strong> {wo.date}</p>
+          <p><strong>Time:</strong> {wo.inTime} - {wo.outTime}</p>
+          <p><strong>Location:</strong> {wo.location}</p>
+          <p><strong>Truck:</strong> {wo.truckNumber || 'N/A'}</p>
+          <p><strong>Supervisor:</strong> {wo.supervisor}</p>
+          <p><strong>Description:</strong> {wo.description}</p>
+          <p><strong>Submitted By:</strong> {wo.submittedBy}</p>
+          <p><strong>Submitted:</strong> {new Date(wo.createdAt).toLocaleString()}</p>
+        </div>
+      ))}
+      {shopWoList.length === 0 && <p>No shop work orders on this day.</p>}
+    </div>
+  </>
+)}
 {viewMode === 'tasks' && (
   <>
     <h3>Tasks on {taskDate?.toLocaleDateString()}</h3>
@@ -1332,6 +1412,12 @@ selected={
     <h3>📝 Work Order</h3>
     <p>Fill out a new work order</p>
     <button className="btn workorder-btn" onClick={() => navigate('/admin-dashboard/work-order')}>Open Work Order</button>
+  </div>
+
+  <div className="tool-card">
+    <h3>🏗️ Shop Work Order</h3>
+    <p>Submit a shop work order for approval</p>
+    <button className="btn workorder-btn" onClick={() => navigate('/admin-dashboard/shop-work-order')}>Open Shop Work Order</button>
   </div>
 
   <div className="tool-card">
