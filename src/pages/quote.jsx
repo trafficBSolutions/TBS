@@ -85,6 +85,7 @@ export default function Quote() {
   const [invRows, setInvRows] = useState([blankRow()]);
   const [invSending, setInvSending] = useState(false);
   const [invMessage, setInvMessage] = useState("");
+  const [invDonation, setInvDonation] = useState(0);
   const [activeSection, setActiveSection] = useState('quote');
 
   const updateInvRow = (id, patch) => setInvRows(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r));
@@ -97,10 +98,11 @@ export default function Quote() {
     const taxableSubtotal = invIsTaxExempt ? 0 : invRows.reduce((s, r, i) => r.taxable ? s + lineTotals[i] : s, 0);
     const taxDue = taxableSubtotal * (Number(invTaxRate) || 0);
     const ccFee = (invPayMethod === "Card" && !invIsCheckPayment) ? (subtotal + taxDue) * ccFeeRate : 0;
-    const total = invIsTaxExempt ? subtotal + ccFee : subtotal + taxDue + ccFee;
+    const donationAmt = Number(invDonation) || 0;
+    const total = (invIsTaxExempt ? subtotal + ccFee : subtotal + taxDue + ccFee) - donationAmt;
     const depositDue = requireDeposit ? total * depositRate : 0;
-    return { lineTotals, subtotal, taxDue, ccFee, total, depositDue };
-  }, [invRows, invTaxRate, invIsTaxExempt, invPayMethod, invIsCheckPayment, ccFeeRate, requireDeposit, depositRate]);
+    return { lineTotals, subtotal, taxDue, ccFee, total, depositDue, donation: donationAmt };
+  }, [invRows, invTaxRate, invIsTaxExempt, invPayMethod, invIsCheckPayment, ccFeeRate, requireDeposit, depositRate, invDonation]);
 
   const handleInvPhoneChange = (e) => {
     const raw = e.target.value.replace(/\D/g, '');
@@ -120,6 +122,7 @@ export default function Quote() {
         taxRate: invTaxRate, isTaxExempt: invIsTaxExempt, taxExemptNumber: invTaxExemptNumber,
         payMethod: invIsCheckPayment ? 'Check' : invPayMethod, cardType: invCardType, cardLast4: invCardLast4,
         checkNumber: invIsCheckPayment ? invCheckNumber : '',
+        donation: invComputed.donation,
         rows: invRows, computed: invComputed
       });
       setInvMessage("Invoice sent successfully!");
@@ -537,6 +540,17 @@ export default function Quote() {
           <div className="row"><span>Subtotal</span><strong>{money(invComputed.subtotal)}</strong></div>
           <div className="row"><span>Tax Due</span><strong>{money(invComputed.taxDue)}</strong></div>
           <div className="row"><span>Card Fee (3%)</span><strong>{money(invComputed.ccFee)}</strong></div>
+          <div className="row" style={{ color: 'red' }}>
+            <span>Donation</span>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={invDonation}
+              onChange={(e) => setInvDonation(Number(e.target.value))}
+              style={{ width: '100px', marginLeft: '10px' }}
+            />
+          </div>
           <div className="row total"><span>TOTAL</span><strong>{money(invComputed.total)}</strong></div>
         </div>
         <div className="quote-send-area">
