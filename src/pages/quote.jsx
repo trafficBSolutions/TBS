@@ -66,6 +66,7 @@ export default function Quote() {
   const [message, setMessage] = useState("");
   const [taxExemptNumber, setTaxExemptNumber] = useState("");
   const [donation, setDonation] = useState(0);
+  const [notes, setNotes] = useState("");
 
   // ── Invoice state ──
   const [invNumber, setInvNumber] = useState("");
@@ -86,6 +87,7 @@ export default function Quote() {
   const [invSending, setInvSending] = useState(false);
   const [invMessage, setInvMessage] = useState("");
   const [invDonation, setInvDonation] = useState(0);
+  const [invNotes, setInvNotes] = useState("");
   const [activeSection, setActiveSection] = useState('quote');
 
   const updateInvRow = (id, patch) => setInvRows(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r));
@@ -123,6 +125,7 @@ export default function Quote() {
         payMethod: invIsCheckPayment ? 'Check' : invPayMethod, cardType: invCardType, cardLast4: invCardLast4,
         checkNumber: invIsCheckPayment ? invCheckNumber : '',
         donation: invComputed.donation,
+        notes: invNotes,
         rows: invRows, computed: invComputed
       });
       setInvMessage("Invoice sent successfully!");
@@ -205,6 +208,7 @@ export default function Quote() {
         cardLast4,
         checkNumber: isCheckPayment ? checkNumber : '',
         donation: computed.donation,
+        notes,
         rows,
         computed
       });
@@ -408,6 +412,10 @@ export default function Quote() {
           <div className="row total"><span>TOTAL</span><strong>{money(computed.total)}</strong></div>
         </div>
 
+        <label style={{ display: 'block', marginTop: '10px' }}>Notes
+          <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Additional notes..." rows={3} style={{ width: '100%' }} />
+        </label>
+
         <div className="quote-send-area">
           <button 
             type="button" 
@@ -553,6 +561,11 @@ export default function Quote() {
           </div>
           <div className="row total"><span>TOTAL</span><strong>{money(invComputed.total)}</strong></div>
         </div>
+
+        <label style={{ display: 'block', marginTop: '10px' }}>Notes
+          <textarea value={invNotes} onChange={(e) => setInvNotes(e.target.value)} placeholder="Additional notes..." rows={3} style={{ width: '100%' }} />
+        </label>
+
         <div className="quote-send-area">
           <button type="button" className="btn" onClick={handleSendInvoice} disabled={invSending}>
             {invSending ? 'Sending...' : 'Send Invoice to Email'}
