@@ -112,8 +112,6 @@ const [newEmpFirst, setNewEmpFirst] = useState('');
 const [newEmpLast, setNewEmpLast] = useState('');
 const [newEmpPin, setNewEmpPin] = useState('');
 const [addEmpLoading, setAddEmpLoading] = useState(false);
-const [editPinId, setEditPinId] = useState(null);
-const [editPinValue, setEditPinValue] = useState('');
 const [adminPin, setAdminPin] = useState('');
 const [adminClockMsg, setAdminClockMsg] = useState('');
 const [adminClockLoading, setAdminClockLoading] = useState(false);
@@ -1504,44 +1502,10 @@ selected={
 
         <h5 style={{marginTop:'1rem',marginBottom:'0.5rem'}}>Employees ({pinEmployees.length})</h5>
         {pinEmployees.map((emp) => (
-          <div key={emp._id} className="job-card" style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'0.5rem'}}>
+          <div key={emp._id} className="job-card" style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
             <div>
               <strong>{emp.name}</strong>
-              {emp.pin && <p style={{color:'#4CAF50',margin:'2px 0'}}>PIN: {emp.pin}</p>}
-              {!emp.pin && <p style={{color:'#ff9800',margin:'2px 0'}}>No PIN assigned</p>}
-            </div>
-            <div style={{display:'flex',gap:'0.5rem',alignItems:'center'}}>
-              {editPinId === emp._id ? (
-                <>
-                  <input type="text" placeholder="New PIN" value={editPinValue} onChange={(e) => setEditPinValue(e.target.value.replace(/\D/g, ''))} maxLength={6} style={{padding:'4px',width:'80px',textAlign:'center',borderRadius:'4px',border:'1px solid #ccc'}} />
-                  <button className="btn" style={{padding:'4px 10px',fontSize:'12px'}} onClick={async () => {
-                    if (!editPinValue || editPinValue.length < 4) { setPinMsg('PIN must be at least 4 digits'); return; }
-                    try {
-                      const res = await axios.post('/timeclock/generate-pin', { employeeId: emp._id, pin: editPinValue });
-                      setPinMsg(`${res.data.name} → PIN: ${res.data.pin}`);
-                      setPinEmployees(prev => prev.map(e => e._id === emp._id ? { ...e, pin: res.data.pin } : e));
-                      setEditPinId(null); setEditPinValue('');
-                      setTimeout(() => setPinMsg(''), 5000);
-                    } catch (e) { setPinMsg(e.response?.data?.message || 'Error'); }
-                  }}>Save</button>
-                  <button style={{padding:'4px 10px',fontSize:'12px',background:'#888',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer'}} onClick={() => { setEditPinId(null); setEditPinValue(''); }}>Cancel</button>
-                </>
-              ) : (
-                <button className="btn" style={{padding:'4px 12px',fontSize:'12px'}} onClick={() => { setEditPinId(emp._id); setEditPinValue(emp.pin || ''); }}>
-                  {emp.pin ? 'Change PIN' : 'Set PIN'}
-                </button>
-              )}
-              <button style={{padding:'4px 12px',fontSize:'12px',background:'#f44336',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer'}} onClick={async () => {
-                if (!window.confirm(`Remove ${emp.name} from time clock?`)) return;
-                try {
-                  await axios.delete(`/timeclock/remove-employee/${emp._id}`);
-                  setPinEmployees(prev => prev.filter(e => e._id !== emp._id));
-                  setPinMsg(`${emp.name} removed`);
-                  setTimeout(() => setPinMsg(''), 4000);
-                } catch (e) { setPinMsg(e.response?.data?.message || 'Error'); }
-              }}>
-                Remove
-              </button>
+              <p style={{color:'#4CAF50',margin:'2px 0'}}>PIN: {emp.pin}</p>
             </div>
           </div>
         ))}
@@ -1549,34 +1513,12 @@ selected={
           <>
             <h5 style={{marginTop:'1rem',marginBottom:'0.5rem'}}>Hourly Admins</h5>
             {pinHourlyAdmins.map((adm) => (
-              <div key={adm._id} className="job-card" style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'0.5rem'}}>
+              <div key={adm._id} className="job-card" style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                 <div>
                   <strong>{adm.name}</strong>
                   <p style={{fontSize:'0.85rem',color:'#666'}}>{adm.email}</p>
                   {adm.pin && <p style={{color:'#4CAF50',margin:'2px 0'}}>PIN: {adm.pin}</p>}
                   {!adm.pin && <p style={{color:'#ff9800',margin:'2px 0'}}>No PIN assigned</p>}
-                </div>
-                <div style={{display:'flex',gap:'0.5rem',alignItems:'center'}}>
-                  {editPinId === adm._id ? (
-                    <>
-                      <input type="text" placeholder="New PIN" value={editPinValue} onChange={(e) => setEditPinValue(e.target.value.replace(/\D/g, ''))} maxLength={6} style={{padding:'4px',width:'80px',textAlign:'center',borderRadius:'4px',border:'1px solid #ccc'}} />
-                      <button className="btn" style={{padding:'4px 10px',fontSize:'12px'}} onClick={async () => {
-                        if (!editPinValue || editPinValue.length < 4) { setPinMsg('PIN must be at least 4 digits'); return; }
-                        try {
-                          const res = await axios.post('/timeclock/generate-pin', { adminId: adm._id, pin: editPinValue });
-                          setPinMsg(`${res.data.name} → PIN: ${res.data.pin}`);
-                          setPinHourlyAdmins(prev => prev.map(a => a._id === adm._id ? { ...a, pin: res.data.pin } : a));
-                          setEditPinId(null); setEditPinValue('');
-                          setTimeout(() => setPinMsg(''), 5000);
-                        } catch (e) { setPinMsg(e.response?.data?.message || 'Error'); }
-                      }}>Save</button>
-                      <button style={{padding:'4px 10px',fontSize:'12px',background:'#888',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer'}} onClick={() => { setEditPinId(null); setEditPinValue(''); }}>Cancel</button>
-                    </>
-                  ) : (
-                    <button className="btn" style={{padding:'4px 12px',fontSize:'12px'}} onClick={() => { setEditPinId(adm._id); setEditPinValue(adm.pin || ''); }}>
-                      {adm.pin ? 'Change PIN' : 'Set PIN'}
-                    </button>
-                  )}
                 </div>
               </div>
             ))}
