@@ -107,6 +107,13 @@ const [clockHistoryDate, setClockHistoryDate] = useState(new Date());
 const [timeWorked, setTimeWorked] = useState([]);
 const [timeWorkedStart, setTimeWorkedStart] = useState(new Date().toISOString().split('T')[0]);
 const [timeWorkedEnd, setTimeWorkedEnd] = useState(new Date().toISOString().split('T')[0]);
+const [manualEmpId, setManualEmpId] = useState('');
+const [manualDate, setManualDate] = useState(new Date().toISOString().split('T')[0]);
+const [manualIn, setManualIn] = useState('');
+const [manualOut, setManualOut] = useState('');
+const [manualReason, setManualReason] = useState('');
+const [manualMsg, setManualMsg] = useState('');
+const [manualLoading, setManualLoading] = useState(false);
 const [pinEmployees, setPinEmployees] = useState([]);
 const [pinHourlyAdmins, setPinHourlyAdmins] = useState([]);
 const [pinMsg, setPinMsg] = useState('');
@@ -840,7 +847,7 @@ useEffect(() => {
       <button className={`btn ${viewMode === 'complaints' ? 'active' : ''}`} onClick={() => setViewMode('complaints')}>Complaints</button>
       <button className={`btn ${viewMode === 'tasks' ? 'active' : ''}`} onClick={() => setViewMode('tasks')}>Tasks</button>
       {salaryAdminEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email) && (
-        <button className={`btn ${viewMode === 'timeclock' ? 'active' : ''}`} onClick={() => { setViewMode('timeclock'); axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {}); }}>Time Clock</button>
+        <button className={`btn ${viewMode === 'timeclock' ? 'active' : ''}`} onClick={() => { setViewMode('timeclock'); axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {}); axios.get('/timeclock/employees').then(r => { setPinEmployees(r.data.employees); setPinHourlyAdmins(r.data.hourlyAdmins); }).catch(() => {}); }}>Time Clock</button>
       )}
     </div>
   </>
@@ -1472,6 +1479,38 @@ selected={
         </div>
       ))}
     </div>
+    <hr style={{margin:'1.5rem 0'}} />
+    <h4>✏️ Add Hours Manually</h4>
+    <p style={{fontSize:'0.8rem',color:'#666',marginBottom:'0.5rem'}}>Use this if an employee forgot to clock in/out.</p>
+    <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap',alignItems:'center',marginBottom:'0.5rem'}}>
+      <select value={manualEmpId} onChange={(e) => setManualEmpId(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',minWidth:'150px'}}>
+        <option value="">Select Employee...</option>
+        {pinEmployees.map(emp => <option key={emp._id} value={emp._id}>{emp.name}</option>)}
+        {pinHourlyAdmins.map(adm => <option key={adm._id} value={adm._id}>{adm.name} (Foreman)</option>)}
+      </select>
+      <input type="date" value={manualDate} onChange={(e) => setManualDate(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}} />
+      <label style={{fontSize:'0.8rem'}}>In:</label>
+      <input type="time" value={manualIn} onChange={(e) => setManualIn(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}} />
+      <label style={{fontSize:'0.8rem'}}>Out:</label>
+      <input type="time" value={manualOut} onChange={(e) => setManualOut(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}} />
+    </div>
+    <div style={{display:'flex',gap:'0.5rem',alignItems:'center',marginBottom:'0.5rem'}}>
+      <input type="text" placeholder="Reason (optional)" value={manualReason} onChange={(e) => setManualReason(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',flex:'1'}} />
+      <button className="btn" disabled={manualLoading} style={{padding:'6px 16px'}} onClick={async () => {
+        if (!manualEmpId || !manualDate || !manualIn || !manualOut) { setManualMsg('All fields required'); return; }
+        setManualLoading(true); setManualMsg('');
+        try {
+          const res = await axios.post('/timeclock/manual-entry', { employeeId: manualEmpId, date: manualDate, clockIn: manualIn, clockOut: manualOut, reason: manualReason });
+          setManualMsg(res.data.message);
+          setManualEmpId(''); setManualIn(''); setManualOut(''); setManualReason('');
+          setTimeout(() => setManualMsg(''), 6000);
+        } catch (e) { setManualMsg(e.response?.data?.message || 'Error'); }
+        finally { setManualLoading(false); }
+      }}>
+        {manualLoading ? '...' : 'Add Hours'}
+      </button>
+    </div>
+    {manualMsg && <p style={{color: manualMsg.includes('hrs added') ? '#4CAF50' : '#ff6b6b', fontWeight:'bold', fontSize:'0.85rem'}}>{manualMsg}</p>}
     <hr style={{margin:'1.5rem 0'}} />
     <h4>📊 Time Worked Summary</h4>
     <div style={{display:'flex',gap:'0.5rem',alignItems:'center',flexWrap:'wrap',marginBottom:'1rem'}}>
