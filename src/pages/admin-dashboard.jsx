@@ -1577,6 +1577,7 @@ selected={
               <div key={adm._id} className="job-card" style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                 <div>
                   <strong>{adm.name}</strong>
+                  <span style={{marginLeft:'0.5rem',background:'#e3f2fd',color:'#1565c0',padding:'2px 8px',borderRadius:'4px',fontSize:'0.8rem'}}>Foreman</span>
                   <p style={{fontSize:'0.85rem',color:'#666'}}>{adm.email}</p>
                   {adm.pin && <p style={{color:'#4CAF50',margin:'2px 0'}}>PIN: {adm.pin}</p>}
                   {!adm.pin && <p style={{color:'#ff9800',margin:'2px 0'}}>No PIN assigned</p>}
