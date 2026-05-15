@@ -1520,6 +1520,8 @@ selected={
           const res = await axios.get('/timeclock/employees');
           setPinEmployees(res.data.employees);
           setPinHourlyAdmins(res.data.hourlyAdmins);
+          const statusRes = await axios.get('/timeclock/status');
+          setClockedInList(statusRes.data);
         } catch (e) { console.error(e); }
       }
     }}>
@@ -1562,11 +1564,41 @@ selected={
 
         <h5 style={{marginTop:'1rem',marginBottom:'0.5rem'}}>Employees ({pinEmployees.length})</h5>
         {pinEmployees.map((emp) => (
-          <div key={emp._id} className="job-card" style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <div key={emp._id} className="job-card" style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'0.5rem'}}>
             <div>
               <strong>{emp.name}</strong>
               {emp.position && <span style={{marginLeft:'0.5rem',background:'#e3f2fd',color:'#1565c0',padding:'2px 8px',borderRadius:'4px',fontSize:'0.8rem'}}>{emp.position}</span>}
               <p style={{color:'#4CAF50',margin:'2px 0'}}>PIN: {emp.pin}</p>
+              <p style={{margin:'2px 0',fontSize:'0.85rem',color: emp.points >= 3 ? '#f44336' : emp.points >= 2 ? '#ff9800' : '#666'}}>
+                <strong>Points:</strong> {emp.points?.toFixed(2) || '0.00'} / 3.00
+                {emp.points >= 3 && <span style={{marginLeft:'0.5rem',color:'#f44336',fontWeight:'bold'}}>⚠️ TERMINATION</span>}
+              </p>
+            </div>
+            <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap'}}>
+              <button className="btn" style={{padding:'4px 14px',fontSize:'12px'}} onClick={async () => {
+                try {
+                  const res = await axios.post('/timeclock/admin-punch', { employeeId: emp._id });
+                  setPinMsg(res.data.message);
+                  axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {});
+                  setTimeout(() => setPinMsg(''), 5000);
+                } catch (e) { setPinMsg(e.response?.data?.message || 'Error'); }
+              }}>
+                {clockedInList.some(c => c.employeeId === emp._id) ? '⏹ Clock Out' : '▶ Clock In'}
+              </button>
+              <button style={{padding:'4px 14px',fontSize:'12px',background:'#ff9800',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer'}} onClick={() => navigate('/admin-dashboard/disciplinary-action')}>
+                ⚠️ Write Up
+              </button>
+              <button style={{padding:'4px 14px',fontSize:'12px',background:'#f44336',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer'}} onClick={async () => {
+                if (!window.confirm(`Terminate ${emp.name}? This will remove them from the time clock.`)) return;
+                try {
+                  const res = await axios.delete(`/timeclock/remove-employee/${emp._id}`);
+                  setPinEmployees(prev => prev.filter(e => e._id !== emp._id));
+                  setPinMsg(res.data.message);
+                  setTimeout(() => setPinMsg(''), 5000);
+                } catch (e) { setPinMsg(e.response?.data?.message || 'Error'); }
+              }}>
+                ❌ Remove Employee
+              </button>
             </div>
           </div>
         ))}
@@ -1574,13 +1606,31 @@ selected={
           <>
             <h5 style={{marginTop:'1rem',marginBottom:'0.5rem'}}>Hourly Admins</h5>
             {pinHourlyAdmins.map((adm) => (
-              <div key={adm._id} className="job-card" style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <div key={adm._id} className="job-card" style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'0.5rem'}}>
                 <div>
                   <strong>{adm.name}</strong>
                   <span style={{marginLeft:'0.5rem',background:'#e3f2fd',color:'#1565c0',padding:'2px 8px',borderRadius:'4px',fontSize:'0.8rem'}}>Foreman</span>
                   <p style={{fontSize:'0.85rem',color:'#666'}}>{adm.email}</p>
                   {adm.pin && <p style={{color:'#4CAF50',margin:'2px 0'}}>PIN: {adm.pin}</p>}
                   {!adm.pin && <p style={{color:'#ff9800',margin:'2px 0'}}>No PIN assigned</p>}
+                  <p style={{margin:'2px 0',fontSize:'0.85rem',color: adm.points >= 3 ? '#f44336' : adm.points >= 2 ? '#ff9800' : '#666'}}>
+                    <strong>Points:</strong> {adm.points?.toFixed(2) || '0.00'} / 3.00
+                  </p>
+                </div>
+                <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap'}}>
+                  <button className="btn" style={{padding:'4px 14px',fontSize:'12px'}} onClick={async () => {
+                    try {
+                      const res = await axios.post('/timeclock/admin-punch', { employeeId: adm._id });
+                      setPinMsg(res.data.message);
+                      axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {});
+                      setTimeout(() => setPinMsg(''), 5000);
+                    } catch (e) { setPinMsg(e.response?.data?.message || 'Error'); }
+                  }}>
+                    {clockedInList.some(c => c.employeeId === adm._id) ? '⏹ Clock Out' : '▶ Clock In'}
+                  </button>
+                  <button style={{padding:'4px 14px',fontSize:'12px',background:'#ff9800',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer'}} onClick={() => navigate('/admin-dashboard/disciplinary-action')}>
+                    ⚠️ Write Up
+                  </button>
                 </div>
               </div>
             ))}
