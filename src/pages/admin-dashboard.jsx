@@ -856,52 +856,28 @@ useEffect(() => {
       <p style={{color:'#ff6b6b'}}>⚠️ You are not at the designated work location. Clock-in/out is disabled.</p>
     )}
     {adminIpAllowed === true && (
-      <div>
-        <input
-          type="password"
-          placeholder="Enter your PIN"
-          value={adminPin}
-          onChange={(e) => setAdminPin(e.target.value.replace(/\D/g, ''))}
-          maxLength={6}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              (async () => {
-                if (!adminPin.trim() || adminPin.length < 4) { setAdminClockMsg('Enter your 4+ digit PIN'); return; }
-                setAdminClockLoading(true); setAdminClockMsg('');
-                try { const res = await axios.post('/timeclock/punch', { pin: adminPin }); setAdminClockMsg(res.data.message); setAdminPin(''); }
-                catch (err) {
-                  const data = err.response?.data;
-                  if (data?.action === 'discipline_required') {
-                    setAdminPendingDisciplines(data.disciplines); setAdminStoredPin(adminPin);
-                    setAdminDisciplineIndex(0); setShowAdminDisciplineModal(true); setAdminClockMsg('');
-                  } else { setAdminClockMsg(data?.message || 'Failed'); }
-                }
-                finally { setAdminClockLoading(false); }
-              })();
-            }
-          }}
-          style={{padding:'0.5rem 1rem',fontSize:'1.2rem',borderRadius:'8px',border:'none',textAlign:'center',width:'160px'}}
-        />
-        <button
-          onClick={async () => {
-            if (!adminPin.trim() || adminPin.length < 4) { setAdminClockMsg('Enter your 4+ digit PIN'); return; }
-            setAdminClockLoading(true); setAdminClockMsg('');
-            try { const res = await axios.post('/timeclock/punch', { pin: adminPin }); setAdminClockMsg(res.data.message); setAdminPin(''); }
-            catch (err) {
-              const data = err.response?.data;
-              if (data?.action === 'discipline_required') {
-                setAdminPendingDisciplines(data.disciplines); setAdminStoredPin(adminPin);
-                setAdminDisciplineIndex(0); setShowAdminDisciplineModal(true); setAdminClockMsg('');
-              } else { setAdminClockMsg(data?.message || 'Failed'); }
-            }
-            finally { setAdminClockLoading(false); }
-          }}
-          disabled={adminClockLoading}
-          style={{marginLeft:'0.75rem',padding:'0.5rem 1.5rem',fontSize:'1rem',borderRadius:'8px',background:'#4CAF50',color:'#fff',border:'none',cursor:'pointer'}}
-        >
-          {adminClockLoading ? '...' : 'Punch In/Out'}
-        </button>
-      </div>
+      <button
+        onClick={async () => {
+          setAdminClockLoading(true); setAdminClockMsg('');
+          const stored = JSON.parse(localStorage.getItem('adminUser') || '{}');
+          try {
+            const res = await axios.post('/timeclock/admin-self-punch', { adminId: stored._id || stored.id });
+            setAdminClockMsg(res.data.message);
+          } catch (err) {
+            const data = err.response?.data;
+            if (data?.action === 'discipline_required') {
+              setAdminPendingDisciplines(data.disciplines);
+              setAdminDisciplineIndex(0);
+              setShowAdminDisciplineModal(true);
+            } else { setAdminClockMsg(data?.message || 'Failed'); }
+          }
+          finally { setAdminClockLoading(false); }
+        }}
+        disabled={adminClockLoading}
+        style={{padding:'0.75rem 2.5rem',fontSize:'1.2rem',borderRadius:'8px',background:'#4CAF50',color:'#fff',border:'none',cursor:'pointer',fontWeight:'bold'}}
+      >
+        {adminClockLoading ? '...' : '⏰ Clock In / Out'}
+      </button>
     )}
     {adminIpAllowed === null && <p style={{color:'#aaa'}}>Checking location...</p>}
     {adminClockMsg && <p style={{color: adminClockMsg.includes('clocked') ? '#4CAF50' : '#ff6b6b', marginTop:'0.75rem', fontWeight:'bold'}}>{adminClockMsg}</p>}
@@ -941,18 +917,18 @@ useEffect(() => {
         onClick={async () => {
           if (!adminAckName.trim()) { setAdminAckMsg('You must type your full name.'); return; }
           setAdminAckLoading(true); setAdminAckMsg('');
+          const stored = JSON.parse(localStorage.getItem('adminUser') || '{}');
           try {
-            const res = await axios.post('/timeclock/acknowledge-discipline', {
-              pin: adminStoredPin, disciplineId: adminPendingDisciplines[adminDisciplineIndex]._id, typedName: adminAckName
+            const res = await axios.post('/timeclock/admin-self-acknowledge', {
+              adminId: stored._id || stored.id, disciplineId: adminPendingDisciplines[adminDisciplineIndex]._id, typedName: adminAckName
             });
             if (res.data.remainingCount > 0) {
               setAdminPendingDisciplines(res.data.remaining); setAdminDisciplineIndex(0);
               setAdminAckName(''); setAdminAckMsg('Acknowledged. Review the next one.');
             } else {
               setShowAdminDisciplineModal(false); setAdminPendingDisciplines([]); setAdminAckName(''); setAdminAckMsg('');
-              try { const p = await axios.post('/timeclock/punch', { pin: adminStoredPin }); setAdminClockMsg(p.data.message); }
-              catch (e) { setAdminClockMsg(e.response?.data?.message || 'Try punching again.'); }
-              setAdminStoredPin('');
+              try { const p = await axios.post('/timeclock/admin-self-punch', { adminId: stored._id || stored.id }); setAdminClockMsg(p.data.message); }
+              catch (e) { setAdminClockMsg(e.response?.data?.message || 'Try again.'); }
             }
           } catch (err) { setAdminAckMsg(err.response?.data?.message || 'Failed. Try again.'); }
           finally { setAdminAckLoading(false); }
