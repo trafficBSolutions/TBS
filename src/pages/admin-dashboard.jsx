@@ -104,6 +104,9 @@ const [allowedForShopWo, setAllowedForShopWo] = useState(false);
 const [clockedInList, setClockedInList] = useState([]);
 const [clockHistory, setClockHistory] = useState([]);
 const [clockHistoryDate, setClockHistoryDate] = useState(new Date());
+const [timeWorked, setTimeWorked] = useState([]);
+const [timeWorkedStart, setTimeWorkedStart] = useState(new Date().toISOString().split('T')[0]);
+const [timeWorkedEnd, setTimeWorkedEnd] = useState(new Date().toISOString().split('T')[0]);
 const [pinEmployees, setPinEmployees] = useState([]);
 const [pinHourlyAdmins, setPinHourlyAdmins] = useState([]);
 const [pinMsg, setPinMsg] = useState('');
@@ -1458,6 +1461,55 @@ selected={
         </div>
       ))}
     </div>
+    <hr style={{margin:'1.5rem 0'}} />
+    <h4>📊 Time Worked Summary</h4>
+    <div style={{display:'flex',gap:'0.5rem',alignItems:'center',flexWrap:'wrap',marginBottom:'1rem'}}>
+      <label style={{fontSize:'0.85rem'}}>From:</label>
+      <input type="date" value={timeWorkedStart} onChange={(e) => setTimeWorkedStart(e.target.value)} style={{padding:'0.4rem'}} />
+      <label style={{fontSize:'0.85rem'}}>To:</label>
+      <input type="date" value={timeWorkedEnd} onChange={(e) => setTimeWorkedEnd(e.target.value)} style={{padding:'0.4rem'}} />
+      <button className="btn" style={{padding:'6px 16px'}} onClick={async () => {
+        try {
+          const res = await axios.get(`/timeclock/time-worked?startDate=${timeWorkedStart}&endDate=${timeWorkedEnd}`);
+          setTimeWorked(res.data);
+        } catch (e) { console.error(e); }
+      }}>View Hours</button>
+    </div>
+    {timeWorked.length > 0 && (
+      <div className="job-info-list">
+        <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.9rem'}}>
+          <thead>
+            <tr style={{background:'#f2f2f2'}}>
+              <th style={{border:'1px solid #ddd',padding:'8px',textAlign:'left'}}>Employee</th>
+              <th style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>Total Hours</th>
+              <th style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>Total Minutes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {timeWorked.map((emp, i) => (
+              <tr key={i}>
+                <td style={{border:'1px solid #ddd',padding:'8px'}}><strong>{emp.name}</strong></td>
+                <td style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>{emp.totalHours} hrs</td>
+                <td style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>{emp.totalMinutes} min</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div style={{marginTop:'1rem'}}>
+          {timeWorked.map((emp, i) => (
+            <details key={i} style={{marginBottom:'0.5rem'}}>
+              <summary style={{cursor:'pointer',fontWeight:'bold'}}>{emp.name} — {emp.totalHours} hrs</summary>
+              <div style={{paddingLeft:'1rem',marginTop:'0.25rem'}}>
+                {Object.entries(emp.days).map(([date, mins]) => (
+                  <p key={date} style={{margin:'2px 0',fontSize:'0.85rem'}}>{new Date(date + 'T00:00:00').toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'})}: <strong>{(mins/60).toFixed(2)} hrs</strong> ({mins} min)</p>
+                ))}
+              </div>
+            </details>
+          ))}
+        </div>
+      </div>
+    )}
+    {timeWorked.length === 0 && <p style={{color:'#888',fontSize:'0.85rem'}}>Select a date range and click "View Hours" to see time worked.</p>}
     <hr style={{margin:'1.5rem 0'}} />
     <h4>🔑 PIN Management</h4>
     <button className="btn" style={{marginBottom:'1rem'}} onClick={async () => {
