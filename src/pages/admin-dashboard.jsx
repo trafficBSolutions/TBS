@@ -114,6 +114,7 @@ const [showPinManager, setShowPinManager] = useState(false);
 const [newEmpFirst, setNewEmpFirst] = useState('');
 const [newEmpLast, setNewEmpLast] = useState('');
 const [newEmpPin, setNewEmpPin] = useState('');
+const [newEmpPosition, setNewEmpPosition] = useState('');
 const [addEmpLoading, setAddEmpLoading] = useState(false);
 const [adminPin, setAdminPin] = useState('');
 const [adminClockMsg, setAdminClockMsg] = useState('');
@@ -1533,16 +1534,23 @@ selected={
           <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap',alignItems:'center'}}>
             <input type="text" placeholder="First Name" value={newEmpFirst} onChange={(e) => setNewEmpFirst(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',flex:'1',minWidth:'100px'}} />
             <input type="text" placeholder="Last Name" value={newEmpLast} onChange={(e) => setNewEmpLast(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',flex:'1',minWidth:'100px'}} />
+            <select value={newEmpPosition} onChange={(e) => setNewEmpPosition(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',minWidth:'100px'}}>
+              <option value="">Position...</option>
+              <option value="Flagger">Flagger</option>
+              <option value="Driver">Driver</option>
+              <option value="Foreman">Foreman</option>
+            </select>
             <input type="text" placeholder="PIN (4+ digits)" value={newEmpPin} onChange={(e) => setNewEmpPin(e.target.value.replace(/\D/g, ''))} maxLength={6} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',width:'120px',textAlign:'center'}} />
             <button className="btn" disabled={addEmpLoading} style={{padding:'6px 16px'}} onClick={async () => {
               if (!newEmpFirst.trim() || !newEmpLast.trim()) { setPinMsg('First and last name required'); return; }
+              if (!newEmpPosition) { setPinMsg('Position is required'); return; }
               if (!newEmpPin || newEmpPin.length < 4) { setPinMsg('PIN must be at least 4 digits'); return; }
               setAddEmpLoading(true);
               try {
-                const res = await axios.post('/timeclock/add-employee', { firstName: newEmpFirst, lastName: newEmpLast, pin: newEmpPin });
+                const res = await axios.post('/timeclock/add-employee', { firstName: newEmpFirst, lastName: newEmpLast, position: newEmpPosition, pin: newEmpPin });
                 setPinMsg(res.data.message);
                 setPinEmployees(prev => [...prev, res.data.employee]);
-                setNewEmpFirst(''); setNewEmpLast(''); setNewEmpPin('');
+                setNewEmpFirst(''); setNewEmpLast(''); setNewEmpPosition(''); setNewEmpPin('');
                 setTimeout(() => setPinMsg(''), 8000);
               } catch (e) { setPinMsg(e.response?.data?.message || 'Error adding employee'); }
               finally { setAddEmpLoading(false); }
@@ -1557,6 +1565,7 @@ selected={
           <div key={emp._id} className="job-card" style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
             <div>
               <strong>{emp.name}</strong>
+              {emp.position && <span style={{marginLeft:'0.5rem',background:'#e3f2fd',color:'#1565c0',padding:'2px 8px',borderRadius:'4px',fontSize:'0.8rem'}}>{emp.position}</span>}
               <p style={{color:'#4CAF50',margin:'2px 0'}}>PIN: {emp.pin}</p>
             </div>
           </div>
