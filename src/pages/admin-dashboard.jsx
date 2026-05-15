@@ -116,7 +116,6 @@ const [newEmpLast, setNewEmpLast] = useState('');
 const [newEmpPin, setNewEmpPin] = useState('');
 const [newEmpPosition, setNewEmpPosition] = useState('');
 const [addEmpLoading, setAddEmpLoading] = useState(false);
-const [adminPin, setAdminPin] = useState('');
 const [adminClockMsg, setAdminClockMsg] = useState('');
 const [adminClockLoading, setAdminClockLoading] = useState(false);
 const [adminIpAllowed, setAdminIpAllowed] = useState(null);
@@ -126,7 +125,6 @@ const [adminAckName, setAdminAckName] = useState('');
 const [adminAckMsg, setAdminAckMsg] = useState('');
 const [adminAckLoading, setAdminAckLoading] = useState(false);
 const [adminDisciplineIndex, setAdminDisciplineIndex] = useState(0);
-const [adminStoredPin, setAdminStoredPin] = useState('');
 
 // Hourly admins who need to clock in
 const hourlyAdminEmails = new Set([
@@ -860,8 +858,10 @@ useEffect(() => {
         onClick={async () => {
           setAdminClockLoading(true); setAdminClockMsg('');
           const stored = JSON.parse(localStorage.getItem('adminUser') || '{}');
+          const adminId = stored._id || stored.id;
+          if (!adminId) { setAdminClockMsg('Session error. Please log out and log back in.'); setAdminClockLoading(false); return; }
           try {
-            const res = await axios.post('/timeclock/admin-self-punch', { adminId: stored._id || stored.id });
+            const res = await axios.post('/timeclock/admin-self-punch', { adminId });
             setAdminClockMsg(res.data.message);
           } catch (err) {
             const data = err.response?.data;
