@@ -1,563 +1,437 @@
-const express = require('express');
-const router = express.Router();
-const TimeClock = require('../models/timeClock');
-const TimeClockEmployee = require('../models/timeClockEmployee');
-const DisciplineEmployee = require('../models/disciplineEmployee');
-const Admin = require('../models/Admin');
-const Discipline = require('../models/discipline');
-const { transporter } = require('../utils/emailConfig');
-const { generateDisciplinePdf } = require('../services/disciplinePDF');
+import { Link } from 'react-router-dom';
+import Header from '../components/headerviews/HeaderEmpDash';
+import images from '../utils/tbsImages';
+import '../css/employee.css';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 
-const NOTIFY_EMAILS = ['tbsolutions9@gmail.com', 'tbsolutions4@gmail.com'];
+const EmployeeDashboard = () => {
+  const [showTAImages, setShowTAImages] = useState(false);
+  const [showCharts, setShowCharts] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [pin, setPin] = useState('');
+  const [clockMsg, setClockMsg] = useState('');
+  const [clockLoading, setClockLoading] = useState(false);
+  const [ipAllowed, setIpAllowed] = useState(null);
+  const [pendingDisciplines, setPendingDisciplines] = useState([]);
+  const [showDisciplineModal, setShowDisciplineModal] = useState(false);
+  const [ackName, setAckName] = useState('');
+  const [ackMsg, setAckMsg] = useState('');
+  const [ackLoading, setAckLoading] = useState(false);
+  const [currentDisciplineIndex, setCurrentDisciplineIndex] = useState(0);
+  const [storedPin, setStoredPin] = useState('');
+  const [empStatement, setEmpStatement] = useState('');
 
-// Allowed IPs - only this location can clock in/out
-const ALLOWED_IPS = [
-  '73.82.211.177',
-  '2603:3001:3502:8200:8cad:404c:a3de:4443',
-  '::ffff:73.82.211.177',
-  '127.0.0.1',
-  '::1'
-];
+  useEffect(() => {
+    axios.get('/timeclock/check-ip').then(res => setIpAllowed(res.data.allowed)).catch(() => setIpAllowed(false));
+  }, []);
 
-const getClientIp = (req) => {
-  const forwarded = req.headers['x-forwarded-for'];
-  if (forwarded) return forwarded.split(',')[0].trim();
-  return req.connection?.remoteAddress || req.socket?.remoteAddress || req.ip;
-};
-
-const verifyIp = (req, res, next) => {
-  const clientIp = getClientIp(req);
-  const allowed = ALLOWED_IPS.some(ip => clientIp === ip) ||
-    clientIp.startsWith('2603:3001:3502:8200:');
-  if (!allowed) {
-    return res.status(403).json({ message: 'Clock-in/out is only allowed from the designated work location.', ip: clientIp });
-  }
-  req.clientIp = clientIp;
-  next();
-};
-
-// Look up person by PIN (checks TimeClockEmployee roster first, then hourly admins)
-const findPersonByPin = async (pin) => {
-  const emp = await TimeClockEmployee.findOne({ pin, active: true });
-  if (emp) return { id: emp._id, name: `${emp.firstName} ${emp.lastName}`, type: 'Employee' };
-
-  const admin = await Admin.findOne({ pin });
-  if (admin) return { id: admin._id, name: `${admin.firstName} ${admin.lastName || ''}`, type: 'Admin' };
-
-  return null;
-};
-
-// POST /timeclock/punch
-router.post('/punch', verifyIp, async (req, res) => {
-  try {
-    const { pin } = req.body;
-    if (!pin) return res.status(400).json({ message: 'PIN is required' });
-
-    const person = await findPersonByPin(pin);
-    if (!person) return res.status(401).json({ message: 'Invalid PIN' });
-
-    // Check for unacknowledged disciplines
-    const pendingDisciplines = await Discipline.find({
-      linkedPersonId: person.id,
-      acknowledged: false
-    }).sort({ createdAt: -1 });
-
-    const pendingByName = await Discipline.find({
-      employeeName: { $regex: new RegExp(`^${person.name.trim()}$`, 'i') },
-      linkedPersonId: { $exists: false },
-      acknowledged: false
-    }).sort({ createdAt: -1 });
-
-    const allPending = [...pendingDisciplines, ...pendingByName];
-
-    const openEntry = await TimeClock.findOne({ employeeId: person.id, clockOut: null });
-
-    if (openEntry) {
-      if (allPending.length > 0) {
-        return res.status(403).json({
-          message: 'You must review and acknowledge your disciplinary action(s) before clocking out.',
-          action: 'discipline_required',
-          disciplines: allPending,
-          personId: person.id,
-          personName: person.name
-        });
-      }
-      openEntry.clockOut = new Date();
-      await openEntry.save();
-      return res.json({ action: 'clocked_out', message: `${person.name} clocked out.`, record: openEntry });
-    } else {
-      if (allPending.length > 0) {
-        return res.status(403).json({
-          message: 'You must review and acknowledge your disciplinary action(s) before clocking in.',
-          action: 'discipline_required',
-          disciplines: allPending,
-          personId: person.id,
-          personName: person.name
-        });
-      }
-      const entry = await TimeClock.create({
-        employeeId: person.id,
-        employeeName: person.name,
-        clockIn: new Date(),
-        ip: req.clientIp
-      });
-      return res.json({ action: 'clocked_in', message: `${person.name} clocked in.`, record: entry });
-    }
-  } catch (e) {
-    console.error('TimeClock punch error:', e);
-    return res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// POST /timeclock/acknowledge-discipline
-router.post('/acknowledge-discipline', verifyIp, async (req, res) => {
-  try {
-    const { pin, disciplineId, typedName, employeeStatement } = req.body;
-    if (!pin || !disciplineId || !typedName) {
-      return res.status(400).json({ message: 'PIN, disciplineId, and typed name are required' });
-    }
-
-    const person = await findPersonByPin(pin);
-    if (!person) return res.status(401).json({ message: 'Invalid PIN' });
-
-    if (typedName.trim().toLowerCase() !== person.name.trim().toLowerCase()) {
-      return res.status(400).json({ message: 'Typed name does not match your name on file. Please type your full name exactly.' });
-    }
-
-    const discipline = await Discipline.findById(disciplineId);
-    if (!discipline) return res.status(404).json({ message: 'Discipline record not found' });
-
-    discipline.acknowledged = true;
-    discipline.acknowledgedAt = new Date();
-    discipline.acknowledgedName = typedName.trim();
-    if (employeeStatement) discipline.employeeStatement = employeeStatement;
-    if (!discipline.linkedPersonId) {
-      discipline.linkedPersonId = person.id;
-      discipline.linkedPersonType = person.type;
-    }
-    await discipline.save();
-
-    // Send updated PDF with signatures to admins
+  const handlePunch = async () => {
+    if (!pin.trim() || pin.length < 4) { setClockMsg('Enter your 4+ digit PIN'); return; }
+    setClockLoading(true);
+    setClockMsg('');
     try {
-      const pdfBuffer = await generateDisciplinePdf(discipline.toObject ? discipline.toObject() : discipline);
-      const dateStr = discipline.incidentDate ? new Date(discipline.incidentDate).toLocaleDateString() : '';
-      await transporter.sendMail({
-        from: 'Traffic & Barrier Solutions LLC <tbsolutions9@gmail.com>',
-        to: NOTIFY_EMAILS.join(','),
-        subject: `ACKNOWLEDGED: ${discipline.employeeName} – Disciplinary Action ${dateStr}`,
-        html: `<h2>Disciplinary Action Acknowledged</h2>
-          <p><strong>Employee:</strong> ${discipline.employeeName}</p>
-          <p><strong>Signed By:</strong> ${typedName.trim()}</p>
-          <p><strong>Acknowledged At:</strong> ${new Date().toLocaleString()}</p>
-          <p><strong>Supervisor:</strong> ${discipline.supervisorName || ''}</p>
-          ${employeeStatement ? `<p><strong>Employee Statement:</strong> ${employeeStatement}</p>` : ''}
-          <p>Updated PDF with employee signature attached.</p>`,
-        attachments: [{
-          filename: `Discipline_${discipline.employeeName.replace(/\s+/g, '_')}_SIGNED.pdf`,
-          content: pdfBuffer,
-          contentType: 'application/pdf'
-        }]
-      });
-    } catch (emailErr) {
-      console.error('Discipline acknowledgment email failed:', emailErr);
-    }
-
-    const remaining = await Discipline.find({
-      $or: [
-        { linkedPersonId: person.id, acknowledged: false },
-        { employeeName: { $regex: new RegExp(`^${person.name.trim()}$`, 'i') }, linkedPersonId: { $exists: false }, acknowledged: false }
-      ]
-    });
-
-    return res.json({ message: 'Disciplinary action acknowledged.', remainingCount: remaining.length, remaining });
-  } catch (e) {
-    console.error('Acknowledge discipline error:', e);
-    return res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// GET /timeclock/status - who's currently clocked in
-router.get('/status', async (req, res) => {
-  try {
-    const clockedIn = await TimeClock.find({ clockOut: null }).sort({ clockIn: -1 });
-    return res.json(clockedIn);
-  } catch (e) {
-    return res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// GET /timeclock/history?date=YYYY-MM-DD
-router.get('/history', async (req, res) => {
-  try {
-    const { date } = req.query;
-    if (!date) return res.status(400).json({ message: 'Date required' });
-    const start = new Date(date);
-    const end = new Date(date);
-    end.setDate(end.getDate() + 1);
-    const records = await TimeClock.find({ clockIn: { $gte: start, $lt: end } }).sort({ clockIn: -1 });
-    return res.json(records);
-  } catch (e) {
-    return res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// GET /timeclock/employees - List all time clock employees and hourly admins with points
-router.get('/employees', async (req, res) => {
-  try {
-    const employees = await TimeClockEmployee.find({ active: true }).select('firstName lastName position pin').sort({ firstName: 1 });
-    const hourlyAdminEmails = ['tbsolutions77@gmail.com', 'tbsolutions14@gmail.com', 'tbsolutions66@gmail.com'];
-    const hourlyAdmins = await Admin.find({ email: { $in: hourlyAdminEmails } }).select('firstName lastName email pin').sort({ firstName: 1 });
-
-    // Ensure hourly admins exist in DisciplineEmployee roster
-    for (const a of hourlyAdmins) {
-      const fullName = `${a.firstName} ${a.lastName || ''}`.trim();
-      const exists = await DisciplineEmployee.findOne({ name: { $regex: new RegExp(`^${fullName}$`, 'i') } });
-      if (!exists) {
-        await DisciplineEmployee.create({ name: fullName, position: 'Foreman', totalPoints: 0 });
+      const res = await axios.post('/timeclock/punch', { pin });
+      setClockMsg(res.data.message);
+      setPin('');
+    } catch (err) {
+      const data = err.response?.data;
+      if (data?.action === 'discipline_required') {
+        setPendingDisciplines(data.disciplines);
+        setStoredPin(pin);
+        setCurrentDisciplineIndex(0);
+        setShowDisciplineModal(true);
+        setClockMsg('');
+      } else {
+        setClockMsg(data?.message || 'Failed to punch. Try again.');
       }
+    } finally {
+      setClockLoading(false);
     }
+  };
 
-    // Get discipline points for each employee
-    const empList = await Promise.all(employees.map(async (e) => {
-      const fullName = `${e.firstName} ${e.lastName}`;
-      const discEmp = await DisciplineEmployee.findOne({ name: { $regex: new RegExp(`^${fullName}$`, 'i') } });
-      return { _id: e._id, name: fullName, position: e.position, pin: e.pin, type: 'Employee', points: discEmp?.totalPoints || 0, terminated: discEmp?.terminated || false };
-    }));
-
-    const admList = await Promise.all(hourlyAdmins.map(async (a) => {
-      const fullName = `${a.firstName} ${a.lastName || ''}`.trim();
-      const discEmp = await DisciplineEmployee.findOne({ name: { $regex: new RegExp(`^${fullName}$`, 'i') } });
-      return { _id: a._id, name: fullName, email: a.email, pin: a.pin || null, type: 'Admin', points: discEmp?.totalPoints || 0 };
-    }));
-
-    return res.json({ employees: empList, hourlyAdmins: admList });
-  } catch (e) {
-    return res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// POST /timeclock/add-employee - Add a new employee to the time clock roster
-router.post('/add-employee', async (req, res) => {
-  try {
-    const { firstName, lastName, position, pin } = req.body;
-    if (!firstName?.trim() || !lastName?.trim()) {
-      return res.status(400).json({ message: 'First name and last name are required' });
-    }
-    if (!position) {
-      return res.status(400).json({ message: 'Position is required' });
-    }
-    if (!pin || pin.length < 4) {
-      return res.status(400).json({ message: 'PIN must be at least 4 digits' });
-    }
-
-    // Check PIN uniqueness
-    const existsEmp = await TimeClockEmployee.findOne({ pin });
-    const existsAdmin = await Admin.findOne({ pin });
-    if (existsEmp || existsAdmin) return res.status(409).json({ message: 'That PIN is already in use. Choose a different one.' });
-
-    const emp = await TimeClockEmployee.create({
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
-      position,
-      pin
-    });
-
-    // Also add to DisciplineEmployee roster so they appear on the disciplinary action page
-    const fullName = `${firstName.trim()} ${lastName.trim()}`;
-    const existingDisciplineEmp = await DisciplineEmployee.findOne({ name: { $regex: new RegExp(`^${fullName}$`, 'i') } });
-    if (!existingDisciplineEmp) {
-      await DisciplineEmployee.create({ name: fullName, position, totalPoints: 0 });
-    }
-
-    return res.status(201).json({
-      message: `${firstName} ${lastName} (${position}) added with PIN: ${pin}`,
-      employee: { _id: emp._id, name: fullName, position, pin, type: 'Employee' }
-    });
-  } catch (e) {
-    if (e.code === 11000) return res.status(409).json({ message: 'That PIN is already in use' });
-    console.error('Add employee error:', e);
-    return res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// POST /timeclock/add-points - Add discipline points to an employee
-router.post('/add-points', async (req, res) => {
-  try {
-    const { employeeName, points } = req.body;
-    if (!employeeName || !points) return res.status(400).json({ message: 'employeeName and points required' });
-
-    const pts = Math.min(Math.max(parseFloat(points) || 0, 0), 3);
-    const emp = await DisciplineEmployee.findOne({ name: { $regex: new RegExp(`^${employeeName.trim()}$`, 'i') } });
-    if (!emp) return res.status(404).json({ message: `${employeeName} not found in discipline roster` });
-
-    const newTotal = Math.min(emp.totalPoints + pts, 3);
-    emp.totalPoints = newTotal;
-    if (newTotal >= 3) emp.terminated = true;
-    await emp.save();
-
-    return res.json({
-      message: `${pts.toFixed(2)} point(s) added to ${employeeName}. New total: ${newTotal.toFixed(2)}/3.00${newTotal >= 3 ? ' — TERMINATION' : ''}`,
-      newTotal
-    });
-  } catch (e) {
-    console.error('Add points error:', e);
-    return res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// DELETE /timeclock/remove-employee/:id - Terminate/deactivate an employee
-router.delete('/remove-employee/:id', async (req, res) => {
-  try {
-    const emp = await TimeClockEmployee.findByIdAndUpdate(req.params.id, { active: false }, { new: true });
-    if (!emp) return res.status(404).json({ message: 'Employee not found' });
-    // Also mark as terminated in discipline roster
-    const fullName = `${emp.firstName} ${emp.lastName}`;
-    await DisciplineEmployee.findOneAndUpdate(
-      { name: { $regex: new RegExp(`^${fullName}$`, 'i') } },
-      { terminated: true }
-    );
-    return res.json({ message: `${fullName} has been terminated and removed from time clock.` });
-  } catch (e) {
-    return res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// PUT /timeclock/update-pin - Change PIN for an employee or hourly admin
-router.put('/update-pin', async (req, res) => {
-  try {
-    const { employeeId, adminId, pin } = req.body;
-    if ((!employeeId && !adminId) || !pin) return res.status(400).json({ message: 'id and pin required' });
-    if (pin.length < 4) return res.status(400).json({ message: 'PIN must be at least 4 digits' });
-
-    const existsEmp = await TimeClockEmployee.findOne({ pin, _id: { $ne: employeeId || null } });
-    const existsAdmin = await Admin.findOne({ pin, _id: { $ne: adminId || null } });
-    if (existsEmp || existsAdmin) return res.status(409).json({ message: 'That PIN is already in use' });
-
-    if (employeeId) {
-      const emp = await TimeClockEmployee.findByIdAndUpdate(employeeId, { pin }, { new: true });
-      if (!emp) return res.status(404).json({ message: 'Employee not found' });
-      return res.json({ message: `PIN updated for ${emp.firstName} ${emp.lastName}`, pin, name: `${emp.firstName} ${emp.lastName}` });
-    } else {
-      const adm = await Admin.findByIdAndUpdate(adminId, { pin }, { new: true });
-      if (!adm) return res.status(404).json({ message: 'Admin not found' });
-      return res.json({ message: `PIN updated for ${adm.firstName} ${adm.lastName || ''}`, pin, name: `${adm.firstName} ${adm.lastName || ''}` });
-    }
-  } catch (e) {
-    return res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// POST /timeclock/admin-self-punch - Hourly admin clocks themselves in/out (no PIN, IP required)
-router.post('/admin-self-punch', verifyIp, async (req, res) => {
-  try {
-    const { adminId } = req.body;
-    if (!adminId) return res.status(400).json({ message: 'adminId required' });
-
-    const admin = await Admin.findById(adminId);
-    if (!admin) return res.status(404).json({ message: 'Admin not found' });
-
-    const personName = `${admin.firstName} ${admin.lastName || ''}`;
-
-    // Check for unacknowledged disciplines
-    const pendingDisciplines = await Discipline.find({
-      $or: [
-        { linkedPersonId: admin._id, acknowledged: false },
-        { employeeName: { $regex: new RegExp(`^${personName.trim()}$`, 'i') }, linkedPersonId: { $exists: false }, acknowledged: false }
-      ]
-    }).sort({ createdAt: -1 });
-
-    const openEntry = await TimeClock.findOne({ employeeId: admin._id, clockOut: null });
-
-    if (openEntry) {
-      if (pendingDisciplines.length > 0) {
-        return res.status(403).json({
-          message: 'You must review and acknowledge your disciplinary action(s) before clocking out.',
-          action: 'discipline_required',
-          disciplines: pendingDisciplines,
-          personId: admin._id,
-          personName
-        });
-      }
-      openEntry.clockOut = new Date();
-      await openEntry.save();
-      return res.json({ action: 'clocked_out', message: `${personName} clocked out.`, record: openEntry });
-    } else {
-      if (pendingDisciplines.length > 0) {
-        return res.status(403).json({
-          message: 'You must review and acknowledge your disciplinary action(s) before clocking in.',
-          action: 'discipline_required',
-          disciplines: pendingDisciplines,
-          personId: admin._id,
-          personName
-        });
-      }
-      const entry = await TimeClock.create({
-        employeeId: admin._id,
-        employeeName: personName,
-        clockIn: new Date(),
-        ip: req.clientIp
-      });
-      return res.json({ action: 'clocked_in', message: `${personName} clocked in.`, record: entry });
-    }
-  } catch (e) {
-    console.error('Admin self-punch error:', e);
-    return res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// POST /timeclock/admin-self-acknowledge - Hourly admin acknowledges discipline (no PIN)
-router.post('/admin-self-acknowledge', verifyIp, async (req, res) => {
-  try {
-    const { adminId, disciplineId, typedName, employeeStatement } = req.body;
-    if (!adminId || !disciplineId || !typedName) {
-      return res.status(400).json({ message: 'adminId, disciplineId, and typed name are required' });
-    }
-
-    const admin = await Admin.findById(adminId);
-    if (!admin) return res.status(401).json({ message: 'Admin not found' });
-    const personName = `${admin.firstName} ${admin.lastName || ''}`;
-
-    if (typedName.trim().toLowerCase() !== personName.trim().toLowerCase()) {
-      return res.status(400).json({ message: 'Typed name does not match your name on file.' });
-    }
-
-    const discipline = await Discipline.findById(disciplineId);
-    if (!discipline) return res.status(404).json({ message: 'Discipline record not found' });
-
-    discipline.acknowledged = true;
-    discipline.acknowledgedAt = new Date();
-    discipline.acknowledgedName = typedName.trim();
-    if (employeeStatement) discipline.employeeStatement = employeeStatement;
-    if (!discipline.linkedPersonId) {
-      discipline.linkedPersonId = admin._id;
-      discipline.linkedPersonType = 'Admin';
-    }
-    await discipline.save();
-
-    // Send updated PDF with signatures to admins
+  const handleAcknowledge = async () => {
+    if (!ackName.trim()) { setAckMsg('You must type your full name to acknowledge.'); return; }
+    const discipline = pendingDisciplines[currentDisciplineIndex];
+    setAckLoading(true);
+    setAckMsg('');
     try {
-      const pdfBuffer = await generateDisciplinePdf(discipline.toObject ? discipline.toObject() : discipline);
-      const dateStr = discipline.incidentDate ? new Date(discipline.incidentDate).toLocaleDateString() : '';
-      await transporter.sendMail({
-        from: 'Traffic & Barrier Solutions LLC <tbsolutions9@gmail.com>',
-        to: NOTIFY_EMAILS.join(','),
-        subject: `ACKNOWLEDGED: ${discipline.employeeName} – Disciplinary Action ${dateStr}`,
-        html: `<h2>Disciplinary Action Acknowledged</h2>
-          <p><strong>Employee:</strong> ${discipline.employeeName}</p>
-          <p><strong>Signed By:</strong> ${typedName.trim()}</p>
-          <p><strong>Acknowledged At:</strong> ${new Date().toLocaleString()}</p>
-          <p><strong>Supervisor:</strong> ${discipline.supervisorName || ''}</p>
-          ${employeeStatement ? `<p><strong>Employee Statement:</strong> ${employeeStatement}</p>` : ''}
-          <p>Updated PDF with employee signature attached.</p>`,
-        attachments: [{
-          filename: `Discipline_${discipline.employeeName.replace(/\s+/g, '_')}_SIGNED.pdf`,
-          content: pdfBuffer,
-          contentType: 'application/pdf'
-        }]
+      const res = await axios.post('/timeclock/acknowledge-discipline', {
+        pin: storedPin,
+        disciplineId: discipline._id,
+        typedName: ackName,
+        employeeStatement: empStatement
       });
-    } catch (emailErr) {
-      console.error('Discipline acknowledgment email failed:', emailErr);
+      if (res.data.remainingCount > 0) {
+        setPendingDisciplines(res.data.remaining);
+        setCurrentDisciplineIndex(0);
+        setAckName('');
+        setEmpStatement('');
+        setAckMsg('Acknowledged. Please review the next disciplinary action.');
+      } else {
+        // All acknowledged - retry punch
+        setShowDisciplineModal(false);
+        setPendingDisciplines([]);
+        setAckName('');
+        setEmpStatement('');
+        setAckMsg('');
+        try {
+          const punchRes = await axios.post('/timeclock/punch', { pin: storedPin });
+          setClockMsg(punchRes.data.message);
+        } catch (e) {
+          setClockMsg(e.response?.data?.message || 'Please try punching in/out again.');
+        }
+        setStoredPin('');
+      }
+    } catch (err) {
+      setAckMsg(err.response?.data?.message || 'Failed to acknowledge. Try again.');
+    } finally {
+      setAckLoading(false);
     }
+  };
 
-    const remaining = await Discipline.find({
-      $or: [
-        { linkedPersonId: admin._id, acknowledged: false },
-        { employeeName: { $regex: new RegExp(`^${personName.trim()}$`, 'i') }, linkedPersonId: { $exists: false }, acknowledged: false }
-      ]
-    });
+  return (
+    <div>
+        <Header />
+    <main className="employee-main">
+      <div className="employee-options">
+        <h1 className="employee-title">Employee Dashboard</h1>
 
-    return res.json({ message: 'Disciplinary action acknowledged.', remainingCount: remaining.length, remaining });
-  } catch (e) {
-    console.error('Admin self-acknowledge error:', e);
-    return res.status(500).json({ message: 'Server error' });
-  }
-});
+        {/* Time Clock */}
+        <div className="time-clock-section" style={{background:'#1a1a2e',padding:'1.5rem',borderRadius:'12px',marginBottom:'1.5rem',textAlign:'center'}}>
+          <h2 style={{color:'#fff',marginBottom:'0.75rem'}}>⏰ Time Clock</h2>
+          {ipAllowed === false && (
+            <p style={{color:'#ff6b6b'}}>⚠️ You are not at the designated work location. Clock-in/out is disabled.</p>
+          )}
+          {ipAllowed === true && (
+            <div>
+              <input
+                type="password"
+                placeholder="Enter your PIN"
+                value={pin}
+                onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+                maxLength={6}
+                onKeyDown={(e) => e.key === 'Enter' && handlePunch()}
+                style={{padding:'0.5rem 1rem',fontSize:'1.2rem',borderRadius:'8px',border:'none',textAlign:'center',width:'160px'}}
+              />
+              <button
+                onClick={handlePunch}
+                disabled={clockLoading}
+                style={{marginLeft:'0.75rem',padding:'0.5rem 1.5rem',fontSize:'1rem',borderRadius:'8px',background:'#4CAF50',color:'#fff',border:'none',cursor:'pointer'}}
+              >
+                {clockLoading ? '...' : 'Punch In/Out'}
+              </button>
+            </div>
+          )}
+          {ipAllowed === null && <p style={{color:'#aaa'}}>Checking location...</p>}
+          {clockMsg && <p style={{color: clockMsg.includes('clocked') ? '#4CAF50' : '#ff6b6b', marginTop:'0.75rem', fontWeight:'bold'}}>{clockMsg}</p>}
+        </div>
 
-// POST /timeclock/admin-punch - Admin clocks in/out an employee by ID
-router.post('/admin-punch', async (req, res) => {
-  try {
-    const { employeeId } = req.body;
-    if (!employeeId) return res.status(400).json({ message: 'employeeId required' });
+        {/* Discipline Acknowledgment Modal */}
+        {showDisciplineModal && pendingDisciplines.length > 0 && (
+          <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.9)',zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center',padding:'1rem',overflow:'auto'}}>
+            <div style={{background:'#fff',borderRadius:'12px',padding:'2rem',maxWidth:'700px',width:'100%',maxHeight:'90vh',overflowY:'auto'}}>
+              {/* Header */}
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',borderBottom:'3px solid #d32f2f',paddingBottom:'12px',marginBottom:'16px'}}>
+                <h2 style={{color:'#d32f2f',margin:0,fontSize:'1.3rem'}}>EMPLOYEE DISCIPLINARY ACTION FORM</h2>
+                <div style={{textAlign:'right',fontSize:'0.75rem',color:'#666'}}>
+                  <div><strong>Traffic & Barrier Solutions, LLC</strong></div>
+                  <div>721 N Wall St, Calhoun, GA 30701</div>
+                </div>
+              </div>
 
-    // Find the person
-    let personName;
-    let person = await TimeClockEmployee.findById(employeeId);
-    if (person) {
-      personName = `${person.firstName} ${person.lastName}`;
-    } else {
-      const admin = await Admin.findById(employeeId);
-      if (!admin) return res.status(404).json({ message: 'Employee not found' });
-      personName = `${admin.firstName} ${admin.lastName || ''}`;
-      person = admin;
-    }
+              <p style={{background:'#fff3cd',border:'1px solid #ffeaa7',borderRadius:'6px',padding:'10px',marginBottom:'16px',fontSize:'0.85rem',borderLeft:'4px solid #f39c12'}}>
+                <strong>NOTICE:</strong> You must review this disciplinary action, write your statement, and sign below before you can clock in/out. ({currentDisciplineIndex + 1} of {pendingDisciplines.length})
+              </p>
 
-    const openEntry = await TimeClock.findOne({ employeeId: person._id, clockOut: null });
+              {(() => {
+                const d = pendingDisciplines[currentDisciplineIndex];
+                return (
+                  <>
+                    {/* Employee Info Section */}
+                    <div style={{background:'#f8f9fa',padding:'12px',borderRadius:'8px',borderLeft:'4px solid #d32f2f',marginBottom:'14px'}}>
+                      <h4 style={{color:'#d32f2f',marginBottom:'8px',fontSize:'0.85rem',textTransform:'uppercase',borderBottom:'1px solid #ddd',paddingBottom:'4px'}}>Employee Information</h4>
+                      <div style={{display:'flex',gap:'20px',flexWrap:'wrap'}}>
+                        <div style={{flex:1}}>
+                          <p style={{margin:'4px 0'}}><strong>Employee:</strong> {d.employeeName}</p>
+                          <p style={{margin:'4px 0'}}><strong>Position:</strong> {d.position || 'N/A'}</p>
+                        </div>
+                        <div style={{flex:1}}>
+                          <p style={{margin:'4px 0'}}><strong>Supervisor:</strong> {d.supervisorName}</p>
+                          {d.issuedByName && <p style={{margin:'4px 0'}}><strong>Issued By:</strong> {d.issuedByName}</p>}
+                        </div>
+                      </div>
+                    </div>
 
-    if (openEntry) {
-      openEntry.clockOut = new Date();
-      await openEntry.save();
-      return res.json({ action: 'clocked_out', message: `${personName} clocked out by admin.`, record: openEntry });
-    } else {
-      const entry = await TimeClock.create({
-        employeeId: person._id,
-        employeeName: personName,
-        clockIn: new Date(),
-        ip: 'admin-manual'
-      });
-      return res.json({ action: 'clocked_in', message: `${personName} clocked in by admin.`, record: entry });
-    }
-  } catch (e) {
-    console.error('Admin punch error:', e);
-    return res.status(500).json({ message: 'Server error' });
-  }
-});
+                    {/* Incident Details Section */}
+                    <div style={{background:'#f8f9fa',padding:'12px',borderRadius:'8px',borderLeft:'4px solid #d32f2f',marginBottom:'14px'}}>
+                      <h4 style={{color:'#d32f2f',marginBottom:'8px',fontSize:'0.85rem',textTransform:'uppercase',borderBottom:'1px solid #ddd',paddingBottom:'4px'}}>Incident Details</h4>
+                      <div style={{display:'flex',gap:'20px',flexWrap:'wrap'}}>
+                        <div style={{flex:1}}>
+                          <p style={{margin:'4px 0'}}><strong>Date of Warning:</strong> {d.dateOfWarning ? new Date(d.dateOfWarning).toLocaleDateString() : 'N/A'}</p>
+                          <p style={{margin:'4px 0'}}><strong>Date of Incident:</strong> {d.incidentDate ? new Date(d.incidentDate).toLocaleDateString() : 'N/A'}</p>
+                          <p style={{margin:'4px 0'}}><strong>Time:</strong> {d.incidentTime || ''} {d.incidentPeriod || ''}</p>
+                        </div>
+                        <div style={{flex:1}}>
+                          <p style={{margin:'4px 0'}}><strong>Place:</strong> {d.incidentPlace || 'N/A'}</p>
+                        </div>
+                      </div>
+                      <p style={{margin:'8px 0 0'}}><strong>Violation(s):</strong> {(d.violationTypes || []).join(', ')}{d.otherViolationText ? ` — ${d.otherViolationText}` : ''}</p>
+                    </div>
 
-// GET /timeclock/time-worked?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD - Total time worked per employee
-router.get('/time-worked', async (req, res) => {
-  try {
-    const { startDate, endDate } = req.query;
-    if (!startDate || !endDate) return res.status(400).json({ message: 'startDate and endDate required' });
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    end.setDate(end.getDate() + 1);
+                    {/* Employer Statement Section */}
+                    {d.employerStatement && (
+                      <div style={{background:'#f8f9fa',padding:'12px',borderRadius:'8px',borderLeft:'4px solid #d32f2f',marginBottom:'14px'}}>
+                        <h4 style={{color:'#d32f2f',marginBottom:'8px',fontSize:'0.85rem',textTransform:'uppercase',borderBottom:'1px solid #ddd',paddingBottom:'4px'}}>Employer / Supervisor Statement</h4>
+                        <div style={{background:'#fff',border:'1px solid #ddd',borderRadius:'4px',padding:'10px',whiteSpace:'pre-wrap'}}>{d.employerStatement}</div>
+                      </div>
+                    )}
 
-    const records = await TimeClock.find({
-      clockIn: { $gte: start, $lt: end },
-      clockOut: { $ne: null }
-    }).sort({ clockIn: 1 });
+                    {/* Points Section */}
+                    <div style={{background:'#f8f9fa',padding:'12px',borderRadius:'8px',borderLeft:'4px solid #d32f2f',marginBottom:'14px'}}>
+                      <h4 style={{color:'#d32f2f',marginBottom:'8px',fontSize:'0.85rem',textTransform:'uppercase',borderBottom:'1px solid #ddd',paddingBottom:'4px'}}>Warning Decision & Points</h4>
+                      <div style={{display:'flex',gap:'20px',flexWrap:'wrap'}}>
+                        <div style={{flex:1}}>
+                          <p style={{margin:'4px 0'}}><strong>Points Added:</strong> <span style={{fontSize:'1.1rem',fontWeight:'bold',color:'#d32f2f'}}>{(d.points || 0).toFixed(2)}</span></p>
+                          <p style={{margin:'4px 0'}}><strong>Previous Points:</strong> {(d.previousPoints || 0).toFixed(2)}</p>
+                        </div>
+                        <div style={{flex:1}}>
+                          <p style={{margin:'4px 0'}}><strong>New Total:</strong> <span style={{fontSize:'1.1rem',fontWeight:'bold',color:(d.newTotalPoints || 0) >= 3 ? '#d32f2f' : '#1e3a8a'}}>{(d.newTotalPoints || 0).toFixed(2)} / 3.00</span></p>
+                        </div>
+                      </div>
+                      {(d.newTotalPoints || 0) >= 3 && (
+                        <div style={{background:'#f8d7da',border:'1px solid #f5c6cb',borderRadius:'6px',padding:'10px',marginTop:'10px',color:'#721c24',fontWeight:'bold',textAlign:'center'}}>⚠️ EMPLOYEE HAS REACHED 3.00 POINTS — TERMINATION</div>
+                      )}
+                      {d.decision && <div style={{background:'#fff',border:'1px solid #ddd',borderRadius:'4px',padding:'10px',marginTop:'10px',whiteSpace:'pre-wrap'}}><strong>Decision:</strong> {d.decision}</div>}
+                    </div>
 
-    // Group by employee and calculate total minutes
-    const summary = {};
-    records.forEach(r => {
-      const name = r.employeeName;
-      if (!summary[name]) summary[name] = { totalMinutes: 0, days: {} };
-      const mins = Math.round((new Date(r.clockOut) - new Date(r.clockIn)) / 60000);
-      summary[name].totalMinutes += mins;
-      const dayKey = new Date(r.clockIn).toISOString().split('T')[0];
-      if (!summary[name].days[dayKey]) summary[name].days[dayKey] = 0;
-      summary[name].days[dayKey] += mins;
-    });
+                    {/* Employee Statement Section */}
+                    <div style={{background:'#f8f9fa',padding:'12px',borderRadius:'8px',borderLeft:'4px solid #d32f2f',marginBottom:'14px'}}>
+                      <h4 style={{color:'#d32f2f',marginBottom:'8px',fontSize:'0.85rem',textTransform:'uppercase',borderBottom:'1px solid #ddd',paddingBottom:'4px'}}>Employee Statement</h4>
+                      <p style={{fontSize:'0.8rem',color:'#555',marginBottom:'8px'}}>Please write your statement below regarding this disciplinary action:</p>
+                      <textarea
+                        value={empStatement}
+                        onChange={(e) => setEmpStatement(e.target.value)}
+                        placeholder="Write your statement here..."
+                        rows={5}
+                        style={{width:'100%',padding:'10px',borderRadius:'6px',border:'1px solid #ccc',fontSize:'0.95rem',resize:'vertical'}}
+                      />
+                    </div>
 
-    // Convert to array
-    const result = Object.entries(summary).map(([name, data]) => ({
-      name,
-      totalMinutes: data.totalMinutes,
-      totalHours: (data.totalMinutes / 60).toFixed(2),
-      days: data.days
-    })).sort((a, b) => a.name.localeCompare(b.name));
+                    {/* Signature Section */}
+                    <div style={{background:'#f8f9fa',padding:'12px',borderRadius:'8px',borderLeft:'4px solid #d32f2f',marginBottom:'14px'}}>
+                      <h4 style={{color:'#d32f2f',marginBottom:'8px',fontSize:'0.85rem',textTransform:'uppercase',borderBottom:'1px solid #ddd',paddingBottom:'4px'}}>Employee Signature</h4>
+                      <p style={{fontSize:'0.8rem',color:'#555',marginBottom:'8px'}}>By typing your full name below, you acknowledge that you have read and understand this disciplinary action, and that a copy has been provided to you.</p>
+                      <input
+                        type="text"
+                        placeholder="Type your full name as signature"
+                        value={ackName}
+                        onChange={(e) => setAckName(e.target.value)}
+                        style={{width:'100%',padding:'12px',fontSize:'1.1rem',borderRadius:'8px',border:'2px solid #d32f2f',fontStyle:'italic'}}
+                      />
+                      <p style={{fontSize:'0.75rem',color:'#888',marginTop:'4px'}}>Date: {new Date().toLocaleDateString()}</p>
+                    </div>
+                  </>
+                );
+              })()}
 
-    return res.json(result);
-  } catch (e) {
-    return res.status(500).json({ message: 'Server error' });
-  }
-});
+              <button
+                onClick={handleAcknowledge}
+                disabled={ackLoading}
+                style={{width:'100%',padding:'0.85rem',fontSize:'1rem',borderRadius:'8px',background:'#d32f2f',color:'#fff',border:'none',cursor:'pointer',fontWeight:'bold',marginTop:'0.5rem'}}
+              >
+                {ackLoading ? 'Processing...' : 'I Acknowledge This Disciplinary Action'}
+              </button>
+              {ackMsg && <p style={{color: ackMsg.includes('Acknowledged') ? '#4CAF50' : '#d32f2f', marginTop:'0.75rem', textAlign:'center'}}>{ackMsg}</p>}
 
-// GET /timeclock/check-ip
-router.get('/check-ip', (req, res) => {
-  const clientIp = getClientIp(req);
-  const allowed = ALLOWED_IPS.some(ip => clientIp === ip) ||
-    clientIp.startsWith('2603:3001:3502:8200:');
-  return res.json({ allowed, ip: clientIp });
-});
+              <div style={{marginTop:'16px',paddingTop:'12px',borderTop:'2px solid #d32f2f',textAlign:'center',fontSize:'0.7rem',color:'#666'}}>
+                <div><strong>Traffic & Barrier Solutions, LLC</strong></div>
+                <div>{new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}</div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        <div className="div-links">
+          <Link 
+            to="/employee-dashboard/work-order"
+            className="btn-links"
+          >
+            <div className="text-center">
+              <div className="work-order-icon">📋</div>
+              <h2 className="work-order-title">Work Order</h2>
+              <p className="text-gray-600">Create and manage work orders</p>
+            </div>
+          </Link>
+          
+          <Link 
+            to="/employee-dashboard/employee-complaint-form"
+            className="btn-links"
+          >
+            <div className="text-center">
+              <div className="compant-form-icon">📝</div>
+              <h2 className="complaint-form-title">Employee Complaint Form</h2>
+              <p className="text-gray-600">Submit a complaint about your work environment</p>
+            </div>
+          </Link>
+          
+          <Link 
+            to="/employee-dashboard/employee-handbook"
+            className="btn-links"
+          >
+            <div className="text-center">
+              <div className="work-order-icon">📖</div>
+              <h2 className="work-order-title">Employee Handbook</h2>
+              <p className="text-gray-600">Read and acknowledge the employee handbook</p>
+            </div>
+          </Link>
 
-module.exports = router;
+          <Link 
+            to="/employee-dashboard/shop-work-order"
+            className="btn-links"
+          >
+            <div className="text-center">
+              <div className="work-order-icon">🪧</div>
+              <h2 className="work-order-title">Shop Work Order</h2>
+              <p className="text-gray-600">Submit a shop work order for supervisor approval</p>
+            </div>
+          </Link>
+        </div>
+</div>
+        <div className="ta-images-emp-section">
+          <h2 className="employee-section-title">Typical Application (TA) Diagrams</h2>
+          <button
+            className="btn-links ta-toggle-btn"
+            onClick={() => setShowTAImages(prev => !prev)}
+          >
+            {showTAImages ? 'Hide TA Diagrams' : 'View TA Diagrams'}
+          </button>
+          {showTAImages && (
+            <div className="ta-images-grid">
+              <div className="ta-image-card" onClick={() => setSelectedImage({ src: images["../assets/buffer and tapers/TA-10.svg"].default, title: 'TA-10' })}>
+                <h4>TA-10</h4>
+                <img src={images["../assets/buffer and tapers/TA-10.svg"].default} alt="TA-10 Diagram" />
+              </div>
+              <div className="ta-image-card" onClick={() => setSelectedImage({ src: images["../assets/buffer and tapers/TA-22.svg"].default, title: 'TA-22' })}>
+                <h4>TA-22</h4>
+                <img src={images["../assets/buffer and tapers/TA-22.svg"].default} alt="TA-22 Diagram" />
+              </div>
+              <div className="ta-image-card" onClick={() => setSelectedImage({ src: images["../assets/buffer and tapers/TA-32.svg"].default, title: 'TA-32' })}>
+                <h4>TA-32</h4>
+                <img src={images["../assets/buffer and tapers/TA-32.svg"].default} alt="TA-32 Diagram" />
+              </div>
+              <div className="ta-image-card" onClick={() => setSelectedImage({ src: images["../assets/buffer and tapers/TA-33.svg"].default, title: 'TA-33' })}>
+                <h4>TA-33</h4>
+                <img src={images["../assets/buffer and tapers/TA-33.svg"].default} alt="TA-33 Diagram" />
+              </div>
+              <div className="ta-image-card" onClick={() => setSelectedImage({ src: images["../assets/buffer and tapers/TA-37.svg"].default, title: 'TA-37' })}>
+                <h4>TA-37</h4>
+                <img src={images["../assets/buffer and tapers/TA-37.svg"].default} alt="TA-37 Diagram" />
+              </div>
+              <div className="ta-image-card" onClick={() => setSelectedImage({ src: images["../assets/charts/Formulas.svg"].default, title: 'Formulas' })}>
+                <h4>Formulas</h4>
+                <img src={images["../assets/charts/Formulas.svg"].default} alt="Formulas" />
+              </div>
+            </div>
+          )}
+          {selectedImage && (
+            <div className="image-modal" onClick={() => setSelectedImage(null)}>
+              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <button className="modal-close" onClick={() => setSelectedImage(null)}>×</button>
+                <h3>{selectedImage.title}</h3>
+                <img src={selectedImage.src} alt={selectedImage.title} />
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="ta-images-emp-section">
+          <h2 className="employee-section-title">Reference Charts</h2>
+          <button
+            className="btn-links ta-toggle-btn"
+            onClick={() => setShowCharts(prev => !prev)}
+          >
+            {showCharts ? 'Hide Charts' : 'View Charts'}
+          </button>
+          {showCharts && (
+            <div className="ta-images-grid">
+              <div className="ta-image-card" onClick={() => setSelectedImage({ src: images["../assets/charts/Buffer Space.svg"].default, title: 'Buffer Space' })}>
+                <h4>Buffer Space</h4>
+                <img src={images["../assets/charts/Buffer Space.svg"].default} alt="Buffer Space Chart" />
+              </div>
+              <div className="ta-image-card" onClick={() => setSelectedImage({ src: images["../assets/charts/Cone Spacing.svg"].default, title: 'Cone Spacing' })}>
+                <h4>Cone Spacing</h4>
+                <img src={images["../assets/charts/Cone Spacing.svg"].default} alt="Cone Spacing Chart" />
+              </div>
+              <div className="ta-image-card" onClick={() => setSelectedImage({ src: images["../assets/charts/Sign Spacing.svg"].default, title: 'Sign Spacing' })}>
+                <h4>Sign Spacing</h4>
+                <img src={images["../assets/charts/Sign Spacing.svg"].default} alt="Sign Spacing Chart" />
+              </div>
+              <div className="ta-image-card" onClick={() => setSelectedImage({ src: images["../assets/charts/Stop Sight.svg"].default, title: 'Stop Sight' })}>
+                <h4>Stop Sight</h4>
+                <img src={images["../assets/charts/Stop Sight.svg"].default} alt="Stop Sight Chart" />
+              </div>
+        </div>
+          )}
+          </div>
+      
+    </main>
+          <footer className="footer">
+  <div className="site-footer__inner">
+    <img className="tbs-logo" alt="TBS logo" src={images["../assets/tbs_companies/tbs white.svg"].default} />
+    <div className="footer-navigation-content">
+      <h2 className="footer-title">Navigation</h2>
+    <ul className="footer-navigate">
+      <li><a className="footer-nav-link" href="/about-us">About Us</a></li>
+      <li><a className="footer-nav-link" href="/traffic-control-services">Traffic Control Services</a></li>
+      <li><a className="footer-nav-link" href="/product-services">Product Services</a></li>
+      <li><a className="footer-nav-link" href="/contact-us">Contact Us</a></li>
+      <li><a className="footer-nav-link" href="/applynow">Careers</a></li>
+    </ul>
+    </div>
+    <div className="footer-contact">
+      <h2 className="footer-title">Contact</h2>
+      <p className="contact-info">
+        <a className="will-phone" href="tel:+17062630175">Call: 706-263-0175</a>
+        <a className="will-email" href="mailto: tbsolutions1999@gmail.com">Email: tbsolutions1999@gmail.com</a>
+        <a className="will-address" href="https://www.google.com/maps/place/Traffic+and+Barrier+Solutions,+LLC/@34.5117779,-84.9474798,123m/data=!3m1!1e3!4m6!3m5!1s0x482edab56d5b039b:0x94615ce25483ace6!8m2!3d34.511583!4d-84.9480585!16s%2Fg%2F11pl8d7p4t?entry=ttu&g_ep=EgoyMDI2MDMzMS4wIKXMDSoASAFQAw%3D%3D"
+      >
+        721 N Wall St, Calhoun, GA 30701</a>
+      </p>
+    </div>
+
+    <div className="social-icons">
+      <h2 className="footer-title">Follow Us</h2>
+      <a className="social-icon" href="https://www.facebook.com/tbssigns2022/" target="_blank" rel="noopener noreferrer">
+                    <img className="facebook-img" src={images["../assets/social media/facebook.png"].default} alt="Facebook" />
+                </a>
+                <a className="social-icon" href="https://www.tiktok.com/@tbsmaterialworx?_t=8lf08Hc9T35&_r=1" target="_blank" rel="noopener noreferrer">
+                    <img className="tiktok-img" src={images["../assets/social media/tiktok.png"].default} alt="TikTok" />
+                </a>
+                <a className="social-icon" href="https://www.instagram.com/tbsmaterialworx?igsh=YzV4b3doaTExcjN4&utm_source=qr" target="_blank" rel="noopener noreferrer">
+                    <img className="insta-img" src={images["../assets/social media/instagram.png"].default} alt="Instagram" />
+                </a>
+    </div>
+    <div className="statement-box">
+                <p className="statement">
+                    <b className="safety-b">Safety Statement: </b>
+                    At TBS, safety is our top priority. We are dedicated to ensuring the well-being of our employees, clients, 
+                    and the general public in every aspect of our operations. Through comprehensive safety training, 
+                    strict adherence to regulatory standards, and continuous improvement initiatives, 
+                    we strive to create a work environment where accidents and injuries are preventable. 
+                    Our commitment to safety extends beyond compliance—it's a fundamental value embedded in everything we do. 
+                    Together, we work tirelessly to promote a culture of safety, 
+                    accountability, and excellence, because when it comes to traffic control, there's no compromise on safety.
+                </p>
+            </div>
+  </div>
+</footer>
+<div className="footer-copyright">
+      <p className="footer-copy-p">&copy; 2026 Traffic & Barrier Solutions, LLC - 
+        Website Created by <a className="footer-face"href="https://www.material-worx.com/portfolio" target="_blank" rel="noopener noreferrer">MX Systems</a> - All Rights Reserved.</p>
+    </div>
+            </div>
+  );
+};
+
+export default EmployeeDashboard;
