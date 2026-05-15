@@ -48,7 +48,12 @@ const AdminLog = () => {
         const res = await axios.post('https://tbs-server.onrender.com/admin/login', { email, password });
         
         const { token, email: userEmail, firstName } = res.data;
-        localStorage.setItem('adminUser', JSON.stringify({ email: userEmail, firstName, token }));
+        // Decode _id from JWT as fallback
+        let adminId = res.data._id;
+        if (!adminId && token) {
+          try { adminId = JSON.parse(atob(token.split('.')[1])).id; } catch(e) {}
+        }
+        localStorage.setItem('adminUser', JSON.stringify({ email: userEmail, firstName, token, _id: adminId }));
         
         // Use window.location for a hard navigation instead of React Router
         window.location.href = '/admin-dashboard';
