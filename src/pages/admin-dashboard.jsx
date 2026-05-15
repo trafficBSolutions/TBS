@@ -1574,7 +1574,7 @@ selected={
                 {emp.points >= 3 && <span style={{marginLeft:'0.5rem',color:'#f44336',fontWeight:'bold'}}>⚠️ TERMINATION</span>}
               </p>
             </div>
-            <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap'}}>
+            <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap',alignItems:'center'}}>
               <button className="btn" style={{padding:'4px 14px',fontSize:'12px'}} onClick={async () => {
                 try {
                   const res = await axios.post('/timeclock/admin-punch', { employeeId: emp._id });
@@ -1585,6 +1585,27 @@ selected={
               }}>
                 {clockedInList.some(c => c.employeeId === emp._id) ? '⏹ Clock Out' : '▶ Clock In'}
               </button>
+              <select style={{padding:'4px',borderRadius:'4px',fontSize:'12px',border:'1px solid #ccc'}} defaultValue="" onChange={async (e) => {
+                const pts = parseFloat(e.target.value);
+                if (!pts) return;
+                if (!window.confirm(`Add ${pts} point(s) to ${emp.name}? Current: ${emp.points?.toFixed(2) || '0.00'}`)) { e.target.value = ''; return; }
+                try {
+                  const res = await axios.post('/timeclock/add-points', { employeeName: emp.name, points: pts });
+                  setPinMsg(res.data.message);
+                  setPinEmployees(prev => prev.map(x => x._id === emp._id ? { ...x, points: res.data.newTotal } : x));
+                  setTimeout(() => setPinMsg(''), 5000);
+                } catch (err) { setPinMsg(err.response?.data?.message || 'Error'); }
+                e.target.value = '';
+              }}>
+                <option value="">+ Add Points</option>
+                <option value="0.25">+0.25</option>
+                <option value="0.5">+0.50</option>
+                <option value="0.75">+0.75</option>
+                <option value="1">+1.00</option>
+                <option value="1.5">+1.50</option>
+                <option value="2">+2.00</option>
+                <option value="3">+3.00</option>
+              </select>
               <button style={{padding:'4px 14px',fontSize:'12px',background:'#ff9800',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer'}} onClick={() => navigate('/admin-dashboard/disciplinary-action')}>
                 ⚠️ Write Up
               </button>
@@ -1617,7 +1638,7 @@ selected={
                     <strong>Points:</strong> {adm.points?.toFixed(2) || '0.00'} / 3.00
                   </p>
                 </div>
-                <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap'}}>
+                <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap',alignItems:'center'}}>
                   <button className="btn" style={{padding:'4px 14px',fontSize:'12px'}} onClick={async () => {
                     try {
                       const res = await axios.post('/timeclock/admin-punch', { employeeId: adm._id });
@@ -1628,6 +1649,27 @@ selected={
                   }}>
                     {clockedInList.some(c => c.employeeId === adm._id) ? '⏹ Clock Out' : '▶ Clock In'}
                   </button>
+                  <select style={{padding:'4px',borderRadius:'4px',fontSize:'12px',border:'1px solid #ccc'}} defaultValue="" onChange={async (e) => {
+                    const pts = parseFloat(e.target.value);
+                    if (!pts) return;
+                    if (!window.confirm(`Add ${pts} point(s) to ${adm.name}? Current: ${adm.points?.toFixed(2) || '0.00'}`)) { e.target.value = ''; return; }
+                    try {
+                      const res = await axios.post('/timeclock/add-points', { employeeName: adm.name, points: pts });
+                      setPinMsg(res.data.message);
+                      setPinHourlyAdmins(prev => prev.map(x => x._id === adm._id ? { ...x, points: res.data.newTotal } : x));
+                      setTimeout(() => setPinMsg(''), 5000);
+                    } catch (err) { setPinMsg(err.response?.data?.message || 'Error'); }
+                    e.target.value = '';
+                  }}>
+                    <option value="">+ Add Points</option>
+                    <option value="0.25">+0.25</option>
+                    <option value="0.5">+0.50</option>
+                    <option value="0.75">+0.75</option>
+                    <option value="1">+1.00</option>
+                    <option value="1.5">+1.50</option>
+                    <option value="2">+2.00</option>
+                    <option value="3">+3.00</option>
+                  </select>
                   <button style={{padding:'4px 14px',fontSize:'12px',background:'#ff9800',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer'}} onClick={() => navigate('/admin-dashboard/disciplinary-action')}>
                     ⚠️ Write Up
                   </button>
