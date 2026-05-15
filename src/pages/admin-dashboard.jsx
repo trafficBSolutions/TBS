@@ -123,6 +123,8 @@ const [newEmpLast, setNewEmpLast] = useState('');
 const [newEmpPin, setNewEmpPin] = useState('');
 const [newEmpPosition, setNewEmpPosition] = useState('');
 const [addEmpLoading, setAddEmpLoading] = useState(false);
+const [changePinId, setChangePinId] = useState(null);
+const [changePinValue, setChangePinValue] = useState('');
 const [adminClockMsg, setAdminClockMsg] = useState('');
 const [adminClockLoading, setAdminClockLoading] = useState(false);
 const [adminIpAllowed, setAdminIpAllowed] = useState(null);
@@ -1622,6 +1624,26 @@ selected={
                 <strong>Points:</strong> {emp.points?.toFixed(2) || '0.00'} / 3.00
                 {emp.points >= 3 && <span style={{marginLeft:'0.5rem',color:'#f44336',fontWeight:'bold'}}>⚠️ TERMINATION</span>}
               </p>
+              {changePinId === emp._id ? (
+                <div style={{display:'flex',gap:'0.4rem',alignItems:'center',marginTop:'4px'}}>
+                  <input type="text" placeholder="New PIN" value={changePinValue} onChange={(e) => setChangePinValue(e.target.value.replace(/\D/g, ''))} maxLength={6} style={{padding:'4px',width:'80px',textAlign:'center',borderRadius:'4px',border:'1px solid #ccc'}} />
+                  <button className="btn" style={{padding:'3px 10px',fontSize:'11px'}} onClick={async () => {
+                    if (!changePinValue || changePinValue.length < 4) { setPinMsg('PIN must be at least 4 digits'); return; }
+                    try {
+                      const res = await axios.put('/timeclock/update-pin', { employeeId: emp._id, pin: changePinValue });
+                      setPinMsg(res.data.message);
+                      setPinEmployees(prev => prev.map(e => e._id === emp._id ? { ...e, pin: changePinValue } : e));
+                      setChangePinId(null); setChangePinValue('');
+                      setTimeout(() => setPinMsg(''), 5000);
+                    } catch (e) { setPinMsg(e.response?.data?.message || 'Error'); }
+                  }}>Save</button>
+                  <button style={{padding:'3px 10px',fontSize:'11px',background:'#888',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer'}} onClick={() => { setChangePinId(null); setChangePinValue(''); }}>Cancel</button>
+                </div>
+              ) : (
+                <button style={{padding:'2px 8px',fontSize:'11px',background:'#2196F3',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer',marginTop:'4px'}} onClick={() => { setChangePinId(emp._id); setChangePinValue(''); }}>
+                  🔑 Change PIN
+                </button>
+              )}
             </div>
             <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap',alignItems:'center'}}>
               <button className="btn" style={{padding:'4px 14px',fontSize:'12px'}} onClick={async () => {
