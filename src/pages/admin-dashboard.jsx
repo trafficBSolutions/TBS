@@ -101,6 +101,37 @@ const [shopWoDate, setShopWoDate] = useState(new Date());
 const [shopWoList, setShopWoList] = useState([]);
 const [shopWoMonthly, setShopWoMonthly] = useState({});
 const [allowedForShopWo, setAllowedForShopWo] = useState(false);
+const [clockedInList, setClockedInList] = useState([]);
+const [clockHistory, setClockHistory] = useState([]);
+const [clockHistoryDate, setClockHistoryDate] = useState(new Date());
+const [adminPin, setAdminPin] = useState('');
+const [adminClockMsg, setAdminClockMsg] = useState('');
+const [adminClockLoading, setAdminClockLoading] = useState(false);
+const [adminIpAllowed, setAdminIpAllowed] = useState(null);
+const [adminPendingDisciplines, setAdminPendingDisciplines] = useState([]);
+const [showAdminDisciplineModal, setShowAdminDisciplineModal] = useState(false);
+const [adminAckName, setAdminAckName] = useState('');
+const [adminAckMsg, setAdminAckMsg] = useState('');
+const [adminAckLoading, setAdminAckLoading] = useState(false);
+const [adminDisciplineIndex, setAdminDisciplineIndex] = useState(0);
+const [adminStoredPin, setAdminStoredPin] = useState('');
+
+// Hourly admins who need to clock in
+const hourlyAdminEmails = new Set([
+  'tbsolutions77@gmail.com',
+  'tbsolutions14@gmail.com',
+  'tbsolutions66@gmail.com'
+]);
+
+// Salary admins who can view time clock status
+const salaryAdminEmails = new Set([
+  'tbsolutions9@gmail.com',
+  'tbsolutions4@gmail.com',
+  'tbsolutions1995@gmail.com',
+  'trafficandbarriersolutions.ap@gmail.com',
+  'tbsolutions1999@gmail.com'
+]);
+
 const handleChangeEmpPassword = async () => {
   if (!empNewPassword.trim()) { setEmpPasswordMsg('Please enter a new password.'); return; }
   if (empNewPassword.length < 6) { setEmpPasswordMsg('Password must be at least 6 characters.'); return; }
@@ -437,6 +468,15 @@ useEffect(() => {
     fetchMonthlyDiscipline(d);
     fetchDisciplineForDay(d);
     fetchTasks();
+    // Fetch time clock status for salary admins
+    const stored = JSON.parse(localStorage.getItem('adminUser') || '{}');
+    if (salaryAdminEmails.has(stored.email)) {
+      axios.get('/timeclock/status').then(res => setClockedInList(res.data)).catch(() => {});
+    }
+    // Check IP for hourly admins
+    if (hourlyAdminEmails.has(stored.email)) {
+      axios.get('/timeclock/check-ip').then(res => setAdminIpAllowed(res.data.allowed)).catch(() => setAdminIpAllowed(false));
+    }
   }
 }, [isAdmin]);
 
@@ -788,10 +828,132 @@ useEffect(() => {
       )}
       <button className={`btn ${viewMode === 'complaints' ? 'active' : ''}`} onClick={() => setViewMode('complaints')}>Complaints</button>
       <button className={`btn ${viewMode === 'tasks' ? 'active' : ''}`} onClick={() => setViewMode('tasks')}>Tasks</button>
+      {salaryAdminEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email) && (
+        <button className={`btn ${viewMode === 'timeclock' ? 'active' : ''}`} onClick={() => { setViewMode('timeclock'); axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {}); }}>Time Clock</button>
+      )}
     </div>
   </>
   )}
 </div>
+
+{/* Hourly Admin Clock In/Out Widget */}
+{isAdmin && hourlyAdminEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email) && (
+  <div style={{background:'#1a1a2e',padding:'1.5rem',borderRadius:'12px',marginBottom:'1.5rem',textAlign:'center'}}>
+    <h2 style={{color:'#fff',marginBottom:'0.75rem'}}>⏰ Time Clock</h2>
+    {adminIpAllowed === false && (
+      <p style={{color:'#ff6b6b'}}>⚠️ You are not at the designated work location. Clock-in/out is disabled.</p>
+    )}
+    {adminIpAllowed === true && (
+      <div>
+        <input
+          type="password"
+          placeholder="Enter your PIN"
+          value={adminPin}
+          onChange={(e) => setAdminPin(e.target.value.replace(/\D/g, ''))}
+          maxLength={6}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              (async () => {
+                if (!adminPin.trim() || adminPin.length < 4) { setAdminClockMsg('Enter your 4+ digit PIN'); return; }
+                setAdminClockLoading(true); setAdminClockMsg('');
+                try { const res = await axios.post('/timeclock/punch', { pin: adminPin }); setAdminClockMsg(res.data.message); setAdminPin(''); }
+                catch (err) {
+                  const data = err.response?.data;
+                  if (data?.action === 'discipline_required') {
+                    setAdminPendingDisciplines(data.disciplines); setAdminStoredPin(adminPin);
+                    setAdminDisciplineIndex(0); setShowAdminDisciplineModal(true); setAdminClockMsg('');
+                  } else { setAdminClockMsg(data?.message || 'Failed'); }
+                }
+                finally { setAdminClockLoading(false); }
+              })();
+            }
+          }}
+          style={{padding:'0.5rem 1rem',fontSize:'1.2rem',borderRadius:'8px',border:'none',textAlign:'center',width:'160px'}}
+        />
+        <button
+          onClick={async () => {
+            if (!adminPin.trim() || adminPin.length < 4) { setAdminClockMsg('Enter your 4+ digit PIN'); return; }
+            setAdminClockLoading(true); setAdminClockMsg('');
+            try { const res = await axios.post('/timeclock/punch', { pin: adminPin }); setAdminClockMsg(res.data.message); setAdminPin(''); }
+            catch (err) {
+              const data = err.response?.data;
+              if (data?.action === 'discipline_required') {
+                setAdminPendingDisciplines(data.disciplines); setAdminStoredPin(adminPin);
+                setAdminDisciplineIndex(0); setShowAdminDisciplineModal(true); setAdminClockMsg('');
+              } else { setAdminClockMsg(data?.message || 'Failed'); }
+            }
+            finally { setAdminClockLoading(false); }
+          }}
+          disabled={adminClockLoading}
+          style={{marginLeft:'0.75rem',padding:'0.5rem 1.5rem',fontSize:'1rem',borderRadius:'8px',background:'#4CAF50',color:'#fff',border:'none',cursor:'pointer'}}
+        >
+          {adminClockLoading ? '...' : 'Punch In/Out'}
+        </button>
+      </div>
+    )}
+    {adminIpAllowed === null && <p style={{color:'#aaa'}}>Checking location...</p>}
+    {adminClockMsg && <p style={{color: adminClockMsg.includes('clocked') ? '#4CAF50' : '#ff6b6b', marginTop:'0.75rem', fontWeight:'bold'}}>{adminClockMsg}</p>}
+  </div>
+)}
+
+{/* Hourly Admin Discipline Acknowledgment Modal */}
+{showAdminDisciplineModal && adminPendingDisciplines.length > 0 && (
+  <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.85)',zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center',padding:'1rem'}}>
+    <div style={{background:'#fff',borderRadius:'12px',padding:'2rem',maxWidth:'600px',width:'100%',maxHeight:'80vh',overflowY:'auto'}}>
+      <h2 style={{color:'#d32f2f',marginBottom:'1rem'}}>⚠️ Disciplinary Action - Review Required</h2>
+      <p style={{marginBottom:'1rem',color:'#333'}}>You must review and acknowledge before clocking in/out. ({adminDisciplineIndex + 1} of {adminPendingDisciplines.length})</p>
+      {(() => {
+        const d = adminPendingDisciplines[adminDisciplineIndex];
+        return (
+          <div style={{background:'#fff3f3',border:'2px solid #d32f2f',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
+            <p><strong>Employee:</strong> {d.employeeName}</p>
+            <p><strong>Date of Incident:</strong> {d.incidentDate ? new Date(d.incidentDate).toLocaleDateString() : 'N/A'}</p>
+            <p><strong>Violation(s):</strong> {(d.violationTypes || []).join(', ')}</p>
+            {d.otherViolationText && <p><strong>Details:</strong> {d.otherViolationText}</p>}
+            <p><strong>Supervisor:</strong> {d.supervisorName}</p>
+            {d.employerStatement && <p><strong>Employer Statement:</strong> {d.employerStatement}</p>}
+            {d.decision && <p><strong>Decision:</strong> {d.decision}</p>}
+            <p><strong>Points:</strong> {d.points} (Total: {d.newTotalPoints}/3)</p>
+          </div>
+        );
+      })()}
+      <p style={{color:'#333',fontWeight:'bold',marginBottom:'0.5rem'}}>Type your full name to acknowledge:</p>
+      <input
+        type="text"
+        placeholder="Type your full name"
+        value={adminAckName}
+        onChange={(e) => setAdminAckName(e.target.value)}
+        style={{width:'100%',padding:'0.75rem',fontSize:'1rem',borderRadius:'8px',border:'2px solid #d32f2f',marginBottom:'0.75rem'}}
+      />
+      <button
+        onClick={async () => {
+          if (!adminAckName.trim()) { setAdminAckMsg('You must type your full name.'); return; }
+          setAdminAckLoading(true); setAdminAckMsg('');
+          try {
+            const res = await axios.post('/timeclock/acknowledge-discipline', {
+              pin: adminStoredPin, disciplineId: adminPendingDisciplines[adminDisciplineIndex]._id, typedName: adminAckName
+            });
+            if (res.data.remainingCount > 0) {
+              setAdminPendingDisciplines(res.data.remaining); setAdminDisciplineIndex(0);
+              setAdminAckName(''); setAdminAckMsg('Acknowledged. Review the next one.');
+            } else {
+              setShowAdminDisciplineModal(false); setAdminPendingDisciplines([]); setAdminAckName(''); setAdminAckMsg('');
+              try { const p = await axios.post('/timeclock/punch', { pin: adminStoredPin }); setAdminClockMsg(p.data.message); }
+              catch (e) { setAdminClockMsg(e.response?.data?.message || 'Try punching again.'); }
+              setAdminStoredPin('');
+            }
+          } catch (err) { setAdminAckMsg(err.response?.data?.message || 'Failed. Try again.'); }
+          finally { setAdminAckLoading(false); }
+        }}
+        disabled={adminAckLoading}
+        style={{width:'100%',padding:'0.75rem',fontSize:'1rem',borderRadius:'8px',background:'#d32f2f',color:'#fff',border:'none',cursor:'pointer',fontWeight:'bold'}}
+      >
+        {adminAckLoading ? 'Processing...' : 'I Acknowledge This Disciplinary Action'}
+      </button>
+      {adminAckMsg && <p style={{color: adminAckMsg.includes('Acknowledged') ? '#4CAF50' : '#d32f2f', marginTop:'0.75rem', textAlign:'center'}}>{adminAckMsg}</p>}
+    </div>
+  </div>
+)}
 
 {/* ═══════ ZONE 2: MAIN SCHEDULER ═══════ */}
 {isAdmin && (
@@ -1248,6 +1410,45 @@ selected={
         </div>
       ))}
       {complaintsList.length === 0 && <p>No complaints on this day.</p>}
+    </div>
+  </>
+)}
+{viewMode === 'timeclock' && (
+  <>
+    <h3>⏰ Employee Time Clock</h3>
+    <div style={{marginBottom:'1rem'}}>
+      <button className="btn" onClick={() => axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {})}>
+        Refresh Status
+      </button>
+    </div>
+    <h4 style={{color:'#4CAF50'}}>Currently Clocked In ({clockedInList.length})</h4>
+    <div className="job-info-list">
+      {clockedInList.length === 0 && <p>No employees currently clocked in.</p>}
+      {clockedInList.map((entry) => (
+        <div key={entry._id} className="job-card">
+          <h4 className="job-company">{entry.employeeName}</h4>
+          <p><strong>Clocked In:</strong> {new Date(entry.clockIn).toLocaleString()}</p>
+          <p><strong>Duration:</strong> {Math.round((Date.now() - new Date(entry.clockIn)) / 60000)} min</p>
+        </div>
+      ))}
+    </div>
+    <hr style={{margin:'1.5rem 0'}} />
+    <h4>History for {clockHistoryDate.toLocaleDateString()}</h4>
+    <input type="date" value={clockHistoryDate.toISOString().split('T')[0]} onChange={(e) => {
+      const d = new Date(e.target.value + 'T00:00:00');
+      setClockHistoryDate(d);
+      axios.get(`/timeclock/history?date=${e.target.value}`).then(r => setClockHistory(r.data)).catch(() => {});
+    }} style={{marginBottom:'1rem',padding:'0.4rem'}} />
+    <div className="job-info-list">
+      {clockHistory.length === 0 && <p>No records for this date.</p>}
+      {clockHistory.map((entry) => (
+        <div key={entry._id} className="job-card">
+          <h4 className="job-company">{entry.employeeName}</h4>
+          <p><strong>In:</strong> {new Date(entry.clockIn).toLocaleTimeString()}</p>
+          <p><strong>Out:</strong> {entry.clockOut ? new Date(entry.clockOut).toLocaleTimeString() : 'Still clocked in'}</p>
+          {entry.clockOut && <p><strong>Total:</strong> {Math.round((new Date(entry.clockOut) - new Date(entry.clockIn)) / 60000)} min</p>}
+        </div>
+      ))}
     </div>
   </>
 )}
