@@ -104,6 +104,10 @@ const [allowedForShopWo, setAllowedForShopWo] = useState(false);
 const [clockedInList, setClockedInList] = useState([]);
 const [clockHistory, setClockHistory] = useState([]);
 const [clockHistoryDate, setClockHistoryDate] = useState(new Date());
+const [pinEmployees, setPinEmployees] = useState([]);
+const [pinHourlyAdmins, setPinHourlyAdmins] = useState([]);
+const [pinMsg, setPinMsg] = useState('');
+const [showPinManager, setShowPinManager] = useState(false);
 const [adminPin, setAdminPin] = useState('');
 const [adminClockMsg, setAdminClockMsg] = useState('');
 const [adminClockLoading, setAdminClockLoading] = useState(false);
@@ -1450,6 +1454,71 @@ selected={
         </div>
       ))}
     </div>
+    <hr style={{margin:'1.5rem 0'}} />
+    <h4>🔑 PIN Management</h4>
+    <button className="btn" style={{marginBottom:'1rem'}} onClick={async () => {
+      setShowPinManager(!showPinManager);
+      if (!showPinManager) {
+        try {
+          const res = await axios.get('/timeclock/employees');
+          setPinEmployees(res.data.employees);
+          setPinHourlyAdmins(res.data.hourlyAdmins);
+        } catch (e) { console.error(e); }
+      }
+    }}>
+      {showPinManager ? 'Hide PIN Manager' : 'Manage PINs'}
+    </button>
+    {pinMsg && <p style={{color:'#4CAF50',marginBottom:'0.5rem'}}>{pinMsg}</p>}
+    {showPinManager && (
+      <div className="job-info-list">
+        <h5 style={{marginBottom:'0.5rem'}}>Employees</h5>
+        {pinEmployees.map((emp) => (
+          <div key={emp._id} className="job-card" style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'0.5rem'}}>
+            <div>
+              <strong>{emp.name}</strong>
+              <p style={{fontSize:'0.85rem',color:'#666'}}>{emp.email}</p>
+              {emp.pin && <p style={{color:'#4CAF50'}}>PIN: {emp.pin}</p>}
+              {!emp.pin && <p style={{color:'#ff9800'}}>No PIN assigned</p>}
+            </div>
+            <button className="btn" style={{padding:'4px 12px',fontSize:'12px'}} onClick={async () => {
+              try {
+                const res = await axios.post('/timeclock/generate-pin', { employeeId: emp._id });
+                setPinMsg(`${res.data.name} → PIN: ${res.data.pin}`);
+                setPinEmployees(prev => prev.map(e => e._id === emp._id ? { ...e, pin: res.data.pin } : e));
+                setTimeout(() => setPinMsg(''), 5000);
+              } catch (e) { setPinMsg(e.response?.data?.message || 'Error'); }
+            }}>
+              {emp.pin ? 'Regenerate PIN' : 'Generate PIN'}
+            </button>
+          </div>
+        ))}
+        {pinHourlyAdmins.length > 0 && (
+          <>
+            <h5 style={{marginTop:'1rem',marginBottom:'0.5rem'}}>Hourly Admins</h5>
+            {pinHourlyAdmins.map((adm) => (
+              <div key={adm._id} className="job-card" style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'0.5rem'}}>
+                <div>
+                  <strong>{adm.name}</strong>
+                  <p style={{fontSize:'0.85rem',color:'#666'}}>{adm.email}</p>
+                  {adm.pin && <p style={{color:'#4CAF50'}}>PIN: {adm.pin}</p>}
+                  {!adm.pin && <p style={{color:'#ff9800'}}>No PIN assigned</p>}
+                </div>
+                <button className="btn" style={{padding:'4px 12px',fontSize:'12px'}} onClick={async () => {
+                  try {
+                    const res = await axios.post('/timeclock/generate-pin', { adminId: adm._id });
+                    setPinMsg(`${res.data.name} → PIN: ${res.data.pin}`);
+                    setPinHourlyAdmins(prev => prev.map(a => a._id === adm._id ? { ...a, pin: res.data.pin } : a));
+                    setTimeout(() => setPinMsg(''), 5000);
+                  } catch (e) { setPinMsg(e.response?.data?.message || 'Error'); }
+                }}>
+                  {adm.pin ? 'Regenerate PIN' : 'Generate PIN'}
+                </button>
+              </div>
+            ))}
+          </>
+        )}
+      </div>
+    )}
   </>
 )}
 {viewMode === 'signshop' && (
