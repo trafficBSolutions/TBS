@@ -20,6 +20,7 @@ const EmployeeDashboard = () => {
   const [ackLoading, setAckLoading] = useState(false);
   const [currentDisciplineIndex, setCurrentDisciplineIndex] = useState(0);
   const [storedPin, setStoredPin] = useState('');
+  const [empStatement, setEmpStatement] = useState('');
 
   useEffect(() => {
     axios.get('/timeclock/check-ip').then(res => setIpAllowed(res.data.allowed)).catch(() => setIpAllowed(false));
@@ -58,18 +59,21 @@ const EmployeeDashboard = () => {
       const res = await axios.post('/timeclock/acknowledge-discipline', {
         pin: storedPin,
         disciplineId: discipline._id,
-        typedName: ackName
+        typedName: ackName,
+        employeeStatement: empStatement
       });
       if (res.data.remainingCount > 0) {
         setPendingDisciplines(res.data.remaining);
         setCurrentDisciplineIndex(0);
         setAckName('');
+        setEmpStatement('');
         setAckMsg('Acknowledged. Please review the next disciplinary action.');
       } else {
         // All acknowledged - retry punch
         setShowDisciplineModal(false);
         setPendingDisciplines([]);
         setAckName('');
+        setEmpStatement('');
         setAckMsg('');
         try {
           const punchRes = await axios.post('/timeclock/punch', { pin: storedPin });
@@ -125,43 +129,125 @@ const EmployeeDashboard = () => {
 
         {/* Discipline Acknowledgment Modal */}
         {showDisciplineModal && pendingDisciplines.length > 0 && (
-          <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.85)',zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center',padding:'1rem'}}>
-            <div style={{background:'#fff',borderRadius:'12px',padding:'2rem',maxWidth:'600px',width:'100%',maxHeight:'80vh',overflowY:'auto'}}>
-              <h2 style={{color:'#d32f2f',marginBottom:'1rem'}}>⚠️ Disciplinary Action - Review Required</h2>
-              <p style={{marginBottom:'1rem',color:'#333'}}>You must review and acknowledge the following disciplinary action before you can clock in/out. ({currentDisciplineIndex + 1} of {pendingDisciplines.length})</p>
-              
+          <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.9)',zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center',padding:'1rem',overflow:'auto'}}>
+            <div style={{background:'#fff',borderRadius:'12px',padding:'2rem',maxWidth:'700px',width:'100%',maxHeight:'90vh',overflowY:'auto'}}>
+              {/* Header */}
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',borderBottom:'3px solid #d32f2f',paddingBottom:'12px',marginBottom:'16px'}}>
+                <h2 style={{color:'#d32f2f',margin:0,fontSize:'1.3rem'}}>EMPLOYEE DISCIPLINARY ACTION FORM</h2>
+                <div style={{textAlign:'right',fontSize:'0.75rem',color:'#666'}}>
+                  <div><strong>Traffic & Barrier Solutions, LLC</strong></div>
+                  <div>721 N Wall St, Calhoun, GA 30701</div>
+                </div>
+              </div>
+
+              <p style={{background:'#fff3cd',border:'1px solid #ffeaa7',borderRadius:'6px',padding:'10px',marginBottom:'16px',fontSize:'0.85rem',borderLeft:'4px solid #f39c12'}}>
+                <strong>NOTICE:</strong> You must review this disciplinary action, write your statement, and sign below before you can clock in/out. ({currentDisciplineIndex + 1} of {pendingDisciplines.length})
+              </p>
+
               {(() => {
                 const d = pendingDisciplines[currentDisciplineIndex];
                 return (
-                  <div style={{background:'#fff3f3',border:'2px solid #d32f2f',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
-                    <p><strong>Employee:</strong> {d.employeeName}</p>
-                    <p><strong>Date of Incident:</strong> {d.incidentDate ? new Date(d.incidentDate).toLocaleDateString() : 'N/A'}</p>
-                    <p><strong>Violation(s):</strong> {(d.violationTypes || []).join(', ')}</p>
-                    {d.otherViolationText && <p><strong>Details:</strong> {d.otherViolationText}</p>}
-                    <p><strong>Supervisor:</strong> {d.supervisorName}</p>
-                    {d.employerStatement && <p><strong>Employer Statement:</strong> {d.employerStatement}</p>}
-                    {d.decision && <p><strong>Decision:</strong> {d.decision}</p>}
-                    <p><strong>Points:</strong> {d.points} (Total: {d.newTotalPoints}/3)</p>
-                  </div>
+                  <>
+                    {/* Employee Info Section */}
+                    <div style={{background:'#f8f9fa',padding:'12px',borderRadius:'8px',borderLeft:'4px solid #d32f2f',marginBottom:'14px'}}>
+                      <h4 style={{color:'#d32f2f',marginBottom:'8px',fontSize:'0.85rem',textTransform:'uppercase',borderBottom:'1px solid #ddd',paddingBottom:'4px'}}>Employee Information</h4>
+                      <div style={{display:'flex',gap:'20px',flexWrap:'wrap'}}>
+                        <div style={{flex:1}}>
+                          <p style={{margin:'4px 0'}}><strong>Employee:</strong> {d.employeeName}</p>
+                          <p style={{margin:'4px 0'}}><strong>Position:</strong> {d.position || 'N/A'}</p>
+                        </div>
+                        <div style={{flex:1}}>
+                          <p style={{margin:'4px 0'}}><strong>Supervisor:</strong> {d.supervisorName}</p>
+                          {d.issuedByName && <p style={{margin:'4px 0'}}><strong>Issued By:</strong> {d.issuedByName}</p>}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Incident Details Section */}
+                    <div style={{background:'#f8f9fa',padding:'12px',borderRadius:'8px',borderLeft:'4px solid #d32f2f',marginBottom:'14px'}}>
+                      <h4 style={{color:'#d32f2f',marginBottom:'8px',fontSize:'0.85rem',textTransform:'uppercase',borderBottom:'1px solid #ddd',paddingBottom:'4px'}}>Incident Details</h4>
+                      <div style={{display:'flex',gap:'20px',flexWrap:'wrap'}}>
+                        <div style={{flex:1}}>
+                          <p style={{margin:'4px 0'}}><strong>Date of Warning:</strong> {d.dateOfWarning ? new Date(d.dateOfWarning).toLocaleDateString() : 'N/A'}</p>
+                          <p style={{margin:'4px 0'}}><strong>Date of Incident:</strong> {d.incidentDate ? new Date(d.incidentDate).toLocaleDateString() : 'N/A'}</p>
+                          <p style={{margin:'4px 0'}}><strong>Time:</strong> {d.incidentTime || ''} {d.incidentPeriod || ''}</p>
+                        </div>
+                        <div style={{flex:1}}>
+                          <p style={{margin:'4px 0'}}><strong>Place:</strong> {d.incidentPlace || 'N/A'}</p>
+                        </div>
+                      </div>
+                      <p style={{margin:'8px 0 0'}}><strong>Violation(s):</strong> {(d.violationTypes || []).join(', ')}{d.otherViolationText ? ` — ${d.otherViolationText}` : ''}</p>
+                    </div>
+
+                    {/* Employer Statement Section */}
+                    {d.employerStatement && (
+                      <div style={{background:'#f8f9fa',padding:'12px',borderRadius:'8px',borderLeft:'4px solid #d32f2f',marginBottom:'14px'}}>
+                        <h4 style={{color:'#d32f2f',marginBottom:'8px',fontSize:'0.85rem',textTransform:'uppercase',borderBottom:'1px solid #ddd',paddingBottom:'4px'}}>Employer / Supervisor Statement</h4>
+                        <div style={{background:'#fff',border:'1px solid #ddd',borderRadius:'4px',padding:'10px',whiteSpace:'pre-wrap'}}>{d.employerStatement}</div>
+                      </div>
+                    )}
+
+                    {/* Points Section */}
+                    <div style={{background:'#f8f9fa',padding:'12px',borderRadius:'8px',borderLeft:'4px solid #d32f2f',marginBottom:'14px'}}>
+                      <h4 style={{color:'#d32f2f',marginBottom:'8px',fontSize:'0.85rem',textTransform:'uppercase',borderBottom:'1px solid #ddd',paddingBottom:'4px'}}>Warning Decision & Points</h4>
+                      <div style={{display:'flex',gap:'20px',flexWrap:'wrap'}}>
+                        <div style={{flex:1}}>
+                          <p style={{margin:'4px 0'}}><strong>Points Added:</strong> <span style={{fontSize:'1.1rem',fontWeight:'bold',color:'#d32f2f'}}>{(d.points || 0).toFixed(2)}</span></p>
+                          <p style={{margin:'4px 0'}}><strong>Previous Points:</strong> {(d.previousPoints || 0).toFixed(2)}</p>
+                        </div>
+                        <div style={{flex:1}}>
+                          <p style={{margin:'4px 0'}}><strong>New Total:</strong> <span style={{fontSize:'1.1rem',fontWeight:'bold',color:(d.newTotalPoints || 0) >= 3 ? '#d32f2f' : '#1e3a8a'}}>{(d.newTotalPoints || 0).toFixed(2)} / 3.00</span></p>
+                        </div>
+                      </div>
+                      {(d.newTotalPoints || 0) >= 3 && (
+                        <div style={{background:'#f8d7da',border:'1px solid #f5c6cb',borderRadius:'6px',padding:'10px',marginTop:'10px',color:'#721c24',fontWeight:'bold',textAlign:'center'}}>⚠️ EMPLOYEE HAS REACHED 3.00 POINTS — TERMINATION</div>
+                      )}
+                      {d.decision && <div style={{background:'#fff',border:'1px solid #ddd',borderRadius:'4px',padding:'10px',marginTop:'10px',whiteSpace:'pre-wrap'}}><strong>Decision:</strong> {d.decision}</div>}
+                    </div>
+
+                    {/* Employee Statement Section */}
+                    <div style={{background:'#f8f9fa',padding:'12px',borderRadius:'8px',borderLeft:'4px solid #d32f2f',marginBottom:'14px'}}>
+                      <h4 style={{color:'#d32f2f',marginBottom:'8px',fontSize:'0.85rem',textTransform:'uppercase',borderBottom:'1px solid #ddd',paddingBottom:'4px'}}>Employee Statement</h4>
+                      <p style={{fontSize:'0.8rem',color:'#555',marginBottom:'8px'}}>Please write your statement below regarding this disciplinary action:</p>
+                      <textarea
+                        value={empStatement}
+                        onChange={(e) => setEmpStatement(e.target.value)}
+                        placeholder="Write your statement here..."
+                        rows={5}
+                        style={{width:'100%',padding:'10px',borderRadius:'6px',border:'1px solid #ccc',fontSize:'0.95rem',resize:'vertical'}}
+                      />
+                    </div>
+
+                    {/* Signature Section */}
+                    <div style={{background:'#f8f9fa',padding:'12px',borderRadius:'8px',borderLeft:'4px solid #d32f2f',marginBottom:'14px'}}>
+                      <h4 style={{color:'#d32f2f',marginBottom:'8px',fontSize:'0.85rem',textTransform:'uppercase',borderBottom:'1px solid #ddd',paddingBottom:'4px'}}>Employee Signature</h4>
+                      <p style={{fontSize:'0.8rem',color:'#555',marginBottom:'8px'}}>By typing your full name below, you acknowledge that you have read and understand this disciplinary action, and that a copy has been provided to you.</p>
+                      <input
+                        type="text"
+                        placeholder="Type your full name as signature"
+                        value={ackName}
+                        onChange={(e) => setAckName(e.target.value)}
+                        style={{width:'100%',padding:'12px',fontSize:'1.1rem',borderRadius:'8px',border:'2px solid #d32f2f',fontStyle:'italic'}}
+                      />
+                      <p style={{fontSize:'0.75rem',color:'#888',marginTop:'4px'}}>Date: {new Date().toLocaleDateString()}</p>
+                    </div>
+                  </>
                 );
               })()}
 
-              <p style={{color:'#333',fontWeight:'bold',marginBottom:'0.5rem'}}>Type your full name below to acknowledge you have read and understand this disciplinary action:</p>
-              <input
-                type="text"
-                placeholder="Type your full name"
-                value={ackName}
-                onChange={(e) => setAckName(e.target.value)}
-                style={{width:'100%',padding:'0.75rem',fontSize:'1rem',borderRadius:'8px',border:'2px solid #d32f2f',marginBottom:'0.75rem'}}
-              />
               <button
                 onClick={handleAcknowledge}
                 disabled={ackLoading}
-                style={{width:'100%',padding:'0.75rem',fontSize:'1rem',borderRadius:'8px',background:'#d32f2f',color:'#fff',border:'none',cursor:'pointer',fontWeight:'bold'}}
+                style={{width:'100%',padding:'0.85rem',fontSize:'1rem',borderRadius:'8px',background:'#d32f2f',color:'#fff',border:'none',cursor:'pointer',fontWeight:'bold',marginTop:'0.5rem'}}
               >
                 {ackLoading ? 'Processing...' : 'I Acknowledge This Disciplinary Action'}
               </button>
               {ackMsg && <p style={{color: ackMsg.includes('Acknowledged') ? '#4CAF50' : '#d32f2f', marginTop:'0.75rem', textAlign:'center'}}>{ackMsg}</p>}
+
+              <div style={{marginTop:'16px',paddingTop:'12px',borderTop:'2px solid #d32f2f',textAlign:'center',fontSize:'0.7rem',color:'#666'}}>
+                <div><strong>Traffic & Barrier Solutions, LLC</strong></div>
+                <div>{new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}</div>
+              </div>
             </div>
           </div>
         )}
