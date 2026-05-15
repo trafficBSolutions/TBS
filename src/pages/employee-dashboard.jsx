@@ -100,9 +100,10 @@ const EmployeeDashboard = () => {
         {/* Time Clock */}
         <div className="time-clock-section" style={{background:'#1a1a2e',padding:'1.5rem',borderRadius:'12px',marginBottom:'1.5rem',textAlign:'center'}}>
           <h2 style={{color:'#fff',marginBottom:'0.75rem'}}>⏰ Time Clock</h2>
-          <div style={{background:'#fff3cd',border:'1px solid #ffc107',borderRadius:'8px',padding:'10px 14px',marginBottom:'1rem',textAlign:'left'}}>
-            <p style={{color:'#856404',fontSize:'0.85rem',margin:0,fontWeight:'bold'}}>⚠️ WARNING: You are NOT allowed to clock anyone else in or out or share your PIN with other employees. Doing so will be subjected to Disciplinary Action.</p>
-            <p style={{color:'#856404',fontSize:'0.85rem',margin:'6px 0 0',}}>📞 Forgot your PIN? Call Carson to have it changed.</p>
+          <div style={{background:'#fff3cd',border:'1px solid #ffc107',borderRadius:'8px',padding:'14px 18px',marginBottom:'1rem',textAlign:'left'}}>
+            <p style={{color:'#856404',fontSize:'1rem',margin:0,fontWeight:'bold'}}>⚠️ WARNING: You are NOT allowed to clock anyone else in or out or share your PIN with other employees. Doing so will be subjected to Disciplinary Action.</p>
+            <p style={{color:'#856404',fontSize:'1rem',margin:'8px 0 0'}}>📶 You must be connected to the WIFI at the TBS Shop to clock in and out.</p>
+            <p style={{color:'#856404',fontSize:'1rem',margin:'8px 0 0'}}>📞 Forgot your PIN? Call Carson: <a href="tel:+17065814465" style={{color:'#856404',fontWeight:'bold'}}>(706) 581-4465</a></p>
           </div>
           {ipAllowed === false && (
             <p style={{color:'#ff6b6b'}}>⚠️ You are not at the designated work location. Clock-in/out is disabled.</p>
