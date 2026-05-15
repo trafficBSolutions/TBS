@@ -108,6 +108,9 @@ const [pinEmployees, setPinEmployees] = useState([]);
 const [pinHourlyAdmins, setPinHourlyAdmins] = useState([]);
 const [pinMsg, setPinMsg] = useState('');
 const [showPinManager, setShowPinManager] = useState(false);
+const [newEmpFirst, setNewEmpFirst] = useState('');
+const [newEmpLast, setNewEmpLast] = useState('');
+const [addEmpLoading, setAddEmpLoading] = useState(false);
 const [adminPin, setAdminPin] = useState('');
 const [adminClockMsg, setAdminClockMsg] = useState('');
 const [adminClockLoading, setAdminClockLoading] = useState(false);
@@ -1468,28 +1471,63 @@ selected={
     }}>
       {showPinManager ? 'Hide PIN Manager' : 'Manage PINs'}
     </button>
-    {pinMsg && <p style={{color:'#4CAF50',marginBottom:'0.5rem'}}>{pinMsg}</p>}
+    {pinMsg && <p style={{color: pinMsg.includes('removed') ? '#ff6b6b' : '#4CAF50', marginBottom:'0.5rem', fontWeight:'bold'}}>{pinMsg}</p>}
     {showPinManager && (
       <div className="job-info-list">
-        <h5 style={{marginBottom:'0.5rem'}}>Employees</h5>
+        {/* Add New Employee */}
+        <div className="job-card" style={{background:'#f0f8ff',border:'2px dashed #2196F3'}}>
+          <h5 style={{marginBottom:'0.5rem'}}>➕ Add New Employee</h5>
+          <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap',alignItems:'center'}}>
+            <input type="text" placeholder="First Name" value={newEmpFirst} onChange={(e) => setNewEmpFirst(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',flex:'1',minWidth:'120px'}} />
+            <input type="text" placeholder="Last Name" value={newEmpLast} onChange={(e) => setNewEmpLast(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',flex:'1',minWidth:'120px'}} />
+            <button className="btn" disabled={addEmpLoading} style={{padding:'6px 16px'}} onClick={async () => {
+              if (!newEmpFirst.trim() || !newEmpLast.trim()) { setPinMsg('First and last name required'); return; }
+              setAddEmpLoading(true);
+              try {
+                const res = await axios.post('/timeclock/add-employee', { firstName: newEmpFirst, lastName: newEmpLast });
+                setPinMsg(res.data.message);
+                setPinEmployees(prev => [...prev, res.data.employee]);
+                setNewEmpFirst(''); setNewEmpLast('');
+                setTimeout(() => setPinMsg(''), 8000);
+              } catch (e) { setPinMsg(e.response?.data?.message || 'Error adding employee'); }
+              finally { setAddEmpLoading(false); }
+            }}>
+              {addEmpLoading ? '...' : 'Add & Generate PIN'}
+            </button>
+          </div>
+        </div>
+
+        <h5 style={{marginTop:'1rem',marginBottom:'0.5rem'}}>Employees ({pinEmployees.length})</h5>
         {pinEmployees.map((emp) => (
           <div key={emp._id} className="job-card" style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'0.5rem'}}>
             <div>
               <strong>{emp.name}</strong>
-              <p style={{fontSize:'0.85rem',color:'#666'}}>{emp.email}</p>
-              {emp.pin && <p style={{color:'#4CAF50'}}>PIN: {emp.pin}</p>}
-              {!emp.pin && <p style={{color:'#ff9800'}}>No PIN assigned</p>}
+              {emp.pin && <p style={{color:'#4CAF50',margin:'2px 0'}}>PIN: {emp.pin}</p>}
+              {!emp.pin && <p style={{color:'#ff9800',margin:'2px 0'}}>No PIN assigned</p>}
             </div>
-            <button className="btn" style={{padding:'4px 12px',fontSize:'12px'}} onClick={async () => {
-              try {
-                const res = await axios.post('/timeclock/generate-pin', { employeeId: emp._id });
-                setPinMsg(`${res.data.name} → PIN: ${res.data.pin}`);
-                setPinEmployees(prev => prev.map(e => e._id === emp._id ? { ...e, pin: res.data.pin } : e));
-                setTimeout(() => setPinMsg(''), 5000);
-              } catch (e) { setPinMsg(e.response?.data?.message || 'Error'); }
-            }}>
-              {emp.pin ? 'Regenerate PIN' : 'Generate PIN'}
-            </button>
+            <div style={{display:'flex',gap:'0.5rem'}}>
+              <button className="btn" style={{padding:'4px 12px',fontSize:'12px'}} onClick={async () => {
+                try {
+                  const res = await axios.post('/timeclock/generate-pin', { employeeId: emp._id });
+                  setPinMsg(`${res.data.name} → PIN: ${res.data.pin}`);
+                  setPinEmployees(prev => prev.map(e => e._id === emp._id ? { ...e, pin: res.data.pin } : e));
+                  setTimeout(() => setPinMsg(''), 5000);
+                } catch (e) { setPinMsg(e.response?.data?.message || 'Error'); }
+              }}>
+                {emp.pin ? 'Regenerate' : 'Generate PIN'}
+              </button>
+              <button style={{padding:'4px 12px',fontSize:'12px',background:'#f44336',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer'}} onClick={async () => {
+                if (!window.confirm(`Remove ${emp.name} from time clock?`)) return;
+                try {
+                  await axios.delete(`/timeclock/remove-employee/${emp._id}`);
+                  setPinEmployees(prev => prev.filter(e => e._id !== emp._id));
+                  setPinMsg(`${emp.name} removed`);
+                  setTimeout(() => setPinMsg(''), 4000);
+                } catch (e) { setPinMsg(e.response?.data?.message || 'Error'); }
+              }}>
+                Remove
+              </button>
+            </div>
           </div>
         ))}
         {pinHourlyAdmins.length > 0 && (
@@ -1500,8 +1538,8 @@ selected={
                 <div>
                   <strong>{adm.name}</strong>
                   <p style={{fontSize:'0.85rem',color:'#666'}}>{adm.email}</p>
-                  {adm.pin && <p style={{color:'#4CAF50'}}>PIN: {adm.pin}</p>}
-                  {!adm.pin && <p style={{color:'#ff9800'}}>No PIN assigned</p>}
+                  {adm.pin && <p style={{color:'#4CAF50',margin:'2px 0'}}>PIN: {adm.pin}</p>}
+                  {!adm.pin && <p style={{color:'#ff9800',margin:'2px 0'}}>No PIN assigned</p>}
                 </div>
                 <button className="btn" style={{padding:'4px 12px',fontSize:'12px'}} onClick={async () => {
                   try {
@@ -1511,7 +1549,7 @@ selected={
                     setTimeout(() => setPinMsg(''), 5000);
                   } catch (e) { setPinMsg(e.response?.data?.message || 'Error'); }
                 }}>
-                  {adm.pin ? 'Regenerate PIN' : 'Generate PIN'}
+                  {adm.pin ? 'Regenerate' : 'Generate PIN'}
                 </button>
               </div>
             ))}
