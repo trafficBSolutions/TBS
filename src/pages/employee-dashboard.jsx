@@ -2,12 +2,89 @@ import { Link } from 'react-router-dom';
 import Header from '../components/headerviews/HeaderEmpDash';
 import images from '../utils/tbsImages';
 import '../css/employee.css';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const EmployeeDashboard = () => {
   const [showTAImages, setShowTAImages] = useState(false);
   const [showCharts, setShowCharts] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [pin, setPin] = useState('');
+  const [clockMsg, setClockMsg] = useState('');
+  const [clockLoading, setClockLoading] = useState(false);
+  const [ipAllowed, setIpAllowed] = useState(null);
+  const [pendingDisciplines, setPendingDisciplines] = useState([]);
+  const [showDisciplineModal, setShowDisciplineModal] = useState(false);
+  const [ackName, setAckName] = useState('');
+  const [ackMsg, setAckMsg] = useState('');
+  const [ackLoading, setAckLoading] = useState(false);
+  const [currentDisciplineIndex, setCurrentDisciplineIndex] = useState(0);
+  const [storedPin, setStoredPin] = useState('');
+
+  useEffect(() => {
+    axios.get('/timeclock/check-ip').then(res => setIpAllowed(res.data.allowed)).catch(() => setIpAllowed(false));
+  }, []);
+
+  const handlePunch = async () => {
+    if (!pin.trim() || pin.length < 4) { setClockMsg('Enter your 4+ digit PIN'); return; }
+    setClockLoading(true);
+    setClockMsg('');
+    try {
+      const res = await axios.post('/timeclock/punch', { pin });
+      setClockMsg(res.data.message);
+      setPin('');
+    } catch (err) {
+      const data = err.response?.data;
+      if (data?.action === 'discipline_required') {
+        setPendingDisciplines(data.disciplines);
+        setStoredPin(pin);
+        setCurrentDisciplineIndex(0);
+        setShowDisciplineModal(true);
+        setClockMsg('');
+      } else {
+        setClockMsg(data?.message || 'Failed to punch. Try again.');
+      }
+    } finally {
+      setClockLoading(false);
+    }
+  };
+
+  const handleAcknowledge = async () => {
+    if (!ackName.trim()) { setAckMsg('You must type your full name to acknowledge.'); return; }
+    const discipline = pendingDisciplines[currentDisciplineIndex];
+    setAckLoading(true);
+    setAckMsg('');
+    try {
+      const res = await axios.post('/timeclock/acknowledge-discipline', {
+        pin: storedPin,
+        disciplineId: discipline._id,
+        typedName: ackName
+      });
+      if (res.data.remainingCount > 0) {
+        setPendingDisciplines(res.data.remaining);
+        setCurrentDisciplineIndex(0);
+        setAckName('');
+        setAckMsg('Acknowledged. Please review the next disciplinary action.');
+      } else {
+        // All acknowledged - retry punch
+        setShowDisciplineModal(false);
+        setPendingDisciplines([]);
+        setAckName('');
+        setAckMsg('');
+        try {
+          const punchRes = await axios.post('/timeclock/punch', { pin: storedPin });
+          setClockMsg(punchRes.data.message);
+        } catch (e) {
+          setClockMsg(e.response?.data?.message || 'Please try punching in/out again.');
+        }
+        setStoredPin('');
+      }
+    } catch (err) {
+      setAckMsg(err.response?.data?.message || 'Failed to acknowledge. Try again.');
+    } finally {
+      setAckLoading(false);
+    }
+  };
 
   return (
     <div>
@@ -15,6 +92,79 @@ const EmployeeDashboard = () => {
     <main className="employee-main">
       <div className="employee-options">
         <h1 className="employee-title">Employee Dashboard</h1>
+
+        {/* Time Clock */}
+        <div className="time-clock-section" style={{background:'#1a1a2e',padding:'1.5rem',borderRadius:'12px',marginBottom:'1.5rem',textAlign:'center'}}>
+          <h2 style={{color:'#fff',marginBottom:'0.75rem'}}>⏰ Time Clock</h2>
+          {ipAllowed === false && (
+            <p style={{color:'#ff6b6b'}}>⚠️ You are not at the designated work location. Clock-in/out is disabled.</p>
+          )}
+          {ipAllowed === true && (
+            <div>
+              <input
+                type="password"
+                placeholder="Enter your PIN"
+                value={pin}
+                onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+                maxLength={6}
+                onKeyDown={(e) => e.key === 'Enter' && handlePunch()}
+                style={{padding:'0.5rem 1rem',fontSize:'1.2rem',borderRadius:'8px',border:'none',textAlign:'center',width:'160px'}}
+              />
+              <button
+                onClick={handlePunch}
+                disabled={clockLoading}
+                style={{marginLeft:'0.75rem',padding:'0.5rem 1.5rem',fontSize:'1rem',borderRadius:'8px',background:'#4CAF50',color:'#fff',border:'none',cursor:'pointer'}}
+              >
+                {clockLoading ? '...' : 'Punch In/Out'}
+              </button>
+            </div>
+          )}
+          {ipAllowed === null && <p style={{color:'#aaa'}}>Checking location...</p>}
+          {clockMsg && <p style={{color: clockMsg.includes('clocked') ? '#4CAF50' : '#ff6b6b', marginTop:'0.75rem', fontWeight:'bold'}}>{clockMsg}</p>}
+        </div>
+
+        {/* Discipline Acknowledgment Modal */}
+        {showDisciplineModal && pendingDisciplines.length > 0 && (
+          <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.85)',zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center',padding:'1rem'}}>
+            <div style={{background:'#fff',borderRadius:'12px',padding:'2rem',maxWidth:'600px',width:'100%',maxHeight:'80vh',overflowY:'auto'}}>
+              <h2 style={{color:'#d32f2f',marginBottom:'1rem'}}>⚠️ Disciplinary Action - Review Required</h2>
+              <p style={{marginBottom:'1rem',color:'#333'}}>You must review and acknowledge the following disciplinary action before you can clock in/out. ({currentDisciplineIndex + 1} of {pendingDisciplines.length})</p>
+              
+              {(() => {
+                const d = pendingDisciplines[currentDisciplineIndex];
+                return (
+                  <div style={{background:'#fff3f3',border:'2px solid #d32f2f',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
+                    <p><strong>Employee:</strong> {d.employeeName}</p>
+                    <p><strong>Date of Incident:</strong> {d.incidentDate ? new Date(d.incidentDate).toLocaleDateString() : 'N/A'}</p>
+                    <p><strong>Violation(s):</strong> {(d.violationTypes || []).join(', ')}</p>
+                    {d.otherViolationText && <p><strong>Details:</strong> {d.otherViolationText}</p>}
+                    <p><strong>Supervisor:</strong> {d.supervisorName}</p>
+                    {d.employerStatement && <p><strong>Employer Statement:</strong> {d.employerStatement}</p>}
+                    {d.decision && <p><strong>Decision:</strong> {d.decision}</p>}
+                    <p><strong>Points:</strong> {d.points} (Total: {d.newTotalPoints}/3)</p>
+                  </div>
+                );
+              })()}
+
+              <p style={{color:'#333',fontWeight:'bold',marginBottom:'0.5rem'}}>Type your full name below to acknowledge you have read and understand this disciplinary action:</p>
+              <input
+                type="text"
+                placeholder="Type your full name"
+                value={ackName}
+                onChange={(e) => setAckName(e.target.value)}
+                style={{width:'100%',padding:'0.75rem',fontSize:'1rem',borderRadius:'8px',border:'2px solid #d32f2f',marginBottom:'0.75rem'}}
+              />
+              <button
+                onClick={handleAcknowledge}
+                disabled={ackLoading}
+                style={{width:'100%',padding:'0.75rem',fontSize:'1rem',borderRadius:'8px',background:'#d32f2f',color:'#fff',border:'none',cursor:'pointer',fontWeight:'bold'}}
+              >
+                {ackLoading ? 'Processing...' : 'I Acknowledge This Disciplinary Action'}
+              </button>
+              {ackMsg && <p style={{color: ackMsg.includes('Acknowledged') ? '#4CAF50' : '#d32f2f', marginTop:'0.75rem', textAlign:'center'}}>{ackMsg}</p>}
+            </div>
+          </div>
+        )}
         
         <div className="div-links">
           <Link 
