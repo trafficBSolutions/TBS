@@ -172,6 +172,34 @@
   background: #0a0a0f;
   color: #fff;
   min-height: 100vh;
+  position: relative;
+}
+.page-3d h1, .page-3d h2, .page-3d h3 {
+  color: #fff;
+}
+.page-3d p, .page-3d li {
+  color: #ddd;
+}
+.page-3d a {
+  color: #e67e22;
+}
+.page-3d label {
+  color: #ccc;
+}
+.page-3d input, .page-3d select, .page-3d textarea {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+}
+.page-3d input::placeholder, .page-3d textarea::placeholder {
+  color: rgba(255,255,255,0.4);
+}
+.page-3d .footer {
+  background: rgba(10, 10, 15, 0.95);
+  border-top: 1px solid rgba(230, 126, 34, 0.2);
+}
+.page-3d .footer-copyright {
+  background: rgba(10, 10, 15, 0.98);
 }
 
 /* Scroll reveal */
