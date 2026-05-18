@@ -194,6 +194,68 @@
 .page-3d input::placeholder, .page-3d textarea::placeholder {
   color: rgba(255,255,255,0.4);
 }
+
+/* Forms with light backgrounds keep dark text */
+.page-3d .glass-card h1,
+.page-3d .glass-card h2,
+.page-3d .glass-card h3 {
+  color: #222;
+}
+.page-3d .glass-card p,
+.page-3d .glass-card li,
+.page-3d .glass-card label,
+.page-3d .glass-card span {
+  color: #333;
+}
+.page-3d .glass-card a {
+  color: #d35400;
+}
+.page-3d .glass-card input,
+.page-3d .glass-card select,
+.page-3d .glass-card textarea {
+  background: #fff;
+  border: 1px solid #ccc;
+  color: #333;
+}
+.page-3d .glass-card input::placeholder,
+.page-3d .glass-card textarea::placeholder {
+  color: #999;
+}
+.page-3d .glass-card {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* Dark glass card variant - for cards that should keep light text */
+.page-3d .glass-card.glass-dark {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.page-3d .glass-card.glass-dark h1,
+.page-3d .glass-card.glass-dark h2,
+.page-3d .glass-card.glass-dark h3 {
+  color: #fff;
+}
+.page-3d .glass-card.glass-dark p,
+.page-3d .glass-card.glass-dark li,
+.page-3d .glass-card.glass-dark label,
+.page-3d .glass-card.glass-dark span {
+  color: #ddd;
+}
+.page-3d .glass-card.glass-dark a {
+  color: #e67e22;
+}
+.page-3d .glass-card.glass-dark input,
+.page-3d .glass-card.glass-dark select,
+.page-3d .glass-card.glass-dark textarea {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+}
+.page-3d .glass-card.glass-dark input::placeholder,
+.page-3d .glass-card.glass-dark textarea::placeholder {
+  color: rgba(255,255,255,0.4);
+}
 .page-3d .footer {
   background: rgba(10, 10, 15, 0.95);
   border-top: 1px solid rgba(230, 126, 34, 0.2);
