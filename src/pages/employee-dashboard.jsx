@@ -13,6 +13,8 @@ const EmployeeDashboard = () => {
   const [clockMsg, setClockMsg] = useState('');
   const [clockLoading, setClockLoading] = useState(false);
   const [ipAllowed, setIpAllowed] = useState(null);
+  const [weekData, setWeekData] = useState(null);
+  const [weekLoading, setWeekLoading] = useState(false);
   const [pendingDisciplines, setPendingDisciplines] = useState([]);
   const [showDisciplineModal, setShowDisciplineModal] = useState(false);
   const [ackName, setAckName] = useState('');
@@ -30,10 +32,13 @@ const EmployeeDashboard = () => {
     if (!pin.trim() || pin.length < 4) { setClockMsg('Enter your 4+ digit PIN'); return; }
     setClockLoading(true);
     setClockMsg('');
+    const currentPin = pin;
     try {
       const res = await axios.post('/timeclock/punch', { pin });
       setClockMsg(res.data.message);
       setPin('');
+      // Fetch weekly hours after successful punch
+      try { const w = await axios.get(`/timeclock/my-week?pin=${currentPin}`); setWeekData(w.data); } catch(e) {}
     } catch (err) {
       const data = err.response?.data;
       if (data?.action === 'discipline_required') {
@@ -48,6 +53,18 @@ const EmployeeDashboard = () => {
     } finally {
       setClockLoading(false);
     }
+  };
+
+  const handleViewWeek = async () => {
+    if (!pin.trim() || pin.length < 4) { setClockMsg('Enter your PIN first to view hours'); return; }
+    setWeekLoading(true); setClockMsg('');
+    try {
+      const res = await axios.get(`/timeclock/my-week?pin=${pin}`);
+      setWeekData(res.data);
+    } catch (err) {
+      setClockMsg(err.response?.data?.message || 'Invalid PIN');
+      setWeekData(null);
+    } finally { setWeekLoading(false); }
   };
 
   const handleAcknowledge = async () => {
@@ -129,7 +146,40 @@ const EmployeeDashboard = () => {
             </div>
           )}
           {ipAllowed === null && <p style={{color:'#aaa'}}>Checking location...</p>}
-          {clockMsg && <p style={{color: clockMsg.includes('clocked') ? '#4CAF50' : '#ff6b6b', marginTop:'0.75rem', fontWeight:'bold'}}>{clockMsg}</p>}
+          {clockMsg && <p style={{color: clockMsg.includes('clocked') ? '#4CAF50' : '#ff6b6b', marginTop:'0.75rem', fontWeight:'bold', fontSize:'1.1rem'}}>{clockMsg}</p>}
+          {ipAllowed === true && (
+            <button
+              onClick={handleViewWeek}
+              disabled={weekLoading}
+              style={{marginTop:'0.75rem',padding:'0.4rem 1.2rem',fontSize:'0.95rem',borderRadius:'8px',background:'#2196F3',color:'#fff',border:'none',cursor:'pointer'}}
+            >
+              {weekLoading ? '...' : '📅 View My Weekly Hours'}
+            </button>
+          )}
+          {weekData && (
+            <div style={{marginTop:'1rem',background:'#fff',borderRadius:'8px',padding:'1rem',textAlign:'left',color:'#333'}}>
+              <h3 style={{margin:'0 0 0.5rem',fontSize:'1.1rem'}}>📅 {weekData.name} — Week: {weekData.weekStart} to {weekData.weekEnd}</h3>
+              <p style={{fontSize:'1.1rem',fontWeight:'bold',color:'#1e3a8a',margin:'0 0 0.75rem'}}>Total: {weekData.totalHours} hrs ({weekData.totalMinutes} min)</p>
+              <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.95rem'}}>
+                <thead>
+                  <tr style={{background:'#f2f2f2'}}>
+                    <th style={{border:'1px solid #ddd',padding:'8px',textAlign:'left'}}>Day</th>
+                    <th style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>Hours</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map(day => (
+                    <tr key={day} style={{background: weekData.days[day] ? '#f0fff0' : 'transparent'}}>
+                      <td style={{border:'1px solid #ddd',padding:'8px'}}>{day}</td>
+                      <td style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>
+                        {weekData.days[day] ? `${(weekData.days[day].minutes / 60).toFixed(2)} hrs` : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         {/* Discipline Acknowledgment Modal */}
