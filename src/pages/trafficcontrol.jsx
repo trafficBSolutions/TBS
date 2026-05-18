@@ -452,16 +452,20 @@ const isCompanySelected = (formData.company || '').trim().length > 0;
     return (
         <div>
             <Header />
-      <main className="control-main">
-      <div className="apply-container">
-          <h1 className="traffic-control-head">TRAFFIC CONTROL</h1>
-            <h1 className="traffic-description">Traffic control on and around a worksite has two key aims: to manage risks & to ensure work gets done. 
+      <main className="control-main" style={{position:'relative',zIndex:1}}>
+      <div className="section-3d" style={{paddingTop:'2rem'}}>
+        <div className="section-3d-inner">
+          <div className="glass-card" style={{padding:'2.5rem',textAlign:'center',maxWidth:'900px',margin:'0 auto'}}>
+          <h1 className="traffic-control-head" style={{color:'#e67e22',fontSize:'2.8rem',marginBottom:'1rem'}}>TRAFFIC CONTROL</h1>
+            <p style={{fontSize:'1.2rem',color:'#ddd',lineHeight:1.7}}>Traffic control on and around a worksite has two key aims: to manage risks & to ensure work gets done. 
           Neither aim can be achieved in isolation. 
           This is why traffic management is crucial. 
           It ensures the safety of everyone while reducing the time and money spent on any one project. 
-          TBS Offers 2-3 flaggers per crew with one foreman/crew lead per fully loaded truck.</h1>
+          TBS Offers 2-3 flaggers per crew with one foreman/crew lead per fully loaded truck.</p>
           </div>
-          <div className="emergency-container">
+        </div>
+      </div>
+          <div className="emergency-container glass-card" style={{maxWidth:'900px',margin:'1.5rem auto',padding:'2rem'}}>
   <h2 className="emergency-header">EMERGENCY JOB REQUEST</h2>
   <p className="emergency-instruction">
     For emergency traffic control jobs, call one of the numbers below. 
@@ -478,7 +482,7 @@ const isCompanySelected = (formData.company || '').trim().length > 0;
         <div className="traffic-flagger">
           
         </div>
-        <form className="form-center"
+        <form className="form-center glass-card" style={{maxWidth:'900px',margin:'2rem auto',padding:'2.5rem'}}
         onSubmit={handleSubmit}
         >
           <div className="control-container container--narrow page-section">
