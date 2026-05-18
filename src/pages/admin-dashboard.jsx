@@ -1592,6 +1592,8 @@ selected={
               <option value="Flagger">Flagger</option>
               <option value="Driver">Driver</option>
               <option value="Foreman">Foreman</option>
+              <option value="Custodian">Custodian</option>
+              <option value="Receptionist">Receptionist</option>
             </select>
             <input type="text" placeholder="PIN (4+ digits)" value={newEmpPin} onChange={(e) => setNewEmpPin(e.target.value.replace(/\D/g, ''))} maxLength={6} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',width:'120px',textAlign:'center'}} />
             <button className="btn" disabled={addEmpLoading} style={{padding:'6px 16px'}} onClick={async () => {
