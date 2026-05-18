@@ -312,7 +312,7 @@ useEffect(() => {
 const checkAllFieldsFilled = () => {
   const requiredFields = ['name', 'email', 'phone', 'jobDate',
     'company', 'coordinator', 'time', 'project', 'flagger', 'address', 'city', 
-    'state', 'zip', 'message', 'terms'];
+    'state', 'zip', 'terms'];
   
   // Check if all required fields are filled
   const allFilled = requiredFields.every(field => 
@@ -371,7 +371,7 @@ const isCompanySelected = (formData.company || '').trim().length > 0;
     // Validation first
     const requiredFields = ['name', 'email', 'phone', 'jobDate',
       'company', 'coordinator', 'time', 'project', 'flagger', 'address', 'city', 
-    'state', 'zip', 'message', 'terms'];
+    'state', 'zip', 'terms'];
     const newErrors = {};
 
     requiredFields.forEach(field => {
@@ -979,7 +979,7 @@ setTimeout(checkAllFieldsFilled, 0);
 </div>
 
 <div className="message-control-container">
-<label className="message-control-label">Message *</label>
+<label className="message-control-label">Message</label>
 <h2 className="message-control-note">If you need additional equipment,
   please explain here. Otherwise, please describe to us about your job and how do we need to set up! </h2>
 
@@ -1062,7 +1062,7 @@ setTimeout(checkAllFieldsFilled, 0);
             // Validate all required fields first
             const requiredFields = ['name', 'email', 'phone', 'jobDate',
               'company', 'coordinator', 'time', 'project', 'flagger', 'address', 'city', 
-              'state', 'zip', 'message', 'terms'];
+              'state', 'zip', 'terms'];
             const newErrors = {};
 
             requiredFields.forEach(field => {
