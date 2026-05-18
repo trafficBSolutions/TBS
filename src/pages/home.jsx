@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from 'react';
 import '../css/home.css';
 import '../css/header.css';
 import '../css/footer.css';
-import '../css/theme-3d.css';
 import HomePhotoGallery from '../components/homephotogal';
 import Header from '../components/headerviews/HeaderDrop';
 import GradientBackground from '../components/GradientBackground';
@@ -26,7 +25,7 @@ export default function Home() {
   const pageRef = useScrollReveal();
 
   return (
-    <div className="page-3d" ref={pageRef}>
+    <div ref={pageRef}>
       <Header />
       <main>
         {/* 3D Hero Section */}
@@ -91,7 +90,7 @@ export default function Home() {
         {/* Sales Promo */}
         <section className="section-3d" style={{ background: 'linear-gradient(180deg, #0a0a0f, #1a1a2e)' }}>
           <div className="section-3d-inner reveal-3d">
-            <div className="glass-card" style={{ padding: '3rem', textAlign: 'center', maxWidth: '800px', margin: '0 auto' }}>
+            <div className="glass-card glass-dark" style={{ padding: '3rem', textAlign: 'center', maxWidth: '800px', margin: '0 auto' }}>
               <h2 style={{ fontSize: '2.2rem', color: '#e67e22', marginBottom: '1rem' }}>🚧 Now Selling Cones & Drums!</h2>
               <p style={{ fontSize: '1.3rem', color: '#ddd', marginBottom: '0.5rem' }}><strong>Drums</strong> — $46.00 includes Tire Ring (on orders 50+)</p>
               <p style={{ fontSize: '1.3rem', color: '#ddd', marginBottom: '0.5rem' }}><strong>Cones (28" 10lbs base)</strong></p>
@@ -130,7 +129,7 @@ export default function Home() {
         {/* Website Services */}
         <section className="section-3d" style={{ background: '#0a0a0f' }}>
           <div className="section-3d-inner reveal-3d">
-            <div className="glass-card" style={{ padding: '2.5rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
+            <div className="glass-card glass-dark" style={{ padding: '2.5rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
               <h2 style={{ fontSize: '2rem', color: '#fff', marginBottom: '0.5rem' }}>Need a Website That Works?</h2>
               <p style={{ color: '#ccc', fontSize: '1.1rem', marginBottom: '1rem' }}>
                 Get a fast, custom website that's fully yours — no limits, no fluff.
