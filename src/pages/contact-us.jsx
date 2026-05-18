@@ -1,12 +1,14 @@
 import '../css/contact.css'
 import '../css/header.css'
 import '../css/footer.css'
+import '../css/theme-3d.css'
 import images  from '../utils/tbsImages';
 import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import MapComponent from '../components/MapContact';
 import Header from '../components/headerviews/HeaderDropContact'
 import ReCAPTCHA from "react-google-recaptcha";
+import GradientBackgroundCSS from '../components/GradientBackgroundCSS';
 
 const Contact = () => {
     const recaptchaRef = useRef();
@@ -100,17 +102,10 @@ const Contact = () => {
               }
             };
     return (
-        <div>
+        <div className="page-3d">
+            <GradientBackgroundCSS variant="warm" />
             <Header/>
-    <main className="contact-main">
-    <div className="page-banner">
-          <video className="page-banner__bg-vid-dash" autoPlay loop muted playsInline>
-            <source src={images["../assets/videos/TBS Roadblock Video.mp4"].default} type="video/mp4"></source>
-          </video>
-    <div className="tbs-container">
-        <img src={images['../assets/tbs_companies/tbs white.svg'].default} alt="Material WorX Logo" />
-    </div>
-</div>
+    <main className="contact-main" style={{position:'relative',zIndex:1,paddingTop:'5rem'}}>
     <h1 className="contact-material">Contact Traffic & Barrier Solutions, LLC</h1>
     <div className="contact-flexi">
     <form className="contact-set"
