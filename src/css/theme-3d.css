@@ -1,0 +1,200 @@
+/* 3D Themed Styles - Glassmorphism, Depth, and Motion */
+
+/* Glass card effect */
+.glass-card {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+.glass-card:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 16px 48px rgba(230, 126, 34, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* 3D Hero Section */
+.hero-3d {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.hero-3d-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 2rem;
+}
+.hero-3d-content h1 {
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  color: #fff;
+  font-family: "Kairos W04 Extended Bold", sans-serif;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  margin-bottom: 1rem;
+  animation: fadeInUp 1s ease forwards;
+}
+.hero-3d-content p {
+  font-size: clamp(1.2rem, 2vw, 1.8rem);
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 700px;
+  margin: 0 auto 2rem;
+  line-height: 1.6;
+  animation: fadeInUp 1s ease 0.2s forwards;
+  opacity: 0;
+}
+.hero-3d-content img {
+  max-width: 400px;
+  width: 80%;
+  margin-bottom: 2rem;
+  animation: floatIn 1.5s ease forwards;
+  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.4));
+}
+
+/* 3D Buttons */
+.btn-3d {
+  display: inline-block;
+  padding: 1rem 2.5rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #e67e22, #d35400);
+  border: none;
+  border-radius: 12px;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(230, 126, 34, 0.4), 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  transform: perspective(500px) rotateX(0deg);
+}
+.btn-3d:hover {
+  transform: perspective(500px) translateY(-3px);
+  box-shadow: 0 12px 30px rgba(230, 126, 34, 0.5), 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Floating sections */
+.section-3d {
+  position: relative;
+  padding: 4rem 2rem;
+  perspective: 1000px;
+}
+.section-3d-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  transform-style: preserve-3d;
+}
+
+/* 3D Card Grid */
+.card-grid-3d {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  padding: 2rem 0;
+}
+.card-3d {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+  transition: transform 0.5s ease, box-shadow 0.5s ease;
+  transform: perspective(800px) rotateX(0deg) rotateY(0deg);
+}
+.card-3d:hover {
+  transform: perspective(800px) rotateX(2deg) rotateY(-2deg) translateZ(20px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+.card-3d h3 {
+  color: #e67e22;
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+.card-3d p {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+/* Stats with 3D depth */
+.stats-3d {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem;
+  padding: 3rem 1rem;
+}
+.stat-item-3d {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(230, 126, 34, 0.3);
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+  min-width: 180px;
+  transition: transform 0.3s ease;
+}
+.stat-item-3d:hover {
+  transform: translateY(-8px) scale(1.05);
+}
+.stat-item-3d h2 {
+  font-size: 3rem;
+  color: #e67e22;
+  font-family: "Moveo Sans W00 Bold";
+}
+.stat-item-3d p {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.1rem;
+  margin-top: 0.5rem;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes floatIn {
+  from { opacity: 0; transform: translateY(40px) scale(0.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Dark theme base for 3D pages */
+.page-3d {
+  background: #0a0a0f;
+  color: #fff;
+  min-height: 100vh;
+}
+
+/* Scroll reveal */
+.reveal-3d {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.reveal-3d.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Footer 3D */
+.footer-3d {
+  background: rgba(10, 10, 15, 0.95);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(230, 126, 34, 0.2);
+  padding: 3rem 2rem;
+}
+
+@media screen and (max-width: 768px) {
+  .card-grid-3d { grid-template-columns: 1fr; }
+  .stats-3d { flex-direction: column; align-items: center; }
+  .hero-3d-content h1 { font-size: 2.5rem; }
+}
