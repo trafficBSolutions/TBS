@@ -11,6 +11,8 @@ import RequireAdmin from './utils/requireAdmin';
 import { isAdminAuthenticated } from './utils/auth';
 import EmployeeLogin from './pages/employee-login';
 import RequireStaff from './components/requireStaff';
+import GradientBackgroundCSS from './components/GradientBackgroundCSS';
+import './css/theme-3d.css';
 axios.defaults.baseURL = 'https://tbs-server.onrender.com';
 axios.defaults.withCredentials = true
 
@@ -75,7 +77,8 @@ axios.interceptors.response.use(
 );
 function App() {
   return (
-    <>
+    <div className="page-3d">
+<GradientBackgroundCSS variant="default" />
 <Navbar />
   <Toaster position='bottom-right' toastOptions={{duration: 2000}} />
   <Routes>
@@ -138,7 +141,7 @@ function App() {
     <Route path="/confirm-additional-flagger" element={<ConfirmAdditionalFlagger />} />
     <Route path="*" element={<Error/>}/>
   </Routes>
-</>
+</div>
 
   );
 }
