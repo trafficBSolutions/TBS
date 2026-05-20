@@ -126,7 +126,6 @@ const [deductReason, setDeductReason] = useState('');
 const [deductMsg, setDeductMsg] = useState('');
 const [deductLoading, setDeductLoading] = useState(false);
 const [pinEmployees, setPinEmployees] = useState([]);
-const [pinHourlyAdmins, setPinHourlyAdmins] = useState([]);
 const [pinMsg, setPinMsg] = useState('');
 const [showPinManager, setShowPinManager] = useState(false);
 const [newEmpFirst, setNewEmpFirst] = useState('');
@@ -136,23 +135,9 @@ const [newEmpPosition, setNewEmpPosition] = useState('');
 const [addEmpLoading, setAddEmpLoading] = useState(false);
 const [changePinId, setChangePinId] = useState(null);
 const [changePinValue, setChangePinValue] = useState('');
-const [adminClockMsg, setAdminClockMsg] = useState('');
-const [adminClockLoading, setAdminClockLoading] = useState(false);
-const [adminIpAllowed, setAdminIpAllowed] = useState(null);
-const [adminPendingDisciplines, setAdminPendingDisciplines] = useState([]);
-const [showAdminDisciplineModal, setShowAdminDisciplineModal] = useState(false);
-const [adminAckName, setAdminAckName] = useState('');
-const [adminAckMsg, setAdminAckMsg] = useState('');
-const [adminAckLoading, setAdminAckLoading] = useState(false);
-const [adminDisciplineIndex, setAdminDisciplineIndex] = useState(0);
-const [adminEmpStatement, setAdminEmpStatement] = useState('');
 
-// Hourly admins who need to clock in
-const hourlyAdminEmails = new Set([
-  'tbsolutions77@gmail.com',
-  'tbsolutions14@gmail.com',
-  'tbsolutions66@gmail.com'
-]);
+
+
 
 // Salary admins who can view time clock status
 const salaryAdminEmails = new Set([
@@ -503,10 +488,6 @@ useEffect(() => {
     const stored = JSON.parse(localStorage.getItem('adminUser') || '{}');
     if (salaryAdminEmails.has(stored.email)) {
       axios.get('/timeclock/status').then(res => setClockedInList(res.data)).catch(() => {});
-    }
-    // Check IP for hourly admins
-    if (hourlyAdminEmails.has(stored.email)) {
-      axios.get('/timeclock/check-ip').then(res => setAdminIpAllowed(res.data.allowed)).catch(() => setAdminIpAllowed(false));
     }
   }
 }, [isAdmin]);
@@ -863,7 +844,7 @@ useEffect(() => {
         <button className={`btn ${viewMode === 'timeclock' ? 'active' : ''}`} onClick={async () => {
           setViewMode('timeclock');
           axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {});
-          axios.get('/timeclock/employees').then(r => { setPinEmployees(r.data.employees); setPinHourlyAdmins(r.data.hourlyAdmins); }).catch(() => {});
+          axios.get('/timeclock/employees').then(r => { setPinEmployees(r.data.employees); }).catch(() => {});
           // Auto-load current week
           const now = new Date();
           const sun = new Date(now); sun.setDate(now.getDate() - now.getDay());
@@ -878,135 +859,7 @@ useEffect(() => {
   )}
 </div>
 
-{/* Hourly Admin Clock In/Out Widget */}
-{isAdmin && hourlyAdminEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email) && (
-  <div style={{background:'#1a1a2e',padding:'1.5rem',borderRadius:'12px',marginBottom:'1.5rem',textAlign:'center'}}>
-    <h2 style={{color:'#fff',marginBottom:'0.75rem'}}>⏰ Time Clock</h2>
-    {adminIpAllowed === false && (
-      <p style={{color:'#ff6b6b'}}>⚠️ You are not at the designated work location. Clock-in/out is disabled.</p>
-    )}
-    {adminIpAllowed === true && (
-      <button
-        onClick={async () => {
-          setAdminClockLoading(true); setAdminClockMsg('');
-          const stored = JSON.parse(localStorage.getItem('adminUser') || '{}');
-          const adminId = stored._id || stored.id;
-          if (!adminId) { setAdminClockMsg('Session error. Please log out and log back in.'); setAdminClockLoading(false); return; }
-          try {
-            const res = await axios.post('/timeclock/admin-self-punch', { adminId });
-            setAdminClockMsg(res.data.message);
-          } catch (err) {
-            const data = err.response?.data;
-            if (data?.action === 'discipline_required') {
-              setAdminPendingDisciplines(data.disciplines);
-              setAdminDisciplineIndex(0);
-              setShowAdminDisciplineModal(true);
-            } else { setAdminClockMsg(data?.message || 'Failed'); }
-          }
-          finally { setAdminClockLoading(false); }
-        }}
-        disabled={adminClockLoading}
-        style={{padding:'0.75rem 2.5rem',fontSize:'1.2rem',borderRadius:'8px',background:'#4CAF50',color:'#fff',border:'none',cursor:'pointer',fontWeight:'bold'}}
-      >
-        {adminClockLoading ? '...' : '⏰ Clock In / Out'}
-      </button>
-    )}
-    {adminIpAllowed === null && <p style={{color:'#aaa'}}>Checking location...</p>}
-    {adminClockMsg && <p style={{color: adminClockMsg.includes('clocked') ? '#4CAF50' : '#ff6b6b', marginTop:'0.75rem', fontWeight:'bold'}}>{adminClockMsg}</p>}
-  </div>
-)}
 
-{/* Hourly Admin Discipline Acknowledgment Modal */}
-{showAdminDisciplineModal && adminPendingDisciplines.length > 0 && (
-  <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.9)',zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center',padding:'1rem',overflow:'auto'}}>
-    <div style={{background:'#fff',borderRadius:'12px',padding:'2rem',maxWidth:'700px',width:'100%',maxHeight:'90vh',overflowY:'auto'}}>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',borderBottom:'3px solid #d32f2f',paddingBottom:'12px',marginBottom:'16px'}}>
-        <h2 style={{color:'#d32f2f',margin:0,fontSize:'1.3rem'}}>EMPLOYEE DISCIPLINARY ACTION FORM</h2>
-        <div style={{textAlign:'right',fontSize:'0.75rem',color:'#666'}}>
-          <div><strong>Traffic & Barrier Solutions, LLC</strong></div>
-          <div>721 N Wall St, Calhoun, GA 30701</div>
-        </div>
-      </div>
-      <p style={{background:'#fff3cd',border:'1px solid #ffeaa7',borderRadius:'6px',padding:'10px',marginBottom:'16px',fontSize:'0.85rem',borderLeft:'4px solid #f39c12'}}>
-        <strong>NOTICE:</strong> You must review, write your statement, and sign before clocking in/out. ({adminDisciplineIndex + 1} of {adminPendingDisciplines.length})
-      </p>
-      {(() => {
-        const d = adminPendingDisciplines[adminDisciplineIndex];
-        return (
-          <>
-            <div style={{background:'#f8f9fa',padding:'12px',borderRadius:'8px',borderLeft:'4px solid #d32f2f',marginBottom:'14px'}}>
-              <h4 style={{color:'#d32f2f',marginBottom:'8px',fontSize:'0.85rem',textTransform:'uppercase',borderBottom:'1px solid #ddd',paddingBottom:'4px'}}>Employee Information</h4>
-              <div style={{display:'flex',gap:'20px',flexWrap:'wrap'}}>
-                <div style={{flex:1}}><p style={{margin:'4px 0'}}><strong>Employee:</strong> {d.employeeName}</p><p style={{margin:'4px 0'}}><strong>Position:</strong> {d.position || 'N/A'}</p></div>
-                <div style={{flex:1}}><p style={{margin:'4px 0'}}><strong>Supervisor:</strong> {d.supervisorName}</p></div>
-              </div>
-            </div>
-            <div style={{background:'#f8f9fa',padding:'12px',borderRadius:'8px',borderLeft:'4px solid #d32f2f',marginBottom:'14px'}}>
-              <h4 style={{color:'#d32f2f',marginBottom:'8px',fontSize:'0.85rem',textTransform:'uppercase',borderBottom:'1px solid #ddd',paddingBottom:'4px'}}>Incident Details</h4>
-              <p style={{margin:'4px 0'}}><strong>Date of Incident:</strong> {d.incidentDate ? new Date(d.incidentDate).toLocaleDateString() : 'N/A'}</p>
-              <p style={{margin:'4px 0'}}><strong>Time:</strong> {d.incidentTime || ''} {d.incidentPeriod || ''}</p>
-              <p style={{margin:'4px 0'}}><strong>Place:</strong> {d.incidentPlace || 'N/A'}</p>
-              <p style={{margin:'4px 0'}}><strong>Violation(s):</strong> {(d.violationTypes || []).join(', ')}{d.otherViolationText ? ` — ${d.otherViolationText}` : ''}</p>
-            </div>
-            {d.employerStatement && (
-              <div style={{background:'#f8f9fa',padding:'12px',borderRadius:'8px',borderLeft:'4px solid #d32f2f',marginBottom:'14px'}}>
-                <h4 style={{color:'#d32f2f',marginBottom:'8px',fontSize:'0.85rem',textTransform:'uppercase',borderBottom:'1px solid #ddd',paddingBottom:'4px'}}>Employer / Supervisor Statement</h4>
-                <div style={{background:'#fff',border:'1px solid #ddd',borderRadius:'4px',padding:'10px',whiteSpace:'pre-wrap'}}>{d.employerStatement}</div>
-              </div>
-            )}
-            <div style={{background:'#f8f9fa',padding:'12px',borderRadius:'8px',borderLeft:'4px solid #d32f2f',marginBottom:'14px'}}>
-              <h4 style={{color:'#d32f2f',marginBottom:'8px',fontSize:'0.85rem',textTransform:'uppercase',borderBottom:'1px solid #ddd',paddingBottom:'4px'}}>Points</h4>
-              <p style={{margin:'4px 0'}}><strong>Points Added:</strong> <span style={{fontSize:'1.1rem',fontWeight:'bold',color:'#d32f2f'}}>{(d.points || 0).toFixed(2)}</span></p>
-              <p style={{margin:'4px 0'}}><strong>Previous:</strong> {(d.previousPoints || 0).toFixed(2)} &nbsp; <strong>New Total:</strong> <span style={{fontWeight:'bold',color:(d.newTotalPoints||0)>=3?'#d32f2f':'#1e3a8a'}}>{(d.newTotalPoints || 0).toFixed(2)} / 3.00</span></p>
-              {(d.newTotalPoints||0)>=3 && <div style={{background:'#f8d7da',borderRadius:'6px',padding:'8px',marginTop:'8px',color:'#721c24',fontWeight:'bold',textAlign:'center'}}>⚠️ TERMINATION</div>}
-            </div>
-            <div style={{background:'#f8f9fa',padding:'12px',borderRadius:'8px',borderLeft:'4px solid #d32f2f',marginBottom:'14px'}}>
-              <h4 style={{color:'#d32f2f',marginBottom:'8px',fontSize:'0.85rem',textTransform:'uppercase',borderBottom:'1px solid #ddd',paddingBottom:'4px'}}>Employee Statement</h4>
-              <p style={{fontSize:'0.8rem',color:'#555',marginBottom:'8px'}}>Write your statement regarding this disciplinary action:</p>
-              <textarea value={adminEmpStatement} onChange={(e) => setAdminEmpStatement(e.target.value)} placeholder="Write your statement here..." rows={4} style={{width:'100%',padding:'10px',borderRadius:'6px',border:'1px solid #ccc',fontSize:'0.95rem',resize:'vertical'}} />
-            </div>
-            <div style={{background:'#f8f9fa',padding:'12px',borderRadius:'8px',borderLeft:'4px solid #d32f2f',marginBottom:'14px'}}>
-              <h4 style={{color:'#d32f2f',marginBottom:'8px',fontSize:'0.85rem',textTransform:'uppercase',borderBottom:'1px solid #ddd',paddingBottom:'4px'}}>Employee Signature</h4>
-              <p style={{fontSize:'0.8rem',color:'#555',marginBottom:'8px'}}>By typing your full name, you acknowledge you have read and understand this disciplinary action.</p>
-              <input type="text" placeholder="Type your full name as signature" value={adminAckName} onChange={(e) => setAdminAckName(e.target.value)} style={{width:'100%',padding:'12px',fontSize:'1.1rem',borderRadius:'8px',border:'2px solid #d32f2f',fontStyle:'italic'}} />
-              <p style={{fontSize:'0.75rem',color:'#888',marginTop:'4px'}}>Date: {new Date().toLocaleDateString()}</p>
-            </div>
-          </>
-        );
-      })()}
-      <button
-        onClick={async () => {
-          if (!adminAckName.trim()) { setAdminAckMsg('You must type your full name.'); return; }
-          setAdminAckLoading(true); setAdminAckMsg('');
-          const stored = JSON.parse(localStorage.getItem('adminUser') || '{}');
-          try {
-            const res = await axios.post('/timeclock/admin-self-acknowledge', {
-              adminId: stored._id || stored.id, disciplineId: adminPendingDisciplines[adminDisciplineIndex]._id, typedName: adminAckName, employeeStatement: adminEmpStatement
-            });
-            if (res.data.remainingCount > 0) {
-              setAdminPendingDisciplines(res.data.remaining); setAdminDisciplineIndex(0);
-              setAdminAckName(''); setAdminEmpStatement(''); setAdminAckMsg('Acknowledged. Review the next one.');
-            } else {
-              setShowAdminDisciplineModal(false); setAdminPendingDisciplines([]); setAdminAckName(''); setAdminEmpStatement(''); setAdminAckMsg('');
-              try { const p = await axios.post('/timeclock/admin-self-punch', { adminId: stored._id || stored.id }); setAdminClockMsg(p.data.message); }
-              catch (e) { setAdminClockMsg(e.response?.data?.message || 'Try again.'); }
-            }
-          } catch (err) { setAdminAckMsg(err.response?.data?.message || 'Failed. Try again.'); }
-          finally { setAdminAckLoading(false); }
-        }}
-        disabled={adminAckLoading}
-        style={{width:'100%',padding:'0.85rem',fontSize:'1rem',borderRadius:'8px',background:'#d32f2f',color:'#fff',border:'none',cursor:'pointer',fontWeight:'bold'}}
-      >
-        {adminAckLoading ? 'Processing...' : 'I Acknowledge This Disciplinary Action'}
-      </button>
-      {adminAckMsg && <p style={{color: adminAckMsg.includes('Acknowledged') ? '#4CAF50' : '#d32f2f', marginTop:'0.75rem', textAlign:'center'}}>{adminAckMsg}</p>}
-      <div style={{marginTop:'16px',paddingTop:'12px',borderTop:'2px solid #d32f2f',textAlign:'center',fontSize:'0.7rem',color:'#666'}}>
-        <div><strong>Traffic & Barrier Solutions, LLC</strong></div>
-        <div>{new Date().toLocaleDateString()}</div>
-      </div>
-    </div>
-  </div>
-)}
 
 {/* ═══════ ZONE 2: MAIN SCHEDULER ═══════ */}
 {isAdmin && (
@@ -1668,7 +1521,7 @@ selected={
       <button className="btn workorder-btn" onClick={async () => {
         setViewMode('timeclock');
         axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {});
-        axios.get('/timeclock/employees').then(r => { setPinEmployees(r.data.employees); setPinHourlyAdmins(r.data.hourlyAdmins); }).catch(() => {});
+        axios.get('/timeclock/employees').then(r => { setPinEmployees(r.data.employees); }).catch(() => {});
         const now = new Date();
         const sun = new Date(now); sun.setDate(now.getDate() - now.getDay());
         const sunStr = sun.toISOString().split('T')[0];
@@ -1678,7 +1531,10 @@ selected={
         }}>Open Time Clock</button>
       {viewMode === 'timeclock' && (
   <>
-    <h3>⏰ Employee Time Clock</h3>
+    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
+      <h3>⏰ Employee Time Clock</h3>
+      <button className="btn" style={{background:'#888',color:'#fff',padding:'6px 16px'}} onClick={() => setViewMode('traffic')}>✖ Close Time Clock</button>
+    </div>
     <div style={{marginBottom:'1rem'}}>
       <button className="btn" onClick={() => axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {})}>
         Refresh Status
@@ -1720,7 +1576,6 @@ selected={
       <select value={manualEmpId} onChange={(e) => setManualEmpId(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',minWidth:'150px'}}>
         <option value="">Select Employee...</option>
         {pinEmployees.map(emp => <option key={emp._id} value={emp._id}>{emp.name}</option>)}
-        {pinHourlyAdmins.map(adm => <option key={adm._id} value={adm._id}>{adm.name} (Foreman)</option>)}
       </select>
       <input type="date" value={manualDate} onChange={(e) => setManualDate(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}} />
       <label style={{fontSize:'0.8rem'}}>In:</label>
@@ -1752,7 +1607,6 @@ selected={
       <select value={deductEmpId} onChange={(e) => setDeductEmpId(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',minWidth:'150px'}}>
         <option value="">Select Employee...</option>
         {pinEmployees.map(emp => <option key={emp._id} value={emp._id}>{emp.name}</option>)}
-        {pinHourlyAdmins.map(adm => <option key={adm._id} value={adm._id}>{adm.name} (Foreman)</option>)}
       </select>
       <input type="date" value={deductDate} onChange={(e) => setDeductDate(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}} />
       <input type="number" placeholder="Minutes" value={deductMinutes} onChange={(e) => setDeductMinutes(e.target.value)} min="1" style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',width:'90px'}} />
@@ -1877,7 +1731,6 @@ selected={
         try {
           const res = await axios.get('/timeclock/employees');
           setPinEmployees(res.data.employees);
-          setPinHourlyAdmins(res.data.hourlyAdmins);
           const statusRes = await axios.get('/timeclock/status');
           setClockedInList(statusRes.data);
         } catch (e) { console.error(e); }
@@ -2003,61 +1856,7 @@ selected={
             </div>
           </div>
         ))}
-        {pinHourlyAdmins.length > 0 && (
-          <>
-            <h5 style={{marginTop:'1rem',marginBottom:'0.5rem'}}>Hourly Admins</h5>
-            {pinHourlyAdmins.map((adm) => (
-              <div key={adm._id} className="job-card" style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'0.5rem'}}>
-                <div>
-                  <strong>{adm.name}</strong>
-                  <span style={{marginLeft:'0.5rem',background:'#e3f2fd',color:'#1565c0',padding:'2px 8px',borderRadius:'4px',fontSize:'0.8rem'}}>Foreman</span>
-                  <p style={{fontSize:'0.85rem',color:'#666'}}>{adm.email}</p>
-                  {adm.pin && <p style={{color:'#4CAF50',margin:'2px 0'}}>PIN: {adm.pin}</p>}
-                  {!adm.pin && <p style={{color:'#ff9800',margin:'2px 0'}}>No PIN assigned</p>}
-                  <p style={{margin:'2px 0',fontSize:'0.85rem',color: adm.points >= 3 ? '#f44336' : adm.points >= 2 ? '#ff9800' : '#666'}}>
-                    <strong>Points:</strong> {adm.points?.toFixed(2) || '0.00'} / 3.00
-                  </p>
-                </div>
-                <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap',alignItems:'center'}}>
-                  <button className="btn" style={{padding:'4px 14px',fontSize:'12px'}} onClick={async () => {
-                    try {
-                      const res = await axios.post('/timeclock/admin-punch', { employeeId: adm._id });
-                      setPinMsg(res.data.message);
-                      axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {});
-                      setTimeout(() => setPinMsg(''), 5000);
-                    } catch (e) { setPinMsg(e.response?.data?.message || 'Error'); }
-                  }}>
-                    {clockedInList.some(c => c.employeeId === adm._id) ? '⏹ Clock Out' : '▶ Clock In'}
-                  </button>
-                  <select style={{padding:'4px',borderRadius:'4px',fontSize:'12px',border:'1px solid #ccc'}} defaultValue="" onChange={async (e) => {
-                    const pts = parseFloat(e.target.value);
-                    if (!pts) return;
-                    if (!window.confirm(`Add ${pts} point(s) to ${adm.name}? Current: ${adm.points?.toFixed(2) || '0.00'}`)) { e.target.value = ''; return; }
-                    try {
-                      const res = await axios.post('/timeclock/add-points', { employeeName: adm.name, points: pts });
-                      setPinMsg(res.data.message);
-                      setPinHourlyAdmins(prev => prev.map(x => x._id === adm._id ? { ...x, points: res.data.newTotal } : x));
-                      setTimeout(() => setPinMsg(''), 5000);
-                    } catch (err) { setPinMsg(err.response?.data?.message || 'Error'); }
-                    e.target.value = '';
-                  }}>
-                    <option value="">+ Add Points</option>
-                    <option value="0.25">+0.25</option>
-                    <option value="0.5">+0.50</option>
-                    <option value="0.75">+0.75</option>
-                    <option value="1">+1.00</option>
-                    <option value="1.5">+1.50</option>
-                    <option value="2">+2.00</option>
-                    <option value="3">+3.00</option>
-                  </select>
-                  <button style={{padding:'4px 14px',fontSize:'12px',background:'#ff9800',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer'}} onClick={() => navigate('/admin-dashboard/disciplinary-action')}>
-                    ⚠️ Write Up
-                  </button>
-                </div>
-              </div>
-            ))}
-          </>
-        )}
+
       </div>
     )}
   </>
