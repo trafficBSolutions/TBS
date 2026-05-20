@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import Header from '../components/headerviews/HeaderEmpDash';
 import images from '../utils/tbsImages';
 import '../css/employee.css';
+import '../css/kiosk.css';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
@@ -23,10 +24,35 @@ const EmployeeDashboard = () => {
   const [currentDisciplineIndex, setCurrentDisciplineIndex] = useState(0);
   const [storedPin, setStoredPin] = useState('');
   const [empStatement, setEmpStatement] = useState('');
+  const [employees, setEmployees] = useState([]);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [clockedInIds, setClockedInIds] = useState([]);
 
   useEffect(() => {
     axios.get('/timeclock/check-ip').then(res => setIpAllowed(res.data.allowed)).catch(() => setIpAllowed(false));
+    fetchEmployees();
+    fetchClockedIn();
+    const interval = setInterval(fetchClockedIn, 30000);
+    return () => clearInterval(interval);
   }, []);
+
+  const fetchEmployees = async () => {
+    try {
+      const res = await axios.get('/timeclock/employees');
+      const all = [
+        ...res.data.employees.map(e => ({ ...e, displayName: e.name })),
+        ...res.data.hourlyAdmins.map(a => ({ ...a, position: 'Supervisor', displayName: a.name }))
+      ].filter(e => !e.terminated);
+      setEmployees(all);
+    } catch (err) {}
+  };
+
+  const fetchClockedIn = async () => {
+    try {
+      const res = await axios.get('/timeclock/status');
+      setClockedInIds(res.data.map(r => r.employeeId));
+    } catch (err) {}
+  };
 
   const handlePunch = async () => {
     if (!pin.trim() || pin.length < 4) { setClockMsg('Enter your 4+ digit PIN'); return; }
@@ -37,6 +63,9 @@ const EmployeeDashboard = () => {
       const res = await axios.post('/timeclock/punch', { pin });
       setClockMsg(res.data.message);
       setPin('');
+      fetchClockedIn();
+      // Auto-return to employee list after 3 seconds
+      setTimeout(() => { setSelectedEmployee(null); setClockMsg(''); }, 3000);
       // Fetch weekly hours after successful punch
       try { const w = await axios.get(`/timeclock/my-week?pin=${currentPin}`); setWeekData(w.data); } catch(e) {}
     } catch (err) {
@@ -128,28 +157,53 @@ const EmployeeDashboard = () => {
             {ipAllowed === false && (
               <p style={{color:'#ff6b6b'}}>⚠️ You are not at the designated work location. Clock-in/out is disabled.</p>
             )}
-            {ipAllowed === true && (
-              <div>
+            {ipAllowed === true && !selectedEmployee && (
+              <div className="kiosk-employee-grid" style={{marginBottom:'1rem'}}>
+                {employees.map(emp => (
+                  <button
+                    key={emp._id}
+                    className={`kiosk-employee-card ${clockedInIds.includes(emp._id) ? 'clocked-in' : ''}`}
+                    onClick={() => { setSelectedEmployee(emp); setPin(''); setClockMsg(''); }}
+                  >
+                    <span className="kiosk-emp-name">{emp.displayName}</span>
+                    <span className="kiosk-emp-position">{emp.position}</span>
+                    {clockedInIds.includes(emp._id) && <span className="kiosk-status-badge">● Clocked In</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+            {ipAllowed === true && selectedEmployee && (
+              <div className="kiosk-punch-panel">
+                <button className="kiosk-back-btn" onClick={() => { setSelectedEmployee(null); setClockMsg(''); }}>
+                  ← Back to Employees
+                </button>
+                <h2 style={{color:'#1a1a2e',margin:'1rem 0 0.25rem'}}>{selectedEmployee.displayName}</h2>
+                <p style={{color:'#6b7280',fontSize:'1.1rem',margin:'0 0 0.5rem'}}>{selectedEmployee.position}</p>
+                <p style={{fontSize:'1.1rem',fontWeight:600,marginBottom:'1rem'}}>
+                  {clockedInIds.includes(selectedEmployee._id) ? '🟢 Currently Clocked In' : '⚪ Currently Clocked Out'}
+                </p>
                 <input
                   type="password"
-                  placeholder="Enter your PIN"
+                  inputMode="numeric"
+                  placeholder="Enter PIN"
                   value={pin}
                   onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
                   maxLength={6}
                   onKeyDown={(e) => e.key === 'Enter' && handlePunch()}
-                  style={{padding:'0.5rem 1rem',fontSize:'1.2rem',borderRadius:'8px',border:'none',textAlign:'center',width:'160px'}}
+                  className="kiosk-pin-input"
+                  autoFocus
                 />
                 <button
                   onClick={handlePunch}
                   disabled={clockLoading}
-                  style={{marginLeft:'0.75rem',padding:'0.5rem 1.5rem',fontSize:'1rem',borderRadius:'8px',background:'#4CAF50',color:'#fff',border:'none',cursor:'pointer'}}
+                  className="kiosk-punch-btn"
                 >
-                  {clockLoading ? '...' : 'Punch In/Out'}
+                  {clockLoading ? '...' : clockedInIds.includes(selectedEmployee._id) ? 'Clock Out' : 'Clock In'}
                 </button>
+                {clockMsg && <p className={`kiosk-message ${clockMsg.includes('clocked') ? 'success' : 'error'}`}>{clockMsg}</p>}
               </div>
             )}
             {ipAllowed === null && <p style={{color:'#aaa'}}>Checking location...</p>}
-            {clockMsg && <p style={{color: clockMsg.includes('clocked') ? '#4CAF50' : '#ff6b6b', marginTop:'0.75rem', fontWeight:'bold', fontSize:'1.1rem'}}>{clockMsg}</p>}
           </div>
 
           {/* Phone-only message */}
