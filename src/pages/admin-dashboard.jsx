@@ -1466,6 +1466,219 @@ selected={
     </div>
   </>
 )}
+
+{viewMode === 'signshop' && (
+  <>
+    <h3>🪧 Sign Shop Jobs on {signShopDate?.toLocaleDateString()}</h3>
+    <div className="add-task" style={{marginBottom: '1rem'}}>
+      <input type="text" placeholder="Job title *" value={signShopTitle} onChange={(e) => setSignShopTitle(e.target.value)} />
+      <input type="text" placeholder="Customer" value={signShopCustomer} onChange={(e) => setSignShopCustomer(e.target.value)} />
+      <textarea placeholder="Description" rows="2" style={{height: '100%', color: '#000000'}} value={signShopDesc} onChange={(e) => setSignShopDesc(e.target.value)} />
+      <label style={{fontSize:'13px',marginTop:'6px', color: '#000000'}}>Attach Photos (max 5):</label>
+      <input type="file" accept="image/*" multiple onChange={(e) => setSignShopPhotos([...e.target.files].slice(0, 5))} />
+      <button className="btn" onClick={addSignShopJob}>Add Sign Shop Job</button>
+    </div>
+    <div className="job-info-list">
+      {signShopList.map((job) => (
+        <div key={job._id} className={`task-item ${job.completed ? 'completed' : ''}`}>
+          <div className="task-header">
+            <span className="task-author">{job.author}</span>
+            <span className="task-timestamp">{new Date(job.createdAt).toLocaleString()}</span>
+          </div>
+          {editingSignShopId === job._id ? (
+            <div style={{padding:'8px 0'}}>
+              <input type="text" value={editSignShop.title} onChange={(e) => setEditSignShop({...editSignShop, title: e.target.value})} placeholder="Job title" />
+              <input type="text" value={editSignShop.customer} onChange={(e) => setEditSignShop({...editSignShop, customer: e.target.value})} placeholder="Customer" />
+              <textarea rows="2" value={editSignShop.description} onChange={(e) => setEditSignShop({...editSignShop, description: e.target.value})} placeholder="Description" />
+              {job.photos && job.photos.length > 0 && (
+                <div style={{display:'flex',gap:'6px',flexWrap:'wrap',margin:'8px 0'}}>
+                  {job.photos.map((photo, idx) => (
+                    <div key={idx} style={{position:'relative'}}>
+                      <img src={`/signshop-photos/${photo}`} alt={`Photo ${idx+1}`} style={{width:'70px',height:'70px',objectFit:'cover',borderRadius:'6px',border:'1px solid #ddd'}} />
+                      <button onClick={() => removeSignShopPhoto(job._id, photo)} style={{position:'absolute',top:'-6px',right:'-6px',background:'#f44336',color:'#fff',border:'none',borderRadius:'50%',width:'20px',height:'20px',cursor:'pointer',fontSize:'12px',lineHeight:'20px',padding:0}}>×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <label style={{fontSize:'13px',marginTop:'4px',color:'#ccc'}}>Add more photos:</label>
+              <input type="file" accept="image/*" multiple onChange={(e) => setEditSignShopPhotos([...e.target.files].slice(0, 5))} />
+              <div style={{display:'flex',gap:'8px',marginTop:'8px'}}>
+                <button className="btn" onClick={() => saveSignShopEdit(job._id)}>Save</button>
+                <button className="btn" style={{background:'#888'}} onClick={cancelEditSignShop}>Cancel</button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="task-content">
+                <label className="task-checkbox">
+                  <input type="checkbox" checked={job.completed} onChange={() => toggleSignShopComplete(job._id)} />
+                  <span className={job.completed ? 'completed-text' : ''}><strong>{job.title}</strong></span>
+                </label>
+                {job.customer && <p style={{margin: '4px 0 0 24px', fontSize: '1.4rem', color: '#000000'}}>Customer: {job.customer}</p>}
+                {job.description && <p style={{margin: '2px 0 0 24px', fontSize: '1.4rem', color: '#000000', height: 'auto'}}>{job.description}</p>}
+              </div>
+              <div style={{display:'flex',gap:'6px',marginTop:'4px'}}>
+                <button className="btn" style={{padding:'4px 12px',fontSize:'12px'}} onClick={() => startEditSignShop(job)}>✏️ Edit</button>
+                <button className="delete-task" onClick={() => deleteSignShopJob(job._id)}>🗑️</button>
+              </div>
+              {job.photos && job.photos.length > 0 && (
+                <div style={{display:'flex',gap:'6px',flexWrap:'wrap',marginTop:'8px'}}>
+                  {job.photos.map((photo, idx) => (
+                    <img key={idx} src={`/signshop-photos/${photo}`} alt={`Sign shop ${idx+1}`}
+                      style={{width:'80px',height:'80px',objectFit:'cover',borderRadius:'6px',border:'1px solid #ddd',cursor:'pointer'}}
+                      onClick={() => setSignShopPreview(`/signshop-photos/${photo}`)}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      ))}
+      {signShopList.length === 0 && <p>No sign shop jobs on this day.</p>}
+    </div>
+  </>
+)}
+{viewMode === 'bollards' && (
+  <>
+    <h3>Bollard & Wheel Stop Quotes on {bollardDate?.toLocaleDateString()}</h3>
+    <div className="job-info-list">
+      {bollardList.map((b, i) => (
+        <div key={b._id || i} className="job-card">
+          <h4 className="job-company">{b.first} {b.last} - {b.company}</h4>
+          <p><strong>Email:</strong> {b.email}</p>
+          <p><strong>Phone:</strong> <a href={`tel:${b.phone}`}>{b.phone}</a></p>
+          <p><strong>Address:</strong> {b.address}, {b.city}, {b.state} {b.zip}</p>
+          {b.bollard && <p><strong>Bollards:</strong> {b.bollard}</p>}
+          {b.wheel && <p><strong>Wheel Stops:</strong> {b.wheel}</p>}
+          <p><strong>Message:</strong> {b.message}</p>
+        </div>
+      ))}
+      {bollardList.length === 0 && <p>No bollard/wheel stop quotes on this day.</p>}
+    </div>
+  </>
+)}
+{viewMode === 'shopwo' && (
+  <>
+    <h3>Shop Work Orders on {shopWoDate?.toLocaleDateString()}</h3>
+    <div className="job-info-list">
+      {shopWoList.map((wo, i) => (
+        <div key={wo._id || i} className={`job-card ${wo.status === 'approved' ? '' : wo.status === 'disapproved' ? 'cancelled-job' : ''}`}>
+          <h4 className="job-company">{wo.employeeNames}</h4>
+          <p><strong>Status:</strong> <span style={{color: wo.status === 'approved' ? '#4CAF50' : wo.status === 'disapproved' ? '#f44336' : '#ff9800', fontWeight: 'bold'}}>{wo.status === 'approved' ? '✅ Approved' : wo.status === 'disapproved' ? '❌ Disapproved (VOID)' : '⏳ Pending Approval'}</span></p>
+          {wo.approvedBy && <p><strong>Approved By:</strong> {wo.approvedBy}</p>}
+          <p><strong>Date:</strong> {wo.date}</p>
+          <p><strong>Time:</strong> {wo.inTime} - {wo.outTime}</p>
+          <p><strong>Location:</strong> {wo.location}</p>
+          <p><strong>Truck:</strong> {wo.truckNumber || 'N/A'}</p>
+          <p><strong>Supervisor:</strong> {wo.supervisor}</p>
+          <p><strong>Description:</strong> {wo.description}</p>
+          <p><strong>Submitted By:</strong> {wo.submittedBy}</p>
+          <p><strong>Submitted:</strong> {new Date(wo.createdAt).toLocaleString()}</p>
+        </div>
+      ))}
+      {shopWoList.length === 0 && <p>No shop work orders on this day.</p>}
+    </div>
+  </>
+)}
+{viewMode === 'tasks' && (
+  <>
+    <h3>Tasks on {taskDate?.toLocaleDateString()}</h3>
+    <div className="job-info-list">
+      {tasks[taskDate?.toISOString().split('T')[0]]?.map(task => (
+        <div key={task._id} className={`task-item ${task.completed ? 'completed' : ''}`}>
+          <div className="task-header">
+            <span className="task-author">{task.author}</span>
+            <span className="task-timestamp">{new Date(task.createdAt).toLocaleString()}</span>
+            <span className={`task-visibility ${task.isPublic ? 'public' : 'private'}`}>
+              {task.isPublic ? '🌐 Public' : '🔒 Private'}
+            </span>
+          </div>
+          <div className="task-content">
+            <label className="task-checkbox">
+              <input
+                type="checkbox"
+                checked={task.completed}
+                onChange={() => toggleTaskCompletion(taskDate.toISOString().split('T')[0], task._id)}
+              />
+              <span className={task.completed ? 'completed-text' : ''}>{task.text}</span>
+            </label>
+          </div>
+          <button className="delete-task" onClick={() => deleteTask(taskDate.toISOString().split('T')[0], task._id)}>🗑️</button>
+        </div>
+      )) || []}
+      {(!tasks[taskDate?.toISOString().split('T')[0]] || tasks[taskDate?.toISOString().split('T')[0]].length === 0) && (
+        <p>No tasks on this day.</p>
+      )}
+    </div>
+  </>
+)}
+</div>
+</div>
+</div>
+</div>
+)}
+
+{/* ═══════ ZONE 3: ADMIN TOOLS ═══════ */}
+<div className="zone-tools">
+<h2 className="zone-tools-title">Admin Tools</h2>
+<div className="tools-grid">
+
+  <div className="tool-card">
+    <h3>📝 Work Order</h3>
+    <p>Fill out a new work order</p>
+    <button className="btn workorder-btn" onClick={() => navigate('/admin-dashboard/work-order')}>Open Work Order</button>
+  </div>
+
+  <div className="tool-card">
+    <h3>🏗️ Shop Work Order</h3>
+    <p>Submit a shop work order for approval</p>
+    <button className="btn workorder-btn" onClick={() => navigate('/admin-dashboard/shop-work-order')}>Open Shop Work Order</button>
+  </div>
+
+  <div className="tool-card">
+    <h3>🚧 TCP Designer</h3>
+    <p>Design Traffic Control Plans</p>
+    <button className="btn workorder-btn" onClick={() => navigate('/admin-dashboard/tcp-designer')}>Open Designer</button>
+  </div>
+
+  <div className="tool-card">
+    <h3>📋 Add Task</h3>
+    <p>Create tasks for any date</p>
+    <button className={`btn ${showTasks ? 'active' : ''}`} onClick={() => setShowTasks(!showTasks)}>{showTasks ? 'Hide' : 'Open'}</button>
+    {showTasks && (
+      <div className="add-task" style={{marginTop: '1rem'}}>
+        <div className="task-date-picker">
+          <label>Date:</label>
+          <DatePicker selected={taskDate} onChange={setTaskDate} dateFormat="MMMM d, yyyy" className="task-date-input" />
+        </div>
+        <textarea value={taskText} onChange={(e) => setTaskText(e.target.value)} placeholder="Add a task..." rows="2" />
+        <div className="task-options">
+          <label><input type="checkbox" checked={isTaskPublic} onChange={(e) => setIsTaskPublic(e.target.checked)} /> Public</label>
+          <button className="btn" onClick={addTask}>Add</button>
+        </div>
+      </div>
+    )}
+  </div>
+
+  {salaryAdminEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email) && (
+    <div className="tool-card">
+      <h3>⏰ Time Clock</h3>
+      <p>Manage employee hours & PINs</p>
+      <button className="btn workorder-btn" onClick={async () => {
+        setViewMode('timeclock');
+        axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {});
+        axios.get('/timeclock/employees').then(r => { setPinEmployees(r.data.employees); setPinHourlyAdmins(r.data.hourlyAdmins); }).catch(() => {});
+        const now = new Date();
+        const sun = new Date(now); sun.setDate(now.getDate() - now.getDay());
+        const sunStr = sun.toISOString().split('T')[0];
+        const sat = new Date(sun); sat.setDate(sun.getDate() + 6);
+        const satStr = sat.toISOString().split('T')[0];
+        try { const res = await axios.get(`/timeclock/time-worked?startDate=${sunStr}&endDate=${satStr}`); setTimeWorked(res.data); } catch(e) {}
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }}>Open Time Clock</button>
+    </div>
+  )}
 {viewMode === 'timeclock' && (
   <>
     <h3>⏰ Employee Time Clock</h3>
@@ -1852,219 +2065,6 @@ selected={
     )}
   </>
 )}
-{viewMode === 'signshop' && (
-  <>
-    <h3>🪧 Sign Shop Jobs on {signShopDate?.toLocaleDateString()}</h3>
-    <div className="add-task" style={{marginBottom: '1rem'}}>
-      <input type="text" placeholder="Job title *" value={signShopTitle} onChange={(e) => setSignShopTitle(e.target.value)} />
-      <input type="text" placeholder="Customer" value={signShopCustomer} onChange={(e) => setSignShopCustomer(e.target.value)} />
-      <textarea placeholder="Description" rows="2" style={{height: '100%', color: '#000000'}} value={signShopDesc} onChange={(e) => setSignShopDesc(e.target.value)} />
-      <label style={{fontSize:'13px',marginTop:'6px', color: '#000000'}}>Attach Photos (max 5):</label>
-      <input type="file" accept="image/*" multiple onChange={(e) => setSignShopPhotos([...e.target.files].slice(0, 5))} />
-      <button className="btn" onClick={addSignShopJob}>Add Sign Shop Job</button>
-    </div>
-    <div className="job-info-list">
-      {signShopList.map((job) => (
-        <div key={job._id} className={`task-item ${job.completed ? 'completed' : ''}`}>
-          <div className="task-header">
-            <span className="task-author">{job.author}</span>
-            <span className="task-timestamp">{new Date(job.createdAt).toLocaleString()}</span>
-          </div>
-          {editingSignShopId === job._id ? (
-            <div style={{padding:'8px 0'}}>
-              <input type="text" value={editSignShop.title} onChange={(e) => setEditSignShop({...editSignShop, title: e.target.value})} placeholder="Job title" />
-              <input type="text" value={editSignShop.customer} onChange={(e) => setEditSignShop({...editSignShop, customer: e.target.value})} placeholder="Customer" />
-              <textarea rows="2" value={editSignShop.description} onChange={(e) => setEditSignShop({...editSignShop, description: e.target.value})} placeholder="Description" />
-              {job.photos && job.photos.length > 0 && (
-                <div style={{display:'flex',gap:'6px',flexWrap:'wrap',margin:'8px 0'}}>
-                  {job.photos.map((photo, idx) => (
-                    <div key={idx} style={{position:'relative'}}>
-                      <img src={`/signshop-photos/${photo}`} alt={`Photo ${idx+1}`} style={{width:'70px',height:'70px',objectFit:'cover',borderRadius:'6px',border:'1px solid #ddd'}} />
-                      <button onClick={() => removeSignShopPhoto(job._id, photo)} style={{position:'absolute',top:'-6px',right:'-6px',background:'#f44336',color:'#fff',border:'none',borderRadius:'50%',width:'20px',height:'20px',cursor:'pointer',fontSize:'12px',lineHeight:'20px',padding:0}}>×</button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <label style={{fontSize:'13px',marginTop:'4px',color:'#ccc'}}>Add more photos:</label>
-              <input type="file" accept="image/*" multiple onChange={(e) => setEditSignShopPhotos([...e.target.files].slice(0, 5))} />
-              <div style={{display:'flex',gap:'8px',marginTop:'8px'}}>
-                <button className="btn" onClick={() => saveSignShopEdit(job._id)}>Save</button>
-                <button className="btn" style={{background:'#888'}} onClick={cancelEditSignShop}>Cancel</button>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className="task-content">
-                <label className="task-checkbox">
-                  <input type="checkbox" checked={job.completed} onChange={() => toggleSignShopComplete(job._id)} />
-                  <span className={job.completed ? 'completed-text' : ''}><strong>{job.title}</strong></span>
-                </label>
-                {job.customer && <p style={{margin: '4px 0 0 24px', fontSize: '1.4rem', color: '#000000'}}>Customer: {job.customer}</p>}
-                {job.description && <p style={{margin: '2px 0 0 24px', fontSize: '1.4rem', color: '#000000', height: 'auto'}}>{job.description}</p>}
-              </div>
-              <div style={{display:'flex',gap:'6px',marginTop:'4px'}}>
-                <button className="btn" style={{padding:'4px 12px',fontSize:'12px'}} onClick={() => startEditSignShop(job)}>✏️ Edit</button>
-                <button className="delete-task" onClick={() => deleteSignShopJob(job._id)}>🗑️</button>
-              </div>
-              {job.photos && job.photos.length > 0 && (
-                <div style={{display:'flex',gap:'6px',flexWrap:'wrap',marginTop:'8px'}}>
-                  {job.photos.map((photo, idx) => (
-                    <img key={idx} src={`/signshop-photos/${photo}`} alt={`Sign shop ${idx+1}`}
-                      style={{width:'80px',height:'80px',objectFit:'cover',borderRadius:'6px',border:'1px solid #ddd',cursor:'pointer'}}
-                      onClick={() => setSignShopPreview(`/signshop-photos/${photo}`)}
-                    />
-                  ))}
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      ))}
-      {signShopList.length === 0 && <p>No sign shop jobs on this day.</p>}
-    </div>
-  </>
-)}
-{viewMode === 'bollards' && (
-  <>
-    <h3>Bollard & Wheel Stop Quotes on {bollardDate?.toLocaleDateString()}</h3>
-    <div className="job-info-list">
-      {bollardList.map((b, i) => (
-        <div key={b._id || i} className="job-card">
-          <h4 className="job-company">{b.first} {b.last} - {b.company}</h4>
-          <p><strong>Email:</strong> {b.email}</p>
-          <p><strong>Phone:</strong> <a href={`tel:${b.phone}`}>{b.phone}</a></p>
-          <p><strong>Address:</strong> {b.address}, {b.city}, {b.state} {b.zip}</p>
-          {b.bollard && <p><strong>Bollards:</strong> {b.bollard}</p>}
-          {b.wheel && <p><strong>Wheel Stops:</strong> {b.wheel}</p>}
-          <p><strong>Message:</strong> {b.message}</p>
-        </div>
-      ))}
-      {bollardList.length === 0 && <p>No bollard/wheel stop quotes on this day.</p>}
-    </div>
-  </>
-)}
-{viewMode === 'shopwo' && (
-  <>
-    <h3>Shop Work Orders on {shopWoDate?.toLocaleDateString()}</h3>
-    <div className="job-info-list">
-      {shopWoList.map((wo, i) => (
-        <div key={wo._id || i} className={`job-card ${wo.status === 'approved' ? '' : wo.status === 'disapproved' ? 'cancelled-job' : ''}`}>
-          <h4 className="job-company">{wo.employeeNames}</h4>
-          <p><strong>Status:</strong> <span style={{color: wo.status === 'approved' ? '#4CAF50' : wo.status === 'disapproved' ? '#f44336' : '#ff9800', fontWeight: 'bold'}}>{wo.status === 'approved' ? '✅ Approved' : wo.status === 'disapproved' ? '❌ Disapproved (VOID)' : '⏳ Pending Approval'}</span></p>
-          {wo.approvedBy && <p><strong>Approved By:</strong> {wo.approvedBy}</p>}
-          <p><strong>Date:</strong> {wo.date}</p>
-          <p><strong>Time:</strong> {wo.inTime} - {wo.outTime}</p>
-          <p><strong>Location:</strong> {wo.location}</p>
-          <p><strong>Truck:</strong> {wo.truckNumber || 'N/A'}</p>
-          <p><strong>Supervisor:</strong> {wo.supervisor}</p>
-          <p><strong>Description:</strong> {wo.description}</p>
-          <p><strong>Submitted By:</strong> {wo.submittedBy}</p>
-          <p><strong>Submitted:</strong> {new Date(wo.createdAt).toLocaleString()}</p>
-        </div>
-      ))}
-      {shopWoList.length === 0 && <p>No shop work orders on this day.</p>}
-    </div>
-  </>
-)}
-{viewMode === 'tasks' && (
-  <>
-    <h3>Tasks on {taskDate?.toLocaleDateString()}</h3>
-    <div className="job-info-list">
-      {tasks[taskDate?.toISOString().split('T')[0]]?.map(task => (
-        <div key={task._id} className={`task-item ${task.completed ? 'completed' : ''}`}>
-          <div className="task-header">
-            <span className="task-author">{task.author}</span>
-            <span className="task-timestamp">{new Date(task.createdAt).toLocaleString()}</span>
-            <span className={`task-visibility ${task.isPublic ? 'public' : 'private'}`}>
-              {task.isPublic ? '🌐 Public' : '🔒 Private'}
-            </span>
-          </div>
-          <div className="task-content">
-            <label className="task-checkbox">
-              <input
-                type="checkbox"
-                checked={task.completed}
-                onChange={() => toggleTaskCompletion(taskDate.toISOString().split('T')[0], task._id)}
-              />
-              <span className={task.completed ? 'completed-text' : ''}>{task.text}</span>
-            </label>
-          </div>
-          <button className="delete-task" onClick={() => deleteTask(taskDate.toISOString().split('T')[0], task._id)}>🗑️</button>
-        </div>
-      )) || []}
-      {(!tasks[taskDate?.toISOString().split('T')[0]] || tasks[taskDate?.toISOString().split('T')[0]].length === 0) && (
-        <p>No tasks on this day.</p>
-      )}
-    </div>
-  </>
-)}
-</div>
-</div>
-</div>
-</div>
-)}
-
-{/* ═══════ ZONE 3: ADMIN TOOLS ═══════ */}
-<div className="zone-tools">
-<h2 className="zone-tools-title">Admin Tools</h2>
-<div className="tools-grid">
-
-  <div className="tool-card">
-    <h3>📝 Work Order</h3>
-    <p>Fill out a new work order</p>
-    <button className="btn workorder-btn" onClick={() => navigate('/admin-dashboard/work-order')}>Open Work Order</button>
-  </div>
-
-  <div className="tool-card">
-    <h3>🏗️ Shop Work Order</h3>
-    <p>Submit a shop work order for approval</p>
-    <button className="btn workorder-btn" onClick={() => navigate('/admin-dashboard/shop-work-order')}>Open Shop Work Order</button>
-  </div>
-
-  <div className="tool-card">
-    <h3>🚧 TCP Designer</h3>
-    <p>Design Traffic Control Plans</p>
-    <button className="btn workorder-btn" onClick={() => navigate('/admin-dashboard/tcp-designer')}>Open Designer</button>
-  </div>
-
-  <div className="tool-card">
-    <h3>📋 Add Task</h3>
-    <p>Create tasks for any date</p>
-    <button className={`btn ${showTasks ? 'active' : ''}`} onClick={() => setShowTasks(!showTasks)}>{showTasks ? 'Hide' : 'Open'}</button>
-    {showTasks && (
-      <div className="add-task" style={{marginTop: '1rem'}}>
-        <div className="task-date-picker">
-          <label>Date:</label>
-          <DatePicker selected={taskDate} onChange={setTaskDate} dateFormat="MMMM d, yyyy" className="task-date-input" />
-        </div>
-        <textarea value={taskText} onChange={(e) => setTaskText(e.target.value)} placeholder="Add a task..." rows="2" />
-        <div className="task-options">
-          <label><input type="checkbox" checked={isTaskPublic} onChange={(e) => setIsTaskPublic(e.target.checked)} /> Public</label>
-          <button className="btn" onClick={addTask}>Add</button>
-        </div>
-      </div>
-    )}
-  </div>
-
-  {salaryAdminEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email) && (
-    <div className="tool-card">
-      <h3>⏰ Time Clock</h3>
-      <p>Manage employee hours & PINs</p>
-      <button className="btn workorder-btn" onClick={async () => {
-        setViewMode('timeclock');
-        axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {});
-        axios.get('/timeclock/employees').then(r => { setPinEmployees(r.data.employees); setPinHourlyAdmins(r.data.hourlyAdmins); }).catch(() => {});
-        const now = new Date();
-        const sun = new Date(now); sun.setDate(now.getDate() - now.getDay());
-        const sunStr = sun.toISOString().split('T')[0];
-        const sat = new Date(sun); sat.setDate(sun.getDate() + 6);
-        const satStr = sat.toISOString().split('T')[0];
-        try { const res = await axios.get(`/timeclock/time-worked?startDate=${sunStr}&endDate=${satStr}`); setTimeWorked(res.data); } catch(e) {}
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }}>Open Time Clock</button>
-    </div>
-  )}
-
   <div className="tool-card tool-card--wide">
     <h3>📐 TA Diagrams</h3>
     <button className="btn view-cancelled-btn" onClick={() => setShowTAImages(prev => !prev)}>
