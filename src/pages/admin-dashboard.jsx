@@ -1531,26 +1531,46 @@ selected={
         }}>Open Time Clock</button>
       {viewMode === 'timeclock' && (
   <>
-    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
-      <h3>⏰ Employee Time Clock</h3>
-      <button className="btn" style={{background:'#888',color:'#fff',padding:'6px 16px'}} onClick={() => setViewMode('traffic')}>✖ Close Time Clock</button>
+    <section className="timeclock-panel">
+    <div className="tc-header">
+      <div>
+        <h3>⏰ Employee Time Clock</h3>
+        <p>Manage clock-ins, history, manual edits, weekly hours, and employee PINs.</p>
+      </div>
+
+      <button className="tc-close-btn" onClick={() => setViewMode('traffic')}>
+        ✖ Close
+      </button>
     </div>
+
     <div style={{marginBottom:'1rem'}}>
       <button className="btn" onClick={() => axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {})}>
         Refresh Status
       </button>
     </div>
     <h4 style={{color:'#4CAF50'}}>Currently Clocked In ({clockedInList.length})</h4>
-    <div className="job-info-list">
-      {clockedInList.length === 0 && <p>No employees currently clocked in.</p>}
-      {clockedInList.map((entry) => (
-        <div key={entry._id} className="job-card">
-          <h4 className="job-company">{entry.employeeName}</h4>
-          <p><strong>Clocked In:</strong> {new Date(entry.clockIn).toLocaleString()}</p>
-          <p><strong>Duration:</strong> {Math.round((Date.now() - new Date(entry.clockIn)) / 60000)} min</p>
-        </div>
-      ))}
-    </div>
+    <div className="tc-section">
+  <div className="tc-section-head">
+    <h4>Currently Clocked In ({clockedInList.length})</h4>
+    <button className="tc-btn tc-btn-clock" onClick={refreshStatus}>
+      Refresh Status
+    </button>
+  </div>
+
+  <div className="tc-card-grid">
+    {clockedInList.length === 0 && (
+      <p className="tc-empty">No employees currently clocked in.</p>
+    )}
+
+    {clockedInList.map((entry) => (
+      <div key={entry._id} className="tc-mini-card">
+        <h5>{entry.employeeName}</h5>
+        <p><strong>Clocked In:</strong> {new Date(entry.clockIn).toLocaleString()}</p>
+        <p><strong>Duration:</strong> {Math.round((Date.now() - new Date(entry.clockIn)) / 60000)} min</p>
+      </div>
+    ))}
+  </div>
+</div>
     <hr style={{margin:'1.5rem 0'}} />
     <h4>History for {clockHistoryDate.toLocaleDateString()}</h4>
     <input type="date" value={clockHistoryDate.toISOString().split('T')[0]} onChange={(e) => {
@@ -1859,8 +1879,11 @@ selected={
 
       </div>
     )}
+    </section>
   </>
+  
 )}
+
     </div>
   )}
 
