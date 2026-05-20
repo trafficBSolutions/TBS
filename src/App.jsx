@@ -3,6 +3,7 @@ import { About, EmployeeHandbook, Quote, ConfirmAdditionalFlagger, EmployeeDisci
 import TCPDesigner from './pages/tcp-designer';
 import ShopWorkOrder from './pages/shop-work-order';
 import ShopWorkOrderStatus from './pages/shop-work-order-status';
+import TimeClockKiosk from './pages/time-clock-kiosk';
 import axios from 'axios';
 import RescheduleJob from './pages/RescheduleJob';
 import Navbar from './components/Navbar';
@@ -125,6 +126,7 @@ function App() {
     </RequireStaff>
   }
 />
+    <Route path="/time-clock" element={<TimeClockKiosk />} />
     <Route path="/employee-dashboard" element={<RequireStaff><EmployeeDashboard /></RequireStaff>} />
     <Route path="/employee-dashboard/work-order" element={<RequireStaff><Work /></RequireStaff>} />
     <Route path="/employee-dashboard/shop-work-order" element={<RequireStaff><ShopWorkOrder /></RequireStaff>} />
