@@ -1662,7 +1662,7 @@ selected={
   </div>
 
   {salaryAdminEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email) && (
-    <div className="tool-card">
+    <div className="tool-card tool-card--wide">
       <h3>⏰ Time Clock</h3>
       <p>Manage employee hours & PINs</p>
       <button className="btn workorder-btn" onClick={async () => {
@@ -1677,9 +1677,7 @@ selected={
         try { const res = await axios.get(`/timeclock/time-worked?startDate=${sunStr}&endDate=${satStr}`); setTimeWorked(res.data); } catch(e) {}
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }}>Open Time Clock</button>
-    </div>
-  )}
-{viewMode === 'timeclock' && (
+      {viewMode === 'timeclock' && (
   <>
     <h3>⏰ Employee Time Clock</h3>
     <div style={{marginBottom:'1rem'}}>
@@ -2065,6 +2063,9 @@ selected={
     )}
   </>
 )}
+    </div>
+  )}
+
   <div className="tool-card tool-card--wide">
     <h3>📐 TA Diagrams</h3>
     <button className="btn view-cancelled-btn" onClick={() => setShowTAImages(prev => !prev)}>
