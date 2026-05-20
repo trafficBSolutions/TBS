@@ -66,8 +66,6 @@ const EmployeeDashboard = () => {
       fetchClockedIn();
       // Auto-return to employee list after 3 seconds
       setTimeout(() => { setSelectedEmployee(null); setClockMsg(''); }, 3000);
-      // Fetch weekly hours after successful punch
-      try { const w = await axios.get(`/timeclock/my-week?pin=${currentPin}`); setWeekData(w.data); } catch(e) {}
     } catch (err) {
       const data = err.response?.data;
       if (data?.action === 'discipline_required') {
