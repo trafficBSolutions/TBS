@@ -1675,8 +1675,7 @@ selected={
         const sat = new Date(sun); sat.setDate(sun.getDate() + 6);
         const satStr = sat.toISOString().split('T')[0];
         try { const res = await axios.get(`/timeclock/time-worked?startDate=${sunStr}&endDate=${satStr}`); setTimeWorked(res.data); } catch(e) {}
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }}>Open Time Clock</button>
+        }}>Open Time Clock</button>
       {viewMode === 'timeclock' && (
   <>
     <h3>⏰ Employee Time Clock</h3>
