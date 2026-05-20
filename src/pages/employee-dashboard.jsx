@@ -117,45 +117,63 @@ const EmployeeDashboard = () => {
         {/* Time Clock */}
         <div className="time-clock-section" style={{background:'#1a1a2e',padding:'1.5rem',borderRadius:'12px',marginBottom:'1.5rem',textAlign:'center'}}>
           <h2 style={{color:'#fff',marginBottom:'0.75rem'}}>⏰ Time Clock</h2>
-          <div style={{background:'#fff3cd',border:'1px solid #ffc107',borderRadius:'8px',padding:'14px 18px',marginBottom:'1rem',textAlign:'left'}}>
-            <p style={{color:'#856404',fontSize:'1rem',margin:0,fontWeight:'bold'}}>⚠️ WARNING: You are NOT allowed to clock anyone else in or out or share your PIN with other employees. Doing so will be subjected to Disciplinary Action.</p>
-            <p style={{color:'#856404',fontSize:'1rem',margin:'8px 0 0'}}>📶 You must be connected to the WIFI at the TBS Shop to clock in and out.</p>
-            <p style={{color:'#856404',fontSize:'1rem',margin:'8px 0 0'}}>📞 Forgot your PIN? Call Carson: <a href="tel:+17065814465" style={{color:'#856404',fontWeight:'bold'}}>(706) 581-4465</a></p>
-          </div>
-          {ipAllowed === false && (
-            <p style={{color:'#ff6b6b'}}>⚠️ You are not at the designated work location. Clock-in/out is disabled.</p>
-          )}
-          {ipAllowed === true && (
-            <div>
-              <input
-                type="password"
-                placeholder="Enter your PIN"
-                value={pin}
-                onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
-                maxLength={6}
-                onKeyDown={(e) => e.key === 'Enter' && handlePunch()}
-                style={{padding:'0.5rem 1rem',fontSize:'1.2rem',borderRadius:'8px',border:'none',textAlign:'center',width:'160px'}}
-              />
-              <button
-                onClick={handlePunch}
-                disabled={clockLoading}
-                style={{marginLeft:'0.75rem',padding:'0.5rem 1.5rem',fontSize:'1rem',borderRadius:'8px',background:'#4CAF50',color:'#fff',border:'none',cursor:'pointer'}}
-              >
-                {clockLoading ? '...' : 'Punch In/Out'}
-              </button>
+
+          {/* Punch In/Out - HIDDEN on phones via CSS */}
+          <div className="time-clock-punch-only">
+            <div style={{background:'#fff3cd',border:'1px solid #ffc107',borderRadius:'8px',padding:'14px 18px',marginBottom:'1rem',textAlign:'left'}}>
+              <p style={{color:'#856404',fontSize:'1rem',margin:0,fontWeight:'bold'}}>⚠️ WARNING: You are NOT allowed to clock anyone else in or out or share your PIN with other employees. Doing so will be subjected to Disciplinary Action.</p>
+              <p style={{color:'#856404',fontSize:'1rem',margin:'8px 0 0'}}>📶 You must be connected to the WIFI at the TBS Shop to clock in and out.</p>
+              <p style={{color:'#856404',fontSize:'1rem',margin:'8px 0 0'}}>📞 Forgot your PIN? Call Carson: <a href="tel:+17065814465" style={{color:'#856404',fontWeight:'bold'}}>(706) 581-4465</a></p>
             </div>
-          )}
-          {ipAllowed === null && <p style={{color:'#aaa'}}>Checking location...</p>}
-          {clockMsg && <p style={{color: clockMsg.includes('clocked') ? '#4CAF50' : '#ff6b6b', marginTop:'0.75rem', fontWeight:'bold', fontSize:'1.1rem'}}>{clockMsg}</p>}
-          {ipAllowed === true && (
+            {ipAllowed === false && (
+              <p style={{color:'#ff6b6b'}}>⚠️ You are not at the designated work location. Clock-in/out is disabled.</p>
+            )}
+            {ipAllowed === true && (
+              <div>
+                <input
+                  type="password"
+                  placeholder="Enter your PIN"
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+                  maxLength={6}
+                  onKeyDown={(e) => e.key === 'Enter' && handlePunch()}
+                  style={{padding:'0.5rem 1rem',fontSize:'1.2rem',borderRadius:'8px',border:'none',textAlign:'center',width:'160px'}}
+                />
+                <button
+                  onClick={handlePunch}
+                  disabled={clockLoading}
+                  style={{marginLeft:'0.75rem',padding:'0.5rem 1.5rem',fontSize:'1rem',borderRadius:'8px',background:'#4CAF50',color:'#fff',border:'none',cursor:'pointer'}}
+                >
+                  {clockLoading ? '...' : 'Punch In/Out'}
+                </button>
+              </div>
+            )}
+            {ipAllowed === null && <p style={{color:'#aaa'}}>Checking location...</p>}
+            {clockMsg && <p style={{color: clockMsg.includes('clocked') ? '#4CAF50' : '#ff6b6b', marginTop:'0.75rem', fontWeight:'bold', fontSize:'1.1rem'}}>{clockMsg}</p>}
+          </div>
+
+          {/* Phone-only message */}
+          <p className="time-clock-phone-msg" style={{color:'#aaa',margin:'1rem 0'}}>⏰ Clock in/out is only available on the tablet at the shop.</p>
+
+          {/* View Hours - available everywhere */}
+          <div className="time-clock-view-hours">
+            <input
+              type="password"
+              placeholder="Enter PIN to view hours"
+              value={pin}
+              onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+              maxLength={6}
+              className="time-clock-hours-pin"
+              style={{padding:'0.5rem 1rem',fontSize:'1.1rem',borderRadius:'8px',border:'none',textAlign:'center',width:'180px',marginBottom:'0.5rem'}}
+            />
             <button
               onClick={handleViewWeek}
               disabled={weekLoading}
-              style={{marginTop:'0.75rem',padding:'0.4rem 1.2rem',fontSize:'0.95rem',borderRadius:'8px',background:'#2196F3',color:'#fff',border:'none',cursor:'pointer'}}
+              style={{marginTop:'0.5rem',padding:'0.4rem 1.2rem',fontSize:'0.95rem',borderRadius:'8px',background:'#2196F3',color:'#fff',border:'none',cursor:'pointer'}}
             >
               {weekLoading ? '...' : '📅 View My Weekly Hours'}
             </button>
-          )}
+          </div>
           {weekData && (
             <div style={{marginTop:'1rem',background:'#fff',borderRadius:'8px',padding:'1rem',textAlign:'left',color:'#333'}}>
               <h3 style={{margin:'0 0 0.5rem',fontSize:'1.1rem'}}>📅 {weekData.name} — Week: {weekData.weekStart} to {weekData.weekEnd}</h3>
@@ -164,13 +182,23 @@ const EmployeeDashboard = () => {
                 <thead>
                   <tr style={{background:'#f2f2f2'}}>
                     <th style={{border:'1px solid #ddd',padding:'8px',textAlign:'left'}}>Day</th>
+                    <th style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>In / Out</th>
                     <th style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>Hours</th>
                   </tr>
                 </thead>
                 <tbody>
                   {['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map(day => (
                     <tr key={day} style={{background: weekData.days[day] ? '#f0fff0' : 'transparent'}}>
-                      <td style={{border:'1px solid #ddd',padding:'8px'}}>{day}</td>
+                      <td style={{border:'1px solid #ddd',padding:'8px',fontWeight:'bold'}}>{day}</td>
+                      <td style={{border:'1px solid #ddd',padding:'8px',textAlign:'center',fontSize:'0.85rem'}}>
+                        {weekData.days[day] ? weekData.days[day].records.map((r, i) => (
+                          <div key={i}>
+                            {new Date(r.clockIn).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}
+                            {' → '}
+                            {r.clockOut ? new Date(r.clockOut).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : <span style={{color:'#4CAF50'}}>Still In</span>}
+                          </div>
+                        )) : '—'}
+                      </td>
                       <td style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>
                         {weekData.days[day] ? `${(weekData.days[day].minutes / 60).toFixed(2)} hrs` : '—'}
                       </td>
