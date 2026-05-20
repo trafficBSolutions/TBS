@@ -1622,7 +1622,7 @@ selected={
                       <tr key={key} style={{background: dayData ? '#f0fff0' : 'transparent'}}>
                         <td style={{border:'1px solid #ddd',padding:'6px',fontWeight:'bold'}}>{dayName}</td>
                         <td style={{border:'1px solid #ddd',padding:'6px',textAlign:'center',fontSize:'0.85rem'}}>
-                          {dayData ? dayData.records.map((r, idx) => (
+                          {dayData && dayData.records ? dayData.records.map((r, idx) => (
                             <div key={idx}>
                               {new Date(r.clockIn).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
                               {' → '}
@@ -1631,7 +1631,7 @@ selected={
                           )) : '—'}
                         </td>
                         <td style={{border:'1px solid #ddd',padding:'6px',textAlign:'center'}}>
-                          {dayData ? `${(dayData.minutes / 60).toFixed(2)} hrs` : '—'}
+                          {dayData && dayData.minutes ? `${(dayData.minutes / 60).toFixed(2)} hrs` : '—'}
                         </td>
                       </tr>
                     );
