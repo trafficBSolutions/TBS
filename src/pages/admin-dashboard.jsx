@@ -114,6 +114,12 @@ const [manualOut, setManualOut] = useState('');
 const [manualReason, setManualReason] = useState('');
 const [manualMsg, setManualMsg] = useState('');
 const [manualLoading, setManualLoading] = useState(false);
+const [deductEmpId, setDeductEmpId] = useState('');
+const [deductDate, setDeductDate] = useState(new Date().toISOString().split('T')[0]);
+const [deductMinutes, setDeductMinutes] = useState('');
+const [deductReason, setDeductReason] = useState('');
+const [deductMsg, setDeductMsg] = useState('');
+const [deductLoading, setDeductLoading] = useState(false);
 const [pinEmployees, setPinEmployees] = useState([]);
 const [pinHourlyAdmins, setPinHourlyAdmins] = useState([]);
 const [pinMsg, setPinMsg] = useState('');
@@ -1513,6 +1519,33 @@ selected={
       </button>
     </div>
     {manualMsg && <p style={{color: manualMsg.includes('hrs added') ? '#4CAF50' : '#ff6b6b', fontWeight:'bold', fontSize:'0.85rem'}}>{manualMsg}</p>}
+    <hr style={{margin:'1.5rem 0'}} />
+    <h4>➖ Deduct Time</h4>
+    <p style={{fontSize:'0.8rem',color:'#666',marginBottom:'0.5rem'}}>Remove time from an employee's record (late arrival, early leave, etc.)</p>
+    <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap',alignItems:'center',marginBottom:'0.5rem'}}>
+      <select value={deductEmpId} onChange={(e) => setDeductEmpId(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',minWidth:'150px'}}>
+        <option value="">Select Employee...</option>
+        {pinEmployees.map(emp => <option key={emp._id} value={emp._id}>{emp.name}</option>)}
+        {pinHourlyAdmins.map(adm => <option key={adm._id} value={adm._id}>{adm.name} (Foreman)</option>)}
+      </select>
+      <input type="date" value={deductDate} onChange={(e) => setDeductDate(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}} />
+      <input type="number" placeholder="Minutes" value={deductMinutes} onChange={(e) => setDeductMinutes(e.target.value)} min="1" style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',width:'90px'}} />
+      <input type="text" placeholder="Reason" value={deductReason} onChange={(e) => setDeductReason(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',flex:'1',minWidth:'120px'}} />
+      <button className="btn" disabled={deductLoading} style={{padding:'6px 16px',background:'#f44336',color:'#fff'}} onClick={async () => {
+        if (!deductEmpId || !deductDate || !deductMinutes) { setDeductMsg('Employee, date, and minutes required'); return; }
+        setDeductLoading(true); setDeductMsg('');
+        try {
+          const res = await axios.post('/timeclock/deduct-time', { employeeId: deductEmpId, date: deductDate, minutes: deductMinutes, reason: deductReason });
+          setDeductMsg(res.data.message);
+          setDeductEmpId(''); setDeductMinutes(''); setDeductReason('');
+          setTimeout(() => setDeductMsg(''), 6000);
+        } catch (e) { setDeductMsg(e.response?.data?.message || 'Error'); }
+        finally { setDeductLoading(false); }
+      }}>
+        {deductLoading ? '...' : 'Deduct Time'}
+      </button>
+    </div>
+    {deductMsg && <p style={{color: deductMsg.includes('deducted') ? '#4CAF50' : '#ff6b6b', fontWeight:'bold', fontSize:'0.85rem'}}>{deductMsg}</p>}
     <hr style={{margin:'1.5rem 0'}} />
     <h4>📊 Time Worked Summary</h4>
     <div style={{display:'flex',gap:'0.5rem',alignItems:'center',flexWrap:'wrap',marginBottom:'1rem'}}>
