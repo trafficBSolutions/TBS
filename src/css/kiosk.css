@@ -173,7 +173,7 @@
 .kiosk-message.success { color: #4CAF50; }
 .kiosk-message.error { color: #ff6b6b; }
 
-/* ====== HIDE ON PHONES ====== */
+/* ====== HIDE STANDALONE KIOSK ON PHONES ====== */
 /* Phones: max-width 767px in any orientation */
 @media screen and (max-width: 767px) {
   .kiosk-container {
@@ -183,9 +183,9 @@
     min-height: 100vh;
     padding: 2rem;
   }
-  .kiosk-header,
-  .kiosk-employee-grid,
-  .kiosk-punch-panel {
+  .kiosk-container .kiosk-header,
+  .kiosk-container .kiosk-employee-grid,
+  .kiosk-container .kiosk-punch-panel {
     display: none;
   }
   .kiosk-container::after {
@@ -200,9 +200,9 @@
 
 /* Also block landscape phones (height < 500px with narrow viewport) */
 @media screen and (max-height: 500px) and (max-width: 900px) {
-  .kiosk-header,
-  .kiosk-employee-grid,
-  .kiosk-punch-panel {
+  .kiosk-container .kiosk-header,
+  .kiosk-container .kiosk-employee-grid,
+  .kiosk-container .kiosk-punch-panel {
     display: none;
   }
   .kiosk-container::after {
@@ -213,4 +213,19 @@
     max-width: 400px;
     line-height: 1.6;
   }
+}
+
+
+/* Kiosk grid inside the employee dashboard time-clock section */
+.time-clock-section .kiosk-employee-grid {
+  max-width: 100%;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+.time-clock-section .kiosk-punch-panel {
+  display: inline-block;
+  margin: 0 auto;
+  box-shadow: none;
+  padding: 2rem;
 }
