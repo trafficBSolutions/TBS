@@ -105,8 +105,13 @@ const [clockedInList, setClockedInList] = useState([]);
 const [clockHistory, setClockHistory] = useState([]);
 const [clockHistoryDate, setClockHistoryDate] = useState(new Date());
 const [timeWorked, setTimeWorked] = useState([]);
-const [timeWorkedStart, setTimeWorkedStart] = useState(new Date().toISOString().split('T')[0]);
-const [timeWorkedEnd, setTimeWorkedEnd] = useState(new Date().toISOString().split('T')[0]);
+const [timeWorkedWeekStart, setTimeWorkedWeekStart] = useState(() => {
+  const now = new Date();
+  const day = now.getDay();
+  const sun = new Date(now);
+  sun.setDate(now.getDate() - day);
+  return sun.toISOString().split('T')[0];
+});
 const [manualEmpId, setManualEmpId] = useState('');
 const [manualDate, setManualDate] = useState(new Date().toISOString().split('T')[0]);
 const [manualIn, setManualIn] = useState('');
@@ -855,7 +860,18 @@ useEffect(() => {
       <button className={`btn ${viewMode === 'complaints' ? 'active' : ''}`} onClick={() => setViewMode('complaints')}>Complaints</button>
       <button className={`btn ${viewMode === 'tasks' ? 'active' : ''}`} onClick={() => setViewMode('tasks')}>Tasks</button>
       {salaryAdminEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email) && (
-        <button className={`btn ${viewMode === 'timeclock' ? 'active' : ''}`} onClick={() => { setViewMode('timeclock'); axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {}); axios.get('/timeclock/employees').then(r => { setPinEmployees(r.data.employees); setPinHourlyAdmins(r.data.hourlyAdmins); }).catch(() => {}); }}>Time Clock</button>
+        <button className={`btn ${viewMode === 'timeclock' ? 'active' : ''}`} onClick={async () => {
+          setViewMode('timeclock');
+          axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {});
+          axios.get('/timeclock/employees').then(r => { setPinEmployees(r.data.employees); setPinHourlyAdmins(r.data.hourlyAdmins); }).catch(() => {});
+          // Auto-load current week
+          const now = new Date();
+          const sun = new Date(now); sun.setDate(now.getDate() - now.getDay());
+          const sunStr = sun.toISOString().split('T')[0];
+          const sat = new Date(sun); sat.setDate(sun.getDate() + 6);
+          const satStr = sat.toISOString().split('T')[0];
+          try { const res = await axios.get(`/timeclock/time-worked?startDate=${sunStr}&endDate=${satStr}`); setTimeWorked(res.data); } catch(e) {}
+        }}>Time Clock</button>
       )}
     </div>
   </>
@@ -1548,53 +1564,87 @@ selected={
     {deductMsg && <p style={{color: deductMsg.includes('deducted') ? '#4CAF50' : '#ff6b6b', fontWeight:'bold', fontSize:'0.85rem'}}>{deductMsg}</p>}
     <hr style={{margin:'1.5rem 0'}} />
     <h4>📊 Time Worked Summary</h4>
-    <div style={{display:'flex',gap:'0.5rem',alignItems:'center',flexWrap:'wrap',marginBottom:'1rem'}}>
-      <label style={{fontSize:'0.85rem'}}>From:</label>
-      <input type="date" value={timeWorkedStart} onChange={(e) => setTimeWorkedStart(e.target.value)} style={{padding:'0.4rem'}} />
-      <label style={{fontSize:'0.85rem'}}>To:</label>
-      <input type="date" value={timeWorkedEnd} onChange={(e) => setTimeWorkedEnd(e.target.value)} style={{padding:'0.4rem'}} />
-      <button className="btn" style={{padding:'6px 16px'}} onClick={async () => {
-        try {
-          const res = await axios.get(`/timeclock/time-worked?startDate=${timeWorkedStart}&endDate=${timeWorkedEnd}`);
-          setTimeWorked(res.data);
-        } catch (e) { console.error(e); }
-      }}>View Hours</button>
-    </div>
+    {(() => {
+      const weekStart = new Date(timeWorkedWeekStart + 'T00:00:00');
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      const weekEndStr = weekEnd.toISOString().split('T')[0];
+      return (
+        <>
+          <div style={{display:'flex',gap:'0.5rem',alignItems:'center',flexWrap:'wrap',marginBottom:'1rem'}}>
+            <button className="btn" style={{padding:'6px 12px'}} onClick={() => {
+              const prev = new Date(timeWorkedWeekStart + 'T00:00:00');
+              prev.setDate(prev.getDate() - 7);
+              setTimeWorkedWeekStart(prev.toISOString().split('T')[0]);
+            }}>◀ Prev Week</button>
+            <span style={{fontWeight:'bold',fontSize:'0.95rem'}}>
+              {weekStart.toLocaleDateString('en-US',{month:'short',day:'numeric'})} – {weekEnd.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
+            </span>
+            <button className="btn" style={{padding:'6px 12px'}} onClick={() => {
+              const next = new Date(timeWorkedWeekStart + 'T00:00:00');
+              next.setDate(next.getDate() + 7);
+              setTimeWorkedWeekStart(next.toISOString().split('T')[0]);
+            }}>Next Week ▶</button>
+            <button className="btn" style={{padding:'6px 16px'}} onClick={async () => {
+              try {
+                const res = await axios.get(`/timeclock/time-worked?startDate=${timeWorkedWeekStart}&endDate=${weekEndStr}`);
+                setTimeWorked(res.data);
+              } catch (e) { console.error(e); }
+            }}>Load Hours</button>
+          </div>
+        </>
+      );
+    })()}
     {timeWorked.length > 0 && (
       <div className="job-info-list">
-        <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.9rem'}}>
-          <thead>
-            <tr style={{background:'#f2f2f2'}}>
-              <th style={{border:'1px solid #ddd',padding:'8px',textAlign:'left'}}>Employee</th>
-              <th style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>Total Hours</th>
-              <th style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>Total Minutes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {timeWorked.map((emp, i) => (
-              <tr key={i}>
-                <td style={{border:'1px solid #ddd',padding:'8px'}}><strong>{emp.name}</strong></td>
-                <td style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>{emp.totalHours} hrs</td>
-                <td style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>{emp.totalMinutes} min</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div style={{marginTop:'1rem'}}>
-          {timeWorked.map((emp, i) => (
-            <details key={i} style={{marginBottom:'0.5rem'}}>
-              <summary style={{cursor:'pointer',fontWeight:'bold'}}>{emp.name} — {emp.totalHours} hrs</summary>
-              <div style={{paddingLeft:'1rem',marginTop:'0.25rem'}}>
-                {Object.entries(emp.days).map(([date, mins]) => (
-                  <p key={date} style={{margin:'2px 0',fontSize:'0.85rem'}}>{new Date(date + 'T00:00:00').toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'})}: <strong>{(mins/60).toFixed(2)} hrs</strong> ({mins} min)</p>
-                ))}
-              </div>
-            </details>
-          ))}
-        </div>
+        {timeWorked.map((emp, i) => (
+          <details key={i} style={{marginBottom:'0.75rem',background:'#f8f9fa',borderRadius:'8px',padding:'12px',border:'1px solid #ddd'}}>
+            <summary style={{cursor:'pointer',fontWeight:'bold',fontSize:'1rem'}}>{emp.name} — {emp.totalHours} hrs ({emp.totalMinutes} min)</summary>
+            <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.9rem',marginTop:'0.5rem'}}>
+              <thead>
+                <tr style={{background:'#e9ecef'}}>
+                  <th style={{border:'1px solid #ddd',padding:'6px',textAlign:'left'}}>Day</th>
+                  <th style={{border:'1px solid #ddd',padding:'6px',textAlign:'center'}}>In / Out</th>
+                  <th style={{border:'1px solid #ddd',padding:'6px',textAlign:'center'}}>Hours</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(() => {
+                  const sun = new Date(timeWorkedWeekStart + 'T00:00:00');
+                  const days = [];
+                  for (let d = 0; d < 7; d++) {
+                    const dt = new Date(sun);
+                    dt.setDate(sun.getDate() + d);
+                    const key = dt.toISOString().split('T')[0];
+                    const dayName = dt.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+                    const dayData = emp.days[key];
+                    days.push(
+                      <tr key={key} style={{background: dayData ? '#f0fff0' : 'transparent'}}>
+                        <td style={{border:'1px solid #ddd',padding:'6px',fontWeight:'bold'}}>{dayName}</td>
+                        <td style={{border:'1px solid #ddd',padding:'6px',textAlign:'center',fontSize:'0.85rem'}}>
+                          {dayData ? dayData.records.map((r, idx) => (
+                            <div key={idx}>
+                              {new Date(r.clockIn).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
+                              {' → '}
+                              {r.clockOut ? new Date(r.clockOut).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : <span style={{color:'#4CAF50',fontWeight:'bold'}}>Still In</span>}
+                            </div>
+                          )) : '—'}
+                        </td>
+                        <td style={{border:'1px solid #ddd',padding:'6px',textAlign:'center'}}>
+                          {dayData ? `${(dayData.minutes / 60).toFixed(2)} hrs` : '—'}
+                        </td>
+                      </tr>
+                    );
+                  }
+                  return days;
+                })()}
+              </tbody>
+            </table>
+          </details>
+        ))}
       </div>
     )}
-    {timeWorked.length === 0 && <p style={{color:'#888',fontSize:'0.85rem'}}>Select a date range and click "View Hours" to see time worked.</p>}
+    {timeWorked.length === 0 && <p style={{color:'#888',fontSize:'0.85rem'}}>Click "Load Hours" to see this week's time worked.</p>}
     <hr style={{margin:'1.5rem 0'}} />
     <h4>🔑 PIN Management</h4>
     <button className="btn" style={{marginBottom:'1rem'}} onClick={async () => {
