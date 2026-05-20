@@ -1597,9 +1597,19 @@ selected={
     })()}
     {timeWorked.length > 0 && (
       <div className="job-info-list">
-        {timeWorked.map((emp, i) => (
+        {timeWorked.map((emp, i) => {
+          // Calculate week total from days data only
+          const sun = new Date(timeWorkedWeekStart + 'T00:00:00');
+          let weekTotalMin = 0;
+          for (let d = 0; d < 7; d++) {
+            const dt = new Date(sun);
+            dt.setDate(sun.getDate() + d);
+            const key = dt.toISOString().split('T')[0];
+            if (emp.days[key] && emp.days[key].minutes) weekTotalMin += emp.days[key].minutes;
+          }
+          return (
           <details key={i} style={{marginBottom:'0.75rem',background:'#f8f9fa',borderRadius:'8px',padding:'12px',border:'1px solid #ddd'}}>
-            <summary style={{cursor:'pointer',fontWeight:'bold',fontSize:'1rem'}}>{emp.name} — {emp.totalHours} hrs ({emp.totalMinutes} min)</summary>
+            <summary style={{cursor:'pointer',fontWeight:'bold',fontSize:'1rem'}}>{emp.name} — {(weekTotalMin / 60).toFixed(2)} hrs ({weekTotalMin} min)</summary>
             <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.9rem',marginTop:'0.5rem'}}>
               <thead>
                 <tr style={{background:'#e9ecef'}}>
@@ -1610,7 +1620,6 @@ selected={
               </thead>
               <tbody>
                 {(() => {
-                  const sun = new Date(timeWorkedWeekStart + 'T00:00:00');
                   const days = [];
                   for (let d = 0; d < 7; d++) {
                     const dt = new Date(sun);
@@ -1638,10 +1647,15 @@ selected={
                   }
                   return days;
                 })()}
+                <tr style={{background:'#e3f2fd',fontWeight:'bold'}}>
+                  <td style={{border:'1px solid #ddd',padding:'8px'}} colSpan={2}>Week Total</td>
+                  <td style={{border:'1px solid #ddd',padding:'8px',textAlign:'center',fontSize:'1rem'}}>{(weekTotalMin / 60).toFixed(2)} hrs</td>
+                </tr>
               </tbody>
             </table>
           </details>
-        ))}
+          );
+        })}
       </div>
     )}
     {timeWorked.length === 0 && <p style={{color:'#888',fontSize:'0.85rem'}}>Click "Load Hours" to see this week's time worked.</p>}
