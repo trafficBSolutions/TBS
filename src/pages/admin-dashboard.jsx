@@ -1546,7 +1546,7 @@ selected={
       {clockedInList.map((entry) => (
         <div key={entry._id} className="job-card">
           <h4 className="job-company">{entry.employeeName}</h4>
-          <p><strong>Clocked In:</strong> {new Date(entry.clockIn).toLocaleString()}</p>
+          <p><strong>Clocked In:</strong> {new Date(entry.clockIn).toLocaleString([], {hour12: false})}</p>
           <p><strong>Duration:</strong> {Math.round((Date.now() - new Date(entry.clockIn)) / 60000)} min</p>
         </div>
       ))}
@@ -1563,8 +1563,8 @@ selected={
       {clockHistory.map((entry) => (
         <div key={entry._id} className="job-card">
           <h4 className="job-company">{entry.employeeName}</h4>
-          <p><strong>In:</strong> {new Date(entry.clockIn).toLocaleTimeString()}</p>
-          <p><strong>Out:</strong> {entry.clockOut ? new Date(entry.clockOut).toLocaleTimeString() : 'Still clocked in'}</p>
+          <p><strong>In:</strong> {new Date(entry.clockIn).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12: false})}</p>
+          <p><strong>Out:</strong> {entry.clockOut ? new Date(entry.clockOut).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12: false}) : 'Still clocked in'}</p>
           {entry.clockOut && <p><strong>Total:</strong> {Math.round((new Date(entry.clockOut) - new Date(entry.clockIn)) / 60000)} min</p>}
         </div>
       ))}
@@ -1697,9 +1697,9 @@ selected={
                         <td style={{border:'1px solid #ddd',padding:'6px',textAlign:'center',fontSize:'0.85rem'}}>
                           {dayData && dayData.records ? dayData.records.map((r, idx) => (
                             <div key={idx}>
-                              {new Date(r.clockIn).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
+                              {new Date(r.clockIn).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})}
                               {' → '}
-                              {r.clockOut ? new Date(r.clockOut).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : <span style={{color:'#4CAF50',fontWeight:'bold'}}>Still In</span>}
+                              {r.clockOut ? new Date(r.clockOut).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false}) : <span style={{color:'#4CAF50',fontWeight:'bold'}}>Still In</span>}
                             </div>
                           )) : '—'}
                         </td>
