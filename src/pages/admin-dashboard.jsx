@@ -871,7 +871,7 @@ useEffect(() => {
           const sat = new Date(sun); sat.setDate(sun.getDate() + 6);
           const satStr = sat.toISOString().split('T')[0];
           try { const res = await axios.get(`/timeclock/time-worked?startDate=${sunStr}&endDate=${satStr}`); setTimeWorked(res.data); } catch(e) {}
-        }}>Time Clock</button>
+        }}>Tasks</button>
       )}
     </div>
   </>
@@ -2026,6 +2026,25 @@ selected={
     <p>Design Traffic Control Plans</p>
     <button className="btn workorder-btn" onClick={() => navigate('/admin-dashboard/tcp-designer')}>Open Designer</button>
   </div>
+
+  {salaryAdminEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email) && (
+    <div className="tool-card">
+      <h3>⏰ Time Clock</h3>
+      <p>Manage employee hours & PINs</p>
+      <button className="btn workorder-btn" onClick={async () => {
+        setViewMode('timeclock');
+        axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {});
+        axios.get('/timeclock/employees').then(r => { setPinEmployees(r.data.employees); setPinHourlyAdmins(r.data.hourlyAdmins); }).catch(() => {});
+        const now = new Date();
+        const sun = new Date(now); sun.setDate(now.getDate() - now.getDay());
+        const sunStr = sun.toISOString().split('T')[0];
+        const sat = new Date(sun); sat.setDate(sun.getDate() + 6);
+        const satStr = sat.toISOString().split('T')[0];
+        try { const res = await axios.get(`/timeclock/time-worked?startDate=${sunStr}&endDate=${satStr}`); setTimeWorked(res.data); } catch(e) {}
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }}>Open Time Clock</button>
+    </div>
+  )}
 
   <div className="tool-card">
     <h3>📋 Add Task</h3>
