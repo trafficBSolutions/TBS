@@ -27,6 +27,7 @@ const EmployeeDashboard = () => {
   const [employees, setEmployees] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [clockedInIds, setClockedInIds] = useState([]);
+  const [clockPurpose, setClockPurpose] = useState('');
 
   useEffect(() => {
     axios.get('/timeclock/check-ip').then(res => setIpAllowed(res.data.allowed)).catch(() => setIpAllowed(false));
@@ -56,15 +57,17 @@ const EmployeeDashboard = () => {
 
   const handlePunch = async () => {
     if (!pin.trim() || pin.length < 4) { setClockMsg('Enter your 4+ digit PIN'); return; }
+    // Require purpose only when clocking IN
+    const isClockedIn = selectedEmployee && clockedInIds.includes(selectedEmployee._id);
+    if (!isClockedIn && !clockPurpose) { setClockMsg('Please select your job purpose before clocking in'); return; }
     setClockLoading(true);
     setClockMsg('');
-    const currentPin = pin;
     try {
-      const res = await axios.post('/timeclock/punch', { pin });
+      const res = await axios.post('/timeclock/punch', { pin, purpose: isClockedIn ? undefined : clockPurpose });
       setClockMsg(res.data.message);
       setPin('');
+      setClockPurpose('');
       fetchClockedIn();
-      // Auto-return to employee list after 3 seconds
       setTimeout(() => { setSelectedEmployee(null); setClockMsg(''); }, 3000);
     } catch (err) {
       const data = err.response?.data;
@@ -180,6 +183,21 @@ const EmployeeDashboard = () => {
                 <p style={{fontSize:'1.1rem',fontWeight:600,marginBottom:'1rem'}}>
                   {clockedInIds.includes(selectedEmployee._id) ? '🟢 Currently Clocked In' : '⚪ Currently Clocked Out'}
                 </p>
+                {!clockedInIds.includes(selectedEmployee._id) && (
+                  <select
+                    value={clockPurpose}
+                    onChange={(e) => setClockPurpose(e.target.value)}
+                    className="kiosk-pin-input"
+                    style={{marginBottom:'0.75rem',padding:'0.6rem',fontSize:'1rem',borderRadius:'8px',border:'2px solid #ccc',width:'100%',maxWidth:'280px'}}
+                  >
+                    <option value="">-- Select Job Purpose --</option>
+                    <option value="2 Man Crew">2 Man Crew</option>
+                    <option value="Arrow Board/Message Board Job">Arrow Board/Message Board Job</option>
+                    <option value="Emergency Job">Emergency Job</option>
+                    <option value="Weekend Work">Weekend Work</option>
+                    <option value="Shop Work">Shop Work</option>
+                  </select>
+                )}
                 <input
                   type="password"
                   inputMode="numeric"
@@ -239,7 +257,7 @@ const EmployeeDashboard = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map(day => (
+                  {['Saturday','Sunday','Monday','Tuesday','Wednesday','Thursday','Friday'].map(day => (
                     <tr key={day} style={{background: weekData.days[day] ? '#f0fff0' : 'transparent'}}>
                       <td style={{border:'1px solid #ddd',padding:'8px',fontWeight:'bold'}}>{day}</td>
                       <td style={{border:'1px solid #ddd',padding:'8px',textAlign:'center',fontSize:'0.85rem'}}>
