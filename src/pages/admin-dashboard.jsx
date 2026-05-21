@@ -1531,105 +1531,96 @@ selected={
         }}>Open Time Clock</button>
       {viewMode === 'timeclock' && (
   <>
-    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
-      <h3>⏰ Employee Time Clock</h3>
-      <button className="btn" style={{background:'#888',color:'#fff',padding:'6px 16px'}} onClick={() => setViewMode('traffic')}>✖ Close Time Clock</button>
+    {/* Header */}
+    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.5rem'}}>
+      <h3 style={{margin:0}}>⏰ Employee Time Clock</h3>
+      <div style={{display:'flex',gap:'0.5rem'}}>
+        <button className="btn" onClick={() => axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {})}>🔄 Refresh</button>
+        <button className="btn" style={{background:'#888',color:'#fff'}} onClick={() => setViewMode('traffic')}>✖ Close</button>
+      </div>
     </div>
-    <div style={{marginBottom:'1rem'}}>
-      <button className="btn" onClick={() => axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {})}>
-        Refresh Status
-      </button>
+
+    {/* Currently Clocked In */}
+    <div style={{background:'#f0fdf4',border:'1px solid #86efac',borderRadius:'10px',padding:'1rem',marginBottom:'1.5rem'}}>
+      <h4 style={{color:'#166534',margin:'0 0 0.75rem'}}>🟢 Currently Clocked In ({clockedInList.length})</h4>
+      {clockedInList.length === 0 && <p style={{color:'#666',margin:0}}>No employees currently clocked in.</p>}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(250px, 1fr))',gap:'0.75rem'}}>
+        {clockedInList.map((entry) => (
+          <div key={entry._id} style={{background:'#fff',borderRadius:'8px',padding:'0.75rem',border:'1px solid #ddd'}}>
+            <strong style={{fontSize:'0.95rem'}}>{entry.employeeName}</strong>
+            <p style={{margin:'4px 0',fontSize:'0.85rem',color:'#555'}}>In: {new Date(entry.clockIn).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})} • {Math.round((Date.now() - new Date(entry.clockIn)) / 60000)} min</p>
+            {entry.purpose && <span style={{background:'#e3f2fd',color:'#1565c0',padding:'2px 8px',borderRadius:'4px',fontSize:'0.8rem',fontWeight:'bold'}}>{entry.purpose}</span>}
+          </div>
+        ))}
+      </div>
     </div>
-    <h4 style={{color:'#4CAF50'}}>Currently Clocked In ({clockedInList.length})</h4>
-    <div className="job-info-list">
-      {clockedInList.length === 0 && <p>No employees currently clocked in.</p>}
-      {clockedInList.map((entry) => (
-        <div key={entry._id} className="job-card">
-          <h4 className="job-company">{entry.employeeName}</h4>
-          <p><strong>Clocked In:</strong> {new Date(entry.clockIn).toLocaleString([], {hour12: false})}</p>
-          <p><strong>Duration:</strong> {Math.round((Date.now() - new Date(entry.clockIn)) / 60000)} min</p>
-          {entry.purpose && <p><strong>Purpose:</strong> <span style={{background:'#e3f2fd',color:'#1565c0',padding:'2px 8px',borderRadius:'4px',fontSize:'0.85rem',fontWeight:'bold'}}>{entry.purpose}</span></p>}
+
+    {/* Admin Actions: Add Hours & Deduct Time */}
+    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'1rem',marginBottom:'1.5rem'}}>
+      {/* Add Hours */}
+      <div style={{background:'#f0f8ff',border:'1px solid #90caf9',borderRadius:'10px',padding:'1rem'}}>
+        <h4 style={{margin:'0 0 0.5rem',color:'#1565c0'}}>✏️ Add Hours</h4>
+        <p style={{fontSize:'0.8rem',color:'#666',margin:'0 0 0.5rem'}}>Employee forgot to clock in/out</p>
+        <div style={{display:'flex',flexDirection:'column',gap:'0.4rem'}}>
+          <select value={manualEmpId} onChange={(e) => setManualEmpId(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}}>
+            <option value="">Select Employee...</option>
+            {pinEmployees.map(emp => <option key={emp._id} value={emp._id}>{emp.name}</option>)}
+          </select>
+          <input type="date" value={manualDate} onChange={(e) => setManualDate(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}} />
+          <div style={{display:'flex',gap:'0.4rem',alignItems:'center'}}>
+            <label style={{fontSize:'0.8rem'}}>In:</label>
+            <input type="time" value={manualIn} onChange={(e) => setManualIn(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',flex:1}} />
+            <label style={{fontSize:'0.8rem'}}>Out:</label>
+            <input type="time" value={manualOut} onChange={(e) => setManualOut(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',flex:1}} />
+          </div>
+          <input type="text" placeholder="Reason (optional)" value={manualReason} onChange={(e) => setManualReason(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}} />
+          <button className="btn" disabled={manualLoading} style={{padding:'6px 16px'}} onClick={async () => {
+            if (!manualEmpId || !manualDate || !manualIn || !manualOut) { setManualMsg('All fields required'); return; }
+            setManualLoading(true); setManualMsg('');
+            try {
+              const res = await axios.post('/timeclock/manual-entry', { employeeId: manualEmpId, date: manualDate, clockIn: manualIn, clockOut: manualOut, reason: manualReason });
+              setManualMsg(res.data.message);
+              setManualEmpId(''); setManualIn(''); setManualOut(''); setManualReason('');
+              setTimeout(() => setManualMsg(''), 6000);
+            } catch (e) { setManualMsg(e.response?.data?.message || 'Error'); }
+            finally { setManualLoading(false); }
+          }}>{manualLoading ? '...' : 'Add Hours'}</button>
+          {manualMsg && <p style={{color: manualMsg.includes('hrs added') ? '#4CAF50' : '#ff6b6b', fontWeight:'bold', fontSize:'0.85rem',margin:0}}>{manualMsg}</p>}
         </div>
-      ))}
-    </div>
-    <hr style={{margin:'1.5rem 0'}} />
-    <h4>History for {clockHistoryDate.toLocaleDateString()}</h4>
-    <input type="date" value={clockHistoryDate.toISOString().split('T')[0]} onChange={(e) => {
-      const d = new Date(e.target.value + 'T00:00:00');
-      setClockHistoryDate(d);
-      axios.get(`/timeclock/history?date=${e.target.value}`).then(r => setClockHistory(r.data)).catch(() => {});
-    }} style={{marginBottom:'1rem',padding:'0.4rem'}} />
-    <div className="job-info-list">
-      {clockHistory.length === 0 && <p>No records for this date.</p>}
-      {clockHistory.map((entry) => (
-        <div key={entry._id} className="job-card">
-          <h4 className="job-company">{entry.employeeName}</h4>
-          <p><strong>In:</strong> {new Date(entry.clockIn).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12: false})}</p>
-          <p><strong>Out:</strong> {entry.clockOut ? new Date(entry.clockOut).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12: false}) : 'Still clocked in'}</p>
-          {entry.clockOut && <p><strong>Total:</strong> {Math.round((new Date(entry.clockOut) - new Date(entry.clockIn)) / 60000)} min</p>}
-          {entry.purpose && <p><strong>Purpose:</strong> <span style={{background:'#e3f2fd',color:'#1565c0',padding:'2px 8px',borderRadius:'4px',fontSize:'0.85rem'}}>{entry.purpose}</span></p>}
+      </div>
+
+      {/* Deduct Time */}
+      <div style={{background:'#fef2f2',border:'1px solid #fca5a5',borderRadius:'10px',padding:'1rem'}}>
+        <h4 style={{margin:'0 0 0.5rem',color:'#b91c1c'}}>➖ Deduct Time</h4>
+        <p style={{fontSize:'0.8rem',color:'#666',margin:'0 0 0.5rem'}}>Late arrival, early leave, etc.</p>
+        <div style={{display:'flex',flexDirection:'column',gap:'0.4rem'}}>
+          <select value={deductEmpId} onChange={(e) => setDeductEmpId(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}}>
+            <option value="">Select Employee...</option>
+            {pinEmployees.map(emp => <option key={emp._id} value={emp._id}>{emp.name}</option>)}
+          </select>
+          <input type="date" value={deductDate} onChange={(e) => setDeductDate(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}} />
+          <div style={{display:'flex',gap:'0.4rem'}}>
+            <input type="number" placeholder="Minutes" value={deductMinutes} onChange={(e) => setDeductMinutes(e.target.value)} min="1" style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',width:'90px'}} />
+            <input type="text" placeholder="Reason" value={deductReason} onChange={(e) => setDeductReason(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',flex:'1'}} />
+          </div>
+          <button className="btn" disabled={deductLoading} style={{padding:'6px 16px',background:'#f44336',color:'#fff'}} onClick={async () => {
+            if (!deductEmpId || !deductDate || !deductMinutes) { setDeductMsg('Employee, date, and minutes required'); return; }
+            setDeductLoading(true); setDeductMsg('');
+            try {
+              const res = await axios.post('/timeclock/deduct-time', { employeeId: deductEmpId, date: deductDate, minutes: deductMinutes, reason: deductReason });
+              setDeductMsg(res.data.message);
+              setDeductEmpId(''); setDeductMinutes(''); setDeductReason('');
+              setTimeout(() => setDeductMsg(''), 6000);
+            } catch (e) { setDeductMsg(e.response?.data?.message || 'Error'); }
+            finally { setDeductLoading(false); }
+          }}>{deductLoading ? '...' : 'Deduct Time'}</button>
+          {deductMsg && <p style={{color: deductMsg.includes('deducted') ? '#4CAF50' : '#ff6b6b', fontWeight:'bold', fontSize:'0.85rem',margin:0}}>{deductMsg}</p>}
         </div>
-      ))}
+      </div>
     </div>
-    <hr style={{margin:'1.5rem 0'}} />
-    <h4>✏️ Add Hours Manually</h4>
-    <p style={{fontSize:'0.8rem',color:'#666',marginBottom:'0.5rem'}}>Use this if an employee forgot to clock in/out.</p>
-    <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap',alignItems:'center',marginBottom:'0.5rem'}}>
-      <select value={manualEmpId} onChange={(e) => setManualEmpId(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',minWidth:'150px'}}>
-        <option value="">Select Employee...</option>
-        {pinEmployees.map(emp => <option key={emp._id} value={emp._id}>{emp.name}</option>)}
-      </select>
-      <input type="date" value={manualDate} onChange={(e) => setManualDate(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}} />
-      <label style={{fontSize:'0.8rem'}}>In:</label>
-      <input type="time" value={manualIn} onChange={(e) => setManualIn(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}} />
-      <label style={{fontSize:'0.8rem'}}>Out:</label>
-      <input type="time" value={manualOut} onChange={(e) => setManualOut(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}} />
-    </div>
-    <div style={{display:'flex',gap:'0.5rem',alignItems:'center',marginBottom:'0.5rem'}}>
-      <input type="text" placeholder="Reason (optional)" value={manualReason} onChange={(e) => setManualReason(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',flex:'1'}} />
-      <button className="btn" disabled={manualLoading} style={{padding:'6px 16px'}} onClick={async () => {
-        if (!manualEmpId || !manualDate || !manualIn || !manualOut) { setManualMsg('All fields required'); return; }
-        setManualLoading(true); setManualMsg('');
-        try {
-          const res = await axios.post('/timeclock/manual-entry', { employeeId: manualEmpId, date: manualDate, clockIn: manualIn, clockOut: manualOut, reason: manualReason });
-          setManualMsg(res.data.message);
-          setManualEmpId(''); setManualIn(''); setManualOut(''); setManualReason('');
-          setTimeout(() => setManualMsg(''), 6000);
-        } catch (e) { setManualMsg(e.response?.data?.message || 'Error'); }
-        finally { setManualLoading(false); }
-      }}>
-        {manualLoading ? '...' : 'Add Hours'}
-      </button>
-    </div>
-    {manualMsg && <p style={{color: manualMsg.includes('hrs added') ? '#4CAF50' : '#ff6b6b', fontWeight:'bold', fontSize:'0.85rem'}}>{manualMsg}</p>}
-    <hr style={{margin:'1.5rem 0'}} />
-    <h4>➖ Deduct Time</h4>
-    <p style={{fontSize:'0.8rem',color:'#666',marginBottom:'0.5rem'}}>Remove time from an employee's record (late arrival, early leave, etc.)</p>
-    <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap',alignItems:'center',marginBottom:'0.5rem'}}>
-      <select value={deductEmpId} onChange={(e) => setDeductEmpId(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',minWidth:'150px'}}>
-        <option value="">Select Employee...</option>
-        {pinEmployees.map(emp => <option key={emp._id} value={emp._id}>{emp.name}</option>)}
-      </select>
-      <input type="date" value={deductDate} onChange={(e) => setDeductDate(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}} />
-      <input type="number" placeholder="Minutes" value={deductMinutes} onChange={(e) => setDeductMinutes(e.target.value)} min="1" style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',width:'90px'}} />
-      <input type="text" placeholder="Reason" value={deductReason} onChange={(e) => setDeductReason(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',flex:'1',minWidth:'120px'}} />
-      <button className="btn" disabled={deductLoading} style={{padding:'6px 16px',background:'#f44336',color:'#fff'}} onClick={async () => {
-        if (!deductEmpId || !deductDate || !deductMinutes) { setDeductMsg('Employee, date, and minutes required'); return; }
-        setDeductLoading(true); setDeductMsg('');
-        try {
-          const res = await axios.post('/timeclock/deduct-time', { employeeId: deductEmpId, date: deductDate, minutes: deductMinutes, reason: deductReason });
-          setDeductMsg(res.data.message);
-          setDeductEmpId(''); setDeductMinutes(''); setDeductReason('');
-          setTimeout(() => setDeductMsg(''), 6000);
-        } catch (e) { setDeductMsg(e.response?.data?.message || 'Error'); }
-        finally { setDeductLoading(false); }
-      }}>
-        {deductLoading ? '...' : 'Deduct Time'}
-      </button>
-    </div>
-    {deductMsg && <p style={{color: deductMsg.includes('deducted') ? '#4CAF50' : '#ff6b6b', fontWeight:'bold', fontSize:'0.85rem'}}>{deductMsg}</p>}
-    <hr style={{margin:'1.5rem 0'}} />
-    <h4>📊 Time Worked Summary</h4>
+    {/* Time Worked Summary */}
+    <div style={{background:'#f8f9fa',border:'1px solid #dee2e6',borderRadius:'10px',padding:'1rem',marginBottom:'1.5rem'}}>
+    <h4 style={{margin:'0 0 0.75rem',color:'#1e3a8a'}}>📊 Weekly Time Summary</h4>
     {(() => {
       const weekStart = new Date(timeWorkedWeekStart + 'T00:00:00');
       const weekEnd = new Date(weekStart);
@@ -1726,8 +1717,11 @@ selected={
       </div>
     )}
     {timeWorked.length === 0 && <p style={{color:'#888',fontSize:'0.85rem'}}>Click "Load Hours" to see this week's time worked.</p>}
-    <hr style={{margin:'1.5rem 0'}} />
-    <h4>🔑 PIN Management</h4>
+    </div>
+
+    {/* PIN Management */}
+    <div style={{background:'#f8f9fa',border:'1px solid #dee2e6',borderRadius:'10px',padding:'1rem'}}>
+    <h4 style={{margin:'0 0 0.75rem',color:'#1e3a8a'}}>🔑 PIN Management</h4>
     <button className="btn" style={{marginBottom:'1rem'}} onClick={async () => {
       setShowPinManager(!showPinManager);
       if (!showPinManager) {
@@ -1862,6 +1856,7 @@ selected={
 
       </div>
     )}
+    </div>
   </>
 )}
     </div>
