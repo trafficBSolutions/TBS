@@ -1547,9 +1547,9 @@ selected={
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(250px, 1fr))',gap:'0.75rem'}}>
         {clockedInList.map((entry) => (
           <div key={entry._id} style={{background:'#fff',borderRadius:'8px',padding:'0.75rem',border:'1px solid #ddd'}}>
-            <strong style={{fontSize:'0.95rem'}}>{entry.employeeName}</strong>
-            <p style={{margin:'4px 0',fontSize:'0.85rem',color:'#555'}}>In: {new Date(entry.clockIn).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})} • {Math.round((Date.now() - new Date(entry.clockIn)) / 60000)} min</p>
-            {entry.purpose && <span style={{background:'#e3f2fd',color:'#1565c0',padding:'2px 8px',borderRadius:'4px',fontSize:'0.8rem',fontWeight:'bold'}}>{entry.purpose}</span>}
+            <strong style={{fontSize:'1.05rem'}}>{entry.employeeName}</strong>
+            <p style={{margin:'4px 0',fontSize:'0.95rem',color:'#555'}}>In: {new Date(entry.clockIn).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})} • {Math.round((Date.now() - new Date(entry.clockIn)) / 60000)} min</p>
+            {entry.purpose && <span style={{background:'#e3f2fd',color:'#1565c0',padding:'3px 10px',borderRadius:'4px',fontSize:'0.9rem',fontWeight:'bold'}}>{entry.purpose}</span>}
           </div>
         ))}
       </div>
@@ -1560,7 +1560,7 @@ selected={
       {/* Add Hours */}
       <div style={{background:'#f0f8ff',border:'1px solid #90caf9',borderRadius:'10px',padding:'1rem'}}>
         <h4 style={{margin:'0 0 0.5rem',color:'#1565c0'}}>✏️ Add Hours</h4>
-        <p style={{fontSize:'0.8rem',color:'#666',margin:'0 0 0.5rem'}}>Employee forgot to clock in/out</p>
+        <p style={{fontSize:'0.9rem',color:'#666',margin:'0 0 0.5rem'}}>Employee forgot to clock in/out</p>
         <div style={{display:'flex',flexDirection:'column',gap:'0.4rem'}}>
           <select value={manualEmpId} onChange={(e) => setManualEmpId(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}}>
             <option value="">Select Employee...</option>
@@ -1592,7 +1592,7 @@ selected={
       {/* Deduct Time */}
       <div style={{background:'#fef2f2',border:'1px solid #fca5a5',borderRadius:'10px',padding:'1rem'}}>
         <h4 style={{margin:'0 0 0.5rem',color:'#b91c1c'}}>➖ Deduct Time</h4>
-        <p style={{fontSize:'0.8rem',color:'#666',margin:'0 0 0.5rem'}}>Late arrival, early leave, etc.</p>
+        <p style={{fontSize:'0.9rem',color:'#666',margin:'0 0 0.5rem'}}>Late arrival, early leave, etc.</p>
         <div style={{display:'flex',flexDirection:'column',gap:'0.4rem'}}>
           <select value={deductEmpId} onChange={(e) => setDeductEmpId(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}}>
             <option value="">Select Employee...</option>
@@ -1634,7 +1634,7 @@ selected={
               prev.setDate(prev.getDate() - 7);
               setTimeWorkedWeekStart(prev.toISOString().split('T')[0]);
             }}>◀ Prev Week</button>
-            <span style={{fontWeight:'bold',fontSize:'0.95rem'}}>
+            <span style={{fontWeight:'bold',fontSize:'1.1rem'}}>
               {weekStart.toLocaleDateString('en-US',{month:'short',day:'numeric'})} – {weekEnd.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
             </span>
             <button className="btn" style={{padding:'6px 12px'}} onClick={() => {
@@ -1665,14 +1665,14 @@ selected={
             if (emp.days[key] && emp.days[key].minutes) weekTotalMin += emp.days[key].minutes;
           }
           return (
-          <details key={i} style={{marginBottom:'0.75rem',background:'#f8f9fa',borderRadius:'8px',padding:'12px',border:'1px solid #ddd'}}>
-            <summary style={{cursor:'pointer',fontWeight:'bold',fontSize:'1rem'}}>{emp.name} — {(weekTotalMin / 60).toFixed(2)} hrs ({weekTotalMin} min)</summary>
-            <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.9rem',marginTop:'0.5rem'}}>
+          <details key={i} style={{marginBottom:'0.75rem',background:'#f8f9fa',borderRadius:'8px',padding:'14px',border:'1px solid #ddd'}}>
+            <summary style={{cursor:'pointer',fontWeight:'bold',fontSize:'1.15rem'}}>{emp.name} {emp.position && <span style={{fontWeight:'normal',fontSize:'0.9rem',color:'#1565c0',background:'#e3f2fd',padding:'2px 8px',borderRadius:'4px',marginLeft:'6px'}}>{emp.position}</span>} — {(weekTotalMin / 60).toFixed(2)} hrs ({weekTotalMin} min)</summary>
+            <table style={{width:'100%',borderCollapse:'collapse',fontSize:'1rem',marginTop:'0.5rem'}}>
               <thead>
                 <tr style={{background:'#e9ecef'}}>
-                  <th style={{border:'1px solid #ddd',padding:'6px',textAlign:'left'}}>Day</th>
-                  <th style={{border:'1px solid #ddd',padding:'6px',textAlign:'center'}}>In / Out</th>
-                  <th style={{border:'1px solid #ddd',padding:'6px',textAlign:'center'}}>Hours</th>
+                  <th style={{border:'1px solid #ddd',padding:'8px',textAlign:'left'}}>Day</th>
+                  <th style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>In / Out</th>
+                  <th style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>Hours</th>
                 </tr>
               </thead>
               <tbody>
@@ -1686,18 +1686,18 @@ selected={
                     const dayData = emp.days[key];
                     days.push(
                       <tr key={key} style={{background: dayData ? '#f0fff0' : 'transparent'}}>
-                        <td style={{border:'1px solid #ddd',padding:'6px',fontWeight:'bold'}}>{dayName}</td>
-                        <td style={{border:'1px solid #ddd',padding:'6px',textAlign:'center',fontSize:'0.85rem'}}>
+                        <td style={{border:'1px solid #ddd',padding:'8px',fontWeight:'bold'}}>{dayName}</td>
+                        <td style={{border:'1px solid #ddd',padding:'8px',textAlign:'center',fontSize:'0.95rem'}}>
                           {dayData && dayData.records ? dayData.records.map((r, idx) => (
                             <div key={idx}>
                               {new Date(r.clockIn).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})}
                               {' → '}
                               {r.clockOut ? new Date(r.clockOut).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false}) : <span style={{color:'#4CAF50',fontWeight:'bold'}}>Still In</span>}
-                              {r.purpose && <span style={{marginLeft:'6px',background:'#e3f2fd',color:'#1565c0',padding:'1px 6px',borderRadius:'3px',fontSize:'0.75rem'}}>{r.purpose}</span>}
+                              {r.purpose && <span style={{marginLeft:'6px',background:'#e3f2fd',color:'#1565c0',padding:'2px 8px',borderRadius:'3px',fontSize:'0.85rem'}}>{r.purpose}</span>}
                             </div>
                           )) : '—'}
                         </td>
-                        <td style={{border:'1px solid #ddd',padding:'6px',textAlign:'center'}}>
+                        <td style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>
                           {dayData && dayData.minutes ? `${(dayData.minutes / 60).toFixed(2)} hrs` : '—'}
                         </td>
                       </tr>
