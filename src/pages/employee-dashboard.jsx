@@ -41,8 +41,7 @@ const EmployeeDashboard = () => {
     try {
       const res = await axios.get('/timeclock/employees');
       const all = [
-        ...res.data.employees.map(e => ({ ...e, displayName: e.name })),
-        ...res.data.hourlyAdmins.map(a => ({ ...a, position: 'Supervisor', displayName: a.name }))
+        ...res.data.employees.map(e => ({ ...e, displayName: e.name }))
       ].filter(e => !e.terminated);
       setEmployees(all);
     } catch (err) {}
