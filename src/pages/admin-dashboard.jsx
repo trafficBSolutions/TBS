@@ -108,9 +108,10 @@ const [timeWorked, setTimeWorked] = useState([]);
 const [timeWorkedWeekStart, setTimeWorkedWeekStart] = useState(() => {
   const now = new Date();
   const day = now.getDay();
-  const sun = new Date(now);
-  sun.setDate(now.getDate() - day);
-  return sun.toISOString().split('T')[0];
+  // Saturday = 6, so offset to previous Saturday
+  const sat = new Date(now);
+  sat.setDate(now.getDate() - ((day + 1) % 7));
+  return sat.toISOString().split('T')[0];
 });
 const [manualEmpId, setManualEmpId] = useState('');
 const [manualDate, setManualDate] = useState(new Date().toISOString().split('T')[0]);
@@ -845,9 +846,8 @@ useEffect(() => {
           setViewMode('timeclock');
           axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {});
           axios.get('/timeclock/employees').then(r => { setPinEmployees(r.data.employees); }).catch(() => {});
-          // Auto-load current week
           const now = new Date();
-          const sun = new Date(now); sun.setDate(now.getDate() - now.getDay());
+          const sun = new Date(now); sun.setDate(now.getDate() - ((now.getDay() + 1) % 7));
           const sunStr = sun.toISOString().split('T')[0];
           const sat = new Date(sun); sat.setDate(sun.getDate() + 6);
           const satStr = sat.toISOString().split('T')[0];
@@ -1523,7 +1523,7 @@ selected={
         axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {});
         axios.get('/timeclock/employees').then(r => { setPinEmployees(r.data.employees); }).catch(() => {});
         const now = new Date();
-        const sun = new Date(now); sun.setDate(now.getDate() - now.getDay());
+        const sun = new Date(now); sun.setDate(now.getDate() - ((now.getDay() + 1) % 7));
         const sunStr = sun.toISOString().split('T')[0];
         const sat = new Date(sun); sat.setDate(sun.getDate() + 6);
         const satStr = sat.toISOString().split('T')[0];
@@ -1548,6 +1548,7 @@ selected={
           <h4 className="job-company">{entry.employeeName}</h4>
           <p><strong>Clocked In:</strong> {new Date(entry.clockIn).toLocaleString([], {hour12: false})}</p>
           <p><strong>Duration:</strong> {Math.round((Date.now() - new Date(entry.clockIn)) / 60000)} min</p>
+          {entry.purpose && <p><strong>Purpose:</strong> <span style={{background:'#e3f2fd',color:'#1565c0',padding:'2px 8px',borderRadius:'4px',fontSize:'0.85rem',fontWeight:'bold'}}>{entry.purpose}</span></p>}
         </div>
       ))}
     </div>
@@ -1566,6 +1567,7 @@ selected={
           <p><strong>In:</strong> {new Date(entry.clockIn).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12: false})}</p>
           <p><strong>Out:</strong> {entry.clockOut ? new Date(entry.clockOut).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12: false}) : 'Still clocked in'}</p>
           {entry.clockOut && <p><strong>Total:</strong> {Math.round((new Date(entry.clockOut) - new Date(entry.clockIn)) / 60000)} min</p>}
+          {entry.purpose && <p><strong>Purpose:</strong> <span style={{background:'#e3f2fd',color:'#1565c0',padding:'2px 8px',borderRadius:'4px',fontSize:'0.85rem'}}>{entry.purpose}</span></p>}
         </div>
       ))}
     </div>
@@ -1700,6 +1702,7 @@ selected={
                               {new Date(r.clockIn).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})}
                               {' → '}
                               {r.clockOut ? new Date(r.clockOut).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false}) : <span style={{color:'#4CAF50',fontWeight:'bold'}}>Still In</span>}
+                              {r.purpose && <span style={{marginLeft:'6px',background:'#e3f2fd',color:'#1565c0',padding:'1px 6px',borderRadius:'3px',fontSize:'0.75rem'}}>{r.purpose}</span>}
                             </div>
                           )) : '—'}
                         </td>
