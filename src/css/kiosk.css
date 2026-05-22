@@ -60,19 +60,19 @@
 }
 
 .kiosk-emp-name {
-  font-size: 1.3rem;
+  font-size: 1.6rem;
   font-weight: 700;
   color: #1a1a2e;
 }
 
 .kiosk-emp-position {
-  font-size: 0.95rem;
+  font-size: 1.15rem;
   color: #6b7280;
   font-weight: 500;
 }
 
 .kiosk-status-badge {
-  font-size: 0.8rem;
+  font-size: 1rem;
   color: #4CAF50;
   font-weight: 600;
   margin-top: 0.25rem;
@@ -220,7 +220,23 @@
 .time-clock-section .kiosk-employee-grid {
   max-width: 100%;
   gap: 0.75rem;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+.time-clock-section .kiosk-employee-card {
+  padding: 1.25rem 1rem;
+}
+
+.time-clock-section .kiosk-emp-name {
+  font-size: 1.5rem;
+}
+
+.time-clock-section .kiosk-emp-position {
+  font-size: 1.1rem;
+}
+
+.time-clock-section .kiosk-status-badge {
+  font-size: 1rem;
 }
 
 .time-clock-section .kiosk-punch-panel {
