@@ -232,8 +232,8 @@ const EmployeeDashboard = () => {
                   ← Back to Employees
                 </button>
                 <h2 style={{color:'#1a1a2e',margin:'1rem 0 0.25rem'}}>{selectedEmployee.displayName}</h2>
-                <p style={{color:'#6b7280',fontSize:'1.1rem',margin:'0 0 0.5rem'}}>{selectedEmployee.position}</p>
-                <p style={{fontSize:'1.1rem',fontWeight:600,marginBottom:'1rem'}}>
+                <p style={{color:'#6b7280',fontSize:'1.5rem',margin:'0 0 0.5rem'}}>{selectedEmployee.position}</p>
+                <p style={{fontSize:'1.5rem',fontWeight:600,marginBottom:'1rem'}}>
                   {clockedInIds.includes(selectedEmployee._id) ? '🟢 Currently Clocked In' : '⚪ Currently Clocked Out'}
                 </p>
                 {!clockedInIds.includes(selectedEmployee._id) && (
@@ -241,7 +241,7 @@ const EmployeeDashboard = () => {
                     value={clockPurpose}
                     onChange={(e) => setClockPurpose(e.target.value)}
                     className="kiosk-pin-input"
-                    style={{marginBottom:'0.75rem',padding:'0.6rem',fontSize:'1rem',borderRadius:'8px',border:'2px solid #ccc',width:'100%',maxWidth:'280px'}}
+                    style={{marginBottom:'0.75rem',padding:'0.6rem',fontSize:'1.4rem',borderRadius:'8px',border:'2px solid #ccc',width:'100%',maxWidth:'280px'}}
                   >
                     <option value="">-- Select Job Purpose --</option>
                     <option value="2 Man Crew">2 Man Crew</option>
