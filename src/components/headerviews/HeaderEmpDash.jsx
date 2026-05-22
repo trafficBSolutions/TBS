@@ -58,6 +58,9 @@ function Header() {
     }
   };
 
+  // Hide logout when running as installed PWA (kiosk tablet)
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
   return (
     <header className="header">
       <div className="mobile-nav-icon">
@@ -101,9 +104,11 @@ function Header() {
                     Employee Portal
                   </a>
                 )}
-                <button className="btn-main main-nav-link" onClick={handleEmployeeClick}>
-                  Log Out (Employee)
-                </button>
+                {!isStandalone && (
+                  <button className="btn-main main-nav-link" onClick={handleEmployeeClick}>
+                    Log Out (Employee)
+                  </button>
+                )}
               </>
             )}
           </li>
