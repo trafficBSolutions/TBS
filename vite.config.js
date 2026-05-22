@@ -10,15 +10,15 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['tbs-clock-icon.png'],
       manifest: {
-        name: 'TBS Time Clock',
-        short_name: 'TBS Clock',
-        description: 'Employee Time Clock - Traffic & Barrier Solutions',
+        name: 'TBS Employee',
+        short_name: 'TBS',
+        description: 'Employee Dashboard - Traffic & Barrier Solutions',
         theme_color: '#1a1a2e',
         background_color: '#1a1a2e',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '/time-clock',
-        scope: '/time-clock',
+        start_url: '/employee-dashboard',
+        scope: '/',
         icons: [
           { src: 'tbs-clock-icon.png', sizes: '192x192', type: 'image/png' },
           { src: 'tbs-clock-icon.png', sizes: '512x512', type: 'image/png' }
