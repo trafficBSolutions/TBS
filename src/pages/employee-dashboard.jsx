@@ -28,13 +28,34 @@ const EmployeeDashboard = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [clockedInIds, setClockedInIds] = useState([]);
   const [clockPurpose, setClockPurpose] = useState('');
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [pendingCount, setPendingCount] = useState(() => JSON.parse(localStorage.getItem('tbs_punch_queue') || '[]').length);
+
+  const getPunchQueue = () => JSON.parse(localStorage.getItem('tbs_punch_queue') || '[]');
+  const savePunchQueue = (queue) => { localStorage.setItem('tbs_punch_queue', JSON.stringify(queue)); setPendingCount(queue.length); };
+
+  const syncOfflinePunches = async () => {
+    const queue = getPunchQueue();
+    if (queue.length === 0) return;
+    const remaining = [];
+    for (const punch of queue) {
+      try { await axios.post('/timeclock/punch-offline', punch); }
+      catch (err) { if (err.response?.status !== 409) remaining.push(punch); }
+    }
+    savePunchQueue(remaining);
+  };
 
   useEffect(() => {
-    axios.get('/timeclock/check-ip').then(res => setIpAllowed(res.data.allowed)).catch(() => setIpAllowed(false));
+    axios.get('/timeclock/check-ip').then(res => setIpAllowed(res.data.allowed)).catch(() => setIpAllowed(true));
     fetchEmployees();
     fetchClockedIn();
-    const interval = setInterval(fetchClockedIn, 30000);
-    return () => clearInterval(interval);
+    syncOfflinePunches();
+    const interval = setInterval(() => { fetchClockedIn(); syncOfflinePunches(); }, 30000);
+    const handleOnline = () => { setIsOnline(true); syncOfflinePunches().then(fetchClockedIn); };
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => { clearInterval(interval); window.removeEventListener('online', handleOnline); window.removeEventListener('offline', handleOffline); };
   }, []);
 
   const fetchEmployees = async () => {
@@ -44,23 +65,42 @@ const EmployeeDashboard = () => {
         ...res.data.employees.map(e => ({ ...e, displayName: e.name }))
       ].filter(e => !e.terminated);
       setEmployees(all);
-    } catch (err) {}
+      localStorage.setItem('tbs_cached_employees', JSON.stringify(all));
+    } catch (err) {
+      const cached = localStorage.getItem('tbs_cached_employees');
+      if (cached) setEmployees(JSON.parse(cached));
+    }
   };
 
   const fetchClockedIn = async () => {
     try {
       const res = await axios.get('/timeclock/status');
       setClockedInIds(res.data.map(r => r.employeeId));
-    } catch (err) {}
+      localStorage.setItem('tbs_cached_status', JSON.stringify(res.data.map(r => r.employeeId)));
+    } catch (err) {
+      const cached = localStorage.getItem('tbs_cached_status');
+      if (cached) setClockedInIds(JSON.parse(cached));
+    }
   };
 
   const handlePunch = async () => {
     if (!pin.trim() || pin.length < 4) { setClockMsg('Enter your 4+ digit PIN'); return; }
-    // Require purpose only when clocking IN
     const isClockedIn = selectedEmployee && clockedInIds.includes(selectedEmployee._id);
     if (!isClockedIn && !clockPurpose) { setClockMsg('Please select your job purpose before clocking in'); return; }
     setClockLoading(true);
     setClockMsg('');
+
+    if (!navigator.onLine) {
+      const queue = getPunchQueue();
+      queue.push({ pin, purpose: isClockedIn ? undefined : clockPurpose, timestamp: new Date().toISOString(), employeeName: selectedEmployee?.displayName || '' });
+      savePunchQueue(queue);
+      setClockMsg(`✅ ${selectedEmployee.displayName} punch saved offline — will sync when wifi returns`);
+      setPin(''); setClockPurpose('');
+      setClockLoading(false);
+      setTimeout(() => { setSelectedEmployee(null); setClockMsg(''); }, 3000);
+      return;
+    }
+
     try {
       const res = await axios.post('/timeclock/punch', { pin, purpose: isClockedIn ? undefined : clockPurpose });
       setClockMsg(res.data.message);
@@ -70,7 +110,15 @@ const EmployeeDashboard = () => {
       setTimeout(() => { setSelectedEmployee(null); setClockMsg(''); }, 3000);
     } catch (err) {
       const data = err.response?.data;
-      if (data?.action === 'discipline_required') {
+      if (!err.response) {
+        // Network error — queue offline
+        const queue = getPunchQueue();
+        queue.push({ pin, purpose: isClockedIn ? undefined : clockPurpose, timestamp: new Date().toISOString(), employeeName: selectedEmployee?.displayName || '' });
+        savePunchQueue(queue);
+        setClockMsg(`✅ Saved offline — will sync when wifi returns`);
+        setPin(''); setClockPurpose('');
+        setTimeout(() => { setSelectedEmployee(null); setClockMsg(''); }, 3000);
+      } else if (data?.action === 'discipline_required') {
         setPendingDisciplines(data.disciplines);
         setStoredPin(pin);
         setCurrentDisciplineIndex(0);
@@ -146,6 +194,12 @@ const EmployeeDashboard = () => {
         {/* Time Clock */}
         <div className="time-clock-section" style={{background:'#1a1a2e',padding:'1.5rem',borderRadius:'12px',marginBottom:'1.5rem',textAlign:'center'}}>
           <h2 style={{color:'#fff',marginBottom:'0.75rem'}}>⏰ Time Clock</h2>
+          <div style={{display:'flex',gap:'0.75rem',justifyContent:'center',marginBottom:'0.5rem'}}>
+            <span style={{fontSize:'0.9rem',color: isOnline ? '#4CAF50' : '#ff9800',fontWeight:'bold'}}>
+              {isOnline ? '🟢 Online' : '🟠 Offline Mode'}
+            </span>
+            {pendingCount > 0 && <span style={{fontSize:'0.9rem',color:'#ff9800',fontWeight:'bold'}}>⏳ {pendingCount} punch{pendingCount > 1 ? 'es' : ''} pending sync</span>}
+          </div>
 
           {/* Punch In/Out - HIDDEN on phones via CSS */}
           <div className="time-clock-punch-only">
@@ -215,7 +269,7 @@ const EmployeeDashboard = () => {
                 >
                   {clockLoading ? '...' : clockedInIds.includes(selectedEmployee._id) ? 'Clock Out' : 'Clock In'}
                 </button>
-                {clockMsg && <p className={`kiosk-message ${clockMsg.includes('clocked') ? 'success' : 'error'}`}>{clockMsg}</p>}
+                {clockMsg && <p className={`kiosk-message ${clockMsg.includes('clocked') || clockMsg.includes('✅') ? 'success' : 'error'}`}>{clockMsg}</p>}
               </div>
             )}
             {ipAllowed === null && <p style={{color:'#aaa'}}>Checking location...</p>}
