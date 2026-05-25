@@ -1695,7 +1695,7 @@ selected={
                               {new Date(r.clockIn).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})}
                               {' → '}
                               {r.clockOut ? new Date(r.clockOut).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false}) : <span style={{color:'#4CAF50',fontWeight:'bold'}}>Still In</span>}
-                              {r.purpose && <span style={{marginLeft:'6px',background:'#e3f2fd',color:'#1565c0',padding:'2px 8px',borderRadius:'3px',fontSize:'0.85rem'}}>{r.purpose}</span>}
+                              {r.purpose && <span style={{display:'block',marginTop:'2px',background:'#e3f2fd',color:'#1565c0',padding:'1px 6px',borderRadius:'3px',fontSize:'0.7rem',maxWidth:'fit-content'}}>{r.purpose}</span>}
                             </div>
                           )) : '—'}
                         </td>
