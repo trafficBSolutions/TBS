@@ -111,7 +111,7 @@ const [timeWorkedWeekStart, setTimeWorkedWeekStart] = useState(() => {
   // Saturday = 6, so offset to previous Saturday
   const sat = new Date(now);
   sat.setDate(now.getDate() - ((day + 1) % 7));
-  return sat.toISOString().split('T')[0];
+  return `${sat.getFullYear()}-${String(sat.getMonth()+1).padStart(2,'0')}-${String(sat.getDate()).padStart(2,'0')}`;
 });
 const [manualEmpId, setManualEmpId] = useState('');
 const [manualDate, setManualDate] = useState(new Date().toISOString().split('T')[0]);
@@ -847,11 +847,12 @@ useEffect(() => {
           axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {});
           axios.get('/timeclock/employees').then(r => { setPinEmployees(r.data.employees); }).catch(() => {});
           const now = new Date();
-          const sun = new Date(now); sun.setDate(now.getDate() - ((now.getDay() + 1) % 7));
-          const sunStr = sun.toISOString().split('T')[0];
-          const sat = new Date(sun); sat.setDate(sun.getDate() + 6);
-          const satStr = sat.toISOString().split('T')[0];
-          try { const res = await axios.get(`/timeclock/time-worked?startDate=${sunStr}&endDate=${satStr}`); setTimeWorked(res.data); } catch(e) {}
+          const sat = new Date(now); sat.setDate(now.getDate() - ((now.getDay() + 1) % 7));
+          const satStr = `${sat.getFullYear()}-${String(sat.getMonth()+1).padStart(2,'0')}-${String(sat.getDate()).padStart(2,'0')}`;
+          const fri = new Date(sat); fri.setDate(sat.getDate() + 6);
+          const friStr = `${fri.getFullYear()}-${String(fri.getMonth()+1).padStart(2,'0')}-${String(fri.getDate()).padStart(2,'0')}`;
+          setTimeWorkedWeekStart(satStr);
+          try { const res = await axios.get(`/timeclock/time-worked?startDate=${satStr}&endDate=${friStr}`); setTimeWorked(res.data); } catch(e) {}
         }}>Tasks</button>
       )}
     </div>
@@ -1523,11 +1524,12 @@ selected={
         axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {});
         axios.get('/timeclock/employees').then(r => { setPinEmployees(r.data.employees); }).catch(() => {});
         const now = new Date();
-        const sun = new Date(now); sun.setDate(now.getDate() - ((now.getDay() + 1) % 7));
-        const sunStr = sun.toISOString().split('T')[0];
-        const sat = new Date(sun); sat.setDate(sun.getDate() + 6);
-        const satStr = sat.toISOString().split('T')[0];
-        try { const res = await axios.get(`/timeclock/time-worked?startDate=${sunStr}&endDate=${satStr}`); setTimeWorked(res.data); } catch(e) {}
+        const sat = new Date(now); sat.setDate(now.getDate() - ((now.getDay() + 1) % 7));
+        const satStr = `${sat.getFullYear()}-${String(sat.getMonth()+1).padStart(2,'0')}-${String(sat.getDate()).padStart(2,'0')}`;
+        const fri = new Date(sat); fri.setDate(sat.getDate() + 6);
+        const friStr = `${fri.getFullYear()}-${String(fri.getMonth()+1).padStart(2,'0')}-${String(fri.getDate()).padStart(2,'0')}`;
+        setTimeWorkedWeekStart(satStr);
+        try { const res = await axios.get(`/timeclock/time-worked?startDate=${satStr}&endDate=${friStr}`); setTimeWorked(res.data); } catch(e) {}
         }}>Open Time Clock</button>
       {viewMode === 'timeclock' && (
   <>
@@ -1625,14 +1627,14 @@ selected={
       const weekStart = new Date(timeWorkedWeekStart + 'T00:00:00');
       const weekEnd = new Date(weekStart);
       weekEnd.setDate(weekStart.getDate() + 6);
-      const weekEndStr = weekEnd.toISOString().split('T')[0];
+      const weekEndStr = `${weekEnd.getFullYear()}-${String(weekEnd.getMonth()+1).padStart(2,'0')}-${String(weekEnd.getDate()).padStart(2,'0')}`;
       return (
         <>
           <div style={{display:'flex',gap:'0.5rem',alignItems:'center',flexWrap:'wrap',marginBottom:'1rem'}}>
             <button className="btn" style={{padding:'6px 12px'}} onClick={() => {
               const prev = new Date(timeWorkedWeekStart + 'T00:00:00');
               prev.setDate(prev.getDate() - 7);
-              setTimeWorkedWeekStart(prev.toISOString().split('T')[0]);
+              setTimeWorkedWeekStart(`${prev.getFullYear()}-${String(prev.getMonth()+1).padStart(2,'0')}-${String(prev.getDate()).padStart(2,'0')}`);
             }}>◀ Prev Week</button>
             <span style={{fontWeight:'bold',fontSize:'1.1rem'}}>
               {weekStart.toLocaleDateString('en-US',{month:'short',day:'numeric'})} – {weekEnd.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
@@ -1640,7 +1642,7 @@ selected={
             <button className="btn" style={{padding:'6px 12px'}} onClick={() => {
               const next = new Date(timeWorkedWeekStart + 'T00:00:00');
               next.setDate(next.getDate() + 7);
-              setTimeWorkedWeekStart(next.toISOString().split('T')[0]);
+              setTimeWorkedWeekStart(`${next.getFullYear()}-${String(next.getMonth()+1).padStart(2,'0')}-${String(next.getDate()).padStart(2,'0')}`);
             }}>Next Week ▶</button>
             <button className="btn" style={{padding:'6px 16px'}} onClick={async () => {
               try {
@@ -1661,7 +1663,7 @@ selected={
           for (let d = 0; d < 7; d++) {
             const dt = new Date(sun);
             dt.setDate(sun.getDate() + d);
-            const key = dt.toISOString().split('T')[0];
+            const key = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
             if (emp.days[key] && emp.days[key].minutes) weekTotalMin += emp.days[key].minutes;
           }
           return (
@@ -1681,7 +1683,7 @@ selected={
                   for (let d = 0; d < 7; d++) {
                     const dt = new Date(sun);
                     dt.setDate(sun.getDate() + d);
-                    const key = dt.toISOString().split('T')[0];
+                    const key = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
                     const dayName = dt.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
                     const dayData = emp.days[key];
                     days.push(
