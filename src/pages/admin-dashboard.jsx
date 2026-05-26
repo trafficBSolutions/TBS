@@ -151,9 +151,15 @@ const salaryAdminEmails = new Set([
 
 // Admins who get a personal time clock widget (clock in/out only, no admin view)
 const personalClockEmails = new Set(['materialworx2@gmail.com']);
+// Hourly admins who can view their own weekly hours
+const hourlyAdminEmails = new Set(['tbsolutions77@gmail.com', 'materialworx2@gmail.com', 'tbsolutions66@gmail.com', 'tbsolutions14@gmail.com']);
 const [personalPin, setPersonalPin] = useState('');
 const [personalClockMsg, setPersonalClockMsg] = useState('');
 const [personalClockLoading, setPersonalClockLoading] = useState(false);
+const [myWeekData, setMyWeekData] = useState(null);
+const [myWeekLoading, setMyWeekLoading] = useState(false);
+const [myWeekPin, setMyWeekPin] = useState('');
+const [myWeekMsg, setMyWeekMsg] = useState('');
 
 const handlePersonalPunch = async () => {
   if (!personalPin.trim() || personalPin.length < 4) { setPersonalClockMsg('Enter your 4-digit PIN'); return; }
@@ -165,6 +171,18 @@ const handlePersonalPunch = async () => {
   } catch (err) {
     setPersonalClockMsg(err.response?.data?.message || 'Failed to punch. Try again.');
   } finally { setPersonalClockLoading(false); }
+};
+
+const handleViewMyWeek = async () => {
+  if (!myWeekPin.trim() || myWeekPin.length < 4) { setMyWeekMsg('Enter your PIN first'); return; }
+  setMyWeekLoading(true); setMyWeekMsg('');
+  try {
+    const res = await axios.get(`/timeclock/my-week?pin=${myWeekPin}`);
+    setMyWeekData(res.data);
+  } catch (err) {
+    setMyWeekMsg(err.response?.data?.message || 'Invalid PIN');
+    setMyWeekData(null);
+  } finally { setMyWeekLoading(false); }
 };
 
 const handleChangeEmpPassword = async () => {
@@ -1545,6 +1563,52 @@ selected={
         <button className="btn workorder-btn" onClick={handlePersonalPunch} disabled={personalClockLoading}>{personalClockLoading ? '...' : 'Punch In / Out'}</button>
         {personalClockMsg && <p style={{color: personalClockMsg.includes('clocked') ? '#4CAF50' : '#ff6b6b', fontWeight:'bold', fontSize:'0.9rem', margin:0}}>{personalClockMsg}</p>}
       </div>
+    </div>
+  )}
+
+  {hourlyAdminEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email) && (
+    <div className="tool-card tool-card--wide">
+      <h3>📅 View My Weekly Hours</h3>
+      <p>Enter your PIN to see your hours this week</p>
+      <div style={{display:'flex',gap:'0.5rem',alignItems:'center',flexWrap:'wrap',marginTop:'0.5rem'}}>
+        <input type="password" inputMode="numeric" placeholder="Enter PIN" value={myWeekPin} onChange={(e) => setMyWeekPin(e.target.value.replace(/\D/g, ''))} maxLength={6} onKeyDown={(e) => e.key === 'Enter' && handleViewMyWeek()} style={{padding:'0.5rem',borderRadius:'6px',border:'1px solid #ccc',textAlign:'center',fontSize:'1.1rem',width:'140px'}} />
+        <button className="btn workorder-btn" onClick={handleViewMyWeek} disabled={myWeekLoading}>{myWeekLoading ? '...' : 'View My Hours'}</button>
+      </div>
+      {myWeekMsg && <p style={{color:'#ff6b6b', fontWeight:'bold', fontSize:'0.9rem', margin:'0.5rem 0 0'}}>{myWeekMsg}</p>}
+      {myWeekData && (
+        <div style={{marginTop:'1rem',background:'#fff',borderRadius:'8px',padding:'1rem',textAlign:'left',color:'#333'}}>
+          <h4 style={{margin:'0 0 0.5rem',fontSize:'1.1rem'}}>📅 {myWeekData.name} — Week: {myWeekData.weekStart} to {myWeekData.weekEnd}</h4>
+          <p style={{fontSize:'1.1rem',fontWeight:'bold',color:'#1e3a8a',margin:'0 0 0.75rem'}}>Total: {myWeekData.totalHours} hrs ({myWeekData.totalMinutes} min)</p>
+          <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.95rem'}}>
+            <thead>
+              <tr style={{background:'#f2f2f2'}}>
+                <th style={{border:'1px solid #ddd',padding:'8px',textAlign:'left'}}>Day</th>
+                <th style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>In / Out</th>
+                <th style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>Hours</th>
+              </tr>
+            </thead>
+            <tbody>
+              {['Saturday','Sunday','Monday','Tuesday','Wednesday','Thursday','Friday'].map(day => (
+                <tr key={day} style={{background: myWeekData.days[day] ? '#f0fff0' : 'transparent'}}>
+                  <td style={{border:'1px solid #ddd',padding:'8px',fontWeight:'bold'}}>{day}</td>
+                  <td style={{border:'1px solid #ddd',padding:'8px',textAlign:'center',fontSize:'0.85rem'}}>
+                    {myWeekData.days[day] ? myWeekData.days[day].records.map((r, i) => (
+                      <div key={i}>
+                        {new Date(r.clockIn).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}
+                        {' \u2192 '}
+                        {r.clockOut ? new Date(r.clockOut).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : <span style={{color:'#4CAF50'}}>Still In</span>}
+                      </div>
+                    )) : '\u2014'}
+                  </td>
+                  <td style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>
+                    {myWeekData.days[day] ? `${(myWeekData.days[day].minutes / 60).toFixed(2)} hrs` : '\u2014'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )}
 
