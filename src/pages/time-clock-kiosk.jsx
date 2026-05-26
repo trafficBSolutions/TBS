@@ -203,6 +203,7 @@ const TimeClockKiosk = () => {
               <option value="Emergency Job">Emergency Job</option>
               <option value="Weekend Work">Weekend Work</option>
               <option value="Shop Work">Shop Work</option>
+              <option value="Standby">Standby</option>
             </select>
           )}
 
