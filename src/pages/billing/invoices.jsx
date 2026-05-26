@@ -1667,7 +1667,8 @@ useEffect(() => {
     'tbsolutions1999@gmail.com',
     'trafficandbarriersolutions.ap@gmail.com',
     'tbsellen@gmail.com',
-    'tbsolutions1995@gmail.com'
+    'tbsolutions1995@gmail.com',
+    'materialworx2@gmail.com',
   ]);
 
   const canInvoice =
