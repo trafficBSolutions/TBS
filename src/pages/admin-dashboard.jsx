@@ -149,6 +149,24 @@ const salaryAdminEmails = new Set([
   'tbsolutions1999@gmail.com'
 ]);
 
+// Admins who get a personal time clock widget (clock in/out only, no admin view)
+const personalClockEmails = new Set(['materialworx2@gmail.com']);
+const [personalPin, setPersonalPin] = useState('');
+const [personalClockMsg, setPersonalClockMsg] = useState('');
+const [personalClockLoading, setPersonalClockLoading] = useState(false);
+
+const handlePersonalPunch = async () => {
+  if (!personalPin.trim() || personalPin.length < 4) { setPersonalClockMsg('Enter your 4-digit PIN'); return; }
+  setPersonalClockLoading(true); setPersonalClockMsg('');
+  try {
+    const res = await axios.post('/timeclock/punch', { pin: personalPin });
+    setPersonalClockMsg(res.data.message);
+    setPersonalPin('');
+  } catch (err) {
+    setPersonalClockMsg(err.response?.data?.message || 'Failed to punch. Try again.');
+  } finally { setPersonalClockLoading(false); }
+};
+
 const handleChangeEmpPassword = async () => {
   if (!empNewPassword.trim()) { setEmpPasswordMsg('Please enter a new password.'); return; }
   if (empNewPassword.length < 6) { setEmpPasswordMsg('Password must be at least 6 characters.'); return; }
@@ -507,7 +525,8 @@ useEffect(() => {
       'tbsolutions1999@gmail.com',
       'trafficandbarriersolutions.ap@gmail.com',
       'tbsellen@gmail.com',
-      'tbsolutions1995@gmail.com'
+      'tbsolutions1995@gmail.com',
+      'materialworx2@gmail.com'
     ]);
 
     const canInvoice =
@@ -520,7 +539,8 @@ useEffect(() => {
     const quoteEmails = new Set([
       'tbsolutions1999@gmail.com',
       'tbsolutions9@gmail.com',
-      'tbsolutions4@gmail.com'
+      'tbsolutions4@gmail.com',
+      'materialworx2@gmail.com'
     ]);
     setAllowedForQuotes(quoteEmails.has(user.email));
 
@@ -540,7 +560,8 @@ useEffect(() => {
     const signShopEmails = new Set([
       'tbsolutions9@gmail.com',
       'tbsolutions1999@gmail.com',
-      'tbsolutions4@gmail.com'
+      'tbsolutions4@gmail.com',
+      'materialworx2@gmail.com'
     ]);
     setAllowedForSignShop(signShopEmails.has(user.email));
 
@@ -1514,6 +1535,18 @@ selected={
       </div>
     )}
   </div>
+
+  {personalClockEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email) && (
+    <div className="tool-card">
+      <h3>⏰ My Time Clock</h3>
+      <p>Clock in/out for your shift</p>
+      <div style={{display:'flex',flexDirection:'column',gap:'0.5rem',marginTop:'0.5rem'}}>
+        <input type="password" inputMode="numeric" placeholder="Enter PIN" value={personalPin} onChange={(e) => setPersonalPin(e.target.value.replace(/\D/g, ''))} maxLength={6} onKeyDown={(e) => e.key === 'Enter' && handlePersonalPunch()} style={{padding:'0.5rem',borderRadius:'6px',border:'1px solid #ccc',textAlign:'center',fontSize:'1.1rem'}} />
+        <button className="btn workorder-btn" onClick={handlePersonalPunch} disabled={personalClockLoading}>{personalClockLoading ? '...' : 'Punch In / Out'}</button>
+        {personalClockMsg && <p style={{color: personalClockMsg.includes('clocked') ? '#4CAF50' : '#ff6b6b', fontWeight:'bold', fontSize:'0.9rem', margin:0}}>{personalClockMsg}</p>}
+      </div>
+    </div>
+  )}
 
   {salaryAdminEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email) && (
     <div className="tool-card tool-card--wide">
