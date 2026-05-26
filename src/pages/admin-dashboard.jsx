@@ -146,7 +146,8 @@ const salaryAdminEmails = new Set([
   'tbsolutions4@gmail.com',
   'tbsolutions1995@gmail.com',
   'trafficandbarriersolutions.ap@gmail.com',
-  'tbsolutions1999@gmail.com'
+  'tbsolutions1999@gmail.com',
+  'tbsolutions77@gmail.com'
 ]);
 
 // Admins who get a personal time clock widget (clock in/out only, no admin view)
