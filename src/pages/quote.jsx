@@ -31,7 +31,8 @@ export default function Quote() {
       const quoteEmails = new Set([
         'tbsolutions1999@gmail.com',
         'tbsolutions9@gmail.com',
-        'tbsolutions4@gmail.com'
+        'tbsolutions4@gmail.com',
+        'materialworx2@gmail.com'
       ]);
       if (!quoteEmails.has(user.email)) {
         navigate('/admin-dashboard');
