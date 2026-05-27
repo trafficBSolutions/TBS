@@ -286,6 +286,19 @@ const clearOfficerSignature = () => {
     notes: '' // optional
   });
 
+  const emptyAddress = { address: '', city: '', state: '', zip: '', project: '', timeSpent: '' };
+  const [jobAddresses, setJobAddresses] = useState([{ ...emptyAddress }]);
+
+  const addJobAddress = () => {
+    if (jobAddresses.length < 6) setJobAddresses(prev => [...prev, { ...emptyAddress }]);
+  };
+  const removeJobAddress = (idx) => {
+    setJobAddresses(prev => prev.filter((_, i) => i !== idx));
+  };
+  const updateJobAddress = (idx, field, value) => {
+    setJobAddresses(prev => prev.map((a, i) => i === idx ? { ...a, [field]: field === 'city' ? toTitleCase(value) : value } : a));
+  };
+
   const [foremanSig, setForemanSig] = useState(''); // base64 (no prefix)
   const [tbsEnabled, setTbsEnabled] = useState(false);
   const [photos, setPhotos] = useState([]);
@@ -595,6 +608,7 @@ const onSubmit = async (e) => {
   formData.append('mismatch', hasMismatch);
   formData.append('foremanSignature', foremanSig);
   formData.append('policeOfficer', JSON.stringify(policeOfficer));
+  formData.append('jobAddresses', JSON.stringify(jobAddresses.filter(a => a.address.trim())));
 
   photos.forEach(photo => {
     formData.append('photos', photo);
@@ -632,6 +646,7 @@ const onSubmit = async (e) => {
     sigRef.current?.clear();
     officerSigRef.current?.clear();
     setPoliceOfficer({ used: false, name: '', signature: '' });
+    setJobAddresses([{ ...emptyAddress }]);
     setTbs({
       flagger1: '',
       flagger2: '',
@@ -874,6 +889,37 @@ const isSubmitReady = useMemo(() => {
                   <option>Yes</option>
                   <option>No</option>
                 </select>
+              </div>
+
+              <div className="multi-address-section">
+                <h3 className="comp-section">Job Addresses (up to 6):</h3>
+                <p style={{fontSize: '13px', color: '#555', marginBottom: '10px'}}>Add each address you worked at today with the task performed and time spent.</p>
+                {jobAddresses.map((addr, idx) => (
+                  <div key={idx} className="job-address-card">
+                    <div className="job-address-header">
+                      <strong>Address #{idx + 1}</strong>
+                      {jobAddresses.length > 1 && (
+                        <button type="button" className="btn" style={{padding: '4px 10px', fontSize: '12px'}} onClick={() => removeJobAddress(idx)}>Remove</button>
+                      )}
+                    </div>
+                    <input type="text" placeholder="Street Address" value={addr.address} onChange={e => updateJobAddress(idx, 'address', e.target.value)} />
+                    <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
+                      <input type="text" placeholder="City" value={addr.city} onChange={e => updateJobAddress(idx, 'city', e.target.value)} style={{flex: 2}} />
+                      <select value={addr.state} onChange={e => updateJobAddress(idx, 'state', e.target.value)} style={{flex: 1}}>
+                        <option value="">State</option>
+                        {states.map(s => <option key={s.abbreviation} value={s.abbreviation}>{s.name}</option>)}
+                      </select>
+                      <input type="text" placeholder="Zip" maxLength={5} value={addr.zip} onChange={e => updateJobAddress(idx, 'zip', e.target.value.replace(/\D/g, '').slice(0, 5))} style={{flex: 1}} />
+                    </div>
+                    <input type="text" placeholder="Project/Task performed at this address" value={addr.project} onChange={e => updateJobAddress(idx, 'project', e.target.value)} />
+                    <input type="text" placeholder="Time spent (e.g. 2 hours, 8:00AM-10:00AM)" value={addr.timeSpent} onChange={e => updateJobAddress(idx, 'timeSpent', e.target.value)} />
+                  </div>
+                ))}
+                {jobAddresses.length < 6 && (
+                  <button type="button" className="btn" onClick={addJobAddress} style={{marginTop: '10px'}}>
+                    + Add Another Address ({jobAddresses.length}/6)
+                  </button>
+                )}
               </div>
 
               <div className="additional-notes">
