@@ -1541,3 +1541,67 @@ body {
   .bollard-home-icon-box { width: 160px; padding: 14px; }
   .bollard-home-svg { width: 90px; }
 }
+
+/* Storm Services & Hydrovac Home Section */
+.section-storm-home {
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  padding: 50px 20px;
+  text-align: center;
+}
+.storm-home-container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.storm-home-title {
+  font-size: 3.2rem;
+  color: #e67e22;
+  font-family: "Moveo Sans W00 Bold";
+  margin-bottom: 1rem;
+}
+.storm-home-text {
+  font-size: 1.6rem;
+  color: #ddd;
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+.storm-home-services {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+.storm-home-card {
+  background: rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 20px;
+  width: 300px;
+  text-align: left;
+}
+.storm-home-card-title {
+  font-size: 1.8rem;
+  color: #e67e22;
+  margin-bottom: 10px;
+}
+.storm-home-list {
+  list-style: none;
+  padding: 0;
+}
+.storm-home-list li {
+  font-size: 1.3rem;
+  color: #ccc;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.storm-home-list li:last-child {
+  border-bottom: none;
+}
+.storm-home-btn {
+  margin-top: 1rem;
+}
+@media screen and (max-width: 640px) {
+  .storm-home-title { font-size: 2.2rem; }
+  .storm-home-text { font-size: 1.3rem; }
+  .storm-home-card { width: 100%; }
+}
