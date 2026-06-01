@@ -136,6 +136,8 @@ const [newEmpPosition, setNewEmpPosition] = useState('');
 const [addEmpLoading, setAddEmpLoading] = useState(false);
 const [changePinId, setChangePinId] = useState(null);
 const [changePinValue, setChangePinValue] = useState('');
+const [adminPunchPurpose, setAdminPunchPurpose] = useState('');
+const [manualPurpose, setManualPurpose] = useState('');
 
 
 
@@ -1674,14 +1676,22 @@ selected={
             <label style={{fontSize:'0.8rem'}}>Out:</label>
             <input type="time" value={manualOut} onChange={(e) => setManualOut(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',flex:1}} />
           </div>
+          <select value={manualPurpose} onChange={(e) => setManualPurpose(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}}>
+            <option value="">-- Job Purpose --</option>
+            <option value="2 Man Crew">2 Man Crew</option>
+            <option value="Arrow Board/Message Board Job">Arrow Board/Message Board Job</option>
+            <option value="Emergency Job">Emergency Job</option>
+            <option value="Weekend Work">Weekend Work</option>
+            <option value="Shop Work">Shop Work</option>
+          </select>
           <input type="text" placeholder="Reason (optional)" value={manualReason} onChange={(e) => setManualReason(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}} />
           <button className="btn" disabled={manualLoading} style={{padding:'6px 16px'}} onClick={async () => {
             if (!manualEmpId || !manualDate || !manualIn || !manualOut) { setManualMsg('All fields required'); return; }
             setManualLoading(true); setManualMsg('');
             try {
-              const res = await axios.post('/timeclock/manual-entry', { employeeId: manualEmpId, date: manualDate, clockIn: manualIn, clockOut: manualOut, reason: manualReason });
+              const res = await axios.post('/timeclock/manual-entry', { employeeId: manualEmpId, date: manualDate, clockIn: manualIn, clockOut: manualOut, reason: manualReason, purpose: manualPurpose });
               setManualMsg(res.data.message);
-              setManualEmpId(''); setManualIn(''); setManualOut(''); setManualReason('');
+              setManualEmpId(''); setManualIn(''); setManualOut(''); setManualReason(''); setManualPurpose('');
               setTimeout(() => setManualMsg(''), 6000);
             } catch (e) { setManualMsg(e.response?.data?.message || 'Error'); }
             finally { setManualLoading(false); }
@@ -1730,25 +1740,27 @@ selected={
       return (
         <>
           <div style={{display:'flex',gap:'0.5rem',alignItems:'center',flexWrap:'wrap',marginBottom:'1rem'}}>
-            <button className="btn" style={{padding:'6px 12px'}} onClick={() => {
+            <button className="btn" style={{padding:'6px 12px'}} onClick={async () => {
               const prev = new Date(timeWorkedWeekStart + 'T00:00:00');
               prev.setDate(prev.getDate() - 7);
-              setTimeWorkedWeekStart(`${prev.getFullYear()}-${String(prev.getMonth()+1).padStart(2,'0')}-${String(prev.getDate()).padStart(2,'0')}`);
+              const newStart = `${prev.getFullYear()}-${String(prev.getMonth()+1).padStart(2,'0')}-${String(prev.getDate()).padStart(2,'0')}`;
+              setTimeWorkedWeekStart(newStart);
+              const end = new Date(prev); end.setDate(prev.getDate() + 6);
+              const endStr = `${end.getFullYear()}-${String(end.getMonth()+1).padStart(2,'0')}-${String(end.getDate()).padStart(2,'0')}`;
+              try { const res = await axios.get(`/timeclock/time-worked?startDate=${newStart}&endDate=${endStr}`); setTimeWorked(res.data); } catch(e) {}
             }}>◀ Prev Week</button>
             <span style={{fontWeight:'bold',fontSize:'1.1rem'}}>
               {weekStart.toLocaleDateString('en-US',{month:'short',day:'numeric'})} – {weekEnd.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
             </span>
-            <button className="btn" style={{padding:'6px 12px'}} onClick={() => {
+            <button className="btn" style={{padding:'6px 12px'}} onClick={async () => {
               const next = new Date(timeWorkedWeekStart + 'T00:00:00');
               next.setDate(next.getDate() + 7);
-              setTimeWorkedWeekStart(`${next.getFullYear()}-${String(next.getMonth()+1).padStart(2,'0')}-${String(next.getDate()).padStart(2,'0')}`);
+              const newStart = `${next.getFullYear()}-${String(next.getMonth()+1).padStart(2,'0')}-${String(next.getDate()).padStart(2,'0')}`;
+              setTimeWorkedWeekStart(newStart);
+              const end = new Date(next); end.setDate(next.getDate() + 6);
+              const endStr = `${end.getFullYear()}-${String(end.getMonth()+1).padStart(2,'0')}-${String(end.getDate()).padStart(2,'0')}`;
+              try { const res = await axios.get(`/timeclock/time-worked?startDate=${newStart}&endDate=${endStr}`); setTimeWorked(res.data); } catch(e) {}
             }}>Next Week ▶</button>
-            <button className="btn" style={{padding:'6px 16px'}} onClick={async () => {
-              try {
-                const res = await axios.get(`/timeclock/time-worked?startDate=${timeWorkedWeekStart}&endDate=${weekEndStr}`);
-                setTimeWorked(res.data);
-              } catch (e) { console.error(e); }
-            }}>Load Hours</button>
           </div>
         </>
       );
@@ -1817,7 +1829,7 @@ selected={
         })}
       </div>
     )}
-    {timeWorked.length === 0 && <p style={{color:'#888',fontSize:'0.85rem'}}>Click "Load Hours" to see this week's time worked.</p>}
+    {timeWorked.length === 0 && <p style={{color:'#888',fontSize:'0.85rem'}}>No hours data for this week.</p>}
     </div>
 
     {/* PIN Management */}
@@ -1906,10 +1918,23 @@ selected={
               )}
             </div>
             <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap',alignItems:'center'}}>
+              {!clockedInList.some(c => c.employeeId === emp._id) && (
+                <select value={adminPunchPurpose} onChange={(e) => setAdminPunchPurpose(e.target.value)} style={{padding:'4px',borderRadius:'4px',fontSize:'12px',border:'1px solid #ccc'}}>
+                  <option value="">-- Purpose --</option>
+                  <option value="2 Man Crew">2 Man Crew</option>
+                  <option value="Arrow Board/Message Board Job">Arrow Board/Message Board Job</option>
+                  <option value="Emergency Job">Emergency Job</option>
+                  <option value="Weekend Work">Weekend Work</option>
+                  <option value="Shop Work">Shop Work</option>
+                </select>
+              )}
               <button className="btn" style={{padding:'4px 14px',fontSize:'12px'}} onClick={async () => {
+                const isClockedIn = clockedInList.some(c => c.employeeId === emp._id);
+                if (!isClockedIn && !adminPunchPurpose) { setPinMsg('Select a purpose before clocking in'); setTimeout(() => setPinMsg(''), 3000); return; }
                 try {
-                  const res = await axios.post('/timeclock/admin-punch', { employeeId: emp._id });
+                  const res = await axios.post('/timeclock/admin-punch', { employeeId: emp._id, purpose: isClockedIn ? undefined : adminPunchPurpose });
                   setPinMsg(res.data.message);
+                  setAdminPunchPurpose('');
                   axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {});
                   setTimeout(() => setPinMsg(''), 5000);
                 } catch (e) { setPinMsg(e.response?.data?.message || 'Error'); }
