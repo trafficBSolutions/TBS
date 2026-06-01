@@ -169,7 +169,7 @@ const handlePersonalPunch = async () => {
   if (!personalPin.trim() || personalPin.length < 4) { setPersonalClockMsg('Enter your 4-digit PIN'); return; }
   setPersonalClockLoading(true); setPersonalClockMsg('');
   try {
-    const res = await axios.post('/timeclock/punch', { pin: personalPin });
+    const res = await axios.post('/timeclock/punch', { pin: personalPin, purpose: 'Shop Work' });
     setPersonalClockMsg(res.data.message);
     setPersonalPin('');
   } catch (err) {
