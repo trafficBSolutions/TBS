@@ -1813,7 +1813,7 @@ selected={
                         </td>
                         <td style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>
                           {dayData && dayData.records ? dayData.records.map((r, idx) => (
-                            <div key={idx}>{r.minutes ? `${(r.minutes / 60).toFixed(2)} hrs` : <span style={{color:'#4CAF50'}}>active</span>}</div>
+                            <div key={idx}>{r.clockOut ? `${(r.minutes / 60).toFixed(2)} hrs` : <span style={{color:'#4CAF50'}}>active</span>}</div>
                           )) : '—'}
                         </td>
                       </tr>
