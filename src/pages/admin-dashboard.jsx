@@ -126,6 +126,16 @@ const [deductMinutes, setDeductMinutes] = useState('');
 const [deductReason, setDeductReason] = useState('');
 const [deductMsg, setDeductMsg] = useState('');
 const [deductLoading, setDeductLoading] = useState(false);
+const [editingPunchId, setEditingPunchId] = useState(null);
+const [editPunchIn, setEditPunchIn] = useState('');
+const [editPunchOut, setEditPunchOut] = useState('');
+const [editPunchMsg, setEditPunchMsg] = useState('');
+const [addLineEmp, setAddLineEmp] = useState(null);
+const [addLineDate, setAddLineDate] = useState('');
+const [addLineIn, setAddLineIn] = useState('');
+const [addLineOut, setAddLineOut] = useState('');
+const [addLinePurpose, setAddLinePurpose] = useState('');
+const [addLineMsg, setAddLineMsg] = useState('');
 const [pinEmployees, setPinEmployees] = useState([]);
 const [pinMsg, setPinMsg] = useState('');
 const [showPinManager, setShowPinManager] = useState(false);
@@ -1658,81 +1668,50 @@ selected={
       </div>
     </div>
 
-    {/* Admin Actions: Add Hours & Deduct Time */}
-    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'1rem',marginBottom:'1.5rem'}}>
-      {/* Add Hours */}
-      <div style={{background:'#f0f8ff',border:'1px solid #90caf9',borderRadius:'10px',padding:'1rem'}}>
-        <h4 style={{margin:'0 0 0.5rem',color:'#1565c0'}}>✏️ Add Hours</h4>
-        <p style={{fontSize:'0.9rem',color:'#666',margin:'0 0 0.5rem'}}>Employee forgot to clock in/out</p>
-        <div style={{display:'flex',flexDirection:'column',gap:'0.4rem'}}>
-          <select value={manualEmpId} onChange={(e) => setManualEmpId(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}}>
-            <option value="">Select Employee...</option>
-            {pinEmployees.map(emp => <option key={emp._id} value={emp._id}>{emp.name}</option>)}
-          </select>
-          <input type="date" value={manualDate} onChange={(e) => setManualDate(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}} />
-          <div style={{display:'flex',gap:'0.4rem',alignItems:'center'}}>
-            <label style={{fontSize:'0.8rem'}}>In:</label>
-            <input type="time" value={manualIn} onChange={(e) => setManualIn(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',flex:1}} />
-            <label style={{fontSize:'0.8rem'}}>Out:</label>
-            <input type="time" value={manualOut} onChange={(e) => setManualOut(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',flex:1}} />
-          </div>
-          <select value={manualPurpose} onChange={(e) => setManualPurpose(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}}>
-            <option value="">-- Job Purpose --</option>
-            <option value="2 Man Crew">2 Man Crew</option>
-            <option value="Arrow Board/Message Board Job">Arrow Board/Message Board Job</option>
-            <option value="Emergency Job">Emergency Job</option>
-            <option value="Weekend Work">Weekend Work</option>
-            <option value="Shop Work">Shop Work</option>
-          </select>
-          <input type="text" placeholder="Reason (optional)" value={manualReason} onChange={(e) => setManualReason(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}} />
-          <button className="btn" disabled={manualLoading} style={{padding:'6px 16px'}} onClick={async () => {
-            if (!manualEmpId || !manualDate || !manualIn || !manualOut) { setManualMsg('All fields required'); return; }
-            setManualLoading(true); setManualMsg('');
+    {/* Admin Actions: Add Hours for Forgotten Punches */}
+    <div style={{background:'#f0f8ff',border:'1px solid #90caf9',borderRadius:'10px',padding:'1rem',marginBottom:'1.5rem'}}>
+      <h4 style={{margin:'0 0 0.5rem',color:'#1565c0'}}>➕ Add Hours (Forgotten Clock-In)</h4>
+      <p style={{fontSize:'0.9rem',color:'#666',margin:'0 0 0.5rem'}}>Add punch lines for employees who forgot to clock in/out</p>
+      <div style={{display:'flex',flexDirection:'column',gap:'0.4rem'}}>
+        <select value={addLineEmp || ''} onChange={(e) => setAddLineEmp(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}}>
+          <option value="">Select Employee...</option>
+          {pinEmployees.map(emp => <option key={emp._id} value={emp._id}>{emp.name}</option>)}
+        </select>
+        <input type="date" value={addLineDate} onChange={(e) => setAddLineDate(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}} />
+        <select value={addLinePurpose} onChange={(e) => setAddLinePurpose(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}}>
+          <option value="">-- Job Purpose --</option>
+          <option value="2 Man Crew">2 Man Crew</option>
+          <option value="Arrow Board/Message Board Job">Arrow Board/Message Board Job</option>
+          <option value="Emergency Job">Emergency Job</option>
+          <option value="Weekend Work">Weekend Work</option>
+          <option value="Shop Work">Shop Work</option>
+        </select>
+        <div style={{display:'flex',gap:'0.4rem',alignItems:'center'}}>
+          <label style={{fontSize:'0.8rem'}}>In:</label>
+          <input type="time" value={addLineIn} onChange={(e) => setAddLineIn(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',flex:1}} />
+          <label style={{fontSize:'0.8rem'}}>Out:</label>
+          <input type="time" value={addLineOut} onChange={(e) => setAddLineOut(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',flex:1}} />
+          <button className="btn" style={{padding:'6px 14px',fontSize:'12px'}} onClick={async () => {
+            if (!addLineEmp || !addLineDate || !addLineIn || !addLineOut) { setAddLineMsg('All fields required'); return; }
             try {
-              const res = await axios.post('/timeclock/manual-entry', { employeeId: manualEmpId, date: manualDate, clockIn: manualIn, clockOut: manualOut, reason: manualReason, purpose: manualPurpose });
-              setManualMsg(res.data.message);
-              setManualEmpId(''); setManualIn(''); setManualOut(''); setManualReason(''); setManualPurpose('');
-              setTimeout(() => setManualMsg(''), 6000);
-            } catch (e) { setManualMsg(e.response?.data?.message || 'Error'); }
-            finally { setManualLoading(false); }
-          }}>{manualLoading ? '...' : 'Add Hours'}</button>
-          {manualMsg && <p style={{color: manualMsg.includes('hrs added') ? '#4CAF50' : '#ff6b6b', fontWeight:'bold', fontSize:'0.85rem',margin:0}}>{manualMsg}</p>}
+              const res = await axios.post('/timeclock/add-punch', { employeeId: addLineEmp, date: addLineDate, clockIn: addLineIn, clockOut: addLineOut, purpose: addLinePurpose });
+              setAddLineMsg(res.data.message);
+              setAddLineIn(''); setAddLineOut('');
+              // Refresh hours
+              const weekEnd = new Date(new Date(timeWorkedWeekStart + 'T00:00:00')); weekEnd.setDate(weekEnd.getDate() + 6);
+              const endStr = `${weekEnd.getFullYear()}-${String(weekEnd.getMonth()+1).padStart(2,'0')}-${String(weekEnd.getDate()).padStart(2,'0')}`;
+              const r = await axios.get(`/timeclock/time-worked?startDate=${timeWorkedWeekStart}&endDate=${endStr}`); setTimeWorked(r.data);
+              setTimeout(() => setAddLineMsg(''), 5000);
+            } catch (e) { setAddLineMsg(e.response?.data?.message || 'Error'); }
+          }}>+ Add Line</button>
         </div>
-      </div>
-
-      {/* Deduct Time */}
-      <div style={{background:'#fef2f2',border:'1px solid #fca5a5',borderRadius:'10px',padding:'1rem'}}>
-        <h4 style={{margin:'0 0 0.5rem',color:'#b91c1c'}}>➖ Deduct Time</h4>
-        <p style={{fontSize:'0.9rem',color:'#666',margin:'0 0 0.5rem'}}>Late arrival, early leave, etc.</p>
-        <div style={{display:'flex',flexDirection:'column',gap:'0.4rem'}}>
-          <select value={deductEmpId} onChange={(e) => setDeductEmpId(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}}>
-            <option value="">Select Employee...</option>
-            {pinEmployees.map(emp => <option key={emp._id} value={emp._id}>{emp.name}</option>)}
-          </select>
-          <input type="date" value={deductDate} onChange={(e) => setDeductDate(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}} />
-          <div style={{display:'flex',gap:'0.4rem'}}>
-            <input type="number" placeholder="Hours" value={deductMinutes} onChange={(e) => setDeductMinutes(e.target.value)} min="0.25" step="0.25" style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',width:'90px'}} />
-            <input type="text" placeholder="Reason" value={deductReason} onChange={(e) => setDeductReason(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',flex:'1'}} />
-          </div>
-          <button className="btn" disabled={deductLoading} style={{padding:'6px 16px',background:'#f44336',color:'#fff'}} onClick={async () => {
-            if (!deductEmpId || !deductDate || !deductMinutes) { setDeductMsg('Employee, date, and hours required'); return; }
-            setDeductLoading(true); setDeductMsg('');
-            try {
-              const mins = Math.round(parseFloat(deductMinutes) * 60);
-              const res = await axios.post('/timeclock/deduct-time', { employeeId: deductEmpId, date: deductDate, minutes: mins, reason: deductReason });
-              setDeductMsg(res.data.message);
-              setDeductEmpId(''); setDeductMinutes(''); setDeductReason('');
-              setTimeout(() => setDeductMsg(''), 6000);
-            } catch (e) { setDeductMsg(e.response?.data?.message || 'Error'); }
-            finally { setDeductLoading(false); }
-          }}>{deductLoading ? '...' : 'Deduct Time'}</button>
-          {deductMsg && <p style={{color: deductMsg.includes('deducted') ? '#4CAF50' : '#ff6b6b', fontWeight:'bold', fontSize:'0.85rem',margin:0}}>{deductMsg}</p>}
-        </div>
+        {addLineMsg && <p style={{color: addLineMsg.includes('Added') ? '#4CAF50' : '#ff6b6b', fontWeight:'bold', fontSize:'0.85rem',margin:0}}>{addLineMsg}</p>}
       </div>
     </div>
     {/* Time Worked Summary */}
     <div style={{background:'#f8f9fa',border:'1px solid #dee2e6',borderRadius:'10px',padding:'1rem',marginBottom:'1.5rem'}}>
     <h4 style={{margin:'0 0 0.75rem',color:'#1e3a8a'}}>📊 Weekly Time Summary</h4>
+    {editPunchMsg && <p style={{color: editPunchMsg === 'Saved' ? '#4CAF50' : '#ff6b6b', fontWeight:'bold', fontSize:'0.85rem', margin:'0 0 0.5rem'}}>{editPunchMsg}</p>}
     {(() => {
       const weekStart = new Date(timeWorkedWeekStart + 'T00:00:00');
       const weekEnd = new Date(weekStart);
@@ -1803,11 +1782,48 @@ selected={
                         <td style={{border:'1px solid #ddd',padding:'8px',fontWeight:'bold'}}>{dayName}</td>
                         <td style={{border:'1px solid #ddd',padding:'8px',textAlign:'center',fontSize:'0.95rem'}}>
                           {dayData && dayData.records ? dayData.records.map((r, idx) => (
-                            <div key={idx}>
-                              {new Date(r.clockIn).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})}
-                              {' → '}
-                              {r.clockOut ? new Date(r.clockOut).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false}) : <span style={{color:'#4CAF50',fontWeight:'bold'}}>Still In</span>}
-                              {r.purpose && <span style={{display:'block',marginTop:'2px',background:'#e3f2fd',color:'#1565c0',padding:'1px 6px',borderRadius:'3px',fontSize:'0.7rem',maxWidth:'fit-content'}}>{r.purpose}</span>}
+                            <div key={idx} style={{marginBottom: idx < dayData.records.length - 1 ? '6px' : 0}}>
+                              {editingPunchId === r._id ? (
+                                <div style={{display:'flex',gap:'4px',alignItems:'center',flexWrap:'wrap',justifyContent:'center'}}>
+                                  <input type="time" value={editPunchIn} onChange={(e) => setEditPunchIn(e.target.value)} style={{padding:'2px 4px',fontSize:'0.85rem',border:'1px solid #2196F3',borderRadius:'4px',width:'90px'}} />
+                                  <span>→</span>
+                                  <input type="time" value={editPunchOut} onChange={(e) => setEditPunchOut(e.target.value)} style={{padding:'2px 4px',fontSize:'0.85rem',border:'1px solid #2196F3',borderRadius:'4px',width:'90px'}} />
+                                  <button style={{padding:'2px 6px',fontSize:'11px',background:'#4CAF50',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer'}} onClick={async () => {
+                                    if (!editPunchIn || !editPunchOut) return;
+                                    const dateStr = key;
+                                    try {
+                                      await axios.put(`/timeclock/edit-punch/${r._id}`, { clockIn: `${dateStr}T${editPunchIn}:00`, clockOut: `${dateStr}T${editPunchOut}:00` });
+                                      setEditingPunchId(null); setEditPunchMsg('Saved');
+                                      const weekEnd = new Date(new Date(timeWorkedWeekStart + 'T00:00:00')); weekEnd.setDate(weekEnd.getDate() + 6);
+                                      const endStr = `${weekEnd.getFullYear()}-${String(weekEnd.getMonth()+1).padStart(2,'0')}-${String(weekEnd.getDate()).padStart(2,'0')}`;
+                                      const res = await axios.get(`/timeclock/time-worked?startDate=${timeWorkedWeekStart}&endDate=${endStr}`); setTimeWorked(res.data);
+                                      setTimeout(() => setEditPunchMsg(''), 3000);
+                                    } catch (e) { setEditPunchMsg(e.response?.data?.message || 'Error'); }
+                                  }}>✓</button>
+                                  <button style={{padding:'2px 6px',fontSize:'11px',background:'#888',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer'}} onClick={() => setEditingPunchId(null)}>✗</button>
+                                </div>
+                              ) : (
+                                <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'4px'}}>
+                                  <span>
+                                    {r.originalClockIn && r.editedByAdmin && <span style={{textDecoration:'line-through',color:'#999',fontSize:'0.75rem',marginRight:'3px'}}>{new Date(r.originalClockIn).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})}</span>}
+                                    {new Date(r.clockIn).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})}
+                                    {' → '}
+                                    {r.clockOut ? (
+                                      <>
+                                        {r.originalClockOut && r.editedByAdmin && <span style={{textDecoration:'line-through',color:'#999',fontSize:'0.75rem',marginRight:'3px'}}>{new Date(r.originalClockOut).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})}</span>}
+                                        {new Date(r.clockOut).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})}
+                                      </>
+                                    ) : <span style={{color:'#4CAF50',fontWeight:'bold'}}>Still In</span>}
+                                  </span>
+                                  <button style={{padding:'1px 5px',fontSize:'10px',background:'#2196F3',color:'#fff',border:'none',borderRadius:'3px',cursor:'pointer',marginLeft:'4px'}} onClick={() => {
+                                    setEditingPunchId(r._id);
+                                    setEditPunchIn(new Date(r.clockIn).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false}));
+                                    setEditPunchOut(r.clockOut ? new Date(r.clockOut).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false}) : '');
+                                  }}>✏</button>
+                                  {r.autoClockOut && <span style={{fontSize:'0.7rem',color:'#d32f2f',marginLeft:'3px'}}>⚠️ auto</span>}
+                                </div>
+                              )}
+                              {r.purpose && <span style={{display:'block',marginTop:'2px',background:'#e3f2fd',color:'#1565c0',padding:'1px 6px',borderRadius:'3px',fontSize:'0.7rem',maxWidth:'fit-content',margin:'2px auto 0'}}>{r.purpose}</span>}
                             </div>
                           )) : '—'}
                         </td>
