@@ -1785,9 +1785,9 @@ selected={
                             <div key={idx} style={{marginBottom: idx < dayData.records.length - 1 ? '6px' : 0}}>
                               {editingPunchId === r._id ? (
                                 <div style={{display:'flex',gap:'4px',alignItems:'center',flexWrap:'wrap',justifyContent:'center'}}>
-                                  <input type="time" value={editPunchIn} onChange={(e) => setEditPunchIn(e.target.value)} style={{padding:'2px 4px',fontSize:'0.85rem',border:'1px solid #2196F3',borderRadius:'4px',width:'90px'}} />
+                                  <input type="text" value={editPunchIn} onChange={(e) => setEditPunchIn(e.target.value)} placeholder="HH:MM" maxLength={5} style={{padding:'2px 4px',fontSize:'0.85rem',border:'1px solid #2196F3',borderRadius:'4px',width:'60px',textAlign:'center'}} />
                                   <span>→</span>
-                                  <input type="time" value={editPunchOut} onChange={(e) => setEditPunchOut(e.target.value)} style={{padding:'2px 4px',fontSize:'0.85rem',border:'1px solid #2196F3',borderRadius:'4px',width:'90px'}} />
+                                  <input type="text" value={editPunchOut} onChange={(e) => setEditPunchOut(e.target.value)} placeholder="HH:MM" maxLength={5} style={{padding:'2px 4px',fontSize:'0.85rem',border:'1px solid #2196F3',borderRadius:'4px',width:'60px',textAlign:'center'}} />
                                   <button style={{padding:'2px 6px',fontSize:'11px',background:'#4CAF50',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer'}} onClick={async () => {
                                     if (!editPunchIn || !editPunchOut) return;
                                     const dateStr = key;
