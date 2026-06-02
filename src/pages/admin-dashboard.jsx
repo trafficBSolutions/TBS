@@ -1820,6 +1820,17 @@ selected={
                                     setEditPunchIn(new Date(r.clockIn).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false}));
                                     setEditPunchOut(r.clockOut ? new Date(r.clockOut).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false}) : '');
                                   }}>✏</button>
+                                  <button style={{padding:'1px 5px',fontSize:'10px',background:'#f44336',color:'#fff',border:'none',borderRadius:'3px',cursor:'pointer'}} onClick={async () => {
+                                    if (!window.confirm(`Delete this punch for ${emp.name}? This cannot be undone.`)) return;
+                                    try {
+                                      await axios.delete(`/timeclock/delete-punch/${r._id}`);
+                                      const weekEnd = new Date(new Date(timeWorkedWeekStart + 'T00:00:00')); weekEnd.setDate(weekEnd.getDate() + 6);
+                                      const endStr = `${weekEnd.getFullYear()}-${String(weekEnd.getMonth()+1).padStart(2,'0')}-${String(weekEnd.getDate()).padStart(2,'0')}`;
+                                      const res = await axios.get(`/timeclock/time-worked?startDate=${timeWorkedWeekStart}&endDate=${endStr}`); setTimeWorked(res.data);
+                                      setEditPunchMsg('Punch deleted');
+                                      setTimeout(() => setEditPunchMsg(''), 3000);
+                                    } catch (e) { setEditPunchMsg(e.response?.data?.message || 'Error deleting'); }
+                                  }}>🗑</button>
                                   {r.autoClockOut && <span style={{fontSize:'0.7rem',color:'#d32f2f',marginLeft:'3px'}}>⚠️ auto</span>}
                                 </div>
                               )}
