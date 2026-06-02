@@ -1711,14 +1711,15 @@ selected={
           </select>
           <input type="date" value={deductDate} onChange={(e) => setDeductDate(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}} />
           <div style={{display:'flex',gap:'0.4rem'}}>
-            <input type="number" placeholder="Minutes" value={deductMinutes} onChange={(e) => setDeductMinutes(e.target.value)} min="1" style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',width:'90px'}} />
+            <input type="number" placeholder="Hours" value={deductMinutes} onChange={(e) => setDeductMinutes(e.target.value)} min="0.25" step="0.25" style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',width:'90px'}} />
             <input type="text" placeholder="Reason" value={deductReason} onChange={(e) => setDeductReason(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',flex:'1'}} />
           </div>
           <button className="btn" disabled={deductLoading} style={{padding:'6px 16px',background:'#f44336',color:'#fff'}} onClick={async () => {
-            if (!deductEmpId || !deductDate || !deductMinutes) { setDeductMsg('Employee, date, and minutes required'); return; }
+            if (!deductEmpId || !deductDate || !deductMinutes) { setDeductMsg('Employee, date, and hours required'); return; }
             setDeductLoading(true); setDeductMsg('');
             try {
-              const res = await axios.post('/timeclock/deduct-time', { employeeId: deductEmpId, date: deductDate, minutes: deductMinutes, reason: deductReason });
+              const mins = Math.round(parseFloat(deductMinutes) * 60);
+              const res = await axios.post('/timeclock/deduct-time', { employeeId: deductEmpId, date: deductDate, minutes: mins, reason: deductReason });
               setDeductMsg(res.data.message);
               setDeductEmpId(''); setDeductMinutes(''); setDeductReason('');
               setTimeout(() => setDeductMsg(''), 6000);
