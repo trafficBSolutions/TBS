@@ -1817,8 +1817,10 @@ selected={
                                   </span>
                                   <button style={{padding:'1px 5px',fontSize:'10px',background:'#2196F3',color:'#fff',border:'none',borderRadius:'3px',cursor:'pointer',marginLeft:'4px'}} onClick={() => {
                                     setEditingPunchId(r._id);
-                                    setEditPunchIn(new Date(r.clockIn).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false}));
-                                    setEditPunchOut(r.clockOut ? new Date(r.clockOut).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false}) : '');
+                                    const inDate = new Date(r.clockIn);
+                                    const outDate = r.clockOut ? new Date(r.clockOut) : null;
+                                    setEditPunchIn(`${String(inDate.getHours()).padStart(2,'0')}:${String(inDate.getMinutes()).padStart(2,'0')}`);
+                                    setEditPunchOut(outDate ? `${String(outDate.getHours()).padStart(2,'0')}:${String(outDate.getMinutes()).padStart(2,'0')}` : '');
                                   }}>✏</button>
                                   <button style={{padding:'1px 5px',fontSize:'10px',background:'#f44336',color:'#fff',border:'none',borderRadius:'3px',cursor:'pointer'}} onClick={async () => {
                                     if (!window.confirm(`Delete this punch for ${emp.name}? This cannot be undone.`)) return;
