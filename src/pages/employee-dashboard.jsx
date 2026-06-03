@@ -300,7 +300,7 @@ const EmployeeDashboard = () => {
           </div>
           {weekData && (
             <div style={{marginTop:'1rem',background:'#fff',borderRadius:'8px',padding:'1rem',textAlign:'left',color:'#333'}}>
-              <button onClick={() => { setWeekData(null); setPin(''); }} style={{marginBottom:'0.75rem',padding:'0.5rem 1.2rem',fontSize:'0.95rem',borderRadius:'8px',background:'#1a1a2e',color:'#fff',border:'none',cursor:'pointer'}}>← Back to Time Clock</button>
+              <button onClick={() => { setWeekData(null); setPin(''); setSelectedEmployee(null); setClockMsg(''); }} style={{marginBottom:'0.75rem',padding:'0.5rem 1.2rem',fontSize:'0.95rem',borderRadius:'8px',background:'#1a1a2e',color:'#fff',border:'none',cursor:'pointer'}}>← Back to Time Clock</button>
               <h3 style={{margin:'0 0 0.5rem',fontSize:'1.1rem'}}>📅 {weekData.name} — Week: {weekData.weekStart} to {weekData.weekEnd}</h3>
               <p style={{fontSize:'1.1rem',fontWeight:'bold',color:'#1e3a8a',margin:'0 0 0.75rem'}}>Total: {weekData.totalHours} hrs ({weekData.totalMinutes} min)</p>
               <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.95rem'}}>
