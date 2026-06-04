@@ -160,13 +160,14 @@ const salaryAdminEmails = new Set([
   'trafficandbarriersolutions.ap@gmail.com',
   'tbsolutions1999@gmail.com',
   'tbsolutions77@gmail.com',
-  'tbsolutions14@gmail.com'
+  'tbsolutions14@gmail.com',
+  'materialworx2@gmail.com'
 ]);
 
 // Admins who get a personal time clock widget (clock in/out only, no admin view)
 const personalClockEmails = new Set(['materialworx2@gmail.com']);
 // Hourly admins who can view their own weekly hours
-const hourlyAdminEmails = new Set(['materialworx2@gmail.com', 'tbsolutions66@gmail.com']);
+const hourlyAdminEmails = new Set(['tbsolutions66@gmail.com']);
 const [personalPin, setPersonalPin] = useState('');
 const [personalClockMsg, setPersonalClockMsg] = useState('');
 const [personalClockLoading, setPersonalClockLoading] = useState(false);
