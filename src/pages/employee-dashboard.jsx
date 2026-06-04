@@ -238,7 +238,7 @@ const EmployeeDashboard = () => {
                 <p style={{fontSize:'2rem',fontWeight:600,marginBottom:'1rem'}}>
                   {clockedInIds.includes(selectedEmployee._id) ? '🟢 Currently Clocked In' : '⚪ Currently Clocked Out'}
                 </p>
-                {!clockedInIds.includes(selectedEmployee._id) && (
+                {!clockedInIds.includes(selectedEmployee._id) && !clockMsg.includes('clocked') && !clockMsg.includes('✅') && (
                   <select
                     value={clockPurpose}
                     onChange={(e) => setClockPurpose(e.target.value)}
