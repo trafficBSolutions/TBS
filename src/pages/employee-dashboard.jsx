@@ -186,7 +186,7 @@ const EmployeeDashboard = () => {
 
   return (
     <div>
-        <Header />
+        {!ipAllowed && <Header />}
     <main className="employee-main">
       <div className="employee-options">
         <h1 className="employee-title">Employee Dashboard</h1>
@@ -584,6 +584,7 @@ const EmployeeDashboard = () => {
           </div>
       
     </main>
+          {!ipAllowed && (
           <footer className="footer">
   <div className="site-footer__inner">
     <img className="tbs-logo" alt="TBS logo" src={images["../assets/tbs_companies/tbs white.svg"].default} />
@@ -634,10 +635,13 @@ const EmployeeDashboard = () => {
             </div>
   </div>
 </footer>
+          )}
+{!ipAllowed && (
 <div className="footer-copyright">
       <p className="footer-copy-p">&copy; 2026 Traffic & Barrier Solutions, LLC - 
         Website Created by <a className="footer-face"href="https://www.material-worx.com/portfolio" target="_blank" rel="noopener noreferrer">MX Systems</a> - All Rights Reserved.</p>
     </div>
+)}
             </div>
   );
 };
