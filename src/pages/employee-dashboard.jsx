@@ -228,9 +228,11 @@ const EmployeeDashboard = () => {
             )}
             {ipAllowed === true && selectedEmployee && (
               <div className="kiosk-punch-panel">
+                {!clockMsg.includes('clocked') && !clockMsg.includes('✅') && (
                 <button className="kiosk-back-btn" onClick={() => { setSelectedEmployee(null); setClockMsg(''); }}>
                   ← Back to Employees
                 </button>
+                )}
                 <h2 style={{color:'#1a1a2e',margin:'1rem 0 0.25rem'}}>{selectedEmployee.displayName}</h2>
                 <p style={{color:'#6b7280',fontSize:'2rem',margin:'0 0 0.5rem'}}>{selectedEmployee.position}</p>
                 <p style={{fontSize:'2rem',fontWeight:600,marginBottom:'1rem'}}>
@@ -262,10 +264,11 @@ const EmployeeDashboard = () => {
                   onKeyDown={(e) => e.key === 'Enter' && handlePunch()}
                   className="kiosk-pin-input"
                   autoFocus
+                  disabled={clockMsg.includes('clocked') || clockMsg.includes('✅')}
                 />
                 <button
                   onClick={handlePunch}
-                  disabled={clockLoading}
+                  disabled={clockLoading || clockMsg.includes('clocked') || clockMsg.includes('✅')}
                   className="kiosk-punch-btn"
                 >
                   {clockLoading ? '...' : clockedInIds.includes(selectedEmployee._id) ? 'Clock Out' : 'Clock In'}
