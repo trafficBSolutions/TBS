@@ -269,6 +269,7 @@ const clearOfficerSignature = () => {
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
 
+  const [overnightConfirmed, setOvernightConfirmed] = useState(false);
   const [basic, setBasic] = useState({
     dateOfJob: '',
     company: '',
@@ -468,7 +469,8 @@ useEffect(() => {
 
   const setBasicField = (k, v) => {
   setBasic(prev => ({ ...prev, [k]: v }));
-  setErrors(prev => (prev[k] ? { ...prev, [k]: '' } : prev)); // clear this field's error
+  setErrors(prev => (prev[k] ? { ...prev, [k]: '' } : prev));
+  if (k === 'startTime' || k === 'endTime') setOvernightConfirmed(false);
 };
 const setMorning = (key, sub, val) => {
   // update the morning value
@@ -517,6 +519,12 @@ const validateAll = () => {
   // Zip format
   if (basic.zip && !/^\d{5}$/.test(basic.zip)) {
     errs.zip = 'Zip must be 5 digits';
+  }
+
+  // End time must be after start time (catches AM/PM mistakes like 7:40AM - 1:00AM)
+  // Allow overnight shifts only if user confirms
+  if (basic.startTime && basic.endTime && basic.endTime <= basic.startTime && !overnightConfirmed) {
+    errs.endTime = 'End Time is before Start Time. If this is an overnight job, please confirm below.';
   }
 // Trucks required
 if (!Array.isArray(tbs.trucks) || tbs.trucks.length === 0) {
@@ -643,6 +651,7 @@ const onSubmit = async (e) => {
     setForemanSig('');
     setPhotos([]);
     setRequiresPhotos(false);
+    setOvernightConfirmed(false);
     sigRef.current?.clear();
     officerSigRef.current?.clear();
     setPoliceOfficer({ used: false, name: '', signature: '' });
@@ -869,6 +878,23 @@ const isSubmitReady = useMemo(() => {
                 {basicField('project','Project/Task')}
                 {basicField('startTime','Start Time','time')}
                 {basicField('endTime','End Time','time')}
+
+                {basic.startTime && basic.endTime && basic.endTime <= basic.startTime && (
+                  <div className="overnight-confirm" style={{background:'#fff3cd',border:'1px solid #ffc107',borderRadius:'6px',padding:'10px',marginTop:'8px'}}>
+                    <label style={{display:'flex',alignItems:'center',gap:'8px',fontWeight:'bold',color:'#856404'}}>
+                      <input
+                        type="checkbox"
+                        checked={overnightConfirmed}
+                        onChange={(e) => {
+                          setOvernightConfirmed(e.target.checked);
+                          if (e.target.checked) setErrors(prev => ({...prev, endTime: ''}));
+                        }}
+                      />
+                      ⚠️ This is an overnight/emergency job
+                    </label>
+                    <p style={{margin:'5px 0 0',fontSize:'12px',color:'#856404'}}>End time is before start time. Check this box to confirm the job runs past midnight.</p>
+                  </div>
+                )}
 
                 <label>How was our performance?</label>
                 <select value={basic.rating} onChange={e => setBasicField('rating', e.target.value)}>
