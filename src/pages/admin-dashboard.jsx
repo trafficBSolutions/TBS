@@ -601,7 +601,9 @@ useEffect(() => {
     const shopWoEmails = new Set([
       'tbsolutions9@gmail.com',
       'tbsolutions1999@gmail.com',
-      'tbsolutions4@gmail.com'
+      'tbsolutions4@gmail.com',
+      'materialworx2@gmail.com',
+      'tbsolutions1995@gmail.com'
     ]);
     setAllowedForShopWo(shopWoEmails.has(user.email));
   }
