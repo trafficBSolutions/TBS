@@ -27,9 +27,10 @@ import ConfirmAdditionalFlagger from './ConfirmAdditionalFlagger'
 import EmployeeDiscipline from './employee-discipline'
 import RescheduleJob from './RescheduleJob'
 import EmployeeHandbook from './employee-handbook'
+import LeaveRequest from './leave-request'
 import Quote from './quote'
 import TCPDesigner from './tcp-designer'
 import ShopWorkOrder from './shop-work-order'
 import ShopWorkOrderStatus from './shop-work-order-status'
 import TimeClockKiosk from './time-clock-kiosk'
-export { TimeClockKiosk, AdminDashboard, ShopWorkOrderStatus, ShopWorkOrder, TCPDesigner, Quote, EmployeeHandbook, RescheduleJob, EmployeeDiscipline, ConfirmAdditionalFlagger, EmployeeLogin, EmployeeDashboard, EmployeeComplaintForm, Work, Invoice, CancelJob, About, Contact, Apply, Home, AdminLog, TrafficControl, TrafficPlan, BollardsWheels, Signs, Rentals, PPE, Error, TService, Product, ManageJob, TrafficControlTest, ManageJobTest, CancelJobTest };
+export { TimeClockKiosk, LeaveRequest, AdminDashboard, ShopWorkOrderStatus, ShopWorkOrder, TCPDesigner, Quote, EmployeeHandbook, RescheduleJob, EmployeeDiscipline, ConfirmAdditionalFlagger, EmployeeLogin, EmployeeDashboard, EmployeeComplaintForm, Work, Invoice, CancelJob, About, Contact, Apply, Home, AdminLog, TrafficControl, TrafficPlan, BollardsWheels, Signs, Rentals, PPE, Error, TService, Product, ManageJob, TrafficControlTest, ManageJobTest, CancelJobTest };
