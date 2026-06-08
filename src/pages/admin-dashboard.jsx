@@ -101,6 +101,8 @@ const [shopWoDate, setShopWoDate] = useState(new Date());
 const [shopWoList, setShopWoList] = useState([]);
 const [shopWoMonthly, setShopWoMonthly] = useState({});
 const [allowedForShopWo, setAllowedForShopWo] = useState(false);
+const [leaveRequests, setLeaveRequests] = useState([]);
+const [pendingShopWos, setPendingShopWos] = useState([]);
 const [clockedInList, setClockedInList] = useState([]);
 const [clockHistory, setClockHistory] = useState([]);
 const [clockHistoryDate, setClockHistoryDate] = useState(new Date());
@@ -406,6 +408,68 @@ const fetchShopWoForDay = async (date) => {
   } catch (e) {
     console.error('Failed to fetch daily shop work orders:', e);
     setShopWoList([]);
+  }
+};
+
+const fetchLeaveRequests = async () => {
+  try {
+    const res = await axios.get('/leave-requests/pending');
+    setLeaveRequests(res.data || []);
+  } catch (e) {
+    console.error('Failed to fetch leave requests:', e);
+    setLeaveRequests([]);
+  }
+};
+
+const fetchPendingShopWos = async () => {
+  try {
+    const res = await axios.get('/shop-work-orders');
+    setPendingShopWos((res.data || []).filter(wo => wo.status === 'pending'));
+  } catch (e) {
+    setPendingShopWos([]);
+  }
+};
+
+const handleShopWoApprove = async (woId) => {
+  const adminUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
+  try {
+    await axios.post(`/shop-work-order/${woId}/dashboard-approve`, { approver: adminUser.email });
+    fetchPendingShopWos();
+    fetchShopWoForDay(shopWoDate);
+  } catch (e) {
+    alert(e.response?.data?.error || 'Failed to approve');
+  }
+};
+
+const handleShopWoDisapprove = async (woId) => {
+  const adminUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
+  try {
+    await axios.post(`/shop-work-order/${woId}/dashboard-disapprove`, { approver: adminUser.email });
+    fetchPendingShopWos();
+    fetchShopWoForDay(shopWoDate);
+  } catch (e) {
+    alert(e.response?.data?.error || 'Failed to disapprove');
+  }
+};
+
+const handleLeaveApprove = async (id) => {
+  const adminUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
+  try {
+    await axios.post(`/leave-requests/${id}/approve`, { approverName: adminUser.name || adminUser.email });
+    fetchLeaveRequests();
+  } catch (e) {
+    alert(e.response?.data?.error || 'Failed to approve');
+  }
+};
+
+const handleLeaveDeny = async (id) => {
+  const adminUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
+  const reason = prompt('Reason for denial (optional):');
+  try {
+    await axios.post(`/leave-requests/${id}/deny`, { denierName: adminUser.name || adminUser.email, reason: reason || '' });
+    fetchLeaveRequests();
+  } catch (e) {
+    alert(e.response?.data?.error || 'Failed to deny');
   }
 };
 
@@ -715,6 +779,8 @@ useEffect(() => {
     setComplaintsDate(d);
     fetchMonthlyComplaints(d);
     fetchComplaintsForDay(d);
+    fetchLeaveRequests();
+    fetchPendingShopWos();
   }
 }, [isAdmin]);
 
@@ -1485,6 +1551,12 @@ selected={
           <p><strong>Description:</strong> {wo.description}</p>
           <p><strong>Submitted By:</strong> {wo.submittedBy}</p>
           <p><strong>Submitted:</strong> {new Date(wo.createdAt).toLocaleString()}</p>
+          {wo.status === 'pending' && (
+            <div style={{display:'flex',gap:'8px',marginTop:'10px'}}>
+              <button className="btn" style={{background:'#4CAF50',color:'#fff'}} onClick={() => handleShopWoApprove(wo._id)}>✅ Approve</button>
+              <button className="btn" style={{background:'#f44336',color:'#fff'}} onClick={() => handleShopWoDisapprove(wo._id)}>❌ Disapprove</button>
+            </div>
+          )}
         </div>
       ))}
       {shopWoList.length === 0 && <p>No shop work orders on this day.</p>}
@@ -2333,6 +2405,56 @@ selected={
   )}
   </div>
 </section>
+
+{/* LEAVE REQUESTS SECTION */}
+<section className="admin-section" style={{marginTop:'2rem'}}>
+  <h2 className="admin-plans-title">🏖️ Leave Requests {leaveRequests.length > 0 && <span style={{color:'#ff9800'}}>({leaveRequests.length} pending)</span>}</h2>
+  {leaveRequests.length === 0 && <p style={{color:'#888',padding:'1rem'}}>No pending leave requests.</p>}
+  {leaveRequests.length > 0 && (
+    <div className="job-info-list">
+      {leaveRequests.map((lr) => (
+        <div key={lr._id} className="job-card">
+          <h4 className="job-company">{lr.employeeName}</h4>
+          <p><strong>Position:</strong> {lr.position}</p>
+          <p><strong>Supervisor:</strong> {lr.supervisor}</p>
+          <p><strong>Leave Type:</strong> {lr.leaveType}{lr.otherLeaveType ? ` - ${lr.otherLeaveType}` : ''}</p>
+          <p><strong>Dates:</strong> {lr.startDate} to {lr.endDate} ({lr.totalDays} days)</p>
+          <p><strong>Reason:</strong> {lr.reason}</p>
+          <p><strong>Submitted:</strong> {new Date(lr.createdAt).toLocaleString()}</p>
+          <div style={{display:'flex',gap:'8px',marginTop:'10px'}}>
+            <button className="btn" style={{background:'#4CAF50',color:'#fff'}} onClick={() => handleLeaveApprove(lr._id)}>✅ Approve</button>
+            <button className="btn" style={{background:'#f44336',color:'#fff'}} onClick={() => handleLeaveDeny(lr._id)}>❌ Deny</button>
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+</section>
+
+{/* PENDING SHOP WORK ORDERS SECTION */}
+{allowedForShopWo && pendingShopWos.length > 0 && (
+<section className="admin-section" style={{marginTop:'2rem'}}>
+  <h2 className="admin-plans-title">🛠️ Pending Shop Work Orders <span style={{color:'#ff9800'}}>({pendingShopWos.length})</span></h2>
+  <div className="job-info-list">
+    {pendingShopWos.map((wo) => (
+      <div key={wo._id} className="job-card">
+        <h4 className="job-company">{wo.employeeNames}</h4>
+        <p><strong>Date:</strong> {wo.date}</p>
+        <p><strong>Time:</strong> {wo.inTime} - {wo.outTime}</p>
+        <p><strong>Location:</strong> {wo.location}</p>
+        <p><strong>Truck:</strong> {wo.truckNumber || 'N/A'}</p>
+        <p><strong>Supervisor:</strong> {wo.supervisor}</p>
+        <p><strong>Description:</strong> {wo.description}</p>
+        <p><strong>Submitted:</strong> {new Date(wo.createdAt).toLocaleString()}</p>
+        <div style={{display:'flex',gap:'8px',marginTop:'10px'}}>
+          <button className="btn" style={{background:'#4CAF50',color:'#fff'}} onClick={() => handleShopWoApprove(wo._id)}>✅ Approve</button>
+          <button className="btn" style={{background:'#f44336',color:'#fff'}} onClick={() => handleShopWoDisapprove(wo._id)}>❌ Disapprove</button>
+        </div>
+      </div>
+    ))}
+  </div>
+</section>
+)}
 
 {selectedImage && (
   <div className="image-modal" onClick={() => setSelectedImage(null)}>
