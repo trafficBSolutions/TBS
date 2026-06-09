@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/headerviews/HeaderEmpDash';
 import images from '../utils/tbsImages';
 import '../css/employee.css';
@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const EmployeeDashboard = () => {
+  const navigate = useNavigate();
   const [showTAImages, setShowTAImages] = useState(false);
   const [showCharts, setShowCharts] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
@@ -101,6 +102,37 @@ const EmployeeDashboard = () => {
       return;
     }
 
+    // If clocking out, check for work order requirements first
+    if (isClockedIn) {
+      try {
+        const checkRes = await axios.get(`/timeclock/clockout-check/${selectedEmployee._id}`);
+        if (!checkRes.data.allowed) {
+          setClockLoading(false);
+          const reason = checkRes.data.reason;
+          localStorage.setItem('tbs_kiosk_clockout_pending', JSON.stringify({
+            employeeId: selectedEmployee._id,
+            employeeName: selectedEmployee.displayName,
+            pin,
+            reason
+          }));
+          if (reason === 'shop_work_order_required') {
+            setClockMsg('⚠️ You must complete a Shop Work Order first. Redirecting...');
+            setTimeout(() => navigate('/shop-work-order?from=kiosk'), 1500);
+          } else if (reason === 'work_order_required') {
+            setClockMsg('⚠️ You must complete a Work Order first. Redirecting...');
+            setTimeout(() => navigate('/work-order?from=kiosk'), 1500);
+          }
+          return;
+        }
+      } catch (checkErr) {
+        if (checkErr.response) {
+          setClockLoading(false);
+          setClockMsg(checkErr.response?.data?.message || 'Error checking work order status. Try again.');
+          return;
+        }
+      }
+    }
+
     try {
       const res = await axios.post('/timeclock/punch', { pin, purpose: isClockedIn ? undefined : clockPurpose });
       setClockMsg(res.data.message);
@@ -111,7 +143,6 @@ const EmployeeDashboard = () => {
     } catch (err) {
       const data = err.response?.data;
       if (!err.response) {
-        // Network error — queue offline
         const queue = getPunchQueue();
         queue.push({ pin, purpose: isClockedIn ? undefined : clockPurpose, timestamp: new Date().toISOString(), employeeName: selectedEmployee?.displayName || '' });
         savePunchQueue(queue);
