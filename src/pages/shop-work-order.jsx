@@ -191,7 +191,8 @@ export default function ShopWorkOrder() {
             setSubmissionMessage('✅ Shop Work Order submitted! Please clock out at the tablet.');
           }
           localStorage.removeItem('tbs_kiosk_clockout_pending');
-          setTimeout(() => navigate('/time-clock'), 3000);
+          const returnPath = localStorage.getItem('adminUser') ? '/admin-dashboard' : '/employee-dashboard';
+          setTimeout(() => navigate(returnPath), 3000);
         }
       } else {
         setSubmissionMessage('✅ Shop Work Order submitted for approval! Supervisors have been notified.');
@@ -315,7 +316,7 @@ export default function ShopWorkOrder() {
 
             {fromKiosk && (
               <div style={{ textAlign: 'center', marginTop: '15px' }}>
-                <button type="button" onClick={() => { localStorage.removeItem('tbs_kiosk_clockout_pending'); navigate('/time-clock'); }} style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', textDecoration: 'underline' }}>
+                <button type="button" onClick={() => { localStorage.removeItem('tbs_kiosk_clockout_pending'); navigate(localStorage.getItem('adminUser') ? '/admin-dashboard' : '/employee-dashboard'); }} style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', textDecoration: 'underline' }}>
                   Cancel & Return to Time Clock
                 </button>
               </div>
