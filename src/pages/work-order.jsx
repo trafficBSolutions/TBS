@@ -206,47 +206,49 @@ useEffect(() => {
   }
 }, [navigate, fromKiosk]);
 
-// Fetch only clocked-in employees for flagger select dropdowns (exclude Shop Work/Standby)
+// Fetch employees who clocked in today for flagger select dropdowns (exclude Shop Work/Standby)
 useEffect(() => {
   const fetchWoEmployees = async () => {
     try {
-      const [empRes, statusRes] = await Promise.all([
+      const today = new Date().toISOString().split('T')[0];
+      const [empRes, historyRes] = await Promise.all([
         axios.get('/timeclock/employees'),
-        axios.get('/timeclock/status')
+        axios.get(`/timeclock/history?date=${today}`)
       ]);
-      const statusMap = {};
-      statusRes.data.forEach(r => { statusMap[r.employeeId] = r.purpose || ''; });
-      const clockedInIds = new Set(Object.keys(statusMap));
+      // Get all employee IDs who clocked in today with a non-Shop Work/Standby purpose
+      const todayIds = new Set();
+      historyRes.data.forEach(r => {
+        const purpose = (r.purpose || '').trim();
+        if (purpose !== 'Shop Work' && purpose !== 'Standby') {
+          todayIds.add(r.employeeId);
+        }
+      });
       const allEmps = [
         ...empRes.data.employees.map(e => ({ id: e._id, name: e.name, position: e.position })),
         ...empRes.data.hourlyAdmins.map(a => ({ id: a._id, name: a.name, position: 'Foreman' }))
       ].filter(e => e.name);
-      // Only clocked-in AND not on Shop Work/Standby
-      const clockedIn = allEmps.filter(e => {
-        if (!clockedInIds.has(e.id)) return false;
-        const purpose = statusMap[e.id];
-        return purpose !== 'Shop Work' && purpose !== 'Standby';
-      }).sort((a, b) => a.name.localeCompare(b.name));
-      setWoEmployeeList(clockedIn);
+      const todayEmps = allEmps.filter(e => todayIds.has(e.id)).sort((a, b) => a.name.localeCompare(b.name));
+      setWoEmployeeList(todayEmps);
     } catch {
       try {
-        const [empRes, statusRes] = await Promise.all([
+        const today = new Date().toISOString().split('T')[0];
+        const [empRes, historyRes] = await Promise.all([
           api.get('/timeclock/employees'),
-          api.get('/timeclock/status')
+          api.get(`/timeclock/history?date=${today}`)
         ]);
-        const statusMap = {};
-        statusRes.data.forEach(r => { statusMap[r.employeeId] = r.purpose || ''; });
-        const clockedInIds = new Set(Object.keys(statusMap));
+        const todayIds = new Set();
+        historyRes.data.forEach(r => {
+          const purpose = (r.purpose || '').trim();
+          if (purpose !== 'Shop Work' && purpose !== 'Standby') {
+            todayIds.add(r.employeeId);
+          }
+        });
         const allEmps = [
           ...empRes.data.employees.map(e => ({ id: e._id, name: e.name, position: e.position })),
           ...empRes.data.hourlyAdmins.map(a => ({ id: a._id, name: a.name, position: 'Foreman' }))
         ].filter(e => e.name);
-        const clockedIn = allEmps.filter(e => {
-          if (!clockedInIds.has(e.id)) return false;
-          const purpose = statusMap[e.id];
-          return purpose !== 'Shop Work' && purpose !== 'Standby';
-        }).sort((a, b) => a.name.localeCompare(b.name));
-        setWoEmployeeList(clockedIn);
+        const todayEmps = allEmps.filter(e => todayIds.has(e.id)).sort((a, b) => a.name.localeCompare(b.name));
+        setWoEmployeeList(todayEmps);
       } catch { /* no-op */ }
     }
   };
