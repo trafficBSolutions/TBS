@@ -187,6 +187,31 @@ const handlePersonalPunch = async () => {
   if (!personalPin.trim() || personalPin.length < 4) { setPersonalClockMsg('Enter your 4-digit PIN'); return; }
   setPersonalClockLoading(true); setPersonalClockMsg('');
   try {
+    // Check if currently clocked in (to determine if this is a clock-out)
+    const adminUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
+    const statusRes = await axios.get('/timeclock/status');
+    const isClockedIn = statusRes.data.some(r => r.employeeName && r.employeeName.toLowerCase().includes('dasia'));
+
+    // If clocking out, check for shop work order requirement
+    if (isClockedIn) {
+      const myRecord = statusRes.data.find(r => r.employeeName && r.employeeName.toLowerCase().includes('dasia'));
+      if (myRecord) {
+        const checkRes = await axios.get(`/timeclock/clockout-check/${myRecord.employeeId}`);
+        if (!checkRes.data.allowed && checkRes.data.reason === 'shop_work_order_required') {
+          setPersonalClockLoading(false);
+          setPersonalClockMsg('⚠️ You must complete a Shop Work Order first. Redirecting...');
+          localStorage.setItem('tbs_kiosk_clockout_pending', JSON.stringify({
+            employeeId: myRecord.employeeId,
+            employeeName: myRecord.employeeName,
+            pin: personalPin,
+            reason: 'shop_work_order_required'
+          }));
+          setTimeout(() => navigate('/shop-work-order?from=kiosk'), 1500);
+          return;
+        }
+      }
+    }
+
     const res = await axios.post('/timeclock/punch', { pin: personalPin, purpose: 'Shop Work' });
     setPersonalClockMsg(res.data.message);
     setPersonalPin('');
