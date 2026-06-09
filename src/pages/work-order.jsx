@@ -206,7 +206,7 @@ useEffect(() => {
   }
 }, [navigate, fromKiosk]);
 
-// Fetch only clocked-in employees for flagger select dropdowns
+// Fetch only clocked-in employees for flagger select dropdowns (exclude Shop Work/Standby)
 useEffect(() => {
   const fetchWoEmployees = async () => {
     try {
@@ -214,12 +214,19 @@ useEffect(() => {
         axios.get('/timeclock/employees'),
         axios.get('/timeclock/status')
       ]);
-      const clockedInIds = new Set(statusRes.data.map(r => r.employeeId));
+      const statusMap = {};
+      statusRes.data.forEach(r => { statusMap[r.employeeId] = r.purpose || ''; });
+      const clockedInIds = new Set(Object.keys(statusMap));
       const allEmps = [
         ...empRes.data.employees.map(e => ({ id: e._id, name: e.name, position: e.position })),
         ...empRes.data.hourlyAdmins.map(a => ({ id: a._id, name: a.name, position: 'Foreman' }))
       ].filter(e => e.name);
-      const clockedIn = allEmps.filter(e => clockedInIds.has(e.id)).sort((a, b) => a.name.localeCompare(b.name));
+      // Only clocked-in AND not on Shop Work/Standby
+      const clockedIn = allEmps.filter(e => {
+        if (!clockedInIds.has(e.id)) return false;
+        const purpose = statusMap[e.id];
+        return purpose !== 'Shop Work' && purpose !== 'Standby';
+      }).sort((a, b) => a.name.localeCompare(b.name));
       setWoEmployeeList(clockedIn);
     } catch {
       try {
@@ -227,12 +234,18 @@ useEffect(() => {
           api.get('/timeclock/employees'),
           api.get('/timeclock/status')
         ]);
-        const clockedInIds = new Set(statusRes.data.map(r => r.employeeId));
+        const statusMap = {};
+        statusRes.data.forEach(r => { statusMap[r.employeeId] = r.purpose || ''; });
+        const clockedInIds = new Set(Object.keys(statusMap));
         const allEmps = [
           ...empRes.data.employees.map(e => ({ id: e._id, name: e.name, position: e.position })),
           ...empRes.data.hourlyAdmins.map(a => ({ id: a._id, name: a.name, position: 'Foreman' }))
         ].filter(e => e.name);
-        const clockedIn = allEmps.filter(e => clockedInIds.has(e.id)).sort((a, b) => a.name.localeCompare(b.name));
+        const clockedIn = allEmps.filter(e => {
+          if (!clockedInIds.has(e.id)) return false;
+          const purpose = statusMap[e.id];
+          return purpose !== 'Shop Work' && purpose !== 'Standby';
+        }).sort((a, b) => a.name.localeCompare(b.name));
         setWoEmployeeList(clockedIn);
       } catch { /* no-op */ }
     }
@@ -1077,7 +1090,7 @@ const isSubmitReady = useMemo(() => {
   }}
 >
   <option value="">-- Select Foreman/Driver --</option>
-  {woEmployeeList.filter(e => e.position === 'Foreman' || e.position === 'Driver').map(e => (
+  {woEmployeeList.filter(e => (e.position === 'Foreman' || e.position === 'Driver') && ![tbs.flagger2, tbs.flagger3, tbs.flagger4, tbs.flagger5, tbs.flagger6].includes(e.name)).map(e => (
     <option key={e.name} value={e.name}>{e.name} ({e.position})</option>
   ))}
 </select>
@@ -1092,7 +1105,7 @@ const isSubmitReady = useMemo(() => {
   }}
 >
   <option value="">-- Select Employee --</option>
-  {woEmployeeList.map(e => (
+  {woEmployeeList.filter(e => ![tbs.flagger1, tbs.flagger3, tbs.flagger4, tbs.flagger5, tbs.flagger6].includes(e.name)).map(e => (
     <option key={e.name} value={e.name}>{e.name} ({e.position})</option>
   ))}
 </select>
@@ -1101,25 +1114,25 @@ const isSubmitReady = useMemo(() => {
                   <label>Employee #3</label>
                   <select value={tbs.flagger3} onChange={e => setTbs(s => ({...s, flagger3: e.target.value}))}>
                     <option value="">-- Select Employee (optional) --</option>
-                    {woEmployeeList.map(e => <option key={e.name} value={e.name}>{e.name} ({e.position})</option>)}
+                    {woEmployeeList.filter(e => ![tbs.flagger1, tbs.flagger2, tbs.flagger4, tbs.flagger5, tbs.flagger6].includes(e.name)).map(e => <option key={e.name} value={e.name}>{e.name} ({e.position})</option>)}
                   </select>
 
                   <label>Employee #4</label>
                   <select value={tbs.flagger4} onChange={e => setTbs(s => ({...s, flagger4: e.target.value}))}>
                     <option value="">-- Select Employee (optional) --</option>
-                    {woEmployeeList.map(e => <option key={e.name} value={e.name}>{e.name} ({e.position})</option>)}
+                    {woEmployeeList.filter(e => ![tbs.flagger1, tbs.flagger2, tbs.flagger3, tbs.flagger5, tbs.flagger6].includes(e.name)).map(e => <option key={e.name} value={e.name}>{e.name} ({e.position})</option>)}
                   </select>
 
                   <label>Employee #5</label>
                   <select value={tbs.flagger5} onChange={e => setTbs(s => ({...s, flagger5: e.target.value}))}>
                     <option value="">-- Select Employee (optional) --</option>
-                    {woEmployeeList.map(e => <option key={e.name} value={e.name}>{e.name} ({e.position})</option>)}
+                    {woEmployeeList.filter(e => ![tbs.flagger1, tbs.flagger2, tbs.flagger3, tbs.flagger4, tbs.flagger6].includes(e.name)).map(e => <option key={e.name} value={e.name}>{e.name} ({e.position})</option>)}
                   </select>
                   
                   <label>Employee #6</label>
                   <select value={tbs.flagger6} onChange={e => setTbs(s => ({...s, flagger6: e.target.value}))}>
                     <option value="">-- Select Employee (optional) --</option>
-                    {woEmployeeList.map(e => <option key={e.name} value={e.name}>{e.name} ({e.position})</option>)}
+                    {woEmployeeList.filter(e => ![tbs.flagger1, tbs.flagger2, tbs.flagger3, tbs.flagger4, tbs.flagger5].includes(e.name)).map(e => <option key={e.name} value={e.name}>{e.name} ({e.position})</option>)}
                   </select>
                 </div>
 
