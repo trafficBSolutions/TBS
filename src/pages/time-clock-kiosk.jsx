@@ -119,12 +119,13 @@ const TimeClockKiosk = () => {
 
     // If clocking out, check for work order requirements first
     if (isClockedIn) {
+      console.log('[KIOSK] Employee is clocked in, checking work order requirement for:', selectedEmployee._id, selectedEmployee.displayName);
       try {
         const checkRes = await axios.get(`/timeclock/clockout-check/${selectedEmployee._id}`);
+        console.log('[KIOSK] clockout-check response:', JSON.stringify(checkRes.data));
         if (!checkRes.data.allowed) {
           setLoading(false);
           const reason = checkRes.data.reason;
-          // Store return info so the work order page can clock them out after submission
           localStorage.setItem('tbs_kiosk_clockout_pending', JSON.stringify({
             employeeId: selectedEmployee._id,
             employeeName: selectedEmployee.displayName,
@@ -141,15 +142,16 @@ const TimeClockKiosk = () => {
           return;
         }
       } catch (checkErr) {
-        // Only allow clock out if it's a network error; if server responded with error, block
+        console.error('[KIOSK] clockout-check FAILED:', checkErr.message, checkErr.response?.status, checkErr.response?.data);
         if (checkErr.response) {
           setLoading(false);
           setMessage(checkErr.response?.data?.message || 'Error checking work order status. Try again.');
           return;
         }
-        // True network error (offline) — allow clock out
-        console.warn('Clock-out check network error, proceeding:', checkErr);
+        console.warn('[KIOSK] Network error on check, allowing clock out');
       }
+    } else {
+      console.log('[KIOSK] Employee is NOT clocked in, skipping work order check');
     }
 
     try {
