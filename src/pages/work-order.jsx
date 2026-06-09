@@ -690,7 +690,7 @@ const onSubmit = async (e) => {
           setSubmissionMessage('✅ Work order submitted! Please clock out at the tablet.');
         }
         localStorage.removeItem('tbs_kiosk_clockout_pending');
-        setTimeout(() => navigate('/time-clock'), 3000);
+        setTimeout(() => navigate(localStorage.getItem('adminUser') ? '/admin-dashboard' : '/employee-dashboard'), 3000);
         setIsSubmitting(false);
         return;
       }
