@@ -23,6 +23,7 @@ export default function ShopWorkOrder() {
   const [submissionErrorMessage, setSubmissionErrorMessage] = useState('');
   const [errors, setErrors] = useState({});
   const [allEmployees, setAllEmployees] = useState([]);
+  const [standbyEmployees, setStandbyEmployees] = useState([]);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
 
   const [form, setForm] = useState({
@@ -42,43 +43,82 @@ export default function ShopWorkOrder() {
     if (!admin && !emp) navigate('/employee-login', { replace: true });
   }, [navigate, fromKiosk]);
 
-  // Fetch employee list for multi-select
+  // Fetch only clocked-in employees (Shop Work/Standby) for multi-select
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const res = await axios.get('/timeclock/employees');
-        const emps = [
-          ...res.data.employees.map(e => e.name),
-          ...res.data.hourlyAdmins.map(a => a.name)
-        ].filter(Boolean).sort();
-        setAllEmployees(emps);
+        const [empRes, statusRes] = await Promise.all([
+          axios.get('/timeclock/employees'),
+          axios.get('/timeclock/status')
+        ]);
+        // Build map of employeeId -> purpose from status
+        const statusMap = {};
+        statusRes.data.forEach(r => { statusMap[r.employeeId] = r.purpose || ''; });
+        const clockedInIds = new Set(Object.keys(statusMap));
+
+        const allEmps = [
+          ...empRes.data.employees.map(e => ({ id: e._id, name: e.name, position: e.position })),
+          ...empRes.data.hourlyAdmins.map(a => ({ id: a._id, name: a.name, position: 'Foreman' }))
+        ].filter(e => e.name);
+
+        // Only show clocked-in employees whose purpose is Shop Work or Standby
+        const shopOrStandby = allEmps.filter(e => {
+          if (!clockedInIds.has(e.id)) return false;
+          const purpose = statusMap[e.id];
+          return purpose === 'Shop Work' || purpose === 'Standby';
+        }).sort((a, b) => a.name.localeCompare(b.name));
+
+        // Track which ones are specifically on Standby
+        const standby = shopOrStandby
+          .filter(e => statusMap[e.id] === 'Standby')
+          .map(e => e.name);
+
+        setAllEmployees(shopOrStandby.map(e => e.name));
+        setStandbyEmployees(standby);
       } catch {
-        // fallback: try api util
         try {
-          const res = await api.get('/timeclock/employees');
-          const emps = [
-            ...res.data.employees.map(e => e.name),
-            ...res.data.hourlyAdmins.map(a => a.name)
-          ].filter(Boolean).sort();
-          setAllEmployees(emps);
+          const [empRes, statusRes] = await Promise.all([
+            api.get('/timeclock/employees'),
+            api.get('/timeclock/status')
+          ]);
+          const statusMap = {};
+          statusRes.data.forEach(r => { statusMap[r.employeeId] = r.purpose || ''; });
+          const clockedInIds = new Set(Object.keys(statusMap));
+          const allEmps = [
+            ...empRes.data.employees.map(e => ({ id: e._id, name: e.name, position: e.position })),
+            ...empRes.data.hourlyAdmins.map(a => ({ id: a._id, name: a.name, position: 'Foreman' }))
+          ].filter(e => e.name);
+          const shopOrStandby = allEmps.filter(e => {
+            if (!clockedInIds.has(e.id)) return false;
+            const purpose = statusMap[e.id];
+            return purpose === 'Shop Work' || purpose === 'Standby';
+          }).sort((a, b) => a.name.localeCompare(b.name));
+          const standby = shopOrStandby.filter(e => statusMap[e.id] === 'Standby').map(e => e.name);
+          setAllEmployees(shopOrStandby.map(e => e.name));
+          setStandbyEmployees(standby);
         } catch { /* no-op */ }
       }
     };
     fetchEmployees();
   }, []);
 
-  // If from kiosk, pre-select the employee who is clocking out
+  // If from kiosk, pre-select the employee (and all standby if applicable)
   useEffect(() => {
-    if (fromKiosk) {
+    if (fromKiosk && allEmployees.length > 0) {
       const pending = localStorage.getItem('tbs_kiosk_clockout_pending');
       if (pending) {
         const { employeeName } = JSON.parse(pending);
-        if (employeeName && !selectedEmployees.includes(employeeName)) {
-          setSelectedEmployees([employeeName]);
+        if (employeeName) {
+          // If this employee is on standby, auto-select all standby employees
+          if (standbyEmployees.includes(employeeName)) {
+            setSelectedEmployees([...standbyEmployees]);
+          } else if (!selectedEmployees.includes(employeeName)) {
+            setSelectedEmployees([employeeName]);
+          }
         }
       }
     }
-  }, [fromKiosk, allEmployees]);
+  }, [fromKiosk, allEmployees, standbyEmployees]);
 
   const setField = (key, val) => {
     setForm(prev => ({ ...prev, [key]: val }));
@@ -86,9 +126,23 @@ export default function ShopWorkOrder() {
   };
 
   const toggleEmployee = (name) => {
-    setSelectedEmployees(prev =>
-      prev.includes(name) ? prev.filter(n => n !== name) : [...prev, name]
-    );
+    setSelectedEmployees(prev => {
+      const isSelected = prev.includes(name);
+      if (isSelected) {
+        // Deselecting: if it's a standby employee, remove all standby employees
+        if (standbyEmployees.includes(name)) {
+          return prev.filter(n => !standbyEmployees.includes(n));
+        }
+        return prev.filter(n => n !== name);
+      } else {
+        // Selecting: if it's a standby employee, auto-select ALL standby employees
+        if (standbyEmployees.includes(name)) {
+          const combined = new Set([...prev, ...standbyEmployees]);
+          return [...combined];
+        }
+        return [...prev, name];
+      }
+    });
     setErrors(prev => ({ ...prev, employeeNames: '' }));
   };
 
@@ -180,15 +234,21 @@ export default function ShopWorkOrder() {
             <div className="job-actual">
               <div className="contain">
                 <label>Employee Name(s) * <span style={{ fontSize: '12px', color: '#666' }}>(Select all employees on this task)</span></label>
+                {standbyEmployees.length > 1 && (
+                  <p style={{ fontSize: '12px', color: '#b45309', margin: '5px 0' }}>⚡ Selecting a Standby employee will auto-select all Standby employees (shared work order)</p>
+                )}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', margin: '10px 0', maxHeight: '200px', overflowY: 'auto', padding: '10px', border: '1px solid #ddd', borderRadius: '8px' }}>
-                  {allEmployees.map(name => (
+                  {allEmployees.map(name => {
+                    const isStandby = standbyEmployees.includes(name);
+                    return (
                     <label key={name} style={{
                       display: 'inline-flex', alignItems: 'center', gap: '5px',
                       padding: '6px 12px', borderRadius: '20px', cursor: 'pointer',
                       background: selectedEmployees.includes(name) ? '#efad76' : '#f0f0f0',
                       color: selectedEmployees.includes(name) ? '#fff' : '#333',
                       fontWeight: selectedEmployees.includes(name) ? 'bold' : 'normal',
-                      fontSize: '13px', transition: 'all 0.2s'
+                      fontSize: '13px', transition: 'all 0.2s',
+                      border: isStandby ? '2px solid #f59e0b' : '2px solid transparent'
                     }}>
                       <input
                         type="checkbox"
@@ -196,9 +256,10 @@ export default function ShopWorkOrder() {
                         onChange={() => toggleEmployee(name)}
                         style={{ display: 'none' }}
                       />
-                      {name}
+                      {name} {isStandby && '⏳'}
                     </label>
-                  ))}
+                    );
+                  })}
                 </div>
                 {selectedEmployees.length > 0 && (
                   <p style={{ fontSize: '12px', color: '#555' }}>Selected: {selectedEmployees.join(', ')}</p>
