@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import axios from 'axios';
 import Header from '../components/headerviews/HeaderDrop';
 import images from '../utils/tbsImages';
 import api from '../utils/api';
@@ -15,13 +16,16 @@ const TRUCKS = [
 
 export default function ShopWorkOrder() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const fromKiosk = searchParams.get('from') === 'kiosk';
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionMessage, setSubmissionMessage] = useState('');
   const [submissionErrorMessage, setSubmissionErrorMessage] = useState('');
   const [errors, setErrors] = useState({});
+  const [allEmployees, setAllEmployees] = useState([]);
+  const [selectedEmployees, setSelectedEmployees] = useState([]);
 
   const [form, setForm] = useState({
-    employeeNames: '',
     truckNumber: '',
     date: new Date().toISOString().split('T')[0],
     inTime: '',
@@ -32,19 +36,65 @@ export default function ShopWorkOrder() {
   });
 
   useEffect(() => {
+    if (fromKiosk) return; // Skip auth check when coming from kiosk
     const admin = localStorage.getItem('adminUser');
     const emp = localStorage.getItem('employeeUser');
     if (!admin && !emp) navigate('/employee-login', { replace: true });
-  }, [navigate]);
+  }, [navigate, fromKiosk]);
+
+  // Fetch employee list for multi-select
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        const res = await axios.get('/timeclock/employees');
+        const emps = [
+          ...res.data.employees.map(e => e.name),
+          ...res.data.hourlyAdmins.map(a => a.name)
+        ].filter(Boolean).sort();
+        setAllEmployees(emps);
+      } catch {
+        // fallback: try api util
+        try {
+          const res = await api.get('/timeclock/employees');
+          const emps = [
+            ...res.data.employees.map(e => e.name),
+            ...res.data.hourlyAdmins.map(a => a.name)
+          ].filter(Boolean).sort();
+          setAllEmployees(emps);
+        } catch { /* no-op */ }
+      }
+    };
+    fetchEmployees();
+  }, []);
+
+  // If from kiosk, pre-select the employee who is clocking out
+  useEffect(() => {
+    if (fromKiosk) {
+      const pending = localStorage.getItem('tbs_kiosk_clockout_pending');
+      if (pending) {
+        const { employeeName } = JSON.parse(pending);
+        if (employeeName && !selectedEmployees.includes(employeeName)) {
+          setSelectedEmployees([employeeName]);
+        }
+      }
+    }
+  }, [fromKiosk, allEmployees]);
 
   const setField = (key, val) => {
     setForm(prev => ({ ...prev, [key]: val }));
     if (val.trim()) setErrors(prev => ({ ...prev, [key]: '' }));
   };
 
+  const toggleEmployee = (name) => {
+    setSelectedEmployees(prev =>
+      prev.includes(name) ? prev.filter(n => n !== name) : [...prev, name]
+    );
+    setErrors(prev => ({ ...prev, employeeNames: '' }));
+  };
+
   const validate = () => {
     const errs = {};
-    if (!form.employeeNames.trim()) errs.employeeNames = 'Employee name(s) required';
+    if (selectedEmployees.length === 0) errs.employeeNames = 'At least one employee must be selected';
     if (!form.date) errs.date = 'Date required';
     if (!form.inTime) errs.inTime = 'In time required';
     if (!form.outTime) errs.outTime = 'Out time required';
@@ -67,10 +117,34 @@ export default function ShopWorkOrder() {
       const empUser = JSON.parse(localStorage.getItem('employeeUser') || '{}');
       const submittedBy = adminUser.firstName || empUser.firstName || 'Unknown';
 
-      await api.post('/shop-work-order', { ...form, submittedBy });
-      setSubmissionMessage('✅ Shop Work Order submitted for approval! Supervisors have been notified.');
-      setForm({ employeeNames: '', truckNumber: '', date: new Date().toISOString().split('T')[0], inTime: '', outTime: '', location: '', supervisor: '', description: '' });
-      setErrors({});
+      const payload = {
+        ...form,
+        employeeNames: selectedEmployees.join(', '),
+        submittedBy
+      };
+
+      await api.post('/shop-work-order', payload);
+
+      // If from kiosk, clock out the employee and redirect back
+      if (fromKiosk) {
+        const pending = localStorage.getItem('tbs_kiosk_clockout_pending');
+        if (pending) {
+          const { pin } = JSON.parse(pending);
+          try {
+            await axios.post('/timeclock/punch', { pin });
+            setSubmissionMessage('✅ Shop Work Order submitted! You have been clocked out.');
+          } catch {
+            setSubmissionMessage('✅ Shop Work Order submitted! Please clock out at the tablet.');
+          }
+          localStorage.removeItem('tbs_kiosk_clockout_pending');
+          setTimeout(() => navigate('/time-clock'), 3000);
+        }
+      } else {
+        setSubmissionMessage('✅ Shop Work Order submitted for approval! Supervisors have been notified.');
+        setForm({ truckNumber: '', date: new Date().toISOString().split('T')[0], inTime: '', outTime: '', location: '', supervisor: '', description: '' });
+        setSelectedEmployees([]);
+        setErrors({});
+      }
     } catch (err) {
       setSubmissionErrorMessage(err.response?.data?.error || 'Something went wrong.');
     } finally {
@@ -95,16 +169,40 @@ export default function ShopWorkOrder() {
               </div>
             </div>
 
+            {fromKiosk && (
+              <div style={{ background: '#fff3cd', border: '1px solid #ffc107', borderRadius: '8px', padding: '15px', margin: '15px 0', textAlign: 'center' }}>
+                <strong>⚠️ You must complete this Shop Work Order before clocking out.</strong>
+                <p style={{ margin: '5px 0 0', fontSize: '14px' }}>Once submitted, you will be automatically clocked out and redirected back to the time clock.</p>
+              </div>
+            )}
+
             <h3 className="comp-section">Shop Work Order Details:</h3>
             <div className="job-actual">
               <div className="contain">
-                <label>Employee Name(s) *</label>
-                <textarea
-                  value={form.employeeNames}
-                  onChange={(e) => setField('employeeNames', e.target.value)}
-                  placeholder="Enter all employee names working this task"
-                  style={{ minHeight: '60px', fontFamily: 'Arial, sans-serif' }}
-                />
+                <label>Employee Name(s) * <span style={{ fontSize: '12px', color: '#666' }}>(Select all employees on this task)</span></label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', margin: '10px 0', maxHeight: '200px', overflowY: 'auto', padding: '10px', border: '1px solid #ddd', borderRadius: '8px' }}>
+                  {allEmployees.map(name => (
+                    <label key={name} style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '5px',
+                      padding: '6px 12px', borderRadius: '20px', cursor: 'pointer',
+                      background: selectedEmployees.includes(name) ? '#efad76' : '#f0f0f0',
+                      color: selectedEmployees.includes(name) ? '#fff' : '#333',
+                      fontWeight: selectedEmployees.includes(name) ? 'bold' : 'normal',
+                      fontSize: '13px', transition: 'all 0.2s'
+                    }}>
+                      <input
+                        type="checkbox"
+                        checked={selectedEmployees.includes(name)}
+                        onChange={() => toggleEmployee(name)}
+                        style={{ display: 'none' }}
+                      />
+                      {name}
+                    </label>
+                  ))}
+                </div>
+                {selectedEmployees.length > 0 && (
+                  <p style={{ fontSize: '12px', color: '#555' }}>Selected: {selectedEmployees.join(', ')}</p>
+                )}
                 {errors.employeeNames && <div className="error-message">{errors.employeeNames}</div>}
 
                 <label>Truck # (if a truck is used)</label>
@@ -148,11 +246,19 @@ export default function ShopWorkOrder() {
               <button type="submit" className="btn btn--full submit-app" disabled={isSubmitting}>
                 {isSubmitting ? (
                   <div className="spinner-button"><span className="spinner"></span> Submitting...</div>
-                ) : 'SUBMIT FOR APPROVAL'}
+                ) : fromKiosk ? 'SUBMIT & CLOCK OUT' : 'SUBMIT FOR APPROVAL'}
               </button>
               {submissionMessage && <div className="custom-toast success">{submissionMessage}</div>}
               {submissionErrorMessage && <div className="custom-toast error">{submissionErrorMessage}</div>}
             </div>
+
+            {fromKiosk && (
+              <div style={{ textAlign: 'center', marginTop: '15px' }}>
+                <button type="button" onClick={() => { localStorage.removeItem('tbs_kiosk_clockout_pending'); navigate('/time-clock'); }} style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', textDecoration: 'underline' }}>
+                  Cancel & Return to Time Clock
+                </button>
+              </div>
+            )}
           </form>
         </section>
       </div>
