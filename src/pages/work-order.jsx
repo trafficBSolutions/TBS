@@ -60,6 +60,7 @@ export default function Work() {
   const [searchParams] = useSearchParams();
   const jobId = searchParams.get('jobId');     // 👈 now from query
   const dateParam = searchParams.get('date');  // optional "YYYY-MM-DD"
+  const fromKiosk = searchParams.get('from') === 'kiosk';
   const [isSubmitting, setIsSubmitting] = useState(false); 
   const [errorMessage, setErrorMessage] = useState('');
     const [submissionMessage, setSubmissionMessage] = useState('');
@@ -628,6 +629,25 @@ const onSubmit = async (e) => {
     await api.post('/work-order', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
+
+    // If from kiosk clock-out flow, clock them out after submission
+    if (fromKiosk) {
+      const pending = localStorage.getItem('tbs_kiosk_clockout_pending');
+      if (pending) {
+        const { pin } = JSON.parse(pending);
+        try {
+          await axios.post('/timeclock/punch', { pin });
+          setSubmissionMessage('✅ Work order submitted! You have been clocked out.');
+        } catch {
+          setSubmissionMessage('✅ Work order submitted! Please clock out at the tablet.');
+        }
+        localStorage.removeItem('tbs_kiosk_clockout_pending');
+        setTimeout(() => navigate('/time-clock'), 3000);
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
     setSubmissionMessage('✅ Work order has been successfully submitted! Thank you!');
 
     // reset form
@@ -776,6 +796,12 @@ const isSubmitReady = useMemo(() => {
             <h3 className="control-fill-info">Fields marked with * are required.</h3>
             </div>
             </div>
+            {fromKiosk && (
+              <div style={{ background: '#fff3cd', border: '1px solid #ffc107', borderRadius: '8px', padding: '15px', margin: '15px 0', textAlign: 'center' }}>
+                <strong>⚠️ You must complete this Work Order before clocking out.</strong>
+                <p style={{ margin: '5px 0 0', fontSize: '14px' }}>All Foremen/Drivers must submit a work order for the day. Once submitted, you will be clocked out automatically.</p>
+              </div>
+            )}
             <h3 className="comp-section">Company Section:</h3>
             <div className="job-actual">
 
