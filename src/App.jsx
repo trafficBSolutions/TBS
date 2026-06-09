@@ -61,11 +61,16 @@ axios.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       console.log('App.jsx: 401 Unauthorized - clearing tokens');
+      // Don't redirect if on time clock or work order pages (kiosk flow)
+      const path = window.location.pathname;
+      if (path === '/time-clock' || path === '/time-clock-kiosk' || path === '/shop-work-order' || path.includes('work-order')) {
+        return Promise.reject(error);
+      }
       localStorage.removeItem('adminUser');
       localStorage.removeItem('adminToken');
       localStorage.removeItem('token');
       localStorage.removeItem('empToken');
-      if (window.location.pathname !== '/admin-login' && window.location.pathname !== '/employee-login') {
+      if (path !== '/admin-login' && path !== '/employee-login') {
         window.location.href = '/admin-login';
       }
     } else if (error.response?.status === 403) {
