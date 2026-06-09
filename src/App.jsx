@@ -127,6 +127,8 @@ function App() {
   }
 />
     <Route path="/time-clock" element={<TimeClockKiosk />} />
+    <Route path="/time-clock-kiosk" element={<TimeClockKiosk />} />
+    <Route path="/shop-work-order" element={<ShopWorkOrder />} />
     <Route path="/employee-dashboard" element={<RequireStaff><EmployeeDashboard /></RequireStaff>} />
     <Route path="/employee-dashboard/work-order" element={<RequireStaff><Work /></RequireStaff>} />
     <Route path="/employee-dashboard/shop-work-order" element={<RequireStaff><ShopWorkOrder /></RequireStaff>} />
