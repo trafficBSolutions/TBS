@@ -60,12 +60,16 @@ axios.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      console.log('App.jsx: 401 Unauthorized - clearing tokens');
-      // Don't redirect if on time clock or work order pages (kiosk flow)
-      const path = window.location.pathname;
-      if (path === '/time-clock' || path === '/time-clock-kiosk' || path === '/shop-work-order' || path.includes('work-order')) {
+      // Don't redirect for timeclock requests (wrong PIN, etc.)
+      const url = error.config?.url || '';
+      if (url.includes('/timeclock/')) {
         return Promise.reject(error);
       }
+      const path = window.location.pathname;
+      if (path === '/time-clock' || path === '/time-clock-kiosk' || path === '/shop-work-order' || path.includes('work-order') || path.includes('employee-dashboard')) {
+        return Promise.reject(error);
+      }
+      console.log('App.jsx: 401 Unauthorized - clearing tokens');
       localStorage.removeItem('adminUser');
       localStorage.removeItem('adminToken');
       localStorage.removeItem('token');
