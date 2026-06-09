@@ -201,10 +201,44 @@ useEffect(() => {
   const admin = localStorage.getItem('adminUser');
   const employeeUser = localStorage.getItem('employeeUser');
   
-  if (!admin && !employeeUser) {
+  if (!admin && !employeeUser && !fromKiosk) {
     navigate('/employee-login', { replace: true });
   }
-}, [navigate]);
+}, [navigate, fromKiosk]);
+
+// Fetch only clocked-in employees for flagger select dropdowns
+useEffect(() => {
+  const fetchWoEmployees = async () => {
+    try {
+      const [empRes, statusRes] = await Promise.all([
+        axios.get('/timeclock/employees'),
+        axios.get('/timeclock/status')
+      ]);
+      const clockedInIds = new Set(statusRes.data.map(r => r.employeeId));
+      const allEmps = [
+        ...empRes.data.employees.map(e => ({ id: e._id, name: e.name, position: e.position })),
+        ...empRes.data.hourlyAdmins.map(a => ({ id: a._id, name: a.name, position: 'Foreman' }))
+      ].filter(e => e.name);
+      const clockedIn = allEmps.filter(e => clockedInIds.has(e.id)).sort((a, b) => a.name.localeCompare(b.name));
+      setWoEmployeeList(clockedIn);
+    } catch {
+      try {
+        const [empRes, statusRes] = await Promise.all([
+          api.get('/timeclock/employees'),
+          api.get('/timeclock/status')
+        ]);
+        const clockedInIds = new Set(statusRes.data.map(r => r.employeeId));
+        const allEmps = [
+          ...empRes.data.employees.map(e => ({ id: e._id, name: e.name, position: e.position })),
+          ...empRes.data.hourlyAdmins.map(a => ({ id: a._id, name: a.name, position: 'Foreman' }))
+        ].filter(e => e.name);
+        const clockedIn = allEmps.filter(e => clockedInIds.has(e.id)).sort((a, b) => a.name.localeCompare(b.name));
+        setWoEmployeeList(clockedIn);
+      } catch { /* no-op */ }
+    }
+  };
+  fetchWoEmployees();
+}, []);
 
 // simple title-case (handles spaces, hyphens, slashes, apostrophes)
 const toggleTruck = (truck) =>
@@ -269,6 +303,7 @@ const clearOfficerSignature = () => {
 
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
+  const [woEmployeeList, setWoEmployeeList] = useState([]);
 
   const [overnightConfirmed, setOvernightConfirmed] = useState(false);
   const [basic, setBasic] = useState({
@@ -388,8 +423,8 @@ const LABELS = {
   endTime: 'End Time',
   foremanName: 'Job Site Foreman Name',
   foremanSignature: 'Job Site Foreman Signature',
-  flagger1: 'Flagger #1',
-  flagger2: 'Flagger #2',
+  flagger1: 'Foreman/Driver #1',
+  flagger2: 'Employee #2',
   visibility: 'Visibility',
   communication: 'Communication with Job',
   siteForeman: 'Site Foreman',
@@ -1033,43 +1068,59 @@ const isSubmitReady = useMemo(() => {
                 <div className="employee-names">
                   <h3 className="comp-section">TBS Employee Section:</h3>
                   <p className="employeep">Please give device to TBS Employees to fill out</p>
-                  <label>Flagger #1 *</label>
-<input
-  type="text"
-  placeholder="TBS Flagger First & Last Name"
+                  <label>Foreman/Driver #1 *</label>
+<select
   value={tbs.flagger1}
   onChange={(e) => {
-    const v = formatName(e.target.value);
-    setTbs(s => ({ ...s, flagger1: v }));
-    if (v.trim()) setErrors(prev => ({ ...prev, flagger1: '' }));
+    setTbs(s => ({ ...s, flagger1: e.target.value }));
+    if (e.target.value) setErrors(prev => ({ ...prev, flagger1: '' }));
   }}
-/>
+>
+  <option value="">-- Select Foreman/Driver --</option>
+  {woEmployeeList.filter(e => e.position === 'Foreman' || e.position === 'Driver').map(e => (
+    <option key={e.name} value={e.name}>{e.name} ({e.position})</option>
+  ))}
+</select>
 {errors.flagger1 && <div className="error-message">{errors.flagger1}</div>}
 
-<label>Flagger #2 *</label>
-<input
-  type="text"
-  placeholder="TBS Flagger First & Last Name"
+<label>Employee #2 *</label>
+<select
   value={tbs.flagger2}
   onChange={(e) => {
-    const v = formatName(e.target.value);
-    setTbs(s => ({ ...s, flagger2: v }));
-    if (v.trim()) setErrors(prev => ({ ...prev, flagger2: '' }));
+    setTbs(s => ({ ...s, flagger2: e.target.value }));
+    if (e.target.value) setErrors(prev => ({ ...prev, flagger2: '' }));
   }}
-/>
+>
+  <option value="">-- Select Employee --</option>
+  {woEmployeeList.map(e => (
+    <option key={e.name} value={e.name}>{e.name} ({e.position})</option>
+  ))}
+</select>
 {errors.flagger2 && <div className="error-message">{errors.flagger2}</div>}
 
-                  <label>Flagger #3</label>
-                  <input type="text" placeholder="TBS Flagger First & Last Name" value={tbs.flagger3} onChange={e => setTbs(s => ({...s, flagger3: formatName(e.target.value)}))} />
+                  <label>Employee #3</label>
+                  <select value={tbs.flagger3} onChange={e => setTbs(s => ({...s, flagger3: e.target.value}))}>
+                    <option value="">-- Select Employee (optional) --</option>
+                    {woEmployeeList.map(e => <option key={e.name} value={e.name}>{e.name} ({e.position})</option>)}
+                  </select>
 
-                  <label>Flagger #4</label>
-                  <input type="text" placeholder="TBS Flagger First & Last Name" value={tbs.flagger4} onChange={e => setTbs(s => ({...s, flagger4: formatName(e.target.value)}))} />
+                  <label>Employee #4</label>
+                  <select value={tbs.flagger4} onChange={e => setTbs(s => ({...s, flagger4: e.target.value}))}>
+                    <option value="">-- Select Employee (optional) --</option>
+                    {woEmployeeList.map(e => <option key={e.name} value={e.name}>{e.name} ({e.position})</option>)}
+                  </select>
 
-                  <label>Flagger #5</label>
-                  <input type="text" placeholder="TBS Flagger First & Last Name" value={tbs.flagger5} onChange={e => setTbs(s => ({...s, flagger5: formatName(e.target.value)}))} />
+                  <label>Employee #5</label>
+                  <select value={tbs.flagger5} onChange={e => setTbs(s => ({...s, flagger5: e.target.value}))}>
+                    <option value="">-- Select Employee (optional) --</option>
+                    {woEmployeeList.map(e => <option key={e.name} value={e.name}>{e.name} ({e.position})</option>)}
+                  </select>
                   
-                  <label>Flagger #6</label>
-                  <input type="text" placeholder="TBS Flagger First & Last Name" value={tbs.flagger6} onChange={e => setTbs(s => ({...s, flagger6: formatName(e.target.value)}))} />
+                  <label>Employee #6</label>
+                  <select value={tbs.flagger6} onChange={e => setTbs(s => ({...s, flagger6: e.target.value}))}>
+                    <option value="">-- Select Employee (optional) --</option>
+                    {woEmployeeList.map(e => <option key={e.name} value={e.name}>{e.name} ({e.position})</option>)}
+                  </select>
                 </div>
 
                 <div className="morning-checklist">
