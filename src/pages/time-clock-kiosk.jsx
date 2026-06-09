@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../css/kiosk.css';
 
@@ -22,6 +23,7 @@ const syncOfflinePunches = async () => {
 };
 
 const TimeClockKiosk = () => {
+  const navigate = useNavigate();
   const [employees, setEmployees] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [pin, setPin] = useState('');
@@ -31,6 +33,7 @@ const TimeClockKiosk = () => {
   const [clockedInIds, setClockedInIds] = useState([]);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [pendingCount, setPendingCount] = useState(getPunchQueue().length);
+  const [clockedInData, setClockedInData] = useState([]);  // full status records
 
   useEffect(() => {
     fetchEmployees();
@@ -80,6 +83,7 @@ const TimeClockKiosk = () => {
     try {
       const res = await axios.get('/timeclock/status');
       setClockedInIds(res.data.map(r => r.employeeId));
+      setClockedInData(res.data);
       localStorage.setItem('tbs_cached_status', JSON.stringify(res.data.map(r => r.employeeId)));
     } catch (err) {
       const cached = localStorage.getItem('tbs_cached_status');
@@ -96,7 +100,6 @@ const TimeClockKiosk = () => {
     setMessage('');
 
     if (!navigator.onLine) {
-      // Queue offline
       const queue = getPunchQueue();
       queue.push({
         pin,
@@ -114,6 +117,35 @@ const TimeClockKiosk = () => {
       return;
     }
 
+    // If clocking out, check for work order requirements first
+    if (isClockedIn) {
+      try {
+        const checkRes = await axios.get(`/timeclock/clockout-check/${selectedEmployee._id}`);
+        if (!checkRes.data.allowed) {
+          setLoading(false);
+          const reason = checkRes.data.reason;
+          // Store return info so the work order page can clock them out after submission
+          localStorage.setItem('tbs_kiosk_clockout_pending', JSON.stringify({
+            employeeId: selectedEmployee._id,
+            employeeName: selectedEmployee.displayName,
+            pin,
+            reason
+          }));
+          if (reason === 'shop_work_order_required') {
+            setMessage('⚠️ You must complete a Shop Work Order first. Redirecting...');
+            setTimeout(() => navigate('/shop-work-order?from=kiosk'), 1500);
+          } else if (reason === 'work_order_required') {
+            setMessage('⚠️ You must complete a Work Order first. Redirecting...');
+            setTimeout(() => navigate('/work-order?from=kiosk'), 1500);
+          }
+          return;
+        }
+      } catch (checkErr) {
+        // If check fails, allow clock out anyway (don't block on server errors)
+        console.warn('Clock-out check failed, proceeding:', checkErr);
+      }
+    }
+
     try {
       const res = await axios.post('/timeclock/punch', { pin, purpose: isClockedIn ? undefined : clockPurpose });
       setMessage(res.data.message);
@@ -124,7 +156,6 @@ const TimeClockKiosk = () => {
     } catch (err) {
       const data = err.response?.data;
       if (!err.response) {
-        // Network error — queue it
         const queue = getPunchQueue();
         queue.push({
           pin,
