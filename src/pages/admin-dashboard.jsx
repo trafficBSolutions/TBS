@@ -138,6 +138,11 @@ const [addLineIn, setAddLineIn] = useState('');
 const [addLineOut, setAddLineOut] = useState('');
 const [addLinePurpose, setAddLinePurpose] = useState('');
 const [addLineMsg, setAddLineMsg] = useState('');
+
+// Admins who can edit/add/delete hours
+const canEditHoursEmails = new Set(['tbsolutions9@gmail.com', 'tbsolutions4@gmail.com', 'tbsolutions1999@gmail.com', 'tbsolutions1995@gmail.com']);
+const canEditHours = canEditHoursEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email);
+
 const [pinEmployees, setPinEmployees] = useState([]);
 const [pinMsg, setPinMsg] = useState('');
 const [showPinManager, setShowPinManager] = useState(false);
@@ -1744,6 +1749,7 @@ selected={
     </div>
 
     {/* Admin Actions: Add Hours for Forgotten Punches */}
+    {canEditHours && (
     <div style={{background:'#f0f8ff',border:'1px solid #90caf9',borderRadius:'10px',padding:'1rem',marginBottom:'1.5rem'}}>
       <h4 style={{margin:'0 0 0.5rem',color:'#1565c0'}}>➕ Add Hours (Forgotten Clock-In)</h4>
       <p style={{fontSize:'0.9rem',color:'#666',margin:'0 0 0.5rem'}}>Add punch lines for employees who forgot to clock in/out</p>
@@ -1783,6 +1789,7 @@ selected={
         {addLineMsg && <p style={{color: addLineMsg.includes('Added') ? '#4CAF50' : '#ff6b6b', fontWeight:'bold', fontSize:'0.85rem',margin:0}}>{addLineMsg}</p>}
       </div>
     </div>
+    )}
     {/* Time Worked Summary */}
     <div style={{background:'#f8f9fa',border:'1px solid #dee2e6',borderRadius:'10px',padding:'1rem',marginBottom:'1.5rem'}}>
     <h4 style={{margin:'0 0 0.75rem',color:'#1e3a8a'}}>📊 Weekly Time Summary</h4>
@@ -1889,14 +1896,14 @@ selected={
                                       </>
                                     ) : <span style={{color:'#4CAF50',fontWeight:'bold'}}>Still In</span>}
                                   </span>
-                                  <button style={{padding:'1px 5px',fontSize:'10px',background:'#2196F3',color:'#fff',border:'none',borderRadius:'3px',cursor:'pointer',marginLeft:'4px'}} onClick={() => {
+                                  {canEditHours && <button style={{padding:'1px 5px',fontSize:'10px',background:'#2196F3',color:'#fff',border:'none',borderRadius:'3px',cursor:'pointer',marginLeft:'4px'}} onClick={() => {
                                     setEditingPunchId(r._id);
                                     const inDate = new Date(r.clockIn);
                                     const outDate = r.clockOut ? new Date(r.clockOut) : null;
                                     setEditPunchIn(`${String(inDate.getHours()).padStart(2,'0')}:${String(inDate.getMinutes()).padStart(2,'0')}`);
                                     setEditPunchOut(outDate ? `${String(outDate.getHours()).padStart(2,'0')}:${String(outDate.getMinutes()).padStart(2,'0')}` : '');
-                                  }}>✏</button>
-                                  <button style={{padding:'1px 5px',fontSize:'10px',background:'#f44336',color:'#fff',border:'none',borderRadius:'3px',cursor:'pointer'}} onClick={async () => {
+                                  }}>✏</button>}
+                                  {canEditHours && <button style={{padding:'1px 5px',fontSize:'10px',background:'#f44336',color:'#fff',border:'none',borderRadius:'3px',cursor:'pointer'}} onClick={async () => {
                                     if (!window.confirm(`Delete this punch for ${emp.name}? This cannot be undone.`)) return;
                                     try {
                                       await axios.delete(`/timeclock/delete-punch/${r._id}`);
@@ -1906,7 +1913,7 @@ selected={
                                       setEditPunchMsg('Punch deleted');
                                       setTimeout(() => setEditPunchMsg(''), 3000);
                                     } catch (e) { setEditPunchMsg(e.response?.data?.message || 'Error deleting'); }
-                                  }}>🗑</button>
+                                  }}>🗑</button>}
                                   {r.autoClockOut && <span style={{fontSize:'0.7rem',color:'#d32f2f',marginLeft:'3px'}}>⚠️ auto</span>}
                                 </div>
                               )}
