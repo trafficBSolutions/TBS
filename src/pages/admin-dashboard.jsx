@@ -1865,9 +1865,8 @@ selected={
                                   <input type="text" value={editPunchOut} onChange={(e) => setEditPunchOut(e.target.value)} placeholder="HH:MM" maxLength={5} style={{padding:'2px 4px',fontSize:'0.85rem',border:'1px solid #2196F3',borderRadius:'4px',width:'60px',textAlign:'center'}} />
                                   <button style={{padding:'2px 6px',fontSize:'11px',background:'#4CAF50',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer'}} onClick={async () => {
                                     if (!editPunchIn || !editPunchOut) return;
-                                    const dateStr = key;
                                     try {
-                                      await axios.put(`/timeclock/edit-punch/${r._id}`, { clockIn: `${dateStr}T${editPunchIn}:00`, clockOut: `${dateStr}T${editPunchOut}:00` });
+                                      await axios.put(`/timeclock/edit-punch/${r._id}`, { clockIn: editPunchIn, clockOut: editPunchOut });
                                       setEditingPunchId(null); setEditPunchMsg('Saved');
                                       const weekEnd = new Date(new Date(timeWorkedWeekStart + 'T00:00:00')); weekEnd.setDate(weekEnd.getDate() + 6);
                                       const endStr = `${weekEnd.getFullYear()}-${String(weekEnd.getMonth()+1).padStart(2,'0')}-${String(weekEnd.getDate()).padStart(2,'0')}`;
