@@ -141,8 +141,14 @@ const TimeClockKiosk = () => {
           return;
         }
       } catch (checkErr) {
-        // If check fails, allow clock out anyway (don't block on server errors)
-        console.warn('Clock-out check failed, proceeding:', checkErr);
+        // Only allow clock out if it's a network error; if server responded with error, block
+        if (checkErr.response) {
+          setLoading(false);
+          setMessage(checkErr.response?.data?.message || 'Error checking work order status. Try again.');
+          return;
+        }
+        // True network error (offline) — allow clock out
+        console.warn('Clock-out check network error, proceeding:', checkErr);
       }
     }
 
