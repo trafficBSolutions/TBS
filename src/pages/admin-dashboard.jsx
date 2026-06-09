@@ -1880,13 +1880,13 @@ selected={
                               ) : (
                                 <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'4px'}}>
                                   <span>
-                                    {r.originalClockIn && r.editedByAdmin && <span style={{textDecoration:'line-through',color:'#999',fontSize:'0.75rem',marginRight:'3px'}}>{new Date(r.originalClockIn).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})}</span>}
-                                    {new Date(r.clockIn).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})}
+                                    {r.originalClockIn && r.editedByAdmin && (() => { const d = new Date(r.originalClockIn); return <span style={{textDecoration:'line-through',color:'#999',fontSize:'0.75rem',marginRight:'6px'}}>{`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}</span>; })()}
+                                    {(() => { const d = new Date(r.clockIn); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; })()}
                                     {' → '}
                                     {r.clockOut ? (
                                       <>
-                                        {r.originalClockOut && r.editedByAdmin && <span style={{textDecoration:'line-through',color:'#999',fontSize:'0.75rem',marginRight:'3px'}}>{new Date(r.originalClockOut).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})}</span>}
-                                        {new Date(r.clockOut).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})}
+                                        {r.originalClockOut && r.editedByAdmin && (() => { const d = new Date(r.originalClockOut); return <span style={{textDecoration:'line-through',color:'#999',fontSize:'0.75rem',marginRight:'6px'}}>{`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}</span>; })()}
+                                        {(() => { const d = new Date(r.clockOut); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; })()}
                                       </>
                                     ) : <span style={{color:'#4CAF50',fontWeight:'bold'}}>Still In</span>}
                                   </span>
