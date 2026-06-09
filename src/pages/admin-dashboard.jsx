@@ -1886,7 +1886,29 @@ selected={
                     const dayData = emp.days[key];
                     days.push(
                       <tr key={key} style={{background: dayData ? '#f0fff0' : 'transparent'}}>
-                        <td style={{border:'1px solid #ddd',padding:'8px',fontWeight:'bold'}}>{dayName}</td>
+                        <td style={{border:'1px solid #ddd',padding:'8px',fontWeight:'bold'}}>
+                          {dayName}
+                          {dayData && dayData.records && dayData.records.length > 0 && (
+                            <div style={{marginTop:'4px'}}>
+                              {dayData.records.some(r => r.purpose === 'Shop Work' || r.purpose === 'Standby') && (
+                                <button style={{padding:'2px 8px',fontSize:'10px',background:'#ff9800',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer',marginRight:'4px'}} onClick={() => {
+                                  const d = new Date(key + 'T00:00:00');
+                                  setViewMode('shopwo');
+                                  setShopWoDate(d);
+                                  fetchMonthlyShopWo(d);
+                                }}>📋 Shop WO</button>
+                              )}
+                              {dayData.records.some(r => r.purpose && r.purpose !== 'Shop Work' && r.purpose !== 'Standby') && (
+                                <button style={{padding:'2px 8px',fontSize:'10px',background:'#1565c0',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer'}} onClick={() => {
+                                  const d = new Date(key + 'T00:00:00');
+                                  setViewMode('workorders');
+                                  setWoSelectedDate(d);
+                                  fetchMonthlyWorkOrders(d);
+                                }}>📋 Work Order</button>
+                              )}
+                            </div>
+                          )}
+                        </td>
                         <td style={{border:'1px solid #ddd',padding:'8px',textAlign:'center',fontSize:'0.95rem'}}>
                           {dayData && dayData.records ? dayData.records.map((r, idx) => (
                             <div key={idx} style={{marginBottom: idx < dayData.records.length - 1 ? '6px' : 0}}>
