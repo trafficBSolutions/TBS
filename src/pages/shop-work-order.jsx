@@ -171,31 +171,37 @@ export default function ShopWorkOrder() {
       const empUser = JSON.parse(localStorage.getItem('employeeUser') || '{}');
       const submittedBy = adminUser.firstName || empUser.firstName || 'Unknown';
 
+      // Ensure all standby employees are included in the submission
+      const finalEmployees = new Set(selectedEmployees);
+      if (selectedEmployees.some(n => standbyEmployees.includes(n))) {
+        standbyEmployees.forEach(n => finalEmployees.add(n));
+      }
+
       const payload = {
         ...form,
-        employeeNames: selectedEmployees.join(', '),
+        employeeNames: [...finalEmployees].join(', '),
         submittedBy
       };
 
-      await api.post('/shop-work-order', payload);
+      const res = await api.post('/shop-work-order', payload);
+      const clockedOut = res.data.clockedOut || [];
 
-      // If from kiosk, clock out the employee and redirect back
+      // If from kiosk, the server already clocked out the employee
       if (fromKiosk) {
-        const pending = localStorage.getItem('tbs_kiosk_clockout_pending');
-        if (pending) {
-          const { pin } = JSON.parse(pending);
-          try {
-            await axios.post('/timeclock/punch', { pin });
-            setSubmissionMessage('✅ Shop Work Order submitted! You have been clocked out.');
-          } catch {
-            setSubmissionMessage('✅ Shop Work Order submitted! Please clock out at the tablet.');
-          }
-          localStorage.removeItem('tbs_kiosk_clockout_pending');
-          const returnPath = localStorage.getItem('adminUser') ? '/admin-dashboard' : '/employee-dashboard';
-          setTimeout(() => navigate(returnPath), 3000);
+        localStorage.removeItem('tbs_kiosk_clockout_pending');
+        if (clockedOut.length > 0) {
+          setSubmissionMessage(`✅ Shop Work Order submitted! Clocked out: ${clockedOut.join(', ')}`);
+        } else {
+          setSubmissionMessage('✅ Shop Work Order submitted! You have been clocked out.');
         }
+        const returnPath = localStorage.getItem('adminUser') ? '/admin-dashboard' : '/employee-dashboard';
+        setTimeout(() => navigate(returnPath), 3000);
       } else {
-        setSubmissionMessage('✅ Shop Work Order submitted for approval! Supervisors have been notified.');
+        if (clockedOut.length > 0) {
+          setSubmissionMessage(`✅ Shop Work Order submitted for approval! Auto-clocked out: ${clockedOut.join(', ')}`);
+        } else {
+          setSubmissionMessage('✅ Shop Work Order submitted for approval! Supervisors have been notified.');
+        }
         setForm({ truckNumber: '', date: new Date().toISOString().split('T')[0], inTime: '', outTime: '', location: '', supervisor: '', description: '' });
         setSelectedEmployees([]);
         setErrors({});
