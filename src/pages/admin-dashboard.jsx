@@ -6,6 +6,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import '../css/admin.css';
 import Header from '../components/headerviews/HeaderAdminDash';
+import { EditTCWorkOrderModal, EditShopWorkOrderModal, AdminNotesDisplay, HoursFlag, canEditWorkOrders } from '../components/EditWorkOrderModal';
 const formatTime = (timeStr) => {
   if (!timeStr) return '';
   const [hours, minutes] = timeStr.split(':');
@@ -44,6 +45,8 @@ const AdminDashboard = () => {
 const [previewFile, setPreviewFile] = useState(null);
 const [previewPlan, setPreviewPlan] = useState(null);
 const [showCancelledJobs, setShowCancelledJobs] = useState(false);
+const [editingTCWorkOrder, setEditingTCWorkOrder] = useState(null);
+const [editingShopWorkOrder, setEditingShopWorkOrder] = useState(null);
   const [applicants, setApplicants] = useState([]);
   const [PlanUser, setPlanUser] = useState([]);
   const [allowedForInvoices, setAllowedForInvoices] = useState(false);
@@ -1312,6 +1315,11 @@ selected={
           )}
           
           <p><strong>Completed:</strong> {new Date(wo.createdAt).toLocaleDateString()} at {new Date(wo.createdAt).toLocaleTimeString()}</p>
+          <HoursFlag startTime={wo.basic?.startTime} endTime={wo.basic?.endTime} hoursFlag={wo.hoursFlag} />
+          <AdminNotesDisplay adminNotes={wo.adminNotes} adminNotesBy={wo.adminNotesBy} adminCorrections={wo.adminCorrections} />
+          {canEditWorkOrders() && (
+            <button style={{marginTop:'8px',padding:'6px 14px',fontSize:'12px',background:'#2196F3',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer',fontWeight:'bold'}} onClick={() => setEditingTCWorkOrder(wo)}>✏️ Edit Work Order</button>
+          )}
         </div>
       ))}
     </div>
@@ -1581,6 +1589,11 @@ selected={
           <p><strong>Description:</strong> {wo.description}</p>
           <p><strong>Submitted By:</strong> {wo.submittedBy}</p>
           <p><strong>Submitted:</strong> {new Date(wo.createdAt).toLocaleString()}</p>
+          <HoursFlag startTime={wo.inTime} endTime={wo.outTime} hoursFlag={wo.hoursFlag} />
+          <AdminNotesDisplay adminNotes={wo.adminNotes} adminNotesBy={wo.adminNotesBy} adminCorrections={wo.adminCorrections} />
+          {canEditWorkOrders() && (
+            <button style={{marginTop:'8px',padding:'6px 14px',fontSize:'12px',background:'#2196F3',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer',fontWeight:'bold'}} onClick={() => setEditingShopWorkOrder(wo)}>✏️ Edit Work Order</button>
+          )}
           {wo.status === 'pending' && (
             <div style={{display:'flex',gap:'8px',marginTop:'10px'}}>
               <button className="btn" style={{background:'#4CAF50',color:'#fff'}} onClick={() => handleShopWoApprove(wo._id)}>✅ Approve</button>
@@ -2526,6 +2539,8 @@ selected={
     </div>
   </div>
 )}
+{editingTCWorkOrder && <EditTCWorkOrderModal workOrder={editingTCWorkOrder} onClose={() => setEditingTCWorkOrder(null)} onSaved={() => { if (woSelectedDate) { fetchMonthlyWorkOrders(woSelectedDate); fetchWorkOrdersForDay(woSelectedDate); } }} />}
+{editingShopWorkOrder && <EditShopWorkOrderModal workOrder={editingShopWorkOrder} onClose={() => setEditingShopWorkOrder(null)} onSaved={() => { if (shopWoDate) { fetchMonthlyShopWo(shopWoDate); fetchShopWoForDay(shopWoDate); } }} />}
 </div>
       <footer className="footer">
   <div className="site-footer__inner">
