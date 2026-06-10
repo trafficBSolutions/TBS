@@ -676,29 +676,29 @@ const onSubmit = async (e) => {
   // 4) We’re actually submitting now → show spinner
   setIsSubmitting(true);
   try {
-    await api.post('/work-order', formData, {
+    const woRes = await api.post('/work-order', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
+    const clockedOut = woRes.data.clockedOut || [];
 
-    // If from kiosk clock-out flow, clock them out after submission
+    // Server auto-clocked out all Foreman/Drivers listed on this work order
     if (fromKiosk) {
-      const pending = localStorage.getItem('tbs_kiosk_clockout_pending');
-      if (pending) {
-        const { pin } = JSON.parse(pending);
-        try {
-          await axios.post('/timeclock/punch', { pin });
-          setSubmissionMessage('✅ Work order submitted! You have been clocked out.');
-        } catch {
-          setSubmissionMessage('✅ Work order submitted! Please clock out at the tablet.');
-        }
-        localStorage.removeItem('tbs_kiosk_clockout_pending');
-        setTimeout(() => navigate(localStorage.getItem('adminUser') ? '/admin-dashboard' : '/employee-dashboard'), 3000);
-        setIsSubmitting(false);
-        return;
+      localStorage.removeItem('tbs_kiosk_clockout_pending');
+      if (clockedOut.length > 0) {
+        setSubmissionMessage(`✅ Work order submitted! Clocked out: ${clockedOut.join(', ')}`);
+      } else {
+        setSubmissionMessage('✅ Work order submitted! You have been clocked out.');
       }
+      setTimeout(() => navigate(localStorage.getItem('adminUser') ? '/admin-dashboard' : '/employee-dashboard'), 3000);
+      setIsSubmitting(false);
+      return;
     }
 
-    setSubmissionMessage('✅ Work order has been successfully submitted! Thank you!');
+    if (clockedOut.length > 0) {
+      setSubmissionMessage(`✅ Work order submitted! Auto-clocked out: ${clockedOut.join(', ')}`);
+    } else {
+      setSubmissionMessage('✅ Work order has been successfully submitted! Thank you!');
+    }
 
     // reset form
     setBasic({
