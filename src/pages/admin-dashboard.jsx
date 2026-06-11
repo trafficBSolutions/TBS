@@ -52,6 +52,8 @@ const [editingShopWorkOrder, setEditingShopWorkOrder] = useState(null);
   const [allowedForInvoices, setAllowedForInvoices] = useState(false);
 const [invoiceStats, setInvoiceStats] = useState(null);
 const [showInvoiceStats, setShowInvoiceStats] = useState(false);
+const [editingShopInvoice, setEditingShopInvoice] = useState(null);
+const [editShopInv, setEditShopInv] = useState({ payMethod: '', cardType: '', cardLast4: '', checkNumber: '', notes: '', taxExemptNumber: '' });
 const [currentIndex, setCurrentIndex] = useState(0);
 const [planIndex, setPlanIndex] = useState(0);
 const [jobs, setJobs] = useState([]);
@@ -2299,6 +2301,11 @@ selected={
                         <p style={{margin:0,color:'#856404',fontWeight:'bold'}}>⚠️ No payment recorded — please edit this invoice to add card/check number and notes.</p>
                       </div>
                     )}
+                    {q.isTaxExempt && !q.taxExemptNumber && (
+                      <div style={{background:'#f8d7da',border:'1px solid #f5c6cb',borderRadius:'6px',padding:'10px',marginBottom:'10px'}}>
+                        <p style={{margin:0,color:'#721c24',fontWeight:'bold'}}>❌ Tax Exempt but no exemption number — please call customer for their tax exemption number.</p>
+                      </div>
+                    )}
                     <h4 className="job-company">{q.customer} - {q.company}</h4>
                     {q.invoiceNumber && <p><strong>Invoice #:</strong> {q.invoiceNumber}</p>}
                     <p><strong>Date:</strong> {q.date}</p>
@@ -2343,6 +2350,78 @@ selected={
                       <p style={{fontSize:'16px'}}><strong>TOTAL:</strong> ${q.computed?.total?.toFixed(2)}</p>
                     </div>
                     <p><strong>Created:</strong> {new Date(q.createdAt).toLocaleDateString()} at {new Date(q.createdAt).toLocaleTimeString()}</p>
+                    {editingShopInvoice === q._id ? (
+                      <div style={{marginTop:'10px',background:'#f0f8ff',border:'1px solid #90caf9',borderRadius:'8px',padding:'12px'}}>
+                        <h5 style={{margin:'0 0 8px'}}>Edit Invoice Payment</h5>
+                        <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
+                          <label style={{fontSize:'12px'}}>Pay Method:
+                            <select value={editShopInv.payMethod} onChange={(e) => setEditShopInv({...editShopInv, payMethod: e.target.value, ...(e.target.value === 'Check' ? {cardType:'',cardLast4:''} : {checkNumber:''})})} style={{marginLeft:'6px',padding:'4px'}}>
+                              <option value="">Select...</option>
+                              <option value="Card">Card</option>
+                              <option value="Check">Check</option>
+                            </select>
+                          </label>
+                          {editShopInv.payMethod === 'Card' && (
+                            <>
+                              <label style={{fontSize:'12px'}}>Card Type:
+                                <select value={editShopInv.cardType} onChange={(e) => setEditShopInv({...editShopInv, cardType: e.target.value})} style={{marginLeft:'6px',padding:'4px'}}>
+                                  <option value="">Select...</option>
+                                  <option>Visa</option>
+                                  <option>MasterCard</option>
+                                  <option>Amex</option>
+                                  <option>Discover</option>
+                                </select>
+                              </label>
+                              <label style={{fontSize:'12px'}}>Last 4 Digits:
+                                <input type="text" maxLength={4} value={editShopInv.cardLast4} onChange={(e) => setEditShopInv({...editShopInv, cardLast4: e.target.value.replace(/\D/g,'').slice(0,4)})} placeholder="1234" style={{marginLeft:'6px',padding:'4px',width:'80px'}} />
+                              </label>
+                            </>
+                          )}
+                          {editShopInv.payMethod === 'Check' && (
+                            <label style={{fontSize:'12px'}}>Check #:
+                              <input type="text" value={editShopInv.checkNumber} onChange={(e) => setEditShopInv({...editShopInv, checkNumber: e.target.value})} placeholder="Check number" style={{marginLeft:'6px',padding:'4px',width:'120px'}} />
+                            </label>
+                          )}
+                          {q.isTaxExempt && (
+                            <label style={{fontSize:'12px'}}>Tax Exemption #:
+                              <input type="text" value={editShopInv.taxExemptNumber} onChange={(e) => setEditShopInv({...editShopInv, taxExemptNumber: e.target.value})} placeholder="Exemption number" style={{marginLeft:'6px',padding:'4px',width:'150px'}} />
+                            </label>
+                          )}
+                          <label style={{fontSize:'12px'}}>Notes:
+                            <textarea value={editShopInv.notes} onChange={(e) => setEditShopInv({...editShopInv, notes: e.target.value})} rows={2} style={{marginLeft:'6px',padding:'4px',width:'100%'}} />
+                          </label>
+                          <div style={{display:'flex',gap:'8px',marginTop:'6px'}}>
+                            <button className="btn" style={{padding:'6px 14px',fontSize:'12px',background:'#4CAF50',color:'#fff'}} onClick={async () => {
+                              try {
+                                let updatedComputed = q.computed;
+                                if (editShopInv.payMethod === 'Card' && q.payMethod !== 'Card') {
+                                  const subtotal = q.computed?.subtotal || 0;
+                                  const taxDue = q.computed?.taxDue || 0;
+                                  const ccFee = (subtotal + taxDue) * 0.03;
+                                  updatedComputed = { ...q.computed, ccFee, total: subtotal + taxDue + ccFee };
+                                } else if (editShopInv.payMethod !== 'Card') {
+                                  updatedComputed = { ...q.computed, ccFee: 0, total: (q.computed?.subtotal || 0) + (q.computed?.taxDue || 0) };
+                                }
+                                await axios.put(`/shop-invoices/${q._id}`, { ...editShopInv, computed: updatedComputed });
+                                setEditingShopInvoice(null);
+                                // Refresh stats
+                                const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                                const cm = new Date().getMonth();
+                                const monthData = await Promise.all(monthNames.slice(0, cm + 1).map((_, i) => axios.get(`/shop-invoices/month?month=${i + 1}&year=2026`).then(r => r.data).catch(() => [])));
+                                const months = monthNames.map((mo, i) => ({ month: mo, count: i <= cm ? (monthData[i]?.length || 0) : 0, invoices: i <= cm ? (monthData[i] || []) : [] }));
+                                setInvoiceStats({ total: months.reduce((s, mo) => s + mo.count, 0), months });
+                              } catch (e) { console.error('Failed to update invoice:', e); }
+                            }}>Save</button>
+                            <button className="btn" style={{padding:'6px 14px',fontSize:'12px',background:'#888',color:'#fff'}} onClick={() => setEditingShopInvoice(null)}>Cancel</button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <button style={{marginTop:'8px',padding:'6px 14px',fontSize:'12px',background:'#2196F3',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer',fontWeight:'bold'}} onClick={() => {
+                        setEditingShopInvoice(q._id);
+                        setEditShopInv({ payMethod: q.payMethod || '', cardType: q.cardType || '', cardLast4: q.cardLast4 || '', checkNumber: q.checkNumber || '', notes: q.notes || '', taxExemptNumber: q.taxExemptNumber || '' });
+                      }}>✏️ Edit Invoice</button>
+                    )}
                   </div>
                 ))}
               </div>
