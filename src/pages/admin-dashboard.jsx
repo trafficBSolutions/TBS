@@ -2297,7 +2297,8 @@ selected={
 
                     <p><strong>Tax Exempt:</strong> {q.isTaxExempt ? 'Yes' : 'No'}</p>
                     {q.payMethod && <p><strong>Pay Method:</strong> {q.payMethod}</p>}
-                    {q.cardNumber && <p><strong>Card #:</strong> {q.cardNumber}</p>}
+                    {q.cardType && <p><strong>Card Type:</strong> {q.cardType}</p>}
+                    {q.cardLast4 && <p><strong>Card Last 4:</strong> ****{q.cardLast4}</p>}
                     {q.checkNumber && <p><strong>Check #:</strong> {q.checkNumber}</p>}
                     {q.notes && <p><strong>Notes:</strong> {q.notes}</p>}
                     {q.rows && q.rows.length > 0 && (
