@@ -1368,6 +1368,11 @@ selected={
           <p><strong>Phone:</strong> <a href={`tel:${q.phone}`}>{q.phone}</a></p>
           <p><strong>Address:</strong> {q.address}, {q.city}, {q.state} {q.zip}</p>
           <p><strong>Tax Exempt:</strong> {q.isTaxExempt ? 'Yes' : 'No'}</p>
+          {q.payMethod && <p><strong>Pay Method:</strong> {q.payMethod}</p>}
+          {q.cardType && <p><strong>Card Type:</strong> {q.cardType}</p>}
+          {q.cardLast4 && <p><strong>Card Last 4:</strong> ****{q.cardLast4}</p>}
+          {q.checkNumber && <p><strong>Check #:</strong> {q.checkNumber}</p>}
+          {q.notes && <p><strong>Notes:</strong> {q.notes}</p>}
           <div style={{marginTop: '10px'}}>
             <strong>Items:</strong>
             <table style={{width: '100%', borderCollapse: 'collapse', marginTop: '5px', fontSize: '12px'}}>
