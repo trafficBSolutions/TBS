@@ -206,49 +206,76 @@ useEffect(() => {
   }
 }, [navigate, fromKiosk]);
 
-// Fetch employees who clocked in today for flagger select dropdowns (exclude Shop Work/Standby)
+// Fetch employees who clocked in today OR are still clocked in from yesterday (night shifts)
+// Exclude Shop Work/Standby
 useEffect(() => {
   const fetchWoEmployees = async () => {
     try {
-      const today = new Date().toISOString().split('T')[0];
-      const [empRes, historyRes] = await Promise.all([
+      const today = new Date();
+      const todayStr = today.toISOString().split('T')[0];
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+      const [empRes, todayHistoryRes, yesterdayHistoryRes, statusRes] = await Promise.all([
         axios.get('/timeclock/employees'),
-        axios.get(`/timeclock/history?date=${today}`)
+        axios.get(`/timeclock/history?date=${todayStr}`),
+        axios.get(`/timeclock/history?date=${yesterdayStr}`),
+        axios.get('/timeclock/status')
       ]);
-      // Get all employee IDs who clocked in today with a non-Shop Work/Standby purpose
-      const todayIds = new Set();
-      historyRes.data.forEach(r => {
+
+      const validIds = new Set();
+
+      // Anyone who clocked in today (non Shop Work/Standby)
+      todayHistoryRes.data.forEach(r => {
         const purpose = (r.purpose || '').trim();
-        if (purpose !== 'Shop Work' && purpose !== 'Standby') {
-          todayIds.add(r.employeeId);
+        if (purpose !== 'Shop Work' && purpose !== 'Standby') validIds.add(r.employeeId);
+      });
+
+      // Anyone still clocked in right now (non Shop Work/Standby) — covers night shift from yesterday
+      statusRes.data.forEach(r => {
+        const purpose = (r.purpose || '').trim();
+        if (purpose !== 'Shop Work' && purpose !== 'Standby') validIds.add(r.employeeId);
+      });
+
+      // Anyone from yesterday who is still clocked in (clockOut is null)
+      yesterdayHistoryRes.data.forEach(r => {
+        if (!r.clockOut) {
+          const purpose = (r.purpose || '').trim();
+          if (purpose !== 'Shop Work' && purpose !== 'Standby') validIds.add(r.employeeId);
         }
       });
+
       const allEmps = [
         ...empRes.data.employees.map(e => ({ id: e._id, name: e.name, position: e.position })),
         ...empRes.data.hourlyAdmins.map(a => ({ id: a._id, name: a.name, position: 'Foreman' }))
       ].filter(e => e.name);
-      const todayEmps = allEmps.filter(e => todayIds.has(e.id)).sort((a, b) => a.name.localeCompare(b.name));
-      setWoEmployeeList(todayEmps);
+      const result = allEmps.filter(e => validIds.has(e.id)).sort((a, b) => a.name.localeCompare(b.name));
+      setWoEmployeeList(result);
     } catch {
       try {
-        const today = new Date().toISOString().split('T')[0];
-        const [empRes, historyRes] = await Promise.all([
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
+        const [empRes, historyRes, statusRes] = await Promise.all([
           api.get('/timeclock/employees'),
-          api.get(`/timeclock/history?date=${today}`)
+          api.get(`/timeclock/history?date=${todayStr}`),
+          api.get('/timeclock/status')
         ]);
-        const todayIds = new Set();
+        const validIds = new Set();
         historyRes.data.forEach(r => {
           const purpose = (r.purpose || '').trim();
-          if (purpose !== 'Shop Work' && purpose !== 'Standby') {
-            todayIds.add(r.employeeId);
-          }
+          if (purpose !== 'Shop Work' && purpose !== 'Standby') validIds.add(r.employeeId);
+        });
+        statusRes.data.forEach(r => {
+          const purpose = (r.purpose || '').trim();
+          if (purpose !== 'Shop Work' && purpose !== 'Standby') validIds.add(r.employeeId);
         });
         const allEmps = [
           ...empRes.data.employees.map(e => ({ id: e._id, name: e.name, position: e.position })),
           ...empRes.data.hourlyAdmins.map(a => ({ id: a._id, name: a.name, position: 'Foreman' }))
         ].filter(e => e.name);
-        const todayEmps = allEmps.filter(e => todayIds.has(e.id)).sort((a, b) => a.name.localeCompare(b.name));
-        setWoEmployeeList(todayEmps);
+        const result = allEmps.filter(e => validIds.has(e.id)).sort((a, b) => a.name.localeCompare(b.name));
+        setWoEmployeeList(result);
       } catch { /* no-op */ }
     }
   };
@@ -679,26 +706,28 @@ const onSubmit = async (e) => {
     const woRes = await api.post('/work-order', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
-    const clockedOut = woRes.data.clockedOut || [];
 
-    // Server auto-clocked out all Foreman/Drivers listed on this work order
+    // If from kiosk (at the tablet trying to clock out), clock them out now
     if (fromKiosk) {
-      localStorage.removeItem('tbs_kiosk_clockout_pending');
-      if (clockedOut.length > 0) {
-        setSubmissionMessage(`✅ Work order submitted! Clocked out: ${clockedOut.join(', ')}`);
+      const pending = localStorage.getItem('tbs_kiosk_clockout_pending');
+      if (pending) {
+        const { pin } = JSON.parse(pending);
+        try {
+          await axios.post('/timeclock/punch', { pin });
+          setSubmissionMessage('✅ Work order submitted! You have been clocked out.');
+        } catch {
+          setSubmissionMessage('✅ Work order submitted! Please clock out at the tablet.');
+        }
+        localStorage.removeItem('tbs_kiosk_clockout_pending');
       } else {
-        setSubmissionMessage('✅ Work order submitted! You have been clocked out.');
+        setSubmissionMessage('✅ Work order submitted!');
       }
       setTimeout(() => navigate(localStorage.getItem('adminUser') ? '/admin-dashboard' : '/employee-dashboard'), 3000);
       setIsSubmitting(false);
       return;
     }
 
-    if (clockedOut.length > 0) {
-      setSubmissionMessage(`✅ Work order submitted! Auto-clocked out: ${clockedOut.join(', ')}`);
-    } else {
-      setSubmissionMessage('✅ Work order has been successfully submitted! Thank you!');
-    }
+    setSubmissionMessage('✅ Work order has been successfully submitted! Thank you!');
 
     // reset form
     setBasic({
