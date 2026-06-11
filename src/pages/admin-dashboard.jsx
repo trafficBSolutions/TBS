@@ -277,10 +277,11 @@ useEffect(() => {
   const storedUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
   if (invoiceStatsEmails.has(storedUser.email)) {
     const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const currentMonth = new Date().getMonth();
     Promise.all(
-      monthNames.map((_, i) => axios.get(`/api/quotes/month?month=${i + 1}&year=2026`).then(r => r.data).catch(() => []))
+      monthNames.slice(0, currentMonth + 1).map((_, i) => axios.get(`/shop-invoices/month?month=${i + 1}&year=2026`).then(r => r.data).catch(() => []))
     ).then(monthData => {
-      const months = monthNames.map((m, i) => ({ month: m, count: monthData[i].length, invoices: monthData[i] }));
+      const months = monthNames.map((m, i) => ({ month: m, count: i <= currentMonth ? (monthData[i]?.length || 0) : 0, invoices: i <= currentMonth ? (monthData[i] || []) : [] }));
       const total = months.reduce((s, m) => s + m.count, 0);
       setInvoiceStats({ total, months });
     }).catch(err => console.error('Invoice stats fetch failed:', err));
