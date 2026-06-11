@@ -2296,6 +2296,10 @@ selected={
                     {q.phone && <p><strong>Phone:</strong> <a href={`tel:${q.phone}`}>{q.phone}</a></p>}
 
                     <p><strong>Tax Exempt:</strong> {q.isTaxExempt ? 'Yes' : 'No'}</p>
+                    {q.payMethod && <p><strong>Pay Method:</strong> {q.payMethod}</p>}
+                    {q.cardNumber && <p><strong>Card #:</strong> {q.cardNumber}</p>}
+                    {q.checkNumber && <p><strong>Check #:</strong> {q.checkNumber}</p>}
+                    {q.notes && <p><strong>Notes:</strong> {q.notes}</p>}
                     {q.rows && q.rows.length > 0 && (
                       <div style={{marginTop:'10px'}}>
                         <strong>Items:</strong>
