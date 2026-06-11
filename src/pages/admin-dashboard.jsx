@@ -2352,10 +2352,18 @@ selected={
                     <p><strong>Created:</strong> {new Date(q.createdAt).toLocaleDateString()} at {new Date(q.createdAt).toLocaleTimeString()}</p>
                     {editingShopInvoice === q._id ? (
                       <div style={{marginTop:'10px',background:'#f0f8ff',border:'1px solid #90caf9',borderRadius:'8px',padding:'12px'}}>
-                        <h5 style={{margin:'0 0 8px'}}>Edit Invoice Payment</h5>
-                        <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
+                        <h5 style={{margin:'0 0 10px',color:'#1565c0'}}>Edit Invoice #{q.invoiceNumber}</h5>
+                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px'}}>
+                          <label style={{fontSize:'12px'}}>Invoice #:<input type="text" value={editShopInv.invoiceNumber} onChange={(e) => setEditShopInv({...editShopInv, invoiceNumber: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                          <label style={{fontSize:'12px'}}>Date:<input type="date" value={editShopInv.date} onChange={(e) => setEditShopInv({...editShopInv, date: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                          <label style={{fontSize:'12px'}}>Company:<input type="text" value={editShopInv.company} onChange={(e) => setEditShopInv({...editShopInv, company: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                          <label style={{fontSize:'12px'}}>Customer:<input type="text" value={editShopInv.customer} onChange={(e) => setEditShopInv({...editShopInv, customer: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                          <label style={{fontSize:'12px'}}>Email:<input type="text" value={editShopInv.email} onChange={(e) => setEditShopInv({...editShopInv, email: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                          <label style={{fontSize:'12px'}}>Phone:<input type="text" value={editShopInv.phone} onChange={(e) => setEditShopInv({...editShopInv, phone: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                        </div>
+                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'8px',marginTop:'8px'}}>
                           <label style={{fontSize:'12px'}}>Pay Method:
-                            <select value={editShopInv.payMethod} onChange={(e) => setEditShopInv({...editShopInv, payMethod: e.target.value, ...(e.target.value === 'Check' ? {cardType:'',cardLast4:''} : {checkNumber:''})})} style={{marginLeft:'6px',padding:'4px'}}>
+                            <select value={editShopInv.payMethod} onChange={(e) => setEditShopInv({...editShopInv, payMethod: e.target.value, ...(e.target.value === 'Check' ? {cardType:'',cardLast4:''} : {checkNumber:''})})} style={{width:'100%',padding:'4px'}}>
                               <option value="">Select...</option>
                               <option value="Card">Card</option>
                               <option value="Check">Check</option>
@@ -2364,7 +2372,7 @@ selected={
                           {editShopInv.payMethod === 'Card' && (
                             <>
                               <label style={{fontSize:'12px'}}>Card Type:
-                                <select value={editShopInv.cardType} onChange={(e) => setEditShopInv({...editShopInv, cardType: e.target.value})} style={{marginLeft:'6px',padding:'4px'}}>
+                                <select value={editShopInv.cardType} onChange={(e) => setEditShopInv({...editShopInv, cardType: e.target.value})} style={{width:'100%',padding:'4px'}}>
                                   <option value="">Select...</option>
                                   <option>Visa</option>
                                   <option>MasterCard</option>
@@ -2372,54 +2380,67 @@ selected={
                                   <option>Discover</option>
                                 </select>
                               </label>
-                              <label style={{fontSize:'12px'}}>Last 4 Digits:
-                                <input type="text" maxLength={4} value={editShopInv.cardLast4} onChange={(e) => setEditShopInv({...editShopInv, cardLast4: e.target.value.replace(/\D/g,'').slice(0,4)})} placeholder="1234" style={{marginLeft:'6px',padding:'4px',width:'80px'}} />
+                              <label style={{fontSize:'12px'}}>Last 4:
+                                <input type="text" maxLength={4} value={editShopInv.cardLast4} onChange={(e) => setEditShopInv({...editShopInv, cardLast4: e.target.value.replace(/\D/g,'').slice(0,4)})} style={{width:'100%',padding:'4px'}} />
                               </label>
                             </>
                           )}
                           {editShopInv.payMethod === 'Check' && (
                             <label style={{fontSize:'12px'}}>Check #:
-                              <input type="text" value={editShopInv.checkNumber} onChange={(e) => setEditShopInv({...editShopInv, checkNumber: e.target.value})} placeholder="Check number" style={{marginLeft:'6px',padding:'4px',width:'120px'}} />
+                              <input type="text" value={editShopInv.checkNumber} onChange={(e) => setEditShopInv({...editShopInv, checkNumber: e.target.value})} style={{width:'100%',padding:'4px'}} />
                             </label>
                           )}
-                          {q.isTaxExempt && (
-                            <label style={{fontSize:'12px'}}>Tax Exemption #:
-                              <input type="text" value={editShopInv.taxExemptNumber} onChange={(e) => setEditShopInv({...editShopInv, taxExemptNumber: e.target.value})} placeholder="Exemption number" style={{marginLeft:'6px',padding:'4px',width:'150px'}} />
-                            </label>
-                          )}
-                          <label style={{fontSize:'12px'}}>Notes:
-                            <textarea value={editShopInv.notes} onChange={(e) => setEditShopInv({...editShopInv, notes: e.target.value})} rows={2} style={{marginLeft:'6px',padding:'4px',width:'100%'}} />
+                        </div>
+                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginTop:'8px'}}>
+                          <label style={{fontSize:'12px',display:'flex',alignItems:'center',gap:'4px'}}>
+                            <input type="checkbox" checked={editShopInv.isTaxExempt} onChange={(e) => setEditShopInv({...editShopInv, isTaxExempt: e.target.checked})} /> Tax Exempt
                           </label>
-                          <div style={{display:'flex',gap:'8px',marginTop:'6px'}}>
-                            <button className="btn" style={{padding:'6px 14px',fontSize:'12px',background:'#4CAF50',color:'#fff'}} onClick={async () => {
-                              try {
-                                let updatedComputed = q.computed;
-                                if (editShopInv.payMethod === 'Card' && q.payMethod !== 'Card') {
-                                  const subtotal = q.computed?.subtotal || 0;
-                                  const taxDue = q.computed?.taxDue || 0;
-                                  const ccFee = (subtotal + taxDue) * 0.03;
-                                  updatedComputed = { ...q.computed, ccFee, total: subtotal + taxDue + ccFee };
-                                } else if (editShopInv.payMethod !== 'Card') {
-                                  updatedComputed = { ...q.computed, ccFee: 0, total: (q.computed?.subtotal || 0) + (q.computed?.taxDue || 0) };
-                                }
-                                await axios.put(`/shop-invoices/${q._id}`, { ...editShopInv, computed: updatedComputed });
-                                setEditingShopInvoice(null);
-                                // Refresh stats
-                                const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-                                const cm = new Date().getMonth();
-                                const monthData = await Promise.all(monthNames.slice(0, cm + 1).map((_, i) => axios.get(`/shop-invoices/month?month=${i + 1}&year=2026`).then(r => r.data).catch(() => [])));
-                                const months = monthNames.map((mo, i) => ({ month: mo, count: i <= cm ? (monthData[i]?.length || 0) : 0, invoices: i <= cm ? (monthData[i] || []) : [] }));
-                                setInvoiceStats({ total: months.reduce((s, mo) => s + mo.count, 0), months });
-                              } catch (e) { console.error('Failed to update invoice:', e); }
-                            }}>Save</button>
-                            <button className="btn" style={{padding:'6px 14px',fontSize:'12px',background:'#888',color:'#fff'}} onClick={() => setEditingShopInvoice(null)}>Cancel</button>
-                          </div>
+                          {editShopInv.isTaxExempt && (
+                            <label style={{fontSize:'12px'}}>Tax Exempt #:<input type="text" value={editShopInv.taxExemptNumber} onChange={(e) => setEditShopInv({...editShopInv, taxExemptNumber: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                          )}
+                        </div>
+                        <div style={{marginTop:'10px'}}>
+                          <strong style={{fontSize:'12px'}}>Line Items:</strong>
+                          {editShopInv.rows.map((row, ri) => (
+                            <div key={ri} style={{display:'grid',gridTemplateColumns:'1fr 2fr 60px 80px 30px',gap:'4px',marginTop:'4px',alignItems:'center'}}>
+                              <input type="text" value={row.item} onChange={(e) => { const rows = [...editShopInv.rows]; rows[ri] = {...rows[ri], item: e.target.value}; setEditShopInv({...editShopInv, rows}); }} placeholder="Item" style={{padding:'3px',fontSize:'11px'}} />
+                              <input type="text" value={row.description} onChange={(e) => { const rows = [...editShopInv.rows]; rows[ri] = {...rows[ri], description: e.target.value}; setEditShopInv({...editShopInv, rows}); }} placeholder="Description" style={{padding:'3px',fontSize:'11px'}} />
+                              <input type="number" value={row.qty} onChange={(e) => { const rows = [...editShopInv.rows]; rows[ri] = {...rows[ri], qty: Number(e.target.value)}; setEditShopInv({...editShopInv, rows}); }} placeholder="Qty" style={{padding:'3px',fontSize:'11px'}} />
+                              <input type="number" step="0.01" value={row.unitPrice} onChange={(e) => { const rows = [...editShopInv.rows]; rows[ri] = {...rows[ri], unitPrice: Number(e.target.value)}; setEditShopInv({...editShopInv, rows}); }} placeholder="Price" style={{padding:'3px',fontSize:'11px'}} />
+                              <button style={{padding:'2px 6px',fontSize:'11px',background:'#f44336',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer'}} onClick={() => { const rows = editShopInv.rows.filter((_, i) => i !== ri); setEditShopInv({...editShopInv, rows}); }}>✕</button>
+                            </div>
+                          ))}
+                          <button style={{marginTop:'6px',padding:'3px 10px',fontSize:'11px',background:'#4CAF50',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer'}} onClick={() => setEditShopInv({...editShopInv, rows: [...editShopInv.rows, {item:'',description:'',taxable:true,qty:1,unitPrice:0}]})}>+ Add Line</button>
+                        </div>
+                        <label style={{fontSize:'12px',display:'block',marginTop:'8px'}}>Notes:
+                          <textarea value={editShopInv.notes} onChange={(e) => setEditShopInv({...editShopInv, notes: e.target.value})} rows={2} style={{width:'100%',padding:'4px'}} />
+                        </label>
+                        <div style={{display:'flex',gap:'8px',marginTop:'10px'}}>
+                          <button className="btn" style={{padding:'6px 14px',fontSize:'12px',background:'#4CAF50',color:'#fff'}} onClick={async () => {
+                            try {
+                              const rows = editShopInv.rows;
+                              const subtotal = rows.reduce((s, r) => s + (r.qty || 0) * (r.unitPrice || 0), 0);
+                              const taxableAmt = editShopInv.isTaxExempt ? 0 : rows.reduce((s, r) => r.taxable !== false ? s + (r.qty || 0) * (r.unitPrice || 0) : s, 0);
+                              const taxDue = taxableAmt * 0.08;
+                              const ccFee = editShopInv.payMethod === 'Card' ? (subtotal + taxDue) * 0.03 : 0;
+                              const total = editShopInv.isTaxExempt ? subtotal + ccFee : subtotal + taxDue + ccFee;
+                              const computed = { subtotal, taxDue, ccFee, total };
+                              await axios.put(`/shop-invoices/${q._id}`, { ...editShopInv, computed });
+                              setEditingShopInvoice(null);
+                              const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                              const cm = new Date().getMonth();
+                              const monthData = await Promise.all(monthNames.slice(0, cm + 1).map((_, i) => axios.get(`/shop-invoices/month?month=${i + 1}&year=2026`).then(r => r.data).catch(() => [])));
+                              const months = monthNames.map((mo, i) => ({ month: mo, count: i <= cm ? (monthData[i]?.length || 0) : 0, invoices: i <= cm ? (monthData[i] || []) : [] }));
+                              setInvoiceStats({ total: months.reduce((s, mo) => s + mo.count, 0), months });
+                            } catch (e) { console.error('Failed to update invoice:', e); }
+                          }}>Save</button>
+                          <button className="btn" style={{padding:'6px 14px',fontSize:'12px',background:'#888',color:'#fff'}} onClick={() => setEditingShopInvoice(null)}>Cancel</button>
                         </div>
                       </div>
                     ) : (
                       <button style={{marginTop:'8px',padding:'6px 14px',fontSize:'12px',background:'#2196F3',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer',fontWeight:'bold'}} onClick={() => {
                         setEditingShopInvoice(q._id);
-                        setEditShopInv({ payMethod: q.payMethod || '', cardType: q.cardType || '', cardLast4: q.cardLast4 || '', checkNumber: q.checkNumber || '', notes: q.notes || '', taxExemptNumber: q.taxExemptNumber || '' });
+                        setEditShopInv({ invoiceNumber: q.invoiceNumber || '', date: q.date || '', company: q.company || '', customer: q.customer || '', email: q.email || '', phone: q.phone || '', payMethod: q.payMethod || '', cardType: q.cardType || '', cardLast4: q.cardLast4 || '', checkNumber: q.checkNumber || '', notes: q.notes || '', taxExemptNumber: q.taxExemptNumber || '', isTaxExempt: q.isTaxExempt || false, rows: q.rows || [] });
                       }}>✏️ Edit Invoice</button>
                     )}
                   </div>
