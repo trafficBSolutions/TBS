@@ -50,6 +50,8 @@ const [editingShopWorkOrder, setEditingShopWorkOrder] = useState(null);
   const [applicants, setApplicants] = useState([]);
   const [PlanUser, setPlanUser] = useState([]);
   const [allowedForInvoices, setAllowedForInvoices] = useState(false);
+const [invoiceStats, setInvoiceStats] = useState(null);
+const [showInvoiceStats, setShowInvoiceStats] = useState(false);
 const [currentIndex, setCurrentIndex] = useState(0);
 const [planIndex, setPlanIndex] = useState(0);
 const [jobs, setJobs] = useState([]);
@@ -269,6 +271,13 @@ useEffect(() => {
   };
 
   fetchCancelledJobs();
+
+  // Fetch invoice stats for allowed users
+  const invoiceStatsEmails = new Set(['tbsolutions9@gmail.com','tbsolutions4@gmail.com','materialworx2@gmail.com','tbsolutions.work.orders@gmail.com']);
+  const stored = JSON.parse(localStorage.getItem('adminUser') || '{}');
+  if (invoiceStatsEmails.has(stored.email)) {
+    axios.get('/billing/invoice-stats-2026').then(r => setInvoiceStats(r.data)).catch(() => {});
+  }
 }, []);
 const allowed = new Set([
   'tbsolutions9@gmail.com',
@@ -2254,6 +2263,31 @@ selected={
         <button className="invoice-btn" type="button" onClick={handleChangeEmpPassword} disabled={empPasswordLoading}>{empPasswordLoading ? 'Updating...' : 'Change'}</button>
       </div>
       {empPasswordMsg && <p className={empPasswordMsg.includes('changed') ? 'msg-success' : 'msg-error'}>{empPasswordMsg}</p>}
+    </div>
+  )}
+
+  {invoiceStats && (
+    <div className="tool-card tool-card--wide">
+      <h3>📄 Invoices Sent (2026)</h3>
+      <button className="btn view-cancelled-btn" onClick={() => setShowInvoiceStats(prev => !prev)}>
+        {showInvoiceStats ? 'Hide' : `View (${invoiceStats.total} total)`}
+      </button>
+      {showInvoiceStats && (
+        <div style={{marginTop:'1rem'}}>
+          <p style={{fontWeight:'bold',fontSize:'1.1rem',marginBottom:'0.5rem'}}>Total Invoices Sent: {invoiceStats.total}</p>
+          <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.95rem'}}>
+            <thead><tr style={{background:'#f2f2f2'}}><th style={{border:'1px solid #ddd',padding:'8px'}}>Month</th><th style={{border:'1px solid #ddd',padding:'8px'}}>Invoices Sent</th></tr></thead>
+            <tbody>
+              {invoiceStats.months.map(m => (
+                <tr key={m.month} style={{background: m.count > 0 ? '#f0fff0' : 'transparent'}}>
+                  <td style={{border:'1px solid #ddd',padding:'8px',fontWeight:'bold'}}>{m.month}</td>
+                  <td style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>{m.count}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )}
 
