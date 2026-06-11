@@ -273,10 +273,10 @@ useEffect(() => {
   fetchCancelledJobs();
 
   // Fetch invoice stats for allowed users
-  const invoiceStatsEmails = new Set(['tbsolutions9@gmail.com','tbsolutions4@gmail.com','materialworx2@gmail.com','tbsolutions.work.orders@gmail.com']);
-  const stored = JSON.parse(localStorage.getItem('adminUser') || '{}');
-  if (invoiceStatsEmails.has(stored.email)) {
-    axios.get('/billing/invoice-stats-2026').then(r => setInvoiceStats(r.data)).catch(() => {});
+  const invoiceStatsEmails = new Set(['tbsolutions9@gmail.com','tbsolutions4@gmail.com','materialworx2@gmail.com','tbsolutions.work.orders@gmail.com','tbsolutions1999@gmail.com','tbsolutions1995@gmail.com','trafficandbarriersolutions.ap@gmail.com']);
+  const storedUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
+  if (invoiceStatsEmails.has(storedUser.email)) {
+    axios.get('/api/billing/invoice-stats-2026').then(r => setInvoiceStats(r.data)).catch(err => console.error('Invoice stats fetch failed:', err));
   }
 }, []);
 const allowed = new Set([
