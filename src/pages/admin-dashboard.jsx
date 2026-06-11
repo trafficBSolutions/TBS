@@ -2283,26 +2283,52 @@ selected={
         <div style={{marginTop:'1rem'}}>
           <p style={{fontWeight:'bold',fontSize:'1.1rem',marginBottom:'0.5rem'}}>Total Sign Shop Invoices Sent: {invoiceStats.total}</p>
           {invoiceStats.months.map(m => m.count > 0 && (
-            <div key={m.month} style={{marginBottom:'1rem'}}>
-              <h4 style={{margin:'0.5rem 0',color:'#1e3a8a'}}>{m.month} — {m.count} invoice{m.count !== 1 ? 's' : ''}</h4>
-              <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.9rem'}}>
-                <thead><tr style={{background:'#f2f2f2'}}>
-                  <th style={{border:'1px solid #ddd',padding:'6px',textAlign:'left'}}>Date</th>
-                  <th style={{border:'1px solid #ddd',padding:'6px',textAlign:'left'}}>Customer</th>
-                  <th style={{border:'1px solid #ddd',padding:'6px',textAlign:'left'}}>Company</th>
-                  <th style={{border:'1px solid #ddd',padding:'6px',textAlign:'right'}}>Total</th>
-                </tr></thead>
-                <tbody>
-                  {m.invoices.map((inv, idx) => (
-                    <tr key={inv._id || idx}>
-                      <td style={{border:'1px solid #ddd',padding:'6px'}}>{inv.date}</td>
-                      <td style={{border:'1px solid #ddd',padding:'6px'}}>{inv.customer}</td>
-                      <td style={{border:'1px solid #ddd',padding:'6px'}}>{inv.company}</td>
-                      <td style={{border:'1px solid #ddd',padding:'6px',textAlign:'right'}}>${inv.computed?.total?.toFixed(2) || '0.00'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div key={m.month} style={{marginBottom:'1.5rem'}}>
+              <h4 style={{margin:'0.5rem 0',color:'#1e3a8a',borderBottom:'2px solid #1e3a8a',paddingBottom:'4px'}}>{m.month} — {m.count} invoice{m.count !== 1 ? 's' : ''}</h4>
+              <div className="job-info-list">
+                {m.invoices.map((q, idx) => (
+                  <div key={q._id || idx} className="job-card">
+                    <h4 className="job-company">{q.customer} - {q.company}</h4>
+                    <p><strong>Date:</strong> {q.date}</p>
+                    <p><strong>Email:</strong> {q.email}</p>
+                    {q.phone && <p><strong>Phone:</strong> <a href={`tel:${q.phone}`}>{q.phone}</a></p>}
+
+                    <p><strong>Tax Exempt:</strong> {q.isTaxExempt ? 'Yes' : 'No'}</p>
+                    {q.rows && q.rows.length > 0 && (
+                      <div style={{marginTop:'10px'}}>
+                        <strong>Items:</strong>
+                        <table style={{width:'100%',borderCollapse:'collapse',marginTop:'5px',fontSize:'12px'}}>
+                          <thead><tr style={{backgroundColor:'#f2f2f2'}}>
+                            <th style={{border:'1px solid #ddd',padding:'4px'}}>Item</th>
+                            <th style={{border:'1px solid #ddd',padding:'4px'}}>Description</th>
+                            <th style={{border:'1px solid #ddd',padding:'4px'}}>Qty</th>
+                            <th style={{border:'1px solid #ddd',padding:'4px'}}>Unit Price</th>
+                            <th style={{border:'1px solid #ddd',padding:'4px'}}>Total</th>
+                          </tr></thead>
+                          <tbody>
+                            {q.rows.map((row, ri) => (
+                              <tr key={ri}>
+                                <td style={{border:'1px solid #ddd',padding:'4px'}}>{row.item}</td>
+                                <td style={{border:'1px solid #ddd',padding:'4px'}}>{row.description}</td>
+                                <td style={{border:'1px solid #ddd',padding:'4px'}}>{row.qty}</td>
+                                <td style={{border:'1px solid #ddd',padding:'4px'}}>${row.unitPrice?.toFixed(2)}</td>
+                                <td style={{border:'1px solid #ddd',padding:'4px'}}>${(row.qty * row.unitPrice)?.toFixed(2)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                    <div style={{marginTop:'10px',textAlign:'right'}}>
+                      <p><strong>Subtotal:</strong> ${q.computed?.subtotal?.toFixed(2)}</p>
+                      <p><strong>Tax:</strong> ${q.computed?.taxDue?.toFixed(2)}</p>
+                      {q.computed?.ccFee > 0 && <p><strong>Card Fee:</strong> ${q.computed?.ccFee?.toFixed(2)}</p>}
+                      <p style={{fontSize:'16px'}}><strong>TOTAL:</strong> ${q.computed?.total?.toFixed(2)}</p>
+                    </div>
+                    <p><strong>Created:</strong> {new Date(q.createdAt).toLocaleDateString()} at {new Date(q.createdAt).toLocaleTimeString()}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
           {invoiceStats.months.every(m => m.count === 0) && <p>No invoices sent in 2026.</p>}
