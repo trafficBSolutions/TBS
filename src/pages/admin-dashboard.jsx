@@ -2289,6 +2289,7 @@ selected={
                 {m.invoices.map((q, idx) => (
                   <div key={q._id || idx} className="job-card">
                     <h4 className="job-company">{q.customer} - {q.company}</h4>
+                    {q.invoiceNumber && <p><strong>Invoice #:</strong> {q.invoiceNumber}</p>}
                     <p><strong>Date:</strong> {q.date}</p>
                     <p><strong>Email:</strong> {q.email}</p>
                     {q.phone && <p><strong>Phone:</strong> <a href={`tel:${q.phone}`}>{q.phone}</a></p>}
