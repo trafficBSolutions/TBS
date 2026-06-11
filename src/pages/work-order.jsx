@@ -206,8 +206,7 @@ useEffect(() => {
   }
 }, [navigate, fromKiosk]);
 
-// Fetch employees who clocked in today OR are still clocked in from yesterday (night shifts)
-// Exclude Shop Work/Standby
+// Fetch employees who clocked in within the last 24 hours (exclude Shop Work/Standby)
 useEffect(() => {
   const fetchWoEmployees = async () => {
     try {
@@ -217,30 +216,25 @@ useEffect(() => {
       yesterday.setDate(yesterday.getDate() - 1);
       const yesterdayStr = yesterday.toISOString().split('T')[0];
 
-      const [empRes, todayHistoryRes, yesterdayHistoryRes, statusRes] = await Promise.all([
+      const [empRes, todayHistoryRes, yesterdayHistoryRes] = await Promise.all([
         axios.get('/timeclock/employees'),
         axios.get(`/timeclock/history?date=${todayStr}`),
-        axios.get(`/timeclock/history?date=${yesterdayStr}`),
-        axios.get('/timeclock/status')
+        axios.get(`/timeclock/history?date=${yesterdayStr}`)
       ]);
 
       const validIds = new Set();
+      const now = Date.now();
 
-      // Anyone who clocked in today (non Shop Work/Standby)
+      // Anyone from today's history (non Shop Work/Standby)
       todayHistoryRes.data.forEach(r => {
         const purpose = (r.purpose || '').trim();
         if (purpose !== 'Shop Work' && purpose !== 'Standby') validIds.add(r.employeeId);
       });
 
-      // Anyone still clocked in right now (non Shop Work/Standby) — covers night shift from yesterday
-      statusRes.data.forEach(r => {
-        const purpose = (r.purpose || '').trim();
-        if (purpose !== 'Shop Work' && purpose !== 'Standby') validIds.add(r.employeeId);
-      });
-
-      // Anyone from yesterday who is still clocked in (clockOut is null)
+      // Anyone from yesterday who clocked in within last 24 hours (non Shop Work/Standby)
       yesterdayHistoryRes.data.forEach(r => {
-        if (!r.clockOut) {
+        const clockInTime = new Date(r.clockIn).getTime();
+        if (now - clockInTime <= 24 * 60 * 60 * 1000) {
           const purpose = (r.purpose || '').trim();
           if (purpose !== 'Shop Work' && purpose !== 'Standby') validIds.add(r.employeeId);
         }
@@ -256,19 +250,26 @@ useEffect(() => {
       try {
         const today = new Date();
         const todayStr = today.toISOString().split('T')[0];
-        const [empRes, historyRes, statusRes] = await Promise.all([
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().split('T')[0];
+        const [empRes, todayHistoryRes, yesterdayHistoryRes] = await Promise.all([
           api.get('/timeclock/employees'),
           api.get(`/timeclock/history?date=${todayStr}`),
-          api.get('/timeclock/status')
+          api.get(`/timeclock/history?date=${yesterdayStr}`)
         ]);
         const validIds = new Set();
-        historyRes.data.forEach(r => {
+        const now = Date.now();
+        todayHistoryRes.data.forEach(r => {
           const purpose = (r.purpose || '').trim();
           if (purpose !== 'Shop Work' && purpose !== 'Standby') validIds.add(r.employeeId);
         });
-        statusRes.data.forEach(r => {
-          const purpose = (r.purpose || '').trim();
-          if (purpose !== 'Shop Work' && purpose !== 'Standby') validIds.add(r.employeeId);
+        yesterdayHistoryRes.data.forEach(r => {
+          const clockInTime = new Date(r.clockIn).getTime();
+          if (now - clockInTime <= 24 * 60 * 60 * 1000) {
+            const purpose = (r.purpose || '').trim();
+            if (purpose !== 'Shop Work' && purpose !== 'Standby') validIds.add(r.employeeId);
+          }
         });
         const allEmps = [
           ...empRes.data.employees.map(e => ({ id: e._id, name: e.name, position: e.position })),
