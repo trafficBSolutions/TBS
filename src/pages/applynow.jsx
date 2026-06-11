@@ -985,6 +985,18 @@ if (!data.background) {
                 />
                 <label className="position-li" htmlFor="atlanta">Atlanta GA</label>
               </div>
+              <div>
+                <input className="position-checkbox" id="valdosta" type="radio" name="location"
+                value="Valdosta GA"
+                onChange={(e) => { 
+                  formData({ ...data, location: e.target.value });
+                if (e.target.value) {
+                  setErrors((prevErrors) => ({ ...prevErrors, location: '' })); // Clear the error
+                }
+                }}
+                />
+                <label className="position-li" htmlFor="valdosta">Valdosta GA</label>
+              </div>
               {errors.location && <div className="error-message">{errors.location}</div>}
             </div>
             <div className="education-info">
