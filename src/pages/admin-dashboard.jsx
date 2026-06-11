@@ -278,10 +278,10 @@ useEffect(() => {
   if (invoiceStatsEmails.has(storedUser.email)) {
     const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     Promise.all(
-      monthNames.map((_, i) => axios.get(`/api/quotes/month?month=${i + 1}&year=2026`).then(r => r.data.length).catch(() => 0))
-    ).then(counts => {
-      const months = monthNames.map((m, i) => ({ month: m, count: counts[i] }));
-      const total = counts.reduce((s, c) => s + c, 0);
+      monthNames.map((_, i) => axios.get(`/api/quotes/month?month=${i + 1}&year=2026`).then(r => r.data).catch(() => []))
+    ).then(monthData => {
+      const months = monthNames.map((m, i) => ({ month: m, count: monthData[i].length, invoices: monthData[i] }));
+      const total = months.reduce((s, m) => s + m.count, 0);
       setInvoiceStats({ total, months });
     }).catch(err => console.error('Invoice stats fetch failed:', err));
   }
@@ -2282,17 +2282,30 @@ selected={
       {showInvoiceStats && (
         <div style={{marginTop:'1rem'}}>
           <p style={{fontWeight:'bold',fontSize:'1.1rem',marginBottom:'0.5rem'}}>Total Sign Shop Invoices Sent: {invoiceStats.total}</p>
-          <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.95rem'}}>
-            <thead><tr style={{background:'#f2f2f2'}}><th style={{border:'1px solid #ddd',padding:'8px'}}>Month</th><th style={{border:'1px solid #ddd',padding:'8px'}}>Invoices Sent</th></tr></thead>
-            <tbody>
-              {invoiceStats.months.map(m => (
-                <tr key={m.month} style={{background: m.count > 0 ? '#f0fff0' : 'transparent'}}>
-                  <td style={{border:'1px solid #ddd',padding:'8px',fontWeight:'bold'}}>{m.month}</td>
-                  <td style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>{m.count}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {invoiceStats.months.map(m => m.count > 0 && (
+            <div key={m.month} style={{marginBottom:'1rem'}}>
+              <h4 style={{margin:'0.5rem 0',color:'#1e3a8a'}}>{m.month} — {m.count} invoice{m.count !== 1 ? 's' : ''}</h4>
+              <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.9rem'}}>
+                <thead><tr style={{background:'#f2f2f2'}}>
+                  <th style={{border:'1px solid #ddd',padding:'6px',textAlign:'left'}}>Date</th>
+                  <th style={{border:'1px solid #ddd',padding:'6px',textAlign:'left'}}>Customer</th>
+                  <th style={{border:'1px solid #ddd',padding:'6px',textAlign:'left'}}>Company</th>
+                  <th style={{border:'1px solid #ddd',padding:'6px',textAlign:'right'}}>Total</th>
+                </tr></thead>
+                <tbody>
+                  {m.invoices.map((inv, idx) => (
+                    <tr key={inv._id || idx}>
+                      <td style={{border:'1px solid #ddd',padding:'6px'}}>{inv.date}</td>
+                      <td style={{border:'1px solid #ddd',padding:'6px'}}>{inv.customer}</td>
+                      <td style={{border:'1px solid #ddd',padding:'6px'}}>{inv.company}</td>
+                      <td style={{border:'1px solid #ddd',padding:'6px',textAlign:'right'}}>${inv.computed?.total?.toFixed(2) || '0.00'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ))}
+          {invoiceStats.months.every(m => m.count === 0) && <p>No invoices sent in 2026.</p>}
         </div>
       )}
     </div>
