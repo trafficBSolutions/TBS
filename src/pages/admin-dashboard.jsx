@@ -272,11 +272,18 @@ useEffect(() => {
 
   fetchCancelledJobs();
 
-  // Fetch invoice stats for allowed users
+  // Fetch Sign Shop invoice stats for allowed users
   const invoiceStatsEmails = new Set(['tbsolutions9@gmail.com','tbsolutions4@gmail.com','materialworx2@gmail.com','tbsolutions.work.orders@gmail.com','tbsolutions1999@gmail.com','tbsolutions1995@gmail.com','trafficandbarriersolutions.ap@gmail.com']);
   const storedUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
   if (invoiceStatsEmails.has(storedUser.email)) {
-    axios.get('/api/billing/invoice-stats-2026').then(r => setInvoiceStats(r.data)).catch(err => console.error('Invoice stats fetch failed:', err));
+    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    Promise.all(
+      monthNames.map((_, i) => axios.get(`/api/quotes/month?month=${i + 1}&year=2026`).then(r => r.data.length).catch(() => 0))
+    ).then(counts => {
+      const months = monthNames.map((m, i) => ({ month: m, count: counts[i] }));
+      const total = counts.reduce((s, c) => s + c, 0);
+      setInvoiceStats({ total, months });
+    }).catch(err => console.error('Invoice stats fetch failed:', err));
   }
 }, []);
 const allowed = new Set([
@@ -1017,7 +1024,7 @@ useEffect(() => {
           const friStr = `${fri.getFullYear()}-${String(fri.getMonth()+1).padStart(2,'0')}-${String(fri.getDate()).padStart(2,'0')}`;
           setTimeWorkedWeekStart(satStr);
           try { const res = await axios.get(`/timeclock/time-worked?startDate=${satStr}&endDate=${friStr}`); setTimeWorked(res.data); } catch(e) {}
-        }}>Tasks</button>
+        }}>Time Clock</button>
       )}
     </div>
   </>
@@ -2268,13 +2275,13 @@ selected={
 
   {invoiceStats && (
     <div className="tool-card tool-card--wide">
-      <h3>📄 Invoices Sent (2026)</h3>
+      <h3>🏭 Sign Shop Invoices Sent (2026)</h3>
       <button className="btn view-cancelled-btn" onClick={() => setShowInvoiceStats(prev => !prev)}>
         {showInvoiceStats ? 'Hide' : `View (${invoiceStats.total} total)`}
       </button>
       {showInvoiceStats && (
         <div style={{marginTop:'1rem'}}>
-          <p style={{fontWeight:'bold',fontSize:'1.1rem',marginBottom:'0.5rem'}}>Total Invoices Sent: {invoiceStats.total}</p>
+          <p style={{fontWeight:'bold',fontSize:'1.1rem',marginBottom:'0.5rem'}}>Total Sign Shop Invoices Sent: {invoiceStats.total}</p>
           <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.95rem'}}>
             <thead><tr style={{background:'#f2f2f2'}}><th style={{border:'1px solid #ddd',padding:'8px'}}>Month</th><th style={{border:'1px solid #ddd',padding:'8px'}}>Invoices Sent</th></tr></thead>
             <tbody>
