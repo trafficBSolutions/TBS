@@ -2003,7 +2003,7 @@ selected={
                                 </div>
                               )}
                               {r.purpose && <span style={{display:'block',marginTop:'2px',background:'#e3f2fd',color:'#1565c0',padding:'1px 6px',borderRadius:'3px',fontSize:'0.7rem',maxWidth:'fit-content',margin:'2px auto 0'}}>{r.purpose}{canEditHours && <button style={{marginLeft:'4px',padding:'0 3px',fontSize:'9px',background:'#1565c0',color:'#fff',border:'none',borderRadius:'2px',cursor:'pointer'}} onClick={async () => {
-                                const purposes = ['1 Man Job','2 Man Crew','3 Man Crew','Arrow Board/Message Board Job','Emergency Job','Weekend Work','Shop Work','Standby'];
+                                const purposes = ['2 Man Crew','3 Man Crew','Arrow Board/Message Board Job','Emergency Job','Weekend Work','Shop Work','Standby'];
                                 const newPurpose = prompt('Select new purpose:\n\n' + purposes.map((p,i) => `${i+1}. ${p}`).join('\n') + '\n\nEnter number or type purpose:', r.purpose);
                                 if (!newPurpose || newPurpose === r.purpose) return;
                                 const final = purposes[parseInt(newPurpose) - 1] || newPurpose;
