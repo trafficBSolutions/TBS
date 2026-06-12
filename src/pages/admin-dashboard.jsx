@@ -2544,7 +2544,13 @@ selected={
         fontWeight:'bold'
       }}
       onClick={() => {
-        // print code
+        printWin.document.write(`</body></html>`);
+printWin.document.close();
+
+setTimeout(() => {
+  printWin.focus();
+  printWin.print();
+}, 500);
       }}
     >
       🖨️ Print
