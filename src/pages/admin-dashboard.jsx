@@ -2544,34 +2544,36 @@ selected={
     fontWeight:'bold'
   }}
   onClick={() => {
-    const printWin = window.open('', '_blank');
-
-    if (!printWin) {
-      alert('Popup blocked. Please allow popups for this site.');
-      return;
-    }
-
-    printWin.document.open();
-    printWin.document.write(`
-      <html>
-        <head>
-          <title>Invoice Print</title>
-        </head>
-        <body>
-          <h1>Traffic & Barrier Solutions, LLC</h1>
-          <h2>Invoice #${q.invoiceNumber || 'N/A'}</h2>
-          <p><strong>Customer:</strong> ${q.customer || ''}</p>
-          <p><strong>Company:</strong> ${q.company || ''}</p>
-          <p><strong>Total:</strong> $${(q.computed?.total || 0).toFixed(2)}</p>
-        </body>
-      </html>
-    `);
-    printWin.document.close();
-
-    setTimeout(() => {
-      printWin.focus();
-      printWin.print();
-    }, 500);
+    var pw = window.open('', '', 'width=800,height=600');
+    if (!pw) { alert('Please allow popups to print.'); return; }
+    var paid = !!(q.cardLast4 || q.checkNumber);
+    var h = '<html><head><title>Invoice</title><style>body{font-family:Arial,sans-serif;padding:20px;color:#000}table{width:100%;border-collapse:collapse;margin:10px 0}th,td{border:1px solid #ddd;padding:6px;text-align:left}th{background:#f2f2f2}</style></head><body>';
+    h += '<h1 style="text-align:center">Traffic & Barrier Solutions, LLC</h1>';
+    h += '<h2 style="text-align:center">Invoice #' + (q.invoiceNumber || 'N/A') + '</h2>';
+    h += '<div style="padding:8px;border-radius:6px;margin-bottom:10px;font-weight:bold;background:' + (paid ? '#d4edda' : '#fff3cd') + ';color:' + (paid ? '#155724' : '#856404') + '">' + (paid ? 'PAID' : 'UNPAID') + '</div>';
+    h += '<p><strong>Date:</strong> ' + (q.date||'') + '</p>';
+    h += '<p><strong>Customer:</strong> ' + (q.customer||'') + '</p>';
+    h += '<p><strong>Company:</strong> ' + (q.company||'') + '</p>';
+    h += '<p><strong>Email:</strong> ' + (q.email||'') + '</p>';
+    if (q.phone) h += '<p><strong>Phone:</strong> ' + q.phone + '</p>';
+    if (q.payMethod) h += '<p><strong>Pay Method:</strong> ' + q.payMethod + '</p>';
+    if (q.cardType) h += '<p><strong>Card:</strong> ' + q.cardType + ' ****' + q.cardLast4 + '</p>';
+    if (q.checkNumber) h += '<p><strong>Check #:</strong> ' + q.checkNumber + '</p>';
+    h += '<p><strong>Tax Exempt:</strong> ' + (q.isTaxExempt ? 'Yes' : 'No') + (q.taxExemptNumber ? ' (#' + q.taxExemptNumber + ')' : '') + '</p>';
+    if (q.notes) h += '<p><strong>Notes:</strong> ' + q.notes + '</p>';
+    h += '<table><thead><tr><th>Item</th><th>Description</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr></thead><tbody>';
+    (q.rows || []).forEach(function(r) { h += '<tr><td>' + (r.item||'') + '</td><td>' + (r.description||'') + '</td><td>' + (r.qty||0) + '</td><td>$' + (r.unitPrice||0).toFixed(2) + '</td><td>$' + ((r.qty||0)*(r.unitPrice||0)).toFixed(2) + '</td></tr>'; });
+    h += '</tbody></table><div style="text-align:right;margin-top:10px">';
+    h += '<p><strong>Subtotal:</strong> $' + (q.computed?.subtotal||0).toFixed(2) + '</p>';
+    h += '<p><strong>Tax:</strong> $' + (q.computed?.taxDue||0).toFixed(2) + '</p>';
+    if (q.computed?.ccFee > 0) h += '<p><strong>Card Fee (3%):</strong> $' + q.computed.ccFee.toFixed(2) + '</p>';
+    if (q.donation || q.computed?.donation) h += '<p><strong>Donation:</strong> -$' + (q.donation||q.computed?.donation||0).toFixed(2) + '</p>';
+    h += '<p style="font-size:18px;font-weight:bold">TOTAL: $' + (q.computed?.total||0).toFixed(2) + '</p></div>';
+    h += '<hr style="margin-top:30px"><p style="text-align:center;font-size:12px;color:#666">Traffic & Barrier Solutions, LLC | 721 N Wall St, Calhoun, GA 30701 | (706) 263-0175</p></body></html>';
+    pw.document.open();
+    pw.document.write(h);
+    pw.document.close();
+    setTimeout(function() { pw.focus(); pw.print(); }, 500);
   }}
 >
   🖨️ Print
