@@ -54,6 +54,7 @@ const [invoiceStats, setInvoiceStats] = useState(null);
 const [showInvoiceStats, setShowInvoiceStats] = useState(false);
 const [editingShopInvoice, setEditingShopInvoice] = useState(null);
 const [editShopInv, setEditShopInv] = useState({ payMethod: '', cardType: '', cardLast4: '', checkNumber: '', notes: '', taxExemptNumber: '' });
+const [invFilter, setInvFilter] = useState({ search: '', month: '', status: '' });
 const [currentIndex, setCurrentIndex] = useState(0);
 const [planIndex, setPlanIndex] = useState(0);
 const [jobs, setJobs] = useState([]);
@@ -2289,11 +2290,56 @@ selected={
       </button>
       {showInvoiceStats && (
         <div style={{marginTop:'1rem'}}>
-          <p style={{fontWeight:'bold',fontSize:'1.1rem',marginBottom:'0.5rem'}}>Total Sign Shop Invoices Sent: {invoiceStats.total}</p>
-          {invoiceStats.months.map(m => m.count > 0 && (
-            <div key={m.month} style={{marginBottom:'1.5rem'}}>
-              <h4 style={{margin:'0.5rem 0',color:'#1e3a8a',borderBottom:'2px solid #1e3a8a',paddingBottom:'4px'}}>{m.month} — {m.count} invoice{m.count !== 1 ? 's' : ''}</h4>
-              <div className="job-info-list">
+          <div style={{display:'flex',gap:'8px',flexWrap:'wrap',marginBottom:'1rem',padding:'10px',background:'#f8f9fa',borderRadius:'8px',border:'1px solid #dee2e6'}}>
+            <input type="text" placeholder="Search invoice #, customer, company..." value={invFilter.search} onChange={(e) => setInvFilter({...invFilter, search: e.target.value})} style={{padding:'6px 10px',borderRadius:'6px',border:'1px solid #ccc',flex:'1',minWidth:'180px'}} />
+            <select value={invFilter.month} onChange={(e) => setInvFilter({...invFilter, month: e.target.value})} style={{padding:'6px 10px',borderRadius:'6px',border:'1px solid #ccc'}}>
+              <option value="">All Months</option>
+              <option value="Jan">January</option>
+              <option value="Feb">February</option>
+              <option value="Mar">March</option>
+              <option value="Apr">April</option>
+              <option value="May">May</option>
+              <option value="Jun">June</option>
+              <option value="Jul">July</option>
+              <option value="Aug">August</option>
+              <option value="Sep">September</option>
+              <option value="Oct">October</option>
+              <option value="Nov">November</option>
+              <option value="Dec">December</option>
+            </select>
+            <select value={invFilter.status} onChange={(e) => setInvFilter({...invFilter, status: e.target.value})} style={{padding:'6px 10px',borderRadius:'6px',border:'1px solid #ccc'}}>
+              <option value="">All Status</option>
+              <option value="paid">Paid</option>
+              <option value="unpaid">Unpaid</option>
+            </select>
+            {(invFilter.search || invFilter.month || invFilter.status) && (
+              <button style={{padding:'6px 12px',background:'#888',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer',fontSize:'12px'}} onClick={() => setInvFilter({search:'',month:'',status:''})}>Clear Filters</button>
+            )}
+          </div>
+          {(() => {
+            const allInvoices = invoiceStats.months
+              .filter(m => !invFilter.month || m.month === invFilter.month)
+              .flatMap(m => m.invoices.map(inv => ({...inv, _month: m.month})));
+            const filtered = allInvoices.filter(q => {
+              if (invFilter.status === 'paid' && !q.cardLast4 && !q.checkNumber) return false;
+              if (invFilter.status === 'unpaid' && (q.cardLast4 || q.checkNumber)) return false;
+              if (invFilter.search) {
+                const s = invFilter.search.toLowerCase();
+                if (!(q.invoiceNumber || '').toLowerCase().includes(s) && !(q.customer || '').toLowerCase().includes(s) && !(q.company || '').toLowerCase().includes(s) && !(q.email || '').toLowerCase().includes(s)) return false;
+              }
+              return true;
+            });
+            const grouped = {};
+            filtered.forEach(q => { (grouped[q._month] ||= []).push(q); });
+            const monthOrder = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const sortedMonths = Object.keys(grouped).sort((a,b) => monthOrder.indexOf(a) - monthOrder.indexOf(b));
+            return (
+              <>
+                <p style={{fontWeight:'bold',fontSize:'1.1rem',marginBottom:'0.5rem'}}>Showing {filtered.length} of {invoiceStats.total} invoices</p>
+                {sortedMonths.map(month => (
+                  <div key={month} style={{marginBottom:'1.5rem'}}>
+                    <h4 style={{margin:'0.5rem 0',color:'#1e3a8a',borderBottom:'2px solid #1e3a8a',paddingBottom:'4px'}}>{month} — {grouped[month].length} invoice{grouped[month].length !== 1 ? 's' : ''}</h4>
+                    <div className="job-info-list">
                 {m.invoices.map((q, idx) => (
                   <div key={q._id || idx} className="job-card">
                     {(!q.cardLast4 && !q.checkNumber) && (
@@ -2457,7 +2503,10 @@ selected={
               </div>
             </div>
           ))}
-          {invoiceStats.months.every(m => m.count === 0) && <p>No invoices sent in 2026.</p>}
+          {filtered.length === 0 && <p>No invoices match your filters.</p>}
+              </>
+            );
+          })()}
         </div>
       )}
     </div>
