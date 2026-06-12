@@ -2493,39 +2493,65 @@ selected={
                         </div>
                       </div>
                     ) : (
-                      <button style={{marginTop:'8px',padding:'6px 14px',fontSize:'12px',background:'#2196F3',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer',fontWeight:'bold'}} onClick={() => {
-                        setEditingShopInvoice(q._id);
-                        setEditShopInv({ invoiceNumber: q.invoiceNumber || '', date: q.date || '', company: q.company || '', customer: q.customer || '', email: q.email || '', phone: q.phone || '', payMethod: q.payMethod || '', cardType: q.cardType || '', cardLast4: q.cardLast4 || '', checkNumber: q.checkNumber || '', notes: q.notes || '', taxExemptNumber: q.taxExemptNumber || '', isTaxExempt: q.isTaxExempt || false, rows: q.rows || [], donation: q.donation || q.computed?.donation || 0 });
-                      }}>✏️ Edit Invoice</button>
-                      <button style={{marginTop:'8px',marginLeft:'8px',padding:'6px 14px',fontSize:'12px',background:'#333',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer',fontWeight:'bold'}} onClick={() => {
-                        const printWin = window.open('', '_blank');
-                        printWin.document.write(`<html><head><title>Invoice #${q.invoiceNumber || ''}</title><style>body{font-family:Arial,sans-serif;padding:20px;color:#000}table{width:100%;border-collapse:collapse;margin:10px 0}th,td{border:1px solid #ddd;padding:6px;text-align:left}th{background:#f2f2f2}.total{font-size:18px;font-weight:bold}.header{text-align:center;margin-bottom:20px}.status{padding:8px;border-radius:6px;margin-bottom:10px;font-weight:bold}</style></head><body>`);
-                        printWin.document.write(`<div class="header"><h1>Traffic & Barrier Solutions, LLC</h1><h2>Invoice #${q.invoiceNumber || 'N/A'}</h2></div>`);
-                        printWin.document.write(`<div class="status" style="background:${(q.cardLast4||q.checkNumber)?'#d4edda':'#fff3cd'};color:${(q.cardLast4||q.checkNumber)?'#155724':'#856404'}">${(q.cardLast4||q.checkNumber)?'PAID':'UNPAID'}</div>`);
-                        printWin.document.write(`<p><strong>Date:</strong> ${q.date}</p>`);
-                        printWin.document.write(`<p><strong>Customer:</strong> ${q.customer}</p>`);
-                        printWin.document.write(`<p><strong>Company:</strong> ${q.company}</p>`);
-                        printWin.document.write(`<p><strong>Email:</strong> ${q.email}</p>`);
-                        if(q.phone) printWin.document.write(`<p><strong>Phone:</strong> ${q.phone}</p>`);
-                        if(q.payMethod) printWin.document.write(`<p><strong>Pay Method:</strong> ${q.payMethod}</p>`);
-                        if(q.cardType) printWin.document.write(`<p><strong>Card:</strong> ${q.cardType} ****${q.cardLast4}</p>`);
-                        if(q.checkNumber) printWin.document.write(`<p><strong>Check #:</strong> ${q.checkNumber}</p>`);
-                        printWin.document.write(`<p><strong>Tax Exempt:</strong> ${q.isTaxExempt?'Yes':'No'}${q.taxExemptNumber?' (#'+q.taxExemptNumber+')':''}</p>`);
-                        if(q.notes) printWin.document.write(`<p><strong>Notes:</strong> ${q.notes}</p>`);
-                        printWin.document.write(`<table><thead><tr><th>Item</th><th>Description</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr></thead><tbody>`);
-                        (q.rows||[]).forEach(r => { printWin.document.write(`<tr><td>${r.item||''}</td><td>${r.description||''}</td><td>${r.qty||0}</td><td>$${(r.unitPrice||0).toFixed(2)}</td><td>$${((r.qty||0)*(r.unitPrice||0)).toFixed(2)}</td></tr>`); });
-                        printWin.document.write(`</tbody></table>`);
-                        printWin.document.write(`<div style="text-align:right;margin-top:10px"><p><strong>Subtotal:</strong> $${(q.computed?.subtotal||0).toFixed(2)}</p>`);
-                        printWin.document.write(`<p><strong>Tax:</strong> $${(q.computed?.taxDue||0).toFixed(2)}</p>`);
-                        if(q.computed?.ccFee>0) printWin.document.write(`<p><strong>Card Fee (3%):</strong> $${q.computed.ccFee.toFixed(2)}</p>`);
-                        if(q.donation||q.computed?.donation) printWin.document.write(`<p><strong>Donation:</strong> -$${(q.donation||q.computed?.donation||0).toFixed(2)}</p>`);
-                        printWin.document.write(`<p class="total">TOTAL: $${(q.computed?.total||0).toFixed(2)}</p></div>`);
-                        printWin.document.write(`<hr style="margin-top:30px"><p style="text-align:center;font-size:12px;color:#666">Traffic & Barrier Solutions, LLC | 721 N Wall St, Calhoun, GA 30701 | (706) 263-0175</p>`);
-                        printWin.document.write(`</body></html>`);
-                        printWin.document.close();
-                        printWin.print();
-                      }}>🖨️ Print</button>
-                    )}
+  <>
+    <button
+      style={{
+        marginTop:'8px',
+        padding:'6px 14px',
+        fontSize:'12px',
+        background:'#2196F3',
+        color:'#fff',
+        border:'none',
+        borderRadius:'6px',
+        cursor:'pointer',
+        fontWeight:'bold'
+      }}
+      onClick={() => {
+        setEditingShopInvoice(q._id);
+        setEditShopInv({
+          invoiceNumber: q.invoiceNumber || '',
+          date: q.date || '',
+          company: q.company || '',
+          customer: q.customer || '',
+          email: q.email || '',
+          phone: q.phone || '',
+          payMethod: q.payMethod || '',
+          cardType: q.cardType || '',
+          cardLast4: q.cardLast4 || '',
+          checkNumber: q.checkNumber || '',
+          notes: q.notes || '',
+          taxExemptNumber: q.taxExemptNumber || '',
+          isTaxExempt: q.isTaxExempt || false,
+          rows: q.rows || [],
+          donation: q.donation || q.computed?.donation || 0
+        });
+      }}
+    >
+      ✏️ Edit Invoice
+    </button>
+
+    <button
+      style={{
+        marginTop:'8px',
+        marginLeft:'8px',
+        padding:'6px 14px',
+        fontSize:'12px',
+        background:'#333',
+        color:'#fff',
+        border:'none',
+        borderRadius:'6px',
+        cursor:'pointer',
+        fontWeight:'bold'
+      }}
+      onClick={() => {
+        // print code
+      }}
+    >
+      🖨️ Print
+    </button>
+  </>
+)}
+                
                   </div>
                 ))}
               </div>
