@@ -2412,6 +2412,9 @@ selected={
                           ))}
                           <button style={{marginTop:'6px',padding:'3px 10px',fontSize:'11px',background:'#4CAF50',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer'}} onClick={() => setEditShopInv({...editShopInv, rows: [...editShopInv.rows, {item:'',description:'',taxable:true,qty:1,unitPrice:0}]})}>+ Add Line</button>
                         </div>
+                        <label style={{fontSize:'12px',display:'block',marginTop:'8px'}}>Donation:
+                          <input type="number" step="0.01" min="0" value={editShopInv.donation || 0} onChange={(e) => setEditShopInv({...editShopInv, donation: Number(e.target.value)})} style={{width:'100px',padding:'4px',marginLeft:'6px'}} />
+                        </label>
                         <label style={{fontSize:'12px',display:'block',marginTop:'8px'}}>Notes:
                           <textarea value={editShopInv.notes} onChange={(e) => setEditShopInv({...editShopInv, notes: e.target.value})} rows={2} style={{width:'100%',padding:'4px'}} />
                         </label>
@@ -2423,9 +2426,10 @@ selected={
                               const taxableAmt = editShopInv.isTaxExempt ? 0 : rows.reduce((s, r) => r.taxable !== false ? s + (r.qty || 0) * (r.unitPrice || 0) : s, 0);
                               const taxDue = taxableAmt * 0.08;
                               const ccFee = editShopInv.payMethod === 'Card' ? (subtotal + taxDue) * 0.03 : 0;
-                              const total = editShopInv.isTaxExempt ? subtotal + ccFee : subtotal + taxDue + ccFee;
-                              const computed = { subtotal, taxDue, ccFee, total };
-                              await axios.put(`/shop-invoices/${q._id}`, { ...editShopInv, computed });
+                              const donationAmt = Number(editShopInv.donation) || 0;
+                              const total = (editShopInv.isTaxExempt ? subtotal + ccFee : subtotal + taxDue + ccFee) - donationAmt;
+                              const computed = { subtotal, taxDue, ccFee, total, donation: donationAmt };
+                              await axios.put(`/shop-invoices/${q._id}`, { ...editShopInv, computed, donation: donationAmt });
                               setEditingShopInvoice(null);
                               const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
                               const cm = new Date().getMonth();
@@ -2440,7 +2444,7 @@ selected={
                     ) : (
                       <button style={{marginTop:'8px',padding:'6px 14px',fontSize:'12px',background:'#2196F3',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer',fontWeight:'bold'}} onClick={() => {
                         setEditingShopInvoice(q._id);
-                        setEditShopInv({ invoiceNumber: q.invoiceNumber || '', date: q.date || '', company: q.company || '', customer: q.customer || '', email: q.email || '', phone: q.phone || '', payMethod: q.payMethod || '', cardType: q.cardType || '', cardLast4: q.cardLast4 || '', checkNumber: q.checkNumber || '', notes: q.notes || '', taxExemptNumber: q.taxExemptNumber || '', isTaxExempt: q.isTaxExempt || false, rows: q.rows || [] });
+                        setEditShopInv({ invoiceNumber: q.invoiceNumber || '', date: q.date || '', company: q.company || '', customer: q.customer || '', email: q.email || '', phone: q.phone || '', payMethod: q.payMethod || '', cardType: q.cardType || '', cardLast4: q.cardLast4 || '', checkNumber: q.checkNumber || '', notes: q.notes || '', taxExemptNumber: q.taxExemptNumber || '', isTaxExempt: q.isTaxExempt || false, rows: q.rows || [], donation: q.donation || q.computed?.donation || 0 });
                       }}>✏️ Edit Invoice</button>
                     )}
                   </div>
