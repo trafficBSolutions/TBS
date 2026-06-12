@@ -79,7 +79,7 @@ export default function Quote() {
   const [invTaxRate, setInvTaxRate] = useState(0.08);
   const [invIsTaxExempt, setInvIsTaxExempt] = useState(false);
   const [invTaxExemptNumber, setInvTaxExemptNumber] = useState("");
-  const [invPayMethod, setInvPayMethod] = useState("Check");
+  const [invPayMethod, setInvPayMethod] = useState("");
   const [invCardType, setInvCardType] = useState("");
   const [invCardLast4, setInvCardLast4] = useState("");
   const [invIsCheckPayment, setInvIsCheckPayment] = useState(false);
@@ -123,7 +123,7 @@ export default function Quote() {
         date: invDate, company: invCompany, customer: invCustomer,
         email: invEmail, phone: invPhone,
         taxRate: invTaxRate, isTaxExempt: invIsTaxExempt, taxExemptNumber: invTaxExemptNumber,
-        payMethod: invIsCheckPayment ? 'Check' : invPayMethod, cardType: invCardType, cardLast4: invCardLast4,
+        payMethod: invIsCheckPayment ? 'Check' : (invPayMethod || ''), cardType: invCardType, cardLast4: invCardLast4,
         checkNumber: invIsCheckPayment ? invCheckNumber : '',
         donation: invComputed.donation,
         notes: invNotes,
@@ -485,7 +485,7 @@ export default function Quote() {
             type="checkbox"
             checked={invPayMethod === "Card"}
             disabled={invIsCheckPayment}
-            onChange={(e) => setInvPayMethod(e.target.checked ? "Card" : "Check")}
+            onChange={(e) => setInvPayMethod(e.target.checked ? "Card" : "")}
           />
           Credit Card (adds 3% fee)
         </label>
