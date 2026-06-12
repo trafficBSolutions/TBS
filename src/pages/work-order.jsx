@@ -228,15 +228,15 @@ useEffect(() => {
       // Anyone from today's history (non Shop Work/Standby)
       todayHistoryRes.data.forEach(r => {
         const purpose = (r.purpose || '').trim();
-        if (purpose !== 'Shop Work' && purpose !== 'Standby') validIds.add(r.employeeId);
+        if (purpose !== 'Shop Work' && purpose !== 'Standby' && purpose !== '1 Man Job') validIds.add(r.employeeId);
       });
 
-      // Anyone from yesterday who clocked in within last 24 hours (non Shop Work/Standby)
+      // Anyone from yesterday who clocked in within last 24 hours (non Shop Work/Standby/1 Man Job)
       yesterdayHistoryRes.data.forEach(r => {
         const clockInTime = new Date(r.clockIn).getTime();
         if (now - clockInTime <= 24 * 60 * 60 * 1000) {
           const purpose = (r.purpose || '').trim();
-          if (purpose !== 'Shop Work' && purpose !== 'Standby') validIds.add(r.employeeId);
+          if (purpose !== 'Shop Work' && purpose !== 'Standby' && purpose !== '1 Man Job') validIds.add(r.employeeId);
         }
       });
 
@@ -262,13 +262,13 @@ useEffect(() => {
         const now = Date.now();
         todayHistoryRes.data.forEach(r => {
           const purpose = (r.purpose || '').trim();
-          if (purpose !== 'Shop Work' && purpose !== 'Standby') validIds.add(r.employeeId);
+          if (purpose !== 'Shop Work' && purpose !== 'Standby' && purpose !== '1 Man Job') validIds.add(r.employeeId);
         });
         yesterdayHistoryRes.data.forEach(r => {
           const clockInTime = new Date(r.clockIn).getTime();
           if (now - clockInTime <= 24 * 60 * 60 * 1000) {
             const purpose = (r.purpose || '').trim();
-            if (purpose !== 'Shop Work' && purpose !== 'Standby') validIds.add(r.employeeId);
+            if (purpose !== 'Shop Work' && purpose !== 'Standby' && purpose !== '1 Man Job') validIds.add(r.employeeId);
           }
         });
         const allEmps = [
