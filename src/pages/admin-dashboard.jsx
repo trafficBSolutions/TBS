@@ -2002,7 +2002,17 @@ selected={
                                   {r.autoClockOut && <span style={{fontSize:'0.7rem',color:'#d32f2f',marginLeft:'3px'}}>⚠️ auto</span>}
                                 </div>
                               )}
-                              {r.purpose && <span style={{display:'block',marginTop:'2px',background:'#e3f2fd',color:'#1565c0',padding:'1px 6px',borderRadius:'3px',fontSize:'0.7rem',maxWidth:'fit-content',margin:'2px auto 0'}}>{r.purpose}</span>}
+                              {r.purpose && <span style={{display:'block',marginTop:'2px',background:'#e3f2fd',color:'#1565c0',padding:'1px 6px',borderRadius:'3px',fontSize:'0.7rem',maxWidth:'fit-content',margin:'2px auto 0'}}>{r.purpose}{canEditHours && <button style={{marginLeft:'4px',padding:'0 3px',fontSize:'9px',background:'#1565c0',color:'#fff',border:'none',borderRadius:'2px',cursor:'pointer'}} onClick={async () => {
+                                const newPurpose = prompt('Edit purpose:', r.purpose);
+                                if (newPurpose && newPurpose !== r.purpose) {
+                                  try {
+                                    await axios.put(`/timeclock/edit-purpose/${r._id}`, { purpose: newPurpose });
+                                    const weekEnd = new Date(new Date(timeWorkedWeekStart + 'T00:00:00')); weekEnd.setDate(weekEnd.getDate() + 6);
+                                    const endStr = `${weekEnd.getFullYear()}-${String(weekEnd.getMonth()+1).padStart(2,'0')}-${String(weekEnd.getDate()).padStart(2,'0')}`;
+                                    const res = await axios.get(`/timeclock/time-worked?startDate=${timeWorkedWeekStart}&endDate=${endStr}`); setTimeWorked(res.data);
+                                  } catch (e) { alert(e.response?.data?.message || 'Error updating purpose'); }
+                                }
+                              }}>✏</button>}</span>}
                             </div>
                           )) : '—'}
                         </td>
