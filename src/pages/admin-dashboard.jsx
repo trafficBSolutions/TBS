@@ -2296,7 +2296,7 @@ selected={
               <div className="job-info-list">
                 {m.invoices.map((q, idx) => (
                   <div key={q._id || idx} className="job-card">
-                    {!q.cardLast4 && !q.checkNumber && (
+                    {(!q.cardLast4 && !q.checkNumber) && (
                       <div style={{background:'#fff3cd',border:'1px solid #ffc107',borderRadius:'6px',padding:'10px',marginBottom:'10px'}}>
                         <p style={{margin:0,color:'#856404',fontWeight:'bold'}}>⚠️ No payment recorded — please edit this invoice to add card/check number and notes.</p>
                       </div>
