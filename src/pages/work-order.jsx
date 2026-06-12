@@ -1137,6 +1137,7 @@ const isSubmitReady = useMemo(() => {
   }}
 >
   <option value="">-- Select Employee --</option>
+  <option value="N/A (1 Man Job)">N/A (1 Man Job)</option>
   {woEmployeeList.filter(e => ![tbs.flagger1, tbs.flagger3, tbs.flagger4, tbs.flagger5, tbs.flagger6].includes(e.name)).map(e => (
     <option key={e.name} value={e.name}>{e.name} ({e.position})</option>
   ))}
