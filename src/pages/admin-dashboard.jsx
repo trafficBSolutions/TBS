@@ -2301,6 +2301,11 @@ selected={
                         <p style={{margin:0,color:'#856404',fontWeight:'bold'}}>⚠️ No payment recorded — please edit this invoice to add card/check number and notes.</p>
                       </div>
                     )}
+                    {(q.cardLast4 || q.checkNumber) && (
+                      <div style={{background:'#d4edda',border:'1px solid #c3e6cb',borderRadius:'6px',padding:'10px',marginBottom:'10px'}}>
+                        <p style={{margin:0,color:'#155724',fontWeight:'bold'}}>✅ Paid — {q.payMethod === 'Card' ? `${q.cardType || 'Card'} ****${q.cardLast4}` : `Check #${q.checkNumber}`}</p>
+                      </div>
+                    )}
                     {q.isTaxExempt && !q.taxExemptNumber && (
                       <div style={{background:'#f8d7da',border:'1px solid #f5c6cb',borderRadius:'6px',padding:'10px',marginBottom:'10px'}}>
                         <p style={{margin:0,color:'#721c24',fontWeight:'bold'}}>❌ Tax Exempt but no exemption number — please call customer for their tax exemption number.</p>
