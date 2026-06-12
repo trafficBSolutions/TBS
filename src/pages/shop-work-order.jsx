@@ -61,11 +61,11 @@ export default function ShopWorkOrder() {
           ...empRes.data.hourlyAdmins.map(a => ({ id: a._id, name: a.name, position: 'Foreman' }))
         ].filter(e => e.name);
 
-        // Only show clocked-in employees whose purpose is Shop Work or Standby
+        // Only show clocked-in employees whose purpose is Shop Work, Standby, or 1 Man Job
         const shopOrStandby = allEmps.filter(e => {
           if (!clockedInIds.has(e.id)) return false;
           const purpose = statusMap[e.id];
-          return purpose === 'Shop Work' || purpose === 'Standby';
+          return purpose === 'Shop Work' || purpose === 'Standby' || purpose === '1 Man Job';
         }).sort((a, b) => a.name.localeCompare(b.name));
 
         // Track which ones are specifically on Standby
@@ -91,7 +91,7 @@ export default function ShopWorkOrder() {
           const shopOrStandby = allEmps.filter(e => {
             if (!clockedInIds.has(e.id)) return false;
             const purpose = statusMap[e.id];
-            return purpose === 'Shop Work' || purpose === 'Standby';
+            return purpose === 'Shop Work' || purpose === 'Standby' || purpose === '1 Man Job';
           }).sort((a, b) => a.name.localeCompare(b.name));
           const standby = shopOrStandby.filter(e => statusMap[e.id] === 'Standby').map(e => e.name);
           setAllEmployees(shopOrStandby.map(e => e.name));
