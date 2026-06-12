@@ -2340,7 +2340,7 @@ selected={
                   <div key={month} style={{marginBottom:'1.5rem'}}>
                     <h4 style={{margin:'0.5rem 0',color:'#1e3a8a',borderBottom:'2px solid #1e3a8a',paddingBottom:'4px'}}>{month} — {grouped[month].length} invoice{grouped[month].length !== 1 ? 's' : ''}</h4>
                     <div className="job-info-list">
-                {m.invoices.map((q, idx) => (
+                {grouped[month].map((q, idx) => (
                   <div key={q._id || idx} className="job-card">
                     {(!q.cardLast4 && !q.checkNumber) && (
                       <div style={{background:'#fff3cd',border:'1px solid #ffc107',borderRadius:'6px',padding:'10px',marginBottom:'10px'}}>
