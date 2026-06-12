@@ -277,8 +277,8 @@ const EmployeeDashboard = () => {
                     style={{marginBottom:'0.75rem',padding:'0.6rem',fontSize:'2rem',borderRadius:'8px',border:'2px solid #ccc',width:'100%',maxWidth:'280px'}}
                   >
                     <option value="">-- Select Job Purpose --</option>
+                    <option value="1 Man Job">1 Man Job</option>
                     <option value="2 Man Crew">2 Man Crew</option>
-                    <option value="3 Man Crew">3 Man Crew</option>
                     <option value="Arrow Board/Message Board Job">Arrow Board/Message Board Job</option>
                     <option value="Emergency Job">Emergency Job</option>
                     <option value="Weekend Work">Weekend Work</option>
