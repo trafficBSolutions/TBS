@@ -2530,31 +2530,52 @@ selected={
       ✏️ Edit Invoice
     </button>
 
-    <button
-      style={{
-        marginTop:'8px',
-        marginLeft:'8px',
-        padding:'6px 14px',
-        fontSize:'12px',
-        background:'#333',
-        color:'#fff',
-        border:'none',
-        borderRadius:'6px',
-        cursor:'pointer',
-        fontWeight:'bold'
-      }}
-      onClick={() => {
-        printWin.document.write(`</body></html>`);
-printWin.document.close();
+<button
+  style={{
+    marginTop:'8px',
+    marginLeft:'8px',
+    padding:'6px 14px',
+    fontSize:'12px',
+    background:'#333',
+    color:'#fff',
+    border:'none',
+    borderRadius:'6px',
+    cursor:'pointer',
+    fontWeight:'bold'
+  }}
+  onClick={() => {
+    const printWin = window.open('', '_blank');
 
-setTimeout(() => {
-  printWin.focus();
-  printWin.print();
-}, 500);
-      }}
-    >
-      🖨️ Print
-    </button>
+    if (!printWin) {
+      alert('Popup blocked. Please allow popups for this site.');
+      return;
+    }
+
+    printWin.document.open();
+    printWin.document.write(`
+      <html>
+        <head>
+          <title>Invoice Print</title>
+        </head>
+        <body>
+          <h1>Traffic & Barrier Solutions, LLC</h1>
+          <h2>Invoice #${q.invoiceNumber || 'N/A'}</h2>
+          <p><strong>Customer:</strong> ${q.customer || ''}</p>
+          <p><strong>Company:</strong> ${q.company || ''}</p>
+          <p><strong>Total:</strong> $${(q.computed?.total || 0).toFixed(2)}</p>
+        </body>
+      </html>
+    `);
+    printWin.document.close();
+
+    setTimeout(() => {
+      printWin.focus();
+      printWin.print();
+    }, 500);
+  }}
+>
+  🖨️ Print
+</button>
   </>
 )}
                 
