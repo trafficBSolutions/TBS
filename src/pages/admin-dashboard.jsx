@@ -1958,7 +1958,7 @@ selected={
                                   <button style={{padding:'2px 6px',fontSize:'11px',background:'#4CAF50',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer'}} onClick={async () => {
                                     if (!editPunchIn || !editPunchOut) return;
                                     try {
-                                      await axios.put(`/timeclock/edit-punch/${r._id}`, { clockIn: editPunchIn, clockOut: editPunchOut });
+                                      await axios.put(`/timeclock/edit-punch/${r._id}`, { clockIn: editPunchIn, clockOut: editPunchOut, tzOffset: new Date().getTimezoneOffset() });
                                       setEditingPunchId(null); setEditPunchMsg('Saved');
                                       const weekEnd = new Date(new Date(timeWorkedWeekStart + 'T00:00:00')); weekEnd.setDate(weekEnd.getDate() + 6);
                                       const endStr = `${weekEnd.getFullYear()}-${String(weekEnd.getMonth()+1).padStart(2,'0')}-${String(weekEnd.getDate()).padStart(2,'0')}`;
