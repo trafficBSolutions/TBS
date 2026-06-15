@@ -12,7 +12,7 @@ const blankPrint = () => ({
   inks: { cyan: 0, magenta: 0, yellow: 0, black: 0, lightMagenta: 0, lightCyan: 0, green: 0, orange: 0 }
 });
 
-export default function PrintCostCalculator({ invoiceNumber, invoiceId, onClose }) {
+export default function PrintCostCalculator({ invoiceNumber, invoiceId, onClose, isLog }) {
   const [materials, setMaterials] = useState([]);
   const [laminates, setLaminates] = useState([]);
   const [inks, setInks] = useState([]);
@@ -27,13 +27,14 @@ export default function PrintCostCalculator({ invoiceNumber, invoiceId, onClose 
       setInks(r.data.inks);
     }).catch(() => {});
     if (invoiceNumber) {
-      axios.get('/print-costs/' + invoiceNumber).then(r => {
+      var endpoint = isLog ? '/print-cost-logs/' + invoiceNumber : '/print-costs/' + invoiceNumber;
+      axios.get(endpoint).then(r => {
         if (r.data.prints && r.data.prints.length > 0) {
           setPrints(r.data.prints.map(function(p) { return { ...p, id: p._id || Date.now() + Math.random() }; }));
         }
       }).catch(() => {});
     }
-  }, [invoiceNumber]);
+  }, [invoiceNumber, isLog]);
 
   const calcPrint = function(p) {
     var mat = materials.find(function(m) { return m.sqFtId === p.materialSqFtId; }) || { costPerSqFt: 0, width: 0 };
@@ -69,7 +70,9 @@ export default function PrintCostCalculator({ invoiceNumber, invoiceId, onClose 
     setSaving(true);
     setMsg('');
     try {
-      await axios.put('/print-costs/' + invoiceNumber, { invoiceId: invoiceId, prints: prints.map(function(p) { return { width: p.width, length: p.length, materialSqFtId: p.materialSqFtId, laminateSqFtId: p.laminateSqFtId, inks: p.inks }; }) });
+      var endpoint = isLog ? '/print-cost-logs/' + invoiceNumber : '/print-costs/' + invoiceNumber;
+      var payload = { invoiceId: invoiceId, prints: prints.map(function(p) { return { width: p.width, length: p.length, materialSqFtId: p.materialSqFtId, laminateSqFtId: p.laminateSqFtId, inks: p.inks }; }) };
+      await axios.put(endpoint, payload);
       setMsg('Saved!');
       setTimeout(function() { setMsg(''); }, 3000);
     } catch (e) {
