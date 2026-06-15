@@ -125,7 +125,7 @@ export default function PrintCostCalculator({ invoiceNumber, invoiceId, onClose,
                 <input type="number" step="0.1" value={p.length} onChange={function(e) { updatePrint(p.id, { length: Number(e.target.value) }); }} style={{width:'100%',padding:'4px',fontSize:'12px'}} />
               </label>
               <label style={{fontSize:'11px'}}>Material:
-                <select value={p.materialSqFtId} onChange={function(e) { updatePrint(p.id, { materialSqFtId: Number(e.target.value) }); }} style={{width:'100%',padding:'4px',fontSize:'11px'}}>
+                <select value={p.materialSqFtId} onChange={function(e) { var id = Number(e.target.value); var mat = materials.find(function(m) { return m.sqFtId === id; }); updatePrint(p.id, { materialSqFtId: id, width: mat && mat.width > 0 ? mat.width : p.width }); }} style={{width:'100%',padding:'4px',fontSize:'11px'}}>
                   {materials.map(function(m) { return <option key={m.sqFtId} value={m.sqFtId}>{m.item} {m.width > 0 ? '(' + m.width + '") $' + m.costPerSqFt + '/sqft' : ''}</option>; })}
                 </select>
               </label>
