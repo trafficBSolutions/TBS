@@ -63,6 +63,7 @@ const [printCostLogMonthly, setPrintCostLogMonthly] = useState({});
 const [editingPrintLog, setEditingPrintLog] = useState(null);
 const [newLogName, setNewLogName] = useState('');
 const [allowedForPrintCosts, setAllowedForPrintCosts] = useState(false);
+const [showPrintCosts, setShowPrintCosts] = useState(false);
 const [currentIndex, setCurrentIndex] = useState(0);
 const [planIndex, setPlanIndex] = useState(0);
 const [jobs, setJobs] = useState([]);
@@ -1031,9 +1032,6 @@ useEffect(() => {
       )}
       <button className={`btn ${viewMode === 'complaints' ? 'active' : ''}`} onClick={() => setViewMode('complaints')}>Complaints</button>
       <button className={`btn ${viewMode === 'tasks' ? 'active' : ''}`} onClick={() => setViewMode('tasks')}>Tasks</button>
-      {allowedForPrintCosts && (
-        <button className={`btn ${viewMode === 'printcosts' ? 'active' : ''}`} onClick={() => setViewMode('printcosts')}>Print Costs</button>
-      )}
       {salaryAdminEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email) && (
         <button className={`btn ${viewMode === 'timeclock' ? 'active' : ''}`} onClick={async () => {
           setViewMode('timeclock');
@@ -1070,7 +1068,6 @@ selected={
     : viewMode === 'bollards' ? bollardDate
     : viewMode === 'signshop' ? signShopDate
     : viewMode === 'shopwo' ? shopWoDate
-    : viewMode === 'printcosts' ? printCostLogDate
     : taskDate
 }
   onChange={(date) => {
@@ -1082,7 +1079,6 @@ selected={
   else if (viewMode === 'bollards') setBollardDate(date);
   else if (viewMode === 'signshop') setSignShopDate(date);
   else if (viewMode === 'shopwo') setShopWoDate(date);
-  else if (viewMode === 'printcosts') setPrintCostLogDate(date);
   else setTaskDate(date);
 }}
   onMonthChange={(date) => {
@@ -1095,7 +1091,6 @@ selected={
   else if (viewMode === 'bollards') fetchMonthlyBollards(date);
   else if (viewMode === 'signshop') fetchMonthlySignShop(date);
   else if (viewMode === 'shopwo') fetchMonthlyShopWo(date);
-  else if (viewMode === 'printcosts') { axios.get('/print-cost-logs/month?month=' + (date.getMonth()+1) + '&year=' + date.getFullYear()).then(r => { const g = {}; (r.data||[]).forEach(l => { (g[l.date]||=[]).push(l); }); setPrintCostLogMonthly(g); }).catch(() => {}); }
   else fetchTasks();
 }}
   calendarClassName="admin-date-picker"
@@ -1124,7 +1119,6 @@ selected={
   : viewMode === 'bollards' ? bollardMonthly
   : viewMode === 'signshop' ? signShopMonthly
   : viewMode === 'shopwo' ? shopWoMonthly
-  : viewMode === 'printcosts' ? printCostLogMonthly
   : tasks;
     const hasItems = dataSource[dateStr] && dataSource[dateStr].length > 0;
     return hasItems ? 'has-jobs' : '';
@@ -1151,8 +1145,6 @@ selected={
       dataSource = signShopMonthly;
     } else if (viewMode === 'shopwo') {
       dataSource = shopWoMonthly;
-    } else if (viewMode === 'printcosts') {
-      dataSource = printCostLogMonthly;
     }
     
     const itemsOnDate = dataSource?.[dateStr];
@@ -1171,7 +1163,6 @@ selected={
             : viewMode === 'bollards' ? 'Bollard Quotes'
             : viewMode === 'signshop' ? 'Sign Jobs'
             : viewMode === 'shopwo' ? 'Shop WOs'
-            : viewMode === 'printcosts' ? 'Prints'
             : 'Tasks'} {itemCount}
           </div>
         )}
@@ -1653,52 +1644,6 @@ selected={
         </div>
       ))}
       {shopWoList.length === 0 && <p>No shop work orders on this day.</p>}
-    </div>
-  </>
-)}
-{viewMode === 'printcosts' && (
-  <>
-    <h3>🖨️ Print Costs on {printCostLogDate?.toLocaleDateString()}</h3>
-    <div style={{marginBottom:'1rem',display:'flex',gap:'8px',alignItems:'center'}}>
-      <input type="text" placeholder="Job/Project name *" value={newLogName} onChange={(e) => setNewLogName(e.target.value)} style={{padding:'6px 10px',borderRadius:'6px',border:'1px solid #ccc',flex:1}} />
-      <button className="btn" onClick={async () => {
-        if (!newLogName.trim()) return;
-        const dateStr = printCostLogDate.toISOString().split('T')[0];
-        const adminUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
-        try {
-          const res = await axios.post('/print-cost-logs', { name: newLogName, date: dateStr, author: adminUser.firstName || adminUser.email });
-          setPrintCostLogs(prev => [...prev, res.data]);
-          const g = {...printCostLogMonthly};
-          (g[dateStr] ||= []).push(res.data);
-          setPrintCostLogMonthly(g);
-          setNewLogName('');
-        } catch (e) { console.error(e); }
-      }}>+ Add</button>
-    </div>
-    <div className="job-info-list">
-      {(printCostLogMonthly[printCostLogDate?.toISOString().split('T')[0]] || []).map(log => (
-        <div key={log._id} className="job-card">
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-            <h4 className="job-company">{log.name}</h4>
-            <div style={{display:'flex',gap:'6px'}}>
-              <button style={{padding:'4px 10px',fontSize:'11px',background:'#6f42c1',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer'}} onClick={() => setEditingPrintLog(editingPrintLog === log._id ? null : log._id)}>{editingPrintLog === log._id ? 'Close' : '🖨️ Open Calculator'}</button>
-              <button style={{padding:'4px 10px',fontSize:'11px',background:'#f44336',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer'}} onClick={async () => {
-                if (!window.confirm('Delete this print cost log?')) return;
-                await axios.delete('/print-cost-logs/' + log._id);
-                const dateStr = printCostLogDate.toISOString().split('T')[0];
-                const g = {...printCostLogMonthly};
-                g[dateStr] = (g[dateStr]||[]).filter(l => l._id !== log._id);
-                setPrintCostLogMonthly(g);
-              }}>🗑️</button>
-            </div>
-          </div>
-          <p style={{margin:'4px 0',fontSize:'0.85rem',color:'#666'}}>By {log.author} • {new Date(log.createdAt).toLocaleString()}</p>
-          {editingPrintLog === log._id && (
-            <PrintCostCalculator invoiceNumber={log._id} invoiceId={log._id} isLog={true} onClose={() => setEditingPrintLog(null)} />
-          )}
-        </div>
-      ))}
-      {(printCostLogMonthly[printCostLogDate?.toISOString().split('T')[0]] || []).length === 0 && <p>No print cost logs on this day.</p>}
     </div>
   </>
 )}
@@ -2698,6 +2643,59 @@ selected={
               </>
             );
           })()}
+        </div>
+      )}
+    </div>
+  )}
+
+  {allowedForPrintCosts && (
+    <div className="tool-card tool-card--wide">
+      <h3>🖨️ Print Costs</h3>
+      <button className="btn view-cancelled-btn" onClick={() => {
+        setShowPrintCosts(prev => !prev);
+        if (!showPrintCosts) {
+          axios.get('/print-cost-logs/month?month=' + (new Date().getMonth()+1) + '&year=' + new Date().getFullYear()).then(r => setPrintCostLogs(r.data || [])).catch(() => {});
+        }
+      }}>
+        {showPrintCosts ? 'Hide' : 'Open'}
+      </button>
+      {showPrintCosts && (
+        <div style={{marginTop:'1rem'}}>
+          <div style={{marginBottom:'1rem',display:'flex',gap:'8px',alignItems:'center'}}>
+            <input type="text" placeholder="Job/Project name *" value={newLogName} onChange={(e) => setNewLogName(e.target.value)} style={{padding:'6px 10px',borderRadius:'6px',border:'1px solid #ccc',flex:1}} />
+            <button className="btn" onClick={async () => {
+              if (!newLogName.trim()) return;
+              const dateStr = new Date().toISOString().split('T')[0];
+              const adminUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
+              try {
+                const res = await axios.post('/print-cost-logs', { name: newLogName, date: dateStr, author: adminUser.firstName || adminUser.email });
+                setPrintCostLogs(prev => [res.data, ...prev]);
+                setNewLogName('');
+              } catch (e) { console.error(e); }
+            }}>+ Add</button>
+          </div>
+          <div className="job-info-list">
+            {printCostLogs.map(log => (
+              <div key={log._id} className="job-card">
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <h4 className="job-company">{log.name}</h4>
+                  <div style={{display:'flex',gap:'6px'}}>
+                    <button style={{padding:'4px 10px',fontSize:'11px',background:'#6f42c1',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer'}} onClick={() => setEditingPrintLog(editingPrintLog === log._id ? null : log._id)}>{editingPrintLog === log._id ? 'Close' : '🖨️ Open Calculator'}</button>
+                    <button style={{padding:'4px 10px',fontSize:'11px',background:'#f44336',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer'}} onClick={async () => {
+                      if (!window.confirm('Delete this print cost log?')) return;
+                      await axios.delete('/print-cost-logs/' + log._id);
+                      setPrintCostLogs(prev => prev.filter(l => l._id !== log._id));
+                    }}>🗑️</button>
+                  </div>
+                </div>
+                <p style={{margin:'4px 0',fontSize:'0.85rem',color:'#666'}}>By {log.author} • {log.date} • {new Date(log.createdAt).toLocaleString()}</p>
+                {editingPrintLog === log._id && (
+                  <PrintCostCalculator invoiceNumber={log._id} invoiceId={log._id} isLog={true} onClose={() => setEditingPrintLog(null)} />
+                )}
+              </div>
+            ))}
+            {printCostLogs.length === 0 && <p>No print cost logs yet.</p>}
+          </div>
         </div>
       )}
     </div>
