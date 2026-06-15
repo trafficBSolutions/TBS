@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import '../css/admin.css';
 import Header from '../components/headerviews/HeaderAdminDash';
 import { EditTCWorkOrderModal, EditShopWorkOrderModal, AdminNotesDisplay, HoursFlag, canEditWorkOrders } from '../components/EditWorkOrderModal';
+import PrintCostCalculator from '../components/PrintCostCalculator';
 const formatTime = (timeStr) => {
   if (!timeStr) return '';
   const [hours, minutes] = timeStr.split(':');
@@ -55,6 +56,7 @@ const [showInvoiceStats, setShowInvoiceStats] = useState(false);
 const [editingShopInvoice, setEditingShopInvoice] = useState(null);
 const [editShopInv, setEditShopInv] = useState({ payMethod: '', cardType: '', cardLast4: '', checkNumber: '', notes: '', taxExemptNumber: '' });
 const [invFilter, setInvFilter] = useState({ search: '', month: '', status: '' });
+const [printCostInvoice, setPrintCostInvoice] = useState(null);
 const [currentIndex, setCurrentIndex] = useState(0);
 const [planIndex, setPlanIndex] = useState(0);
 const [jobs, setJobs] = useState([]);
@@ -2596,7 +2598,26 @@ selected={
 >
   🖨️ Print
 </button>
+<button
+  style={{
+    marginTop:'8px',
+    padding:'6px 14px',
+    fontSize:'12px',
+    background:'#6f42c1',
+    color:'#fff',
+    border:'none',
+    borderRadius:'6px',
+    cursor:'pointer',
+    fontWeight:'bold'
+  }}
+  onClick={() => setPrintCostInvoice(printCostInvoice === q._id ? null : q._id)}
+>
+  🖨️ Print Costs
+</button>
   </>
+)}
+{printCostInvoice === q._id && (
+  <PrintCostCalculator invoiceNumber={q.invoiceNumber} invoiceId={q._id} onClose={() => setPrintCostInvoice(null)} />
 )}
                 
                   </div>
