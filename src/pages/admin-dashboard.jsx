@@ -8,6 +8,7 @@ import '../css/admin.css';
 import Header from '../components/headerviews/HeaderAdminDash';
 import { EditTCWorkOrderModal, EditShopWorkOrderModal, AdminNotesDisplay, HoursFlag, canEditWorkOrders } from '../components/EditWorkOrderModal';
 import PrintCostCalculator from '../components/PrintCostCalculator';
+import { PrintCostTotal } from '../components/PrintCostCalculator';
 const formatTime = (timeStr) => {
   if (!timeStr) return '';
   const [hours, minutes] = timeStr.split(':');
@@ -2633,6 +2634,7 @@ selected={
 {printCostInvoice === q._id && (
   <PrintCostCalculator invoiceNumber={q.invoiceNumber} invoiceId={q._id} onClose={() => setPrintCostInvoice(null)} />
 )}
+<PrintCostTotal invoiceNumber={q.invoiceNumber} />
                 
                   </div>
                 ))}
