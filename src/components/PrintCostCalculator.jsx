@@ -54,7 +54,7 @@ export default function PrintCostCalculator({ invoiceNumber, invoiceId, onClose,
       inkBreakdown[key] = cost;
       inkCost += cost;
     });
-    return { sqft: sqft, materialCost: materialCost, laminateCost: laminateCost, inkCost: inkCost, inkBreakdown: inkBreakdown, total: materialCost + laminateCost + inkCost };
+    return { sqft: sqft, lamSqft: lamSqft, materialCost: materialCost, laminateCost: laminateCost, inkCost: inkCost, inkBreakdown: inkBreakdown, total: materialCost + laminateCost + inkCost };
   };
 
   var totals = useMemo(function() {
