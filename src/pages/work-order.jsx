@@ -716,7 +716,14 @@ const onSubmit = async (e) => {
         try {
           await axios.post('/timeclock/punch', { pin });
           setSubmissionMessage('✅ Work order submitted! You have been clocked out.');
-        } catch {
+        } catch (punchErr) {
+          if (punchErr.response?.data?.action === 'discipline_required') {
+            localStorage.removeItem('tbs_kiosk_clockout_pending');
+            setSubmissionMessage('⚠️ Work order submitted! You have a pending disciplinary action to review before clocking out. Redirecting...');
+            setTimeout(() => navigate('/employee-dashboard'), 2000);
+            setIsSubmitting(false);
+            return;
+          }
           setSubmissionMessage('✅ Work order submitted! Please clock out at the tablet.');
         }
         localStorage.removeItem('tbs_kiosk_clockout_pending');
