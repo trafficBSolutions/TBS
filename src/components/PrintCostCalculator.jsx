@@ -8,6 +8,8 @@ const blankPrint = () => ({
   width: 54,
   length: 0,
   materialSqFtId: 0,
+  lamWidth: 54,
+  lamLength: 0,
   laminateSqFtId: 0,
   inks: { cyan: 0, magenta: 0, yellow: 0, black: 0, lightMagenta: 0, lightCyan: 0, green: 0, orange: 0 }
 });
@@ -40,8 +42,9 @@ export default function PrintCostCalculator({ invoiceNumber, invoiceId, onClose,
     var mat = materials.find(function(m) { return m.sqFtId === p.materialSqFtId; }) || { costPerSqFt: 0, width: 0 };
     var lam = laminates.find(function(l) { return l.sqFtId === p.laminateSqFtId; }) || { costPerSqFt: 0 };
     var sqft = (p.width * p.length) / 144;
+    var lamSqft = ((p.lamWidth || p.width) * (p.lamLength || p.length)) / 144;
     var materialCost = sqft * mat.costPerSqFt;
-    var laminateCost = sqft * lam.costPerSqFt;
+    var laminateCost = lamSqft * lam.costPerSqFt;
     var inkCost = 0;
     var inkBreakdown = {};
     Object.keys(p.inks).forEach(function(key) {
@@ -71,7 +74,7 @@ export default function PrintCostCalculator({ invoiceNumber, invoiceId, onClose,
     setMsg('');
     try {
       var endpoint = isLog ? '/print-cost-logs/' + invoiceNumber : '/print-costs/' + invoiceNumber;
-      var payload = { invoiceId: invoiceId, prints: prints.map(function(p) { return { width: p.width, length: p.length, materialSqFtId: p.materialSqFtId, laminateSqFtId: p.laminateSqFtId, inks: p.inks }; }) };
+      var payload = { invoiceId: invoiceId, prints: prints.map(function(p) { return { width: p.width, length: p.length, lamWidth: p.lamWidth, lamLength: p.lamLength, materialSqFtId: p.materialSqFtId, laminateSqFtId: p.laminateSqFtId, inks: p.inks }; }) };
       await axios.put(endpoint, payload);
       setMsg('Saved!');
       setTimeout(function() { setMsg(''); }, 3000);
@@ -117,11 +120,11 @@ export default function PrintCostCalculator({ invoiceNumber, invoiceId, onClose,
               <button onClick={function() { setPrints(function(prev) { return prev.filter(function(x) { return x.id !== p.id; }); }); }} style={{padding:'2px 8px',fontSize:'11px',background:'#f44336',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer'}}>✕ Remove</button>
             </div>
 
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',gap:'8px',marginBottom:'8px'}}>
-              <label style={{fontSize:'11px'}}>Width (in):
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'8px',marginBottom:'8px'}}>
+              <label style={{fontSize:'11px'}}>Material Width (in):
                 <input type="number" value={p.width} onChange={function(e) { updatePrint(p.id, { width: Number(e.target.value) }); }} style={{width:'100%',padding:'4px',fontSize:'12px'}} />
               </label>
-              <label style={{fontSize:'11px'}}>Length (in):
+              <label style={{fontSize:'11px'}}>Material Length (in):
                 <input type="number" step="0.1" value={p.length} onChange={function(e) { updatePrint(p.id, { length: Number(e.target.value) }); }} style={{width:'100%',padding:'4px',fontSize:'12px'}} />
               </label>
               <label style={{fontSize:'11px'}}>Material:
@@ -129,8 +132,16 @@ export default function PrintCostCalculator({ invoiceNumber, invoiceId, onClose,
                   {materials.map(function(m) { return <option key={m.sqFtId} value={m.sqFtId}>{m.item} {m.width > 0 ? '(' + m.width + '") $' + m.costPerSqFt + '/sqft' : ''}</option>; })}
                 </select>
               </label>
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'8px',marginBottom:'8px'}}>
+              <label style={{fontSize:'11px'}}>Laminate Width (in):
+                <input type="number" value={p.lamWidth || ''} onChange={function(e) { updatePrint(p.id, { lamWidth: Number(e.target.value) }); }} style={{width:'100%',padding:'4px',fontSize:'12px'}} />
+              </label>
+              <label style={{fontSize:'11px'}}>Laminate Length (in):
+                <input type="number" step="0.1" value={p.lamLength || ''} onChange={function(e) { updatePrint(p.id, { lamLength: Number(e.target.value) }); }} style={{width:'100%',padding:'4px',fontSize:'12px'}} />
+              </label>
               <label style={{fontSize:'11px'}}>Laminate:
-                <select value={p.laminateSqFtId} onChange={function(e) { updatePrint(p.id, { laminateSqFtId: Number(e.target.value) }); }} style={{width:'100%',padding:'4px',fontSize:'11px'}}>
+                <select value={p.laminateSqFtId} onChange={function(e) { var id = Number(e.target.value); var lam = laminates.find(function(l) { return l.sqFtId === id; }); updatePrint(p.id, { laminateSqFtId: id, lamWidth: lam && lam.width > 0 ? lam.width : (p.lamWidth || p.width) }); }} style={{width:'100%',padding:'4px',fontSize:'11px'}}>
                   {laminates.map(function(l) { return <option key={l.sqFtId} value={l.sqFtId}>{l.item} {l.width > 0 ? '(' + l.width + '") $' + l.costPerSqFt + '/sqft' : ''}</option>; })}
                 </select>
               </label>
@@ -151,9 +162,10 @@ export default function PrintCostCalculator({ invoiceNumber, invoiceId, onClose,
               </div>
             </div>
 
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr 1fr',gap:'6px',background:'#f0f8ff',padding:'8px',borderRadius:'6px',fontSize:'11px'}}>
-              <div><strong>SqFt:</strong> {calc.sqft.toFixed(2)}</div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr 1fr 1fr',gap:'6px',background:'#f0f8ff',padding:'8px',borderRadius:'6px',fontSize:'11px'}}>
+              <div><strong>Mat SqFt:</strong> {calc.sqft.toFixed(2)}</div>
               <div><strong>Material:</strong> {money(calc.materialCost)}</div>
+              <div><strong>Lam SqFt:</strong> {calc.lamSqft.toFixed(2)}</div>
               <div><strong>Laminate:</strong> {money(calc.laminateCost)}</div>
               <div><strong>Ink:</strong> {money(calc.inkCost)}</div>
               <div style={{fontWeight:'bold',color:'#17365D'}}><strong>Print Total:</strong> {money(calc.total)}</div>
