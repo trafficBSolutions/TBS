@@ -185,3 +185,49 @@ export default function PrintCostCalculator({ invoiceNumber, invoiceId, onClose,
     </div>
   );
 }
+
+export function PrintCostTotal({ invoiceNumber, isLog }) {
+  const [total, setTotal] = useState(null);
+  const [materials, setMaterials] = useState([]);
+  const [laminates, setLaminates] = useState([]);
+  const [inks, setInks] = useState([]);
+
+  useEffect(() => {
+    axios.get('/print-costs/lookups').then(function(r) {
+      setMaterials(r.data.materials);
+      setLaminates(r.data.laminates);
+      setInks(r.data.inks);
+    }).catch(function() {});
+  }, []);
+
+  useEffect(() => {
+    if (!invoiceNumber || materials.length === 0) return;
+    var endpoint = isLog ? '/print-cost-logs/' + invoiceNumber : '/print-costs/' + invoiceNumber;
+    axios.get(endpoint).then(function(r) {
+      var prints = r.data.prints || [];
+      if (prints.length === 0) { setTotal(null); return; }
+      var grand = 0;
+      prints.forEach(function(p) {
+        var mat = materials.find(function(m) { return m.sqFtId === p.materialSqFtId; }) || { costPerSqFt: 0 };
+        var lam = laminates.find(function(l) { return l.sqFtId === p.laminateSqFtId; }) || { costPerSqFt: 0 };
+        var matSqft = ((p.width || 0) * (p.length || 0)) / 144;
+        var lamSqft = ((p.lamWidth || p.width || 0) * (p.lamLength || p.length || 0)) / 144;
+        grand += matSqft * mat.costPerSqFt;
+        grand += lamSqft * lam.costPerSqFt;
+        Object.keys(p.inks || {}).forEach(function(key) {
+          var ml = Number(p.inks[key]) || 0;
+          var inkDef = inks.find(function(i) { return i.color.toLowerCase().replace(/\s/g, '') === key.toLowerCase().replace(/\s/g, ''); });
+          grand += ml * (inkDef ? inkDef.costPerMl : 0.26);
+        });
+      });
+      setTotal(grand);
+    }).catch(function() {});
+  }, [invoiceNumber, materials, laminates, inks, isLog]);
+
+  if (total === null) return null;
+  return (
+    <div style={{marginTop:'8px',padding:'8px 12px',background:'#e8f5e9',border:'1px solid #a5d6a7',borderRadius:'6px',fontSize:'13px'}}>
+      <strong style={{color:'#2e7d32'}}>🖨️ Total Print Cost: ${total.toFixed(2)}</strong>
+    </div>
+  );
+}
