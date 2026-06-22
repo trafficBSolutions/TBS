@@ -1210,16 +1210,23 @@ selected={
       {jobs.map((job, index) => {
         const dateStr = selectedDate ? selectedDate.toISOString().split('T')[0] : '';
         return (
-          <div key={index} className={`job-card ${job.cancelled ? 'cancelled-job' : ''}`}>
+          <div key={index} className={`job-card ${job.cancelled ? 'cancelled-job' : ''}`} style={{position:'relative'}}>
             {job.emergency && (
               <p className="emergency-label">🚨 Emergency Job Submitted After 8 PM for Next Day</p>
+            )}
+            {job.updatedAt && !job.cancelled && (
+              <p className="updated-label" style={{position:'absolute',top:'10px',right:'10px',margin:0,fontSize:'0.8rem'}}>
+                {job.createdAt && new Date(job.updatedAt).getTime() !== new Date(job.createdAt).getTime()
+                  ? `📅 Job Rescheduled on ${new Date(job.updatedAt).toLocaleDateString()}`
+                  : `📅 Job Scheduled on ${new Date(job.updatedAt).toLocaleDateString()}`}
+              </p>
             )}
             <h4 className="job-company">{job.company}</h4>
             {job.cancelled && (
               <p className="cancelled-label">❌ Cancelled on {new Date(job.cancelledAt).toLocaleDateString()}</p>
             )}
-            {job.updatedAt && !job.cancelled && (
-              <p className="updated-label">✅ Updated on {new Date(job.updatedAt).toLocaleDateString()}</p>
+            {selectedDate && !job.cancelled && (
+              <p><strong>Traffic Control Job on</strong> {selectedDate.toLocaleDateString()}</p>
             )}
             <p><strong>Coordinator:</strong> {job.coordinator}</p>
             {job.phone && <p><strong>Phone:</strong> <a href={`tel:${job.phone}`}>{job.phone}</a></p>}
