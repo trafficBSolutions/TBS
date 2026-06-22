@@ -1238,6 +1238,9 @@ selected={
             {job.additionalFlaggers && (
               <p><strong>Additional Flaggers:</strong> Yes ({job.additionalFlaggerCount} additional)</p>
             )}
+            {job.policeOfficerNeeded && (
+              <p><strong>🚔 Police Officer Needed:</strong> Yes</p>
+            )}
             <p><strong>Equipment:</strong> {job.equipment.join(', ')}</p>
             <p><strong>Address:</strong> {job.address}, {job.city}, {job.state} {job.zip}</p>
             {job.message && <p><strong>Message:</strong> {job.message}</p>}
