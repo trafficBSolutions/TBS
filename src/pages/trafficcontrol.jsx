@@ -99,6 +99,7 @@ useEffect(() => {
     flagger: '',
     additionalFlaggers: false,
     additionalFlaggerCount: '',
+    policeOfficerNeeded: false,
     equipment: [],
     terms: '',
     address: '',
@@ -231,6 +232,7 @@ useEffect(() => {
         flagger: '',
         additionalFlaggers: false,
         additionalFlaggerCount: '',
+        policeOfficerNeeded: false,
         equipment: [],
         terms: '',
         address: '',
@@ -817,6 +819,16 @@ setTimeout(checkAllFieldsFilled, 0);
   <p className="helper-note">Please enter a company to enable this section.</p>
 )}
 {errors.flagger && <div className="error-message">{errors.flagger}</div>}
+  <div className="police-officer-checkbox" style={{marginBottom:'1rem'}}>
+  <label style={{display:'flex',alignItems:'center',gap:'8px',fontSize:'1.1rem',fontWeight:'bold'}}>
+    <input
+      type="checkbox"
+      checked={formData.policeOfficerNeeded}
+      onChange={(e) => setFormData({ ...formData, policeOfficerNeeded: e.target.checked })}
+    />
+    🚔 Police Officer Needed
+  </label>
+</div>
   <label className="equipment-setup-label">
     Equipment Setup (Select all that apply)
   </label>
