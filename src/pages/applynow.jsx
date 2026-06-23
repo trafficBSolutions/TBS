@@ -1595,7 +1595,7 @@ to provide additional context regarding your background, please reach out to our
               />
               {errors.message && <div className="error-message">{errors.message}</div>}
             <h2 className="warning-message"><b className="submit-notice">NOTICE:</b> If you have already submitted before, you will not be able to submit again. If you're a former
-              employee for TBS and want your job back, please call (706) 263-0175. If you're new and just submitted, your information has already
+              employee for TBS and want your job back, please email materialworx2@gmail.com. If you're new and just submitted, your information has already
                  been received!</h2>
                  </div>
                  </div>
