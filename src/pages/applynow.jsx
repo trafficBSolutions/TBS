@@ -519,7 +519,7 @@ if (!data.background) {
         toast.dismiss(loadingToast);
         if (response.data.error === "Duplicate email or phone") {
           toast.error("Application already submitted with this email or phone number.");
-          setSubmissionErrorMessage("Application has already been submitted with this email, phone number, resume, or cover letter. If you recently worked for TBS, please call 706-263-0175. If you're new and have submitted before, please wait until we review your application.");
+          setSubmissionErrorMessage("Application has already been submitted with this email, phone number, resume, or cover letter. If you recently worked for TBS, please email materialworx2@gmail.com for any questions. If you're new and have submitted before, please wait until we review your application.");
         } else {
           setSubmissionErrorMessage('');
         }
@@ -650,7 +650,7 @@ if (!data.background) {
         if (response.data.errors) {
             if (response.data.error === "Duplicate email or phone") {
                 setSubmissionErrorMessage(
-                    "Application has already been submitted with this email and/or phone number. If you recently worked for TBS, please call (706) 263-0175. If you're new and have submitted before, please wait until we review your application."
+                    "Application has already been submitted with this email and/or phone number. If you recently worked for TBS, please email materialworx2@gmail.com for any questions. If you're new and have submitted before, please wait until we review your application."
                 );
             } else {
                 setSubmissionErrorMessage("");
@@ -1646,7 +1646,7 @@ to provide additional context regarding your background, please reach out to our
     <div className="footer-contact">
       <h2 className="footer-title">Contact</h2>
       <p className="contact-info">
-        <a className="will-email" href="mailto: tbsolutions1999@gmail.com">Email: tbsolutions1999@gmail.com</a>
+        <a className="will-email" href="mailto: materialworx2@gmail.com">Email: materialworx2@gmail.com</a>
         <a className="will-address" href="https://www.google.com/maps/place/Traffic+and+Barrier+Solutions,+LLC/@34.5117779,-84.9474798,123m/data=!3m1!1e3!4m6!3m5!1s0x482edab56d5b039b:0x94615ce25483ace6!8m2!3d34.511583!4d-84.9480585!16s%2Fg%2F11pl8d7p4t?entry=ttu&g_ep=EgoyMDI2MDMzMS4wIKXMDSoASAFQAw%3D%3D"
       >
         721 N Wall St, Calhoun, GA 30701</a>
