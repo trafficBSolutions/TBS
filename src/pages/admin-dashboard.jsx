@@ -50,6 +50,7 @@ const [showCancelledJobs, setShowCancelledJobs] = useState(false);
 const [editingTCWorkOrder, setEditingTCWorkOrder] = useState(null);
 const [editingShopWorkOrder, setEditingShopWorkOrder] = useState(null);
   const [applicants, setApplicants] = useState([]);
+  const [applicantLocationFilter, setApplicantLocationFilter] = useState('');
   const [PlanUser, setPlanUser] = useState([]);
   const [allowedForInvoices, setAllowedForInvoices] = useState(false);
 const [invoiceStats, setInvoiceStats] = useState(null);
@@ -2759,10 +2760,19 @@ selected={
 <section className="admin-apps-section">
 <div className="admin-apps">
   <h2 className="admin-apps-title">Job Applicants</h2>
-  {applicants.length > 0 && (
+  <div style={{marginBottom:'1rem'}}>
+    <label><strong>Filter by Location: </strong></label>
+    <select value={applicantLocationFilter} onChange={e => { setApplicantLocationFilter(e.target.value); setCurrentIndex(0); }}>
+      <option value="">All Locations</option>
+      <option value="Atlanta">Atlanta</option>
+      <option value="Calhoun">Calhoun</option>
+      <option value="Valdosta">Valdosta</option>
+    </select>
+  </div>
+  {applicants.filter(a => !applicantLocationFilter || a.location === applicantLocationFilter).length > 0 && (
   <div className="applicant-carousel">
     <div className="applicant-list">
-      {applicants.slice(currentIndex, currentIndex + 2).map((app, i) => (
+      {applicants.filter(a => !applicantLocationFilter || a.location === applicantLocationFilter).slice(currentIndex, currentIndex + 2).map((app, i) => (
         <div key={i} className="applicant-card">
           <h4>{app.first} {app.last}</h4>
           <p><strong>Email:</strong> {app.email}</p>
@@ -2858,8 +2868,8 @@ selected={
       ◀
     </button>
     <button
-      onClick={() => setCurrentIndex(prev => Math.min(prev + 2, applicants.length - 2))}
-      disabled={currentIndex + 2 >= applicants.length}
+      onClick={() => setCurrentIndex(prev => Math.min(prev + 2, applicants.filter(a => !applicantLocationFilter || a.location === applicantLocationFilter).length - 2))}
+      disabled={currentIndex + 2 >= applicants.filter(a => !applicantLocationFilter || a.location === applicantLocationFilter).length}
       className="btn"
     >
       ▶
