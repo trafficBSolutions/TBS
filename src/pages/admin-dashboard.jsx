@@ -2764,9 +2764,9 @@ selected={
     <label><strong>Filter by Location: </strong></label>
     <select value={applicantLocationFilter} onChange={e => { setApplicantLocationFilter(e.target.value); setCurrentIndex(0); }}>
       <option value="">All Locations</option>
-      <option value="Atlanta">Atlanta</option>
-      <option value="Calhoun">Calhoun</option>
-      <option value="Valdosta">Valdosta</option>
+      <option value="Atlanta GA">Atlanta GA</option>
+      <option value="Calhoun GA">Calhoun GA</option>
+      <option value="Valdosta GA">Valdosta GA</option>
     </select>
   </div>
   {applicants.filter(a => !applicantLocationFilter || a.location === applicantLocationFilter).length > 0 && (
