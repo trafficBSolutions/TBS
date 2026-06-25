@@ -10,6 +10,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import 'react-datepicker/dist/react-datepicker.css';
 import Header from '../components/headerviews/HeaderDropControl'
 import ReCAPTCHA from 'react-google-recaptcha';
+import { GA_COUNTIES, getRegionFromCounty } from '../utils/gaCounties';
 const states = [
   { abbreviation: 'AL', name: 'Alabama' },
   { abbreviation: 'FL', name: 'Florida' },
@@ -104,6 +105,7 @@ useEffect(() => {
     terms: '',
     address: '',
     city: '',
+    county: '',
     state: '',
     zip: '',
     message: ''
@@ -139,7 +141,9 @@ if (isAfter8pmEST && isTomorrowSelected && !isEmergencyJob) {
 
 };
 useEffect(() => {
-  axios.get('https://tbs-server.onrender.com/jobs/full-dates')
+  const region = (formData.state === 'GA' && formData.county) ? getRegionFromCounty(formData.county) : '';
+  const regionParam = region ? `?region=${region}` : '';
+  axios.get(`https://tbs-server.onrender.com/jobs/full-dates${regionParam}`)
     .then(res => {
       const fullDateObjects = res.data.map(dateStr => {
         const [year, month, day] = dateStr.split('-').map(Number);
@@ -171,7 +175,7 @@ useEffect(() => {
       setFullDates(fullDateObjects);
     })
     .catch(err => console.error("Error loading full dates", err));
-}, []);
+}, [formData.county, formData.state]);
 
 
   const handleCoordinatorChange = (e) => {
@@ -237,6 +241,7 @@ useEffect(() => {
         terms: '',
         address: '',
         city: '',
+        county: '',
         state: '',
         zip: '',
         message: ''
@@ -396,6 +401,11 @@ const isCompanySelected = (formData.company || '').trim().length > 0;
         newErrors[field] = `${fieldLabel} is required!`;
       }
     });
+
+    // Require county when state is Georgia
+    if (formData.state === 'GA' && !formData.county) {
+      newErrors.county = 'County is required for Georgia jobs!';
+    }
     
     if (!recaptchaToken && recaptchaToken !== 'bypass') {
       newErrors.recaptcha = 'Please complete the reCAPTCHA.';
@@ -948,6 +958,35 @@ setTimeout(checkAllFieldsFilled, 0);
 }}
 />
 {errors.city && <span className="error-message">{errors.city}</span>}
+{formData.state === 'GA' && (
+  <>
+    <label className="county-control-label">County *</label>
+    <p className="address-note"><b>NOTE:</b> Select the Georgia county where the job site is located. This determines the regional calendar (North GA or South GA).</p>
+    <select
+      name="county"
+      className="state-control-box"
+      value={formData.county}
+      onChange={(e) => {
+        setFormData({ ...formData, county: e.target.value });
+        if (e.target.value) {
+          setErrors((prevErrors) => ({ ...prevErrors, county: '' }));
+        }
+        setTimeout(checkAllFieldsFilled, 0);
+      }}
+    >
+      <option value="">Select County</option>
+      {GA_COUNTIES.map(c => (
+        <option key={c} value={c}>{c} County</option>
+      ))}
+    </select>
+    {formData.county && (
+      <p style={{fontSize:'0.9rem',color:'#4CAF50',margin:'4px 0',fontWeight:'bold'}}>
+        📍 Region: {getRegionFromCounty(formData.county) === 'south' ? 'South GA' : 'North GA'}
+      </p>
+    )}
+    {errors.county && <span className="error-message">{errors.county}</span>}
+  </>
+)}
 <div className="city-state">
 <select
       name="state"
