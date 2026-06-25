@@ -71,6 +71,7 @@ const [planIndex, setPlanIndex] = useState(0);
 const [jobs, setJobs] = useState([]);
 const [calendarViewDate, setCalendarViewDate] = useState(new Date());
 const [isAdmin, setIsAdmin] = useState(false);
+const [jobRegionFilter, setJobRegionFilter] = useState(''); // '', 'north', 'south'
 const [woSelectedDate, setWoSelectedDate] = useState(null);
 const [woMonthly, setWoMonthly] = useState({});
 const [woList, setWoList] = useState([]);
@@ -896,13 +897,14 @@ useEffect(() => {
   }
 }, [shopWoDate, allowedForShopWo]);
 // Update the fetchMonthlyJobs function to focus only on active jobs
-const fetchMonthlyJobs = async (date) => {
+const fetchMonthlyJobs = async (date, region) => {
   try {
     const month = date.getMonth() + 1;
     const year = date.getFullYear();
-    console.log(`Fetching jobs for ${month}/${year}`);
+    const regionParam = region ? `&region=${region}` : '';
+    console.log(`Fetching jobs for ${month}/${year} region=${region || 'all'}`);
 
-    const res = await axios.get(`/jobs/month?month=${month}&year=${year}`);
+    const res = await axios.get(`/jobs/month?month=${month}&year=${year}${regionParam}`);
     console.log("Jobs received:", res.data);
 
     // Group jobs by date (active jobs only)
@@ -921,14 +923,13 @@ const fetchMonthlyJobs = async (date) => {
       });
     });
 
-    // 👉 Count *job dates* for the month (multi-day job counts multiple times)
     const totalJobsForMonth = Object.values(grouped).reduce(
       (sum, jobsOnDate) => sum + jobsOnDate.length,
       0
     );
 
     setMonthlyJobs(grouped);
-    setMonthlyTotalJobs(totalJobsForMonth); // <-- new
+    setMonthlyTotalJobs(totalJobsForMonth);
     setMonthlyKey(prev => prev + 1);
   } catch (err) {
     console.error("Failed to fetch monthly jobs:", err);
@@ -952,14 +953,18 @@ useEffect(() => {
 }, [cancelledJobs]);
 
 useEffect(() => {
-  fetchMonthlyJobs(new Date()); // 👈 Fetch initial calendar jobs on mount
+  fetchMonthlyJobs(new Date(), jobRegionFilter); // 👈 Fetch initial calendar jobs on mount
 }, []);
 
 useEffect(() => {
   if (selectedDate) {
-    fetchMonthlyJobs(selectedDate);
+    fetchMonthlyJobs(selectedDate, jobRegionFilter);
   }
 }, [selectedDate]);
+
+useEffect(() => {
+  fetchMonthlyJobs(calendarViewDate || new Date(), jobRegionFilter);
+}, [jobRegionFilter]);
 
 useEffect(() => {
   const stored = localStorage.getItem('adminUser');
@@ -973,15 +978,16 @@ useEffect(() => {
     const fetchJobs = async () => {
       if (!selectedDate) return;
       try {
-        const dateStr = selectedDate.toISOString().split('T')[0]; // returns YYYY-MM-DD
-        const res = await axios.get(`/jobs?date=${dateStr}`);
+        const dateStr = selectedDate.toISOString().split('T')[0];
+        const regionParam = jobRegionFilter ? `&region=${jobRegionFilter}` : '';
+        const res = await axios.get(`/jobs?date=${dateStr}${regionParam}`);
         setJobs(res.data);
       } catch (err) {
         console.error('Failed to fetch jobs:', err);
       }
     };    
     fetchJobs();
-  }, [selectedDate]);
+  }, [selectedDate, jobRegionFilter]);
   useEffect(() => {
     const fetchApplicants = async () => {
       try {
@@ -1015,7 +1021,7 @@ useEffect(() => {
   {isAdmin && (
   <>
     <div className="stats-row">
-      <div className="stat-chip"><span className="stat-label">Jobs This Month</span><span className="stat-value">{monthlyTotalJobs}</span></div>
+      <div className="stat-chip"><span className="stat-label">Jobs This Month{jobRegionFilter ? ` (${jobRegionFilter === 'north' ? 'North' : 'South'} GA)` : ''}</span><span className="stat-value">{monthlyTotalJobs}</span></div>
       <div className="stat-chip"><span className="stat-label">Work Orders</span><span className="stat-value">{monthlyTotalWorkOrders}</span></div>
       <div className="stat-chip"><span className="stat-label">{calendarViewDate.toLocaleString('default', { month: 'short', year: 'numeric' })}</span><span className="stat-value">📅</span></div>
     </div>
@@ -1085,7 +1091,7 @@ selected={
 }}
   onMonthChange={(date) => {
   setCalendarViewDate(date);
-  if (viewMode === 'traffic') fetchMonthlyJobs(date);
+  if (viewMode === 'traffic') fetchMonthlyJobs(date, jobRegionFilter);
   else if (viewMode === 'workorders') fetchMonthlyWorkOrders(date);
   else if (viewMode === 'complaints') fetchMonthlyComplaints(date);
   else if (viewMode === 'discipline') fetchMonthlyDiscipline(date);
@@ -1156,8 +1162,8 @@ selected={
       <div className="calendar-day-kiss">
         <div className="day-number">{day}</div>
         {itemCount > 0 && (
-          <div className={viewMode === 'tasks' ? 'task-count' : 'job-count'}>
-            {viewMode === 'traffic' ? 'Jobs' 
+          <div className={viewMode === 'tasks' ? 'task-count' : 'job-count'} style={viewMode === 'traffic' && itemCount >= 10 ? {background:'#f44336',color:'#fff'} : {}}>
+            {viewMode === 'traffic' ? `Jobs ${itemCount}/10`
             : viewMode === 'workorders' ? 'Work Orders' 
             : viewMode === 'complaints' ? 'Complaints'
             : viewMode === 'discipline' ? 'Discipline'
@@ -1165,7 +1171,7 @@ selected={
             : viewMode === 'bollards' ? 'Bollard Quotes'
             : viewMode === 'signshop' ? 'Sign Jobs'
             : viewMode === 'shopwo' ? 'Shop WOs'
-            : 'Tasks'} {itemCount}
+            : 'Tasks'}{viewMode !== 'traffic' ? ` ${itemCount}` : ''}
           </div>
         )}
       </div>
@@ -1178,6 +1184,12 @@ selected={
   {viewMode === 'traffic' && (
     <>
        <h3>Traffic Control Jobs on {selectedDate?.toLocaleDateString()}</h3>
+       <div style={{display:'flex',gap:'8px',marginBottom:'1rem',flexWrap:'wrap'}}>
+         <button className={`btn ${jobRegionFilter === '' ? 'active' : ''}`} onClick={() => setJobRegionFilter('')}>All Jobs</button>
+         <button className={`btn ${jobRegionFilter === 'north' ? 'active' : ''}`} style={{background: jobRegionFilter === 'north' ? '#1e88e5' : ''}} onClick={() => setJobRegionFilter('north')}>🟦 North GA</button>
+         <button className={`btn ${jobRegionFilter === 'south' ? 'active' : ''}`} style={{background: jobRegionFilter === 'south' ? '#e65100' : ''}} onClick={() => setJobRegionFilter('south')}>🟧 South GA</button>
+         <span style={{alignSelf:'center',fontSize:'0.85rem',color:'#888'}}>(Max 10 jobs/day per region)</span>
+       </div>
     {selectedDate && tasks[selectedDate.toISOString().split('T')[0]] && (
       <div className="selected-date-tasks">
         <h4>📋 Tasks for {selectedDate.toLocaleDateString()}</h4>
@@ -1223,6 +1235,11 @@ selected={
               </p>
             )}
             <h4 className="job-company">{job.company}</h4>
+            {job.region && (
+              <span style={{display:'inline-block',padding:'2px 8px',borderRadius:'4px',fontSize:'0.75rem',fontWeight:'bold',marginBottom:'6px',background: job.region === 'south' ? '#fff3e0' : '#e3f2fd',color: job.region === 'south' ? '#e65100' : '#1565c0'}}>
+                {job.region === 'south' ? '🟧 South GA' : '🟦 North GA'}{job.county ? ` • ${job.county} County` : ''}
+              </span>
+            )}
             {job.cancelled && (
               <p className="cancelled-label">❌ Cancelled on {new Date(job.cancelledAt).toLocaleDateString()}</p>
             )}
