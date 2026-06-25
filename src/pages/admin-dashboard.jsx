@@ -71,7 +71,7 @@ const [planIndex, setPlanIndex] = useState(0);
 const [jobs, setJobs] = useState([]);
 const [calendarViewDate, setCalendarViewDate] = useState(new Date());
 const [isAdmin, setIsAdmin] = useState(false);
-const [jobRegionFilter, setJobRegionFilter] = useState(''); // '', 'north', 'south'
+const [jobRegionFilter, setJobRegionFilter] = useState(''); // '', 'north', 'south', 'tn'
 const [woSelectedDate, setWoSelectedDate] = useState(null);
 const [woMonthly, setWoMonthly] = useState({});
 const [woList, setWoList] = useState([]);
@@ -1188,6 +1188,7 @@ selected={
          <button className={`btn ${jobRegionFilter === '' ? 'active' : ''}`} onClick={() => setJobRegionFilter('')}>All Jobs</button>
          <button className={`btn ${jobRegionFilter === 'north' ? 'active' : ''}`} style={{background: jobRegionFilter === 'north' ? '#1e88e5' : ''}} onClick={() => setJobRegionFilter('north')}>🟦 North GA</button>
          <button className={`btn ${jobRegionFilter === 'south' ? 'active' : ''}`} style={{background: jobRegionFilter === 'south' ? '#e65100' : ''}} onClick={() => setJobRegionFilter('south')}>🟧 South GA</button>
+         <button className={`btn ${jobRegionFilter === 'tn' ? 'active' : ''}`} style={{background: jobRegionFilter === 'tn' ? '#2e7d32' : ''}} onClick={() => setJobRegionFilter('tn')}>🟩 TN Jobs</button>
          <span style={{alignSelf:'center',fontSize:'0.85rem',color:'#888'}}>(Max 10 jobs/day per region)</span>
        </div>
     {selectedDate && tasks[selectedDate.toISOString().split('T')[0]] && (
@@ -1236,8 +1237,8 @@ selected={
             )}
             <h4 className="job-company">{job.company}</h4>
             {job.region && (
-              <span style={{display:'inline-block',padding:'2px 8px',borderRadius:'4px',fontSize:'0.75rem',fontWeight:'bold',marginBottom:'6px',background: job.region === 'south' ? '#fff3e0' : '#e3f2fd',color: job.region === 'south' ? '#e65100' : '#1565c0'}}>
-                {job.region === 'south' ? '🟧 South GA' : '🟦 North GA'}
+              <span style={{display:'inline-block',padding:'2px 8px',borderRadius:'4px',fontSize:'0.75rem',fontWeight:'bold',marginBottom:'6px',background: job.region === 'south' ? '#fff3e0' : job.region === 'tn' ? '#e8f5e9' : '#e3f2fd',color: job.region === 'south' ? '#e65100' : job.region === 'tn' ? '#2e7d32' : '#1565c0'}}>
+                {job.region === 'south' ? '🟧 South GA' : job.region === 'tn' ? '🟩 TN' : '🟦 North GA'}
               </span>
             )}
             {job.cancelled && (
