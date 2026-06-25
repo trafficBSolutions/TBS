@@ -1237,7 +1237,7 @@ selected={
             <h4 className="job-company">{job.company}</h4>
             {job.region && (
               <span style={{display:'inline-block',padding:'2px 8px',borderRadius:'4px',fontSize:'0.75rem',fontWeight:'bold',marginBottom:'6px',background: job.region === 'south' ? '#fff3e0' : '#e3f2fd',color: job.region === 'south' ? '#e65100' : '#1565c0'}}>
-                {job.region === 'south' ? '🟧 South GA' : '🟦 North GA'}{job.county ? ` • ${job.county} County` : ''}
+                {job.region === 'south' ? '🟧 South GA' : '🟦 North GA'}
               </span>
             )}
             {job.cancelled && (
