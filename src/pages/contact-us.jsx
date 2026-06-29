@@ -273,13 +273,6 @@ onChange={handlePhoneChange}
 <MapComponent/>
 </div>
 <div className="contact-alternative">
-  <div className="phone-number-contacting">
-    <img
-      src={images["../assets/service image buttons/phone-call.svg"].default}
-      className="phone-img-contact"
-      alt="Phone icon"
-    />
-  </div>
   <div className="email-contacting">
     <img
       src={images["../assets/service image buttons/email.svg"].default}
