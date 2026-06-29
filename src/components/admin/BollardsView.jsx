@@ -1,6 +1,6 @@
 import React from 'react';
 
-const BollardsView = ({ bollardDate, bollardList }) => {
+const BollardsView = ({ bollardDate, bollardList = [] }) => {
   return (
     <>
       <h3>Bollard & Wheel Stop Quotes on {bollardDate?.toLocaleDateString()}</h3>
