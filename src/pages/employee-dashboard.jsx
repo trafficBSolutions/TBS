@@ -233,8 +233,8 @@ const EmployeeDashboard = () => {
             {pendingCount > 0 && <span style={{fontSize:'0.9rem',color:'#ff9800',fontWeight:'bold'}}>⏳ {pendingCount} punch{pendingCount > 1 ? 'es' : ''} pending sync</span>}
           </div>
 
-          {/* Punch In/Out - HIDDEN on phones via CSS */}
-          <div className="time-clock-punch-only">
+          {/* Punch In/Out - hidden on phones only if IP not allowed */}
+          <div className={`time-clock-punch-only${ipAllowed === false ? ' ip-blocked' : ''}`}>
             <div style={{background:'#fff3cd',border:'1px solid #ffc107',borderRadius:'8px',padding:'14px 18px',marginBottom:'1rem',textAlign:'left'}}>
               <p style={{color:'#856404',fontSize:'1rem',margin:0,fontWeight:'bold'}}>⚠️ WARNING: You are NOT allowed to clock anyone else in or out or share your PIN with other employees. Doing so will be subjected to Disciplinary Action.</p>
               <p style={{color:'#856404',fontSize:'1rem',margin:'8px 0 0'}}>📶 You must be connected to the WIFI at the TBS Shop to clock in and out.</p>
@@ -314,6 +314,9 @@ const EmployeeDashboard = () => {
           </div>
 
 
+
+          {/* Phone-only message when IP blocked */}
+          <p className={`time-clock-phone-msg${ipAllowed === false ? ' ip-blocked' : ''}`} style={{color:'#aaa',margin:'1rem 0'}}>⏰ Clock in/out is only available from the designated work location.</p>
 
           {/* View Hours - available everywhere */}
           <div className="time-clock-view-hours">
