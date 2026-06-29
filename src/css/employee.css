@@ -395,47 +395,17 @@
 
 
 /* ====== Time Clock - Device Visibility ====== */
-/* Phone-only message: hidden by default, shown on phones */
+/* Phone-only message: hidden always (employees can now clock in on phones) */
 .time-clock-phone-msg {
-  display: none;
+  display: none !important;
 }
 
-/* View hours PIN input: hidden by default on tablet/desktop (they use the punch PIN input) */
+/* View hours PIN input: hidden on tablet/desktop (they use the punch PIN input) */
 .time-clock-hours-pin {
   display: none;
 }
 
-/* On phones (max-width 767px): hide punch UI, show phone message and hours PIN */
-@media screen and (max-width: 767px) {
-  .time-clock-punch-only {
-    display: none !important;
-  }
-  .time-clock-phone-msg {
-    display: block;
-  }
-  .time-clock-hours-pin {
-    display: inline-block;
-  }
-}
-
-/* On phones in landscape (short height + narrow-ish width) */
-@media screen and (max-height: 500px) and (max-width: 900px) {
-  .time-clock-punch-only {
-    display: none !important;
-  }
-  .time-clock-phone-msg {
-    display: block;
-  }
-  .time-clock-hours-pin {
-    display: inline-block;
-  }
-}
-
-/* On tablet/desktop: hide the phone message and separate hours PIN */
 @media screen and (min-width: 768px) {
-  .time-clock-phone-msg {
-    display: none !important;
-  }
   .time-clock-hours-pin {
     display: none !important;
   }
