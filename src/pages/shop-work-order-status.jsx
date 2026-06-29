@@ -1,6 +1,7 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import Header from '../components/headerviews/HeaderDrop';
+import Header from '../components/Header'
+import Footer from '../components/Footer'
 
 export default function ShopWorkOrderStatus() {
   const { status } = useParams();
@@ -8,7 +9,7 @@ export default function ShopWorkOrderStatus() {
 
   return (
     <div>
-      <Header />
+      <Header activePage="/" />
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', padding: '20px' }}>
         <div style={{ background: '#fff', padding: '40px', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', textAlign: 'center', maxWidth: '500px' }}>
           {isApproved ? (
