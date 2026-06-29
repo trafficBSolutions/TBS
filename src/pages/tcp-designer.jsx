@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import Header from '../components/headerviews/HeaderAdminDash';
+import Header from '../components/Header'
+import Footer from '../components/Footer'
 import '../css/tcp-designer.css';
 import utilityWorkAhead from '@assets/tcp/Utility Work Ahead.svg';
 import bePreparedToStop from '@assets/tcp/Be Prepared to Stop.svg';
@@ -551,7 +552,7 @@ const [selectedItemId, setSelectedItemId] = useState(null);
 const selectedItem = (placedItems[phaseId] || []).find(it => it.id === selectedItemId);
   return (
     <div>
-      <Header />
+      <Header activePage="/admin-dashboard" />
       <div className="tcp-designer">
         <h1>🚧 Traffic Control Plan Designer</h1>
 
