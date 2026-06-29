@@ -6,7 +6,8 @@ import axios from 'axios';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import images from '../utils/tbsImages';
-import Header from '../components/headerviews/HeaderDropRentals'
+import Header from '../components/Header'
+import Footer from '../components/Footer'
 const states = [
   { abbreviation: 'AL', name: 'Alabama' },
   { abbreviation: 'AK', name: 'Alaska' },
@@ -262,7 +263,7 @@ const activeEquipmentOptions =
   
     return (
         <div>
-           <Header />
+           <Header activePage="/rentals" />
       <main className="equipment-main">
       <div className="equipment-container">
           <h1 className="equip-descript">EQUIPMENT RENTAL & SALES</h1> 
@@ -632,60 +633,7 @@ onChange={(e) => setFormData({ ...formData, city: e.target.value })}
         
 
       </main>
-      <footer className="footer">
-  <div className="site-footer__inner">
-    <img className="tbs-logo" alt="TBS logo" src={images["../assets/tbs_companies/tbs white.svg"].default} />
-    <div className="footer-navigation-content">
-      <h2 className="footer-title">Navigation</h2>
-    <ul className="footer-navigate">
-      <li><a className="footer-nav-link" href="/about-us">About Us</a></li>
-      <li><a className="footer-nav-link" href="">Traffic Control Services</a></li>
-      <li><a className="footer-nav-link" href="">Product Services</a></li>
-      <li><a className="footer-nav-link" href="/contact-us">Contact Us</a></li>
-      <li><a className="footer-nav-link" href="/applynow">Careers</a></li>
-    </ul>
-    </div>
-    <div className="footer-contact">
-      <h2 className="footer-title">Contact</h2>
-      <p className="contact-info">
-        <a className="will-phone" href="tel:+17062630175">Call: 706-263-0175</a>
-        <a className="will-email" href="mailto: tbsolutions1999@gmail.com">Email: tbsolutions1999@gmail.com</a>
-        <a className="will-address" href="https://www.google.com/maps/place/Traffic+and+Barrier+Solutions,+LLC/@34.5117779,-84.9474798,123m/data=!3m1!1e3!4m6!3m5!1s0x482edab56d5b039b:0x94615ce25483ace6!8m2!3d34.511583!4d-84.9480585!16s%2Fg%2F11pl8d7p4t?entry=ttu&g_ep=EgoyMDI2MDMzMS4wIKXMDSoASAFQAw%3D%3D"
-      >
-        721 N Wall St, Calhoun, GA 30701</a>
-      </p>
-    </div>
-
-    <div className="social-icons">
-      <h2 className="footer-title">Follow Us</h2>
-      <a className="social-icon" href="https://www.facebook.com/tbssigns2022/" target="_blank" rel="noopener noreferrer">
-                    <img className="facebook-img" src={images["../assets/social media/facebook.png"].default} alt="Facebook" />
-                </a>
-                <a className="social-icon" href="https://www.tiktok.com/@tbsmaterialworx?_t=8lf08Hc9T35&_r=1" target="_blank" rel="noopener noreferrer">
-                    <img className="tiktok-img" src={images["../assets/social media/tiktok.png"].default} alt="TikTok" />
-                </a>
-                <a className="social-icon" href="https://www.instagram.com/tbsmaterialworx?igsh=YzV4b3doaTExcjN4&utm_source=qr" target="_blank" rel="noopener noreferrer">
-                    <img className="insta-img" src={images["../assets/social media/instagram.png"].default} alt="Instagram" />
-                </a>
-    </div>
-    <div className="statement-box">
-                <p className="statement">
-                    <b className="safety-b">Safety Statement: </b>
-                    At TBS, safety is our top priority. We are dedicated to ensuring the well-being of our employees, clients, 
-                    and the general public in every aspect of our operations. Through comprehensive safety training, 
-                    strict adherence to regulatory standards, and continuous improvement initiatives, 
-                    we strive to create a work environment where accidents and injuries are preventable. 
-                    Our commitment to safety extends beyond complianceÃ¢â‚¬â€it's a fundamental value embedded in everything we do. 
-                    Together, we work tirelessly to promote a culture of safety, 
-                    accountability, and excellence, because when it comes to traffic control, there's no compromise on safety.
-                </p>
-            </div>
-  </div>
-</footer>
-<div className="footer-copyright">
-      <p className="footer-copy-p">&copy; 2026 Traffic & Barrier Solutions, LLC - 
-        Website Created by <a className="footer-face"href="https://www.material-worx.com/portfolio" target="_blank" rel="noopener noreferrer">MX Systems</a> - All Rights Reserved.</p>
-    </div>
+      <Footer />
         </div>
     )
 };
