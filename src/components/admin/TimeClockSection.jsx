@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import axios from 'axios';
 
 const TimeClockSection = ({
-  clockedInList, setClockedInList,
-  pinEmployees, setPinEmployees,
-  timeWorked, setTimeWorked,
+  clockedInList = [], setClockedInList,
+  pinEmployees = [], setPinEmployees,
+  timeWorked = [], setTimeWorked,
   timeWorkedWeekStart, setTimeWorkedWeekStart,
   canEditHours, setViewMode,
   navigate
@@ -15,6 +15,7 @@ const TimeClockSection = ({
   const [newEmpLast, setNewEmpLast] = useState('');
   const [newEmpPin, setNewEmpPin] = useState('');
   const [newEmpPosition, setNewEmpPosition] = useState('');
+  const [newEmpLocation, setNewEmpLocation] = useState('North GA');
   const [addEmpLoading, setAddEmpLoading] = useState(false);
   const [changePinId, setChangePinId] = useState(null);
   const [changePinValue, setChangePinValue] = useState('');
@@ -29,15 +30,25 @@ const TimeClockSection = ({
   const [addLineOut, setAddLineOut] = useState('');
   const [addLinePurpose, setAddLinePurpose] = useState('');
   const [addLineMsg, setAddLineMsg] = useState('');
+  const [clockLocation, setClockLocation] = useState('North GA');
 
   const refreshTimeWorked = async () => {
     const weekEnd = new Date(new Date(timeWorkedWeekStart + 'T00:00:00'));
     weekEnd.setDate(weekEnd.getDate() + 6);
     const endStr = `${weekEnd.getFullYear()}-${String(weekEnd.getMonth()+1).padStart(2,'0')}-${String(weekEnd.getDate()).padStart(2,'0')}`;
     try {
-      const res = await axios.get(`/timeclock/time-worked?startDate=${timeWorkedWeekStart}&endDate=${endStr}`);
+      const res = await axios.get(`/timeclock/time-worked?startDate=${timeWorkedWeekStart}&endDate=${endStr}&location=${encodeURIComponent(clockLocation)}`);
       setTimeWorked(res.data);
     } catch(e) {}
+  };
+
+  const refreshForLocation = async (loc) => {
+    try {
+      const res = await axios.get(`/timeclock/employees?location=${encodeURIComponent(loc)}`);
+      setPinEmployees(res.data.employees);
+      const statusRes = await axios.get('/timeclock/status');
+      setClockedInList(statusRes.data);
+    } catch (e) { console.error(e); }
   };
 
   return (
@@ -45,9 +56,21 @@ const TimeClockSection = ({
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.5rem'}}>
         <h3 style={{margin:0}}>⏰ Employee Time Clock</h3>
         <div style={{display:'flex',gap:'0.5rem'}}>
-          <button className="btn" onClick={() => axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {})}>🔄 Refresh</button>
+          <button className="btn" onClick={() => { axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {}); refreshTimeWorked(); }}>🔄 Refresh</button>
           <button className="btn" style={{background:'#888',color:'#fff'}} onClick={() => setViewMode('traffic')}>✖ Close</button>
         </div>
+      </div>
+
+      {/* Location Toggle */}
+      <div style={{display:'flex',gap:'0.5rem',justifyContent:'center',marginBottom:'1.5rem'}}>
+        <button
+          onClick={() => { setClockLocation('North GA'); refreshForLocation('North GA'); }}
+          style={{padding:'0.6rem 1.5rem',borderRadius:'8px',border:'2px solid',borderColor: clockLocation === 'North GA' ? '#1565c0' : '#ccc',background: clockLocation === 'North GA' ? '#1565c0' : '#fff',color: clockLocation === 'North GA' ? '#fff' : '#333',fontWeight:'bold',cursor:'pointer',fontSize:'1rem'}}
+        >📍 North GA Time Clock</button>
+        <button
+          onClick={() => { setClockLocation('South GA'); refreshForLocation('South GA'); }}
+          style={{padding:'0.6rem 1.5rem',borderRadius:'8px',border:'2px solid',borderColor: clockLocation === 'South GA' ? '#e65100' : '#ccc',background: clockLocation === 'South GA' ? '#e65100' : '#fff',color: clockLocation === 'South GA' ? '#fff' : '#333',fontWeight:'bold',cursor:'pointer',fontSize:'1rem'}}
+        >📍 South GA Time Clock</button>
       </div>
 
       {/* Currently Clocked In */}
@@ -122,7 +145,7 @@ const TimeClockSection = ({
                 setTimeWorkedWeekStart(newStart);
                 const end = new Date(prev); end.setDate(prev.getDate() + 6);
                 const endStr = `${end.getFullYear()}-${String(end.getMonth()+1).padStart(2,'0')}-${String(end.getDate()).padStart(2,'0')}`;
-                try { const res = await axios.get(`/timeclock/time-worked?startDate=${newStart}&endDate=${endStr}`); setTimeWorked(res.data); } catch(e) {}
+                try { const res = await axios.get(`/timeclock/time-worked?startDate=${newStart}&endDate=${endStr}&location=${encodeURIComponent(clockLocation)}`); setTimeWorked(res.data); } catch(e) {}
               }}>◀ Prev Week</button>
               <span style={{fontWeight:'bold',fontSize:'1.1rem'}}>
                 {weekStart.toLocaleDateString('en-US',{month:'short',day:'numeric'})} – {weekEnd.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
@@ -134,7 +157,7 @@ const TimeClockSection = ({
                 setTimeWorkedWeekStart(newStart);
                 const end = new Date(next); end.setDate(next.getDate() + 6);
                 const endStr = `${end.getFullYear()}-${String(end.getMonth()+1).padStart(2,'0')}-${String(end.getDate()).padStart(2,'0')}`;
-                try { const res = await axios.get(`/timeclock/time-worked?startDate=${newStart}&endDate=${endStr}`); setTimeWorked(res.data); } catch(e) {}
+                try { const res = await axios.get(`/timeclock/time-worked?startDate=${newStart}&endDate=${endStr}&location=${encodeURIComponent(clockLocation)}`); setTimeWorked(res.data); } catch(e) {}
               }}>Next Week ▶</button>
             </div>
           );
@@ -283,7 +306,7 @@ const TimeClockSection = ({
           setShowPinManager(!showPinManager);
           if (!showPinManager) {
             try {
-              const res = await axios.get('/timeclock/employees');
+              const res = await axios.get(`/timeclock/employees?location=${encodeURIComponent(clockLocation)}`);
               setPinEmployees(res.data.employees);
               const statusRes = await axios.get('/timeclock/status');
               setClockedInList(statusRes.data);
@@ -308,6 +331,10 @@ const TimeClockSection = ({
                   <option value="Custodian">Custodian</option>
                   <option value="Receptionist">Receptionist</option>
                 </select>
+                <select value={newEmpLocation} onChange={(e) => setNewEmpLocation(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',minWidth:'100px'}}>
+                  <option value="North GA">North GA</option>
+                  <option value="South GA">South GA</option>
+                </select>
                 <input type="text" placeholder="PIN (4+ digits)" value={newEmpPin} onChange={(e) => setNewEmpPin(e.target.value.replace(/\D/g, ''))} maxLength={6} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',width:'120px',textAlign:'center'}} />
                 <button className="btn" disabled={addEmpLoading} style={{padding:'6px 16px'}} onClick={async () => {
                   if (!newEmpFirst.trim() || !newEmpLast.trim()) { setPinMsg('First and last name required'); return; }
@@ -315,7 +342,7 @@ const TimeClockSection = ({
                   if (!newEmpPin || newEmpPin.length < 4) { setPinMsg('PIN must be at least 4 digits'); return; }
                   setAddEmpLoading(true);
                   try {
-                    const res = await axios.post('/timeclock/add-employee', { firstName: newEmpFirst, lastName: newEmpLast, position: newEmpPosition, pin: newEmpPin });
+                    const res = await axios.post('/timeclock/add-employee', { firstName: newEmpFirst, lastName: newEmpLast, position: newEmpPosition, pin: newEmpPin, location: newEmpLocation });
                     setPinMsg(res.data.message);
                     setPinEmployees(prev => [...prev, res.data.employee]);
                     setNewEmpFirst(''); setNewEmpLast(''); setNewEmpPosition(''); setNewEmpPin('');
@@ -328,7 +355,7 @@ const TimeClockSection = ({
               </div>
             </div>
 
-            <h5 style={{marginTop:'1rem',marginBottom:'0.5rem'}}>Employees ({pinEmployees.length})</h5>
+            <h5 style={{marginTop:'1rem',marginBottom:'0.5rem'}}>Employees - {clockLocation} ({pinEmployees.length})</h5>
             {pinEmployees.map((emp) => (
               <div key={emp._id} className="job-card" style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'0.5rem'}}>
                 <div>
