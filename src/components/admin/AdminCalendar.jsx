@@ -2,66 +2,60 @@ import React from 'react';
 import DatePicker from 'react-datepicker';
 
 const AdminCalendar = ({
-  viewMode, selectedDate, woSelectedDate, complaintsDate, quotesDate,
-  bollardDate, signShopDate, shopWoDate, taskDate,
-  setSelectedDate, setWoSelectedDate, setComplaintsDate, setQuotesDate,
-  setBollardDate, setSignShopDate, setShopWoDate, setTaskDate,
-  setCalendarViewDate, fetchMonthlyJobs, fetchMonthlyWorkOrders,
-  fetchMonthlyComplaints, fetchMonthlyQuotes, fetchMonthlyBollards,
-  fetchMonthlySignShop, fetchMonthlyShopWo, fetchTasks,
-  jobRegionFilter, monthlyJobs, woMonthly, complaintsMonthly,
-  quotesMonthly, bollardMonthly, signShopMonthly, shopWoMonthly, tasks
+  viewMode,
+  traffic = {}, workOrders = {}, complaints = {}, bollards = {},
+  quotes = {}, signShop = {}, shopWorkOrders = {}, tasks = {}
 }) => {
   const getSelected = () => {
     switch (viewMode) {
-      case 'traffic': return selectedDate;
-      case 'workorders': return woSelectedDate;
-      case 'complaints': return complaintsDate;
-      case 'quotes': return quotesDate;
-      case 'bollards': return bollardDate;
-      case 'signshop': return signShopDate;
-      case 'shopwo': return shopWoDate;
-      default: return taskDate;
+      case 'traffic': return traffic.selectedDate;
+      case 'workorders': return workOrders.woSelectedDate;
+      case 'complaints': return complaints.complaintsDate;
+      case 'quotes': return quotes.quotesDate;
+      case 'bollards': return bollards.bollardDate;
+      case 'signshop': return signShop.signShopDate;
+      case 'shopwo': return shopWorkOrders.shopWoDate;
+      default: return tasks.taskDate;
     }
   };
 
   const handleChange = (date) => {
     switch (viewMode) {
-      case 'traffic': setSelectedDate(date); break;
-      case 'workorders': setWoSelectedDate(date); break;
-      case 'complaints': setComplaintsDate(date); break;
-      case 'quotes': setQuotesDate(date); break;
-      case 'bollards': setBollardDate(date); break;
-      case 'signshop': setSignShopDate(date); break;
-      case 'shopwo': setShopWoDate(date); break;
-      default: setTaskDate(date);
+      case 'traffic': traffic.setSelectedDate?.(date); break;
+      case 'workorders': workOrders.setWoSelectedDate?.(date); break;
+      case 'complaints': complaints.setComplaintsDate?.(date); break;
+      case 'quotes': quotes.setQuotesDate?.(date); break;
+      case 'bollards': bollards.setBollardDate?.(date); break;
+      case 'signshop': signShop.setSignShopDate?.(date); break;
+      case 'shopwo': shopWorkOrders.setShopWoDate?.(date); break;
+      default: tasks.setTaskDate?.(date);
     }
   };
 
   const handleMonthChange = (date) => {
-    setCalendarViewDate(date);
+    if (traffic.setCalendarViewDate) traffic.setCalendarViewDate(date);
     switch (viewMode) {
-      case 'traffic': fetchMonthlyJobs(date, jobRegionFilter); break;
-      case 'workorders': fetchMonthlyWorkOrders(date); break;
-      case 'complaints': fetchMonthlyComplaints(date); break;
-      case 'quotes': fetchMonthlyQuotes(date); break;
-      case 'bollards': fetchMonthlyBollards(date); break;
-      case 'signshop': fetchMonthlySignShop(date); break;
-      case 'shopwo': fetchMonthlyShopWo(date); break;
-      default: fetchTasks();
+      case 'traffic': traffic.fetchMonthlyJobs?.(date, traffic.jobRegionFilter); break;
+      case 'workorders': workOrders.fetchMonthlyWorkOrders?.(date); break;
+      case 'complaints': complaints.fetchMonthlyComplaints?.(date); break;
+      case 'quotes': quotes.fetchMonthlyQuotes?.(date); break;
+      case 'bollards': bollards.fetchMonthlyBollards?.(date); break;
+      case 'signshop': signShop.fetchMonthlySignShop?.(date); break;
+      case 'shopwo': shopWorkOrders.fetchMonthlyShopWo?.(date); break;
+      default: tasks.fetchTasks?.();
     }
   };
 
   const getDataSource = () => {
     switch (viewMode) {
-      case 'traffic': return monthlyJobs || {};
-      case 'workorders': return woMonthly || {};
-      case 'complaints': return complaintsMonthly || {};
-      case 'quotes': return quotesMonthly || {};
-      case 'bollards': return bollardMonthly || {};
-      case 'signshop': return signShopMonthly || {};
-      case 'shopwo': return shopWoMonthly || {};
-      default: return tasks || {};
+      case 'traffic': return traffic.monthlyJobs || {};
+      case 'workorders': return workOrders.woMonthly || {};
+      case 'complaints': return complaints.complaintsMonthly || {};
+      case 'quotes': return quotes.quotesMonthly || {};
+      case 'bollards': return bollards.bollardMonthly || {};
+      case 'signshop': return signShop.signShopMonthly || {};
+      case 'shopwo': return shopWorkOrders.shopWoMonthly || {};
+      default: return tasks.tasks || {};
     }
   };
 
