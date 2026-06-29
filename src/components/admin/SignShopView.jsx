@@ -1,7 +1,7 @@
 import React from 'react';
 
 const SignShopView = ({
-  signShopDate, signShopList,
+  signShopDate, signShopList = [],
   signShopTitle, setSignShopTitle, signShopCustomer, setSignShopCustomer,
   signShopDesc, setSignShopDesc, signShopPhotos, setSignShopPhotos,
   editingSignShopId, editSignShop, setEditSignShop, editSignShopPhotos, setEditSignShopPhotos,
