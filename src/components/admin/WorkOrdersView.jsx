@@ -2,7 +2,7 @@ import React from 'react';
 import { formatTime, formatEquipmentName } from './utils/adminFormatters';
 import { AdminNotesDisplay, HoursFlag, canEditWorkOrders } from '../EditWorkOrderModal';
 
-const WorkOrdersView = ({ woSelectedDate, woList, tasks, toggleTaskCompletion, deleteTask, setEditingTCWorkOrder }) => {
+const WorkOrdersView = ({ woSelectedDate, woList = [], tasks = {}, toggleTaskCompletion, deleteTask, setEditingTCWorkOrder }) => {
   const dateStr = woSelectedDate?.toISOString().split('T')[0];
   const dayTasks = woSelectedDate && tasks[dateStr] ? tasks[dateStr] : null;
 
