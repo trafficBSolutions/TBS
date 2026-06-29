@@ -1,19 +1,19 @@
 import React from 'react';
-import axios from 'axios';
 
 const AdminTopBar = ({
-  adminName, isAdmin, monthlyTotalJobs, monthlyTotalWorkOrders,
-  jobRegionFilter, calendarViewDate, viewMode, setViewMode,
-  allowedForQuotes, allowedForSignShop, allowedForShopWo, isSalaryAdmin,
-  clockLocation, initTimeClock
+  adminName, viewMode, setViewMode,
+  monthlyTotalJobs = 0, monthlyTotalWorkOrders = 0,
+  calendarViewDate = new Date(), permissions = {}
 }) => {
-  if (!isAdmin) return null;
+  const {
+    allowedForQuotes, allowedForSignShop, allowedForShopWo, isSalaryAdmin
+  } = permissions;
 
   return (
     <div className="zone-topbar">
       <h1 className="welcome">Welcome, {adminName}</h1>
       <div className="stats-row">
-        <div className="stat-chip"><span className="stat-label">Jobs This Month{jobRegionFilter ? ` (${jobRegionFilter === 'north' ? 'North' : 'South'} GA)` : ''}</span><span className="stat-value">{monthlyTotalJobs}</span></div>
+        <div className="stat-chip"><span className="stat-label">Jobs This Month</span><span className="stat-value">{monthlyTotalJobs}</span></div>
         <div className="stat-chip"><span className="stat-label">Work Orders</span><span className="stat-value">{monthlyTotalWorkOrders}</span></div>
         <div className="stat-chip"><span className="stat-label">{calendarViewDate.toLocaleString('default', { month: 'short', year: 'numeric' })}</span><span className="stat-value">📅</span></div>
       </div>
@@ -33,7 +33,7 @@ const AdminTopBar = ({
         <button className={`btn ${viewMode === 'complaints' ? 'active' : ''}`} onClick={() => setViewMode('complaints')}>Complaints</button>
         <button className={`btn ${viewMode === 'tasks' ? 'active' : ''}`} onClick={() => setViewMode('tasks')}>Tasks</button>
         {isSalaryAdmin && (
-          <button className={`btn ${viewMode === 'timeclock' ? 'active' : ''}`} onClick={() => { setViewMode('timeclock'); initTimeClock(); }}>Time Clock</button>
+          <button className={`btn ${viewMode === 'timeclock' ? 'active' : ''}`} onClick={() => setViewMode('timeclock')}>Time Clock</button>
         )}
       </div>
     </div>
