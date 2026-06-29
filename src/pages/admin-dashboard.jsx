@@ -165,12 +165,14 @@ const canEditHoursEmails = new Set(['tbsolutions9@gmail.com', 'tbsolutions4@gmai
 const canEditHours = canEditHoursEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email);
 
 const [pinEmployees, setPinEmployees] = useState([]);
+const [clockLocation, setClockLocation] = useState('North GA');
 const [pinMsg, setPinMsg] = useState('');
 const [showPinManager, setShowPinManager] = useState(false);
 const [newEmpFirst, setNewEmpFirst] = useState('');
 const [newEmpLast, setNewEmpLast] = useState('');
 const [newEmpPin, setNewEmpPin] = useState('');
 const [newEmpPosition, setNewEmpPosition] = useState('');
+const [newEmpLocation, setNewEmpLocation] = useState('North GA');
 const [addEmpLoading, setAddEmpLoading] = useState(false);
 const [changePinId, setChangePinId] = useState(null);
 const [changePinValue, setChangePinValue] = useState('');
@@ -1045,14 +1047,14 @@ useEffect(() => {
         <button className={`btn ${viewMode === 'timeclock' ? 'active' : ''}`} onClick={async () => {
           setViewMode('timeclock');
           axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {});
-          axios.get('/timeclock/employees').then(r => { setPinEmployees(r.data.employees); }).catch(() => {});
+          axios.get('/timeclock/employees?location=' + encodeURIComponent(clockLocation)).then(r => { setPinEmployees(r.data.employees); }).catch(() => {});
           const now = new Date();
           const sat = new Date(now); sat.setDate(now.getDate() - ((now.getDay() + 1) % 7));
           const satStr = `${sat.getFullYear()}-${String(sat.getMonth()+1).padStart(2,'0')}-${String(sat.getDate()).padStart(2,'0')}`;
           const fri = new Date(sat); fri.setDate(sat.getDate() + 6);
           const friStr = `${fri.getFullYear()}-${String(fri.getMonth()+1).padStart(2,'0')}-${String(fri.getDate()).padStart(2,'0')}`;
           setTimeWorkedWeekStart(satStr);
-          try { const res = await axios.get(`/timeclock/time-worked?startDate=${satStr}&endDate=${friStr}`); setTimeWorked(res.data); } catch(e) {}
+          try { const res = await axios.get(`/timeclock/time-worked?location=${encodeURIComponent(clockLocation)}&startDate=${satStr}&endDate=${friStr}`); setTimeWorked(res.data); } catch(e) {}
         }}>Time Clock</button>
       )}
     </div>
@@ -1823,14 +1825,14 @@ selected={
       <button className="btn workorder-btn" onClick={async () => {
         setViewMode('timeclock');
         axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {});
-        axios.get('/timeclock/employees').then(r => { setPinEmployees(r.data.employees); }).catch(() => {});
+        axios.get('/timeclock/employees?location=' + encodeURIComponent(clockLocation)).then(r => { setPinEmployees(r.data.employees); }).catch(() => {});
         const now = new Date();
         const sat = new Date(now); sat.setDate(now.getDate() - ((now.getDay() + 1) % 7));
         const satStr = `${sat.getFullYear()}-${String(sat.getMonth()+1).padStart(2,'0')}-${String(sat.getDate()).padStart(2,'0')}`;
         const fri = new Date(sat); fri.setDate(sat.getDate() + 6);
         const friStr = `${fri.getFullYear()}-${String(fri.getMonth()+1).padStart(2,'0')}-${String(fri.getDate()).padStart(2,'0')}`;
         setTimeWorkedWeekStart(satStr);
-        try { const res = await axios.get(`/timeclock/time-worked?startDate=${satStr}&endDate=${friStr}`); setTimeWorked(res.data); } catch(e) {}
+        try { const res = await axios.get(`/timeclock/time-worked?location=${encodeURIComponent(clockLocation)}&startDate=${satStr}&endDate=${friStr}`); setTimeWorked(res.data); } catch(e) {}
         }}>Open Time Clock</button>
       {viewMode === 'timeclock' && (
   <>
@@ -1841,6 +1843,12 @@ selected={
         <button className="btn" onClick={() => axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {})}>🔄 Refresh</button>
         <button className="btn" style={{background:'#888',color:'#fff'}} onClick={() => setViewMode('traffic')}>✖ Close</button>
       </div>
+    </div>
+
+    {/* Location Toggle */}
+    <div style={{display:'flex',gap:'0.5rem',justifyContent:'center',marginBottom:'1.5rem'}}>
+      <button onClick={() => { setClockLocation('North GA'); axios.get('/timeclock/employees?location=North%20GA').then(r => { setPinEmployees(r.data.employees); }).catch(() => {}); }} style={{padding:'0.6rem 1.5rem',borderRadius:'8px',border:'2px solid',borderColor: clockLocation === 'North GA' ? '#1565c0' : '#ccc',background: clockLocation === 'North GA' ? '#1565c0' : '#fff',color: clockLocation === 'North GA' ? '#fff' : '#333',fontWeight:'bold',cursor:'pointer',fontSize:'1rem'}}>📍 North GA Time Clock</button>
+      <button onClick={() => { setClockLocation('South GA'); axios.get('/timeclock/employees?location=South%20GA').then(r => { setPinEmployees(r.data.employees); }).catch(() => {}); }} style={{padding:'0.6rem 1.5rem',borderRadius:'8px',border:'2px solid',borderColor: clockLocation === 'South GA' ? '#e65100' : '#ccc',background: clockLocation === 'South GA' ? '#e65100' : '#fff',color: clockLocation === 'South GA' ? '#fff' : '#333',fontWeight:'bold',cursor:'pointer',fontSize:'1rem'}}>📍 South GA Time Clock</button>
     </div>
 
     {/* Currently Clocked In */}
@@ -1891,7 +1899,7 @@ selected={
               // Refresh hours
               const weekEnd = new Date(new Date(timeWorkedWeekStart + 'T00:00:00')); weekEnd.setDate(weekEnd.getDate() + 6);
               const endStr = `${weekEnd.getFullYear()}-${String(weekEnd.getMonth()+1).padStart(2,'0')}-${String(weekEnd.getDate()).padStart(2,'0')}`;
-              const r = await axios.get(`/timeclock/time-worked?startDate=${timeWorkedWeekStart}&endDate=${endStr}`); setTimeWorked(r.data);
+              const r = await axios.get(`/timeclock/time-worked?location=${encodeURIComponent(clockLocation)}&startDate=${timeWorkedWeekStart}&endDate=${endStr}`); setTimeWorked(r.data);
               setTimeout(() => setAddLineMsg(''), 5000);
             } catch (e) { setAddLineMsg(e.response?.data?.message || 'Error'); }
           }}>+ Add Line</button>
@@ -1919,7 +1927,7 @@ selected={
               setTimeWorkedWeekStart(newStart);
               const end = new Date(prev); end.setDate(prev.getDate() + 6);
               const endStr = `${end.getFullYear()}-${String(end.getMonth()+1).padStart(2,'0')}-${String(end.getDate()).padStart(2,'0')}`;
-              try { const res = await axios.get(`/timeclock/time-worked?startDate=${newStart}&endDate=${endStr}`); setTimeWorked(res.data); } catch(e) {}
+              try { const res = await axios.get(`/timeclock/time-worked?location=${encodeURIComponent(clockLocation)}&startDate=${newStart}&endDate=${endStr}`); setTimeWorked(res.data); } catch(e) {}
             }}>◀ Prev Week</button>
             <span style={{fontWeight:'bold',fontSize:'1.1rem'}}>
               {weekStart.toLocaleDateString('en-US',{month:'short',day:'numeric'})} – {weekEnd.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
@@ -1931,7 +1939,7 @@ selected={
               setTimeWorkedWeekStart(newStart);
               const end = new Date(next); end.setDate(next.getDate() + 6);
               const endStr = `${end.getFullYear()}-${String(end.getMonth()+1).padStart(2,'0')}-${String(end.getDate()).padStart(2,'0')}`;
-              try { const res = await axios.get(`/timeclock/time-worked?startDate=${newStart}&endDate=${endStr}`); setTimeWorked(res.data); } catch(e) {}
+              try { const res = await axios.get(`/timeclock/time-worked?location=${encodeURIComponent(clockLocation)}&startDate=${newStart}&endDate=${endStr}`); setTimeWorked(res.data); } catch(e) {}
             }}>Next Week ▶</button>
           </div>
         </>
@@ -2009,7 +2017,7 @@ selected={
                                       setEditingPunchId(null); setEditPunchMsg('Saved');
                                       const weekEnd = new Date(new Date(timeWorkedWeekStart + 'T00:00:00')); weekEnd.setDate(weekEnd.getDate() + 6);
                                       const endStr = `${weekEnd.getFullYear()}-${String(weekEnd.getMonth()+1).padStart(2,'0')}-${String(weekEnd.getDate()).padStart(2,'0')}`;
-                                      const res = await axios.get(`/timeclock/time-worked?startDate=${timeWorkedWeekStart}&endDate=${endStr}`); setTimeWorked(res.data);
+                                      const res = await axios.get(`/timeclock/time-worked?location=${encodeURIComponent(clockLocation)}&startDate=${timeWorkedWeekStart}&endDate=${endStr}`); setTimeWorked(res.data);
                                       setTimeout(() => setEditPunchMsg(''), 3000);
                                     } catch (e) { setEditPunchMsg(e.response?.data?.message || 'Error'); }
                                   }}>✓</button>
@@ -2041,7 +2049,7 @@ selected={
                                       await axios.delete(`/timeclock/delete-punch/${r._id}`);
                                       const weekEnd = new Date(new Date(timeWorkedWeekStart + 'T00:00:00')); weekEnd.setDate(weekEnd.getDate() + 6);
                                       const endStr = `${weekEnd.getFullYear()}-${String(weekEnd.getMonth()+1).padStart(2,'0')}-${String(weekEnd.getDate()).padStart(2,'0')}`;
-                                      const res = await axios.get(`/timeclock/time-worked?startDate=${timeWorkedWeekStart}&endDate=${endStr}`); setTimeWorked(res.data);
+                                      const res = await axios.get(`/timeclock/time-worked?location=${encodeURIComponent(clockLocation)}&startDate=${timeWorkedWeekStart}&endDate=${endStr}`); setTimeWorked(res.data);
                                       setEditPunchMsg('Punch deleted');
                                       setTimeout(() => setEditPunchMsg(''), 3000);
                                     } catch (e) { setEditPunchMsg(e.response?.data?.message || 'Error deleting'); }
@@ -2058,7 +2066,7 @@ selected={
                                   await axios.put(`/timeclock/edit-purpose/${r._id}`, { purpose: final });
                                   const weekEnd = new Date(new Date(timeWorkedWeekStart + 'T00:00:00')); weekEnd.setDate(weekEnd.getDate() + 6);
                                   const endStr = `${weekEnd.getFullYear()}-${String(weekEnd.getMonth()+1).padStart(2,'0')}-${String(weekEnd.getDate()).padStart(2,'0')}`;
-                                  const res = await axios.get(`/timeclock/time-worked?startDate=${timeWorkedWeekStart}&endDate=${endStr}`); setTimeWorked(res.data);
+                                  const res = await axios.get(`/timeclock/time-worked?location=${encodeURIComponent(clockLocation)}&startDate=${timeWorkedWeekStart}&endDate=${endStr}`); setTimeWorked(res.data);
                                 } catch (e) { alert(e.response?.data?.message || 'Error updating purpose'); }
                               }}>✏</button>}</span>}
                             </div>
@@ -2095,7 +2103,7 @@ selected={
       setShowPinManager(!showPinManager);
       if (!showPinManager) {
         try {
-          const res = await axios.get('/timeclock/employees');
+          const res = await axios.get('/timeclock/employees?location=' + encodeURIComponent(clockLocation));
           setPinEmployees(res.data.employees);
           const statusRes = await axios.get('/timeclock/status');
           setClockedInList(statusRes.data);
@@ -2121,6 +2129,10 @@ selected={
               <option value="Custodian">Custodian</option>
               <option value="Receptionist">Receptionist</option>
             </select>
+            <select value={newEmpLocation} onChange={(e) => setNewEmpLocation(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',minWidth:'100px'}}>
+              <option value="North GA">North GA</option>
+              <option value="South GA">South GA</option>
+            </select>
             <input type="text" placeholder="PIN (4+ digits)" value={newEmpPin} onChange={(e) => setNewEmpPin(e.target.value.replace(/\D/g, ''))} maxLength={6} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',width:'120px',textAlign:'center'}} />
             <button className="btn" disabled={addEmpLoading} style={{padding:'6px 16px'}} onClick={async () => {
               if (!newEmpFirst.trim() || !newEmpLast.trim()) { setPinMsg('First and last name required'); return; }
@@ -2128,7 +2140,7 @@ selected={
               if (!newEmpPin || newEmpPin.length < 4) { setPinMsg('PIN must be at least 4 digits'); return; }
               setAddEmpLoading(true);
               try {
-                const res = await axios.post('/timeclock/add-employee', { firstName: newEmpFirst, lastName: newEmpLast, position: newEmpPosition, pin: newEmpPin });
+                const res = await axios.post('/timeclock/add-employee', { firstName: newEmpFirst, lastName: newEmpLast, position: newEmpPosition, pin: newEmpPin, location: newEmpLocation });
                 setPinMsg(res.data.message);
                 setPinEmployees(prev => [...prev, res.data.employee]);
                 setNewEmpFirst(''); setNewEmpLast(''); setNewEmpPosition(''); setNewEmpPin('');
@@ -2141,7 +2153,7 @@ selected={
           </div>
         </div>
 
-        <h5 style={{marginTop:'1rem',marginBottom:'0.5rem'}}>Employees ({pinEmployees.length})</h5>
+        <h5 style={{marginTop:'1rem',marginBottom:'0.5rem'}}>Employees - {clockLocation} ({pinEmployees.length})</h5>
         {pinEmployees.map((emp) => (
           <div key={emp._id} className="job-card" style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'0.5rem'}}>
             <div>
