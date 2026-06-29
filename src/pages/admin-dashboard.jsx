@@ -14,7 +14,7 @@ import {
   useSignShop,
   useShopWorkOrders,
   useTimeClock,
-} from '../hooks/admin';
+} from '../hooks';
 
 import {
   AdminTopBar,
