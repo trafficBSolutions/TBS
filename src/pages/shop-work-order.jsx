@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
-import Header from '../components/headerviews/HeaderDrop';
+import Header from '../components/Header'
+import Footer from '../components/Footer'
 import images from '../utils/tbsImages';
 import api from '../utils/api';
 import '../css/order.css';
@@ -215,7 +216,7 @@ export default function ShopWorkOrder() {
 
   return (
     <div>
-      <Header />
+      <Header activePage="/" />
       <div className="work-order">
         <section className="main-work-section">
           <form onSubmit={onSubmit} className="form-center">
