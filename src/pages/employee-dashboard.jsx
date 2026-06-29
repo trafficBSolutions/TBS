@@ -313,8 +313,7 @@ const EmployeeDashboard = () => {
             {ipAllowed === null && <p style={{color:'#aaa'}}>Checking location...</p>}
           </div>
 
-          {/* Phone-only message */}
-          <p className="time-clock-phone-msg" style={{color:'#aaa',margin:'1rem 0'}}>⏰ Clock in/out is only available on the tablet at the shop.</p>
+
 
           {/* View Hours - available everywhere */}
           <div className="time-clock-view-hours">
