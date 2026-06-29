@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const TrafficJobsView = ({ selectedDate, jobs, jobRegionFilter, setJobRegionFilter, tasks, toggleTaskCompletion, deleteTask }) => {
+const TrafficJobsView = ({ selectedDate, jobs = [], jobRegionFilter, setJobRegionFilter, tasks = {}, toggleTaskCompletion, deleteTask }) => {
   const navigate = useNavigate();
   const dateStr = selectedDate ? selectedDate.toISOString().split('T')[0] : '';
   const dayTasks = selectedDate && tasks[dateStr] ? tasks[dateStr] : null;
