@@ -1,7 +1,7 @@
 import React from 'react';
 import { AdminNotesDisplay, HoursFlag, canEditWorkOrders } from '../EditWorkOrderModal';
 
-const ShopWorkOrdersView = ({ shopWoDate, shopWoList, handleShopWoApprove, handleShopWoDisapprove, setEditingShopWorkOrder }) => {
+const ShopWorkOrdersView = ({ shopWoDate, shopWoList = [], handleShopWoApprove, handleShopWoDisapprove, setEditingShopWorkOrder }) => {
   return (
     <>
       <h3>Shop Work Orders on {shopWoDate?.toLocaleDateString()}</h3>
