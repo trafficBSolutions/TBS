@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const CancelledJobsSection = ({ cancelledJobs }) => {
+const CancelledJobsSection = ({ cancelledJobs = [] }) => {
   const [showCancelledJobs, setShowCancelledJobs] = useState(false);
 
   return (
