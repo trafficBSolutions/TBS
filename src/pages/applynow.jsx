@@ -440,7 +440,11 @@ const handlePhoneChange = (event) => {
       }
     });
   
-   // ✅ Check if resume is uploaded (optional now)
+   // ✅ Check if ID/Driver's License is uploaded
+    if (!data.resume) {
+      newErrors.resume = "ID or Driver's License is required.";
+      hasError = true;
+    }
 
 // ✅ Education Validation
 if (addedEd.length === 0) {
@@ -1528,18 +1532,18 @@ to provide additional context regarding your background, please reach out to our
   {workError && <div className="error-message">{workError}</div>}
 </div>
             <div className="job-resume">
-            <h2 className="resume-note"><b className="resume-note-b">NOTE:</b> You can only submit .doc, .pdf, .txt, and .pages files. Resumes and
-              cover letters are optional but are recommended. </h2>
+            <h2 className="resume-note"><b className="resume-note-b">NOTE:</b> You can only submit .pdf, .jpg, .png, or .heic files. ID or Driver's License is required.
+              Cover letters are optional but recommended. </h2>
             <div className="resume-input">
               <div className="resume-section">
                 <div className="name-input">
-                  <label htmlFor="resume-label" className="resume-name">Resume</label>
+                  <label htmlFor="resume-label" className="resume-name">ID or Driver's License *</label>
                   <div className="file-apply-input-container">
                     <label className="file-apply-label">
                       {data.resume ? (
                         <span>{data.resume.name}</span>
                       ) : (
-                        <span>CHOOSE RESUME</span>
+                        <span>CHOOSE ID / DRIVER'S LICENSE</span>
                       )}
 <input
   type="file"
@@ -1646,7 +1650,7 @@ to provide additional context regarding your background, please reach out to our
     <div className="footer-contact">
       <h2 className="footer-title">Contact</h2>
       <p className="contact-info">
-        <a className="will-email" href="mailto: materialworx2@gmail.com">Email: materialworx2@gmail.com</a>
+        <a className="will-email" href="mailto: tbsolutions1999@gmail.com">Email: tbsolutions1999@gmail.com</a>
         <a className="will-address" href="https://www.google.com/maps/place/Traffic+and+Barrier+Solutions,+LLC/@34.5117779,-84.9474798,123m/data=!3m1!1e3!4m6!3m5!1s0x482edab56d5b039b:0x94615ce25483ace6!8m2!3d34.511583!4d-84.9480585!16s%2Fg%2F11pl8d7p4t?entry=ttu&g_ep=EgoyMDI2MDMzMS4wIKXMDSoASAFQAw%3D%3D"
       >
         721 N Wall St, Calhoun, GA 30701</a>
