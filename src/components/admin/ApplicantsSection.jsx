@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const ApplicantsSection = ({ applicants }) => {
+const ApplicantsSection = ({ applicants = [] }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedApplicantIndex, setSelectedApplicantIndex] = useState(null);
   const [previewFile, setPreviewFile] = useState(null);
