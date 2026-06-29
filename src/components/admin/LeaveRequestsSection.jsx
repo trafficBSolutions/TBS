@@ -1,6 +1,6 @@
 import React from 'react';
 
-const LeaveRequestsSection = ({ leaveRequests, onApprove, onDeny }) => (
+const LeaveRequestsSection = ({ leaveRequests = [], onApprove, onDeny }) => (
   <section className="admin-section" style={{marginTop:'2rem'}}>
     <h2 className="admin-plans-title">🏖️ Leave Requests {leaveRequests.length > 0 && <span style={{color:'#ff9800'}}>({leaveRequests.length} pending)</span>}</h2>
     {leaveRequests.length === 0 && <p style={{color:'#888',padding:'1rem'}}>No pending leave requests.</p>}
