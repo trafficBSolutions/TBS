@@ -1,6 +1,6 @@
 import React from 'react';
 
-const TasksView = ({ taskDate, tasks, taskText, setTaskText, isTaskPublic, setIsTaskPublic, addTask, deleteTask, toggleTaskCompletion }) => {
+const TasksView = ({ taskDate, tasks = {}, taskText, setTaskText, isTaskPublic, setIsTaskPublic, addTask, deleteTask, toggleTaskCompletion }) => {
   const dateStr = taskDate?.toISOString().split('T')[0];
   const dayTasks = tasks[dateStr] || [];
 
