@@ -279,9 +279,6 @@ onChange={handlePhoneChange}
       className="phone-img-contact"
       alt="Phone icon"
     />
-    <p>
-      <a className="phone-paragraph" href="tel:+17062630175">(706) 263-0175</a>
-    </p>
   </div>
   <div className="email-contacting">
     <img
@@ -290,8 +287,8 @@ onChange={handlePhoneChange}
       alt="Email icon"
     />
     <p>
-      <a className="email-paragraph" href="mailto:tbsolutions1999@gmail.com">
-        tbsolutions1999@gmail.com
+      <a className="email-paragraph" href="mailto:materialworx2@gmail.com">
+        materialworx2@gmail.com
       </a>
     </p>
   </div>
@@ -304,9 +301,9 @@ onChange={handlePhoneChange}
     <p>
       <a
         className="address-paragraph"
-        href="https://www.google.com/maps/place/Traffic+%26+Barrier+Solutions%2FMaterial+WorX+Sign+Shop/@34.5115302,-84.9476215,94m/data=!3m1!1e3!4m6!3m5!1s0x886007df83843f3b:0x84510d87790af625!8m2!3d34.5117917!4d-84.948025!16s%2Fg%2F11l28zhlzt?entry=ttu&g_ep=EgoyMDI0MDkyNC4wIKXMDSoASAFQAw%3D%3D"
+        href="https://www.google.com/maps/place/Traffic+and+Barrier+Solutions,+LLC/@34.5114361,-84.9474687,232m/data=!3m1!1e3!4m6!3m5!1s0x482edab56d5b039b:0x94615ce25483ace6!8m2!3d34.511583!4d-84.9480585!16s%2Fg%2F11pl8d7p4t?entry=ttu&g_ep=EgoyMDI2MDYyNC4wIKXMDSoASAFQAw%3D%3D"
       >
-        1995 Dews Pond Rd SE, Calhoun, GA 30701
+        721 N Wall St, Calhoun, GA 30701
       </a>
     </p>
   </div>
