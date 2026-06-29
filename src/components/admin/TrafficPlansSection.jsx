@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const TrafficPlansSection = ({ PlanUser }) => {
+const TrafficPlansSection = ({ PlanUser = [] }) => {
   const [planIndex, setPlanIndex] = useState(0);
   const [selectedPlanIndex, setSelectedPlanIndex] = useState(null);
   const [previewPlan, setPreviewPlan] = useState(null);
