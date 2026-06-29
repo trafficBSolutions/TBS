@@ -54,14 +54,14 @@ const AdminCalendar = ({
 
   const getDataSource = () => {
     switch (viewMode) {
-      case 'traffic': return monthlyJobs;
-      case 'workorders': return woMonthly;
-      case 'complaints': return complaintsMonthly;
-      case 'quotes': return quotesMonthly;
-      case 'bollards': return bollardMonthly;
-      case 'signshop': return signShopMonthly;
-      case 'shopwo': return shopWoMonthly;
-      default: return tasks;
+      case 'traffic': return monthlyJobs || {};
+      case 'workorders': return woMonthly || {};
+      case 'complaints': return complaintsMonthly || {};
+      case 'quotes': return quotesMonthly || {};
+      case 'bollards': return bollardMonthly || {};
+      case 'signshop': return signShopMonthly || {};
+      case 'shopwo': return shopWoMonthly || {};
+      default: return tasks || {};
     }
   };
 
@@ -94,11 +94,13 @@ const AdminCalendar = ({
       }}
       dayClassName={(date) => {
         const dateStr = date.toISOString().split('T')[0];
-        return dataSource[dateStr]?.length > 0 ? 'has-jobs' : '';
+        const items = dataSource[dateStr];
+        return items && items.length > 0 ? 'has-jobs' : '';
       }}
       renderDayContents={(day, date) => {
         const dateStr = date.toISOString().split('T')[0];
-        const itemCount = dataSource[dateStr]?.length || 0;
+        const items = dataSource[dateStr];
+        const itemCount = items ? items.length : 0;
         return (
           <div className="calendar-day-kiss">
             <div className="day-number">{day}</div>
