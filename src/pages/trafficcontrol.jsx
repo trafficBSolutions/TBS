@@ -398,6 +398,10 @@ const isCompanySelected = (formData.company || '').trim().length > 0;
       }
     });
     
+    if (formData.equipment.includes('Hydrovac') && !formData.message.trim()) {
+      newErrors.message = 'Message is required when Hydrovac is selected. Please describe what you want dug.';
+    }
+
     if (!recaptchaToken && recaptchaToken !== 'bypass') {
       newErrors.recaptcha = 'Please complete the reCAPTCHA.';
     }
@@ -895,8 +899,26 @@ Barricades
     />
     Signs
   </label>
+  <label>
+    <input 
+      type="checkbox" 
+      name="equipment" 
+      value="Hydrovac"
+      checked={formData.equipment.includes('Hydrovac')}
+      onChange={handleEquipmentChange}
+    />
+    Hydrovac
+  </label>
   {errors.equipment && <div className="error-message">{errors.equipment}</div>}
 </div>
+
+{formData.equipment.includes('Hydrovac') && (
+  <div className="hydrovac-details" style={{marginTop:'1rem',padding:'1rem',border:'1px solid #e67e22',borderRadius:'8px'}}>
+    <label style={{fontWeight:'bold',color:'#e67e22'}}>🚜 Hydrovac Details (Required)</label>
+    <p style={{color:'#ddd',marginTop:'0.5rem'}}>What are you wanting dug? Please provide as much information as possible about the Hydrovac job (depth, location, utilities nearby, etc.)</p>
+    {errors.hydrovacDetails && <div className="error-message">{errors.hydrovacDetails}</div>}
+  </div>
+)}
 
 <label className="addr-control-label">Job Site Address *</label>
 <p className="address-note"><b>NOTE: </b>Enter a valid street address without punctuation (no commas, periods, slashes, or symbols). </p>
@@ -996,9 +1018,11 @@ setTimeout(checkAllFieldsFilled, 0);
 </div>
 
 <div className="message-control-container">
-<label className="message-control-label">Message</label>
-<h2 className="message-control-note">If you need additional equipment,
-  please explain here. Otherwise, please describe to us about your job and how do we need to set up! </h2>
+<label className="message-control-label">Message {formData.equipment.includes('Hydrovac') ? '*' : ''}</label>
+<h2 className="message-control-note">{formData.equipment.includes('Hydrovac') 
+  ? 'REQUIRED: Please describe what you want dug, depth, location, utilities nearby, and any other Hydrovac details.'
+  : 'If you need additional equipment, please explain here. Otherwise, please describe to us about your job and how do we need to set up!'}
+</h2>
 
 <textarea className="message-control-text" name="message" type="text" placeholder="Enter Message"
   onChange={(e) => { 
