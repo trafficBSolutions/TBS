@@ -915,7 +915,7 @@ Barricades
 {formData.equipment.includes('Hydrovac') && (
   <div className="hydrovac-details" style={{marginTop:'1rem',padding:'1rem',border:'1px solid #e67e22',borderRadius:'8px'}}>
     <label style={{fontWeight:'bold',color:'#e67e22'}}>🚜 Hydrovac Details (Required)</label>
-    <p style={{color:'#ddd',marginTop:'0.5rem'}}>What are you wanting dug? Please provide as much information as possible about the Hydrovac job (depth, location, utilities nearby, etc.)</p>
+    <p style={{color:'#000',marginTop:'0.5rem'}}>What are you wanting dug? Please provide as much information as possible about the Hydrovac job (depth, location, utilities nearby, etc.)</p>
     {errors.hydrovacDetails && <div className="error-message">{errors.hydrovacDetails}</div>}
   </div>
 )}
