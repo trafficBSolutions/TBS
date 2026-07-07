@@ -2162,7 +2162,7 @@ selected={
               <p style={{color:'#4CAF50',margin:'2px 0'}}>PIN: {emp.pin}</p>
               <p style={{margin:'2px 0',fontSize:'0.85rem',color: emp.points >= 3 ? '#f44336' : emp.points >= 2 ? '#ff9800' : '#666'}}>
                 <strong>Points:</strong> {emp.points?.toFixed(2) || '0.00'} / 3.00
-                {emp.points >= 3 && <span style={{marginLeft:'0.5rem',color:'#f44336',fontWeight:'bold'}}>⚠️ TERMINATION</span>}
+                {emp.points >= 3 && <span style={{marginLeft:'0.5rem',color:'#e67e22',fontWeight:'bold'}}>⚠️ TERMINATION WARNING</span>}
               </p>
               {changePinId === emp._id ? (
                 <div style={{display:'flex',gap:'0.4rem',alignItems:'center',marginTop:'4px'}}>
