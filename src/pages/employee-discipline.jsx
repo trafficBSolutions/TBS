@@ -91,6 +91,15 @@ function EmployeeDiscipline() {
     } catch (e) { alert('Failed to delete'); }
   };
 
+  const handleTerminateEmployee = async (id, name) => {
+    if (!confirm(`Are you sure you want to terminate ${name}?`)) return;
+    try {
+      await axios.put(`/discipline/employees/${id}/terminate`);
+      fetchEmployees();
+      if (selectedEmpId === id) setSelectedEmpTerminated(true);
+    } catch (e) { alert('Failed to terminate'); }
+  };
+
   const handleSelectEmployee = async (empId) => {
     setSelectedEmpId(empId);
     if (!empId) {
@@ -214,9 +223,12 @@ function EmployeeDiscipline() {
                         {emp.totalPoints.toFixed(2)} / 3.00
                       </td>
                       <td style={{border:'1px solid #ddd',padding:8,textAlign:'center'}}>
-                        {emp.terminated ? <span style={{color:'#c0392b',fontWeight:'bold'}}>❌ Terminated</span> : emp.totalPoints >= 3 ? <span style={{color:'#e67e22',fontWeight:'bold'}}>⚠️ Review Required</span> : <span style={{color:'#27ae60'}}>Active</span>}
+                        {emp.terminated ? <span style={{color:'#c0392b',fontWeight:'bold'}}>❌ Terminated</span> : <span style={{color:'#27ae60'}}>Active</span>}
                       </td>
-                      <td style={{border:'1px solid #ddd',padding:8,textAlign:'center'}}>
+                      <td style={{border:'1px solid #ddd',padding:8,textAlign:'center',display:'flex',gap:4,justifyContent:'center',flexWrap:'wrap'}}>
+                        {!emp.terminated && emp.totalPoints >= 3 && (
+                          <button type="button" className="btn" style={{fontSize:11,padding:'4px 8px',background:'#c0392b',color:'#fff'}} onClick={() => handleTerminateEmployee(emp._id, emp.name)}>Terminate?</button>
+                        )}
                         <button type="button" className="btn" style={{fontSize:11,padding:'4px 8px'}} onClick={() => handleDeleteEmployee(emp._id)}>Remove</button>
                       </td>
                     </tr>
