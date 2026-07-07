@@ -447,7 +447,7 @@ const EmployeeDashboard = () => {
                         </div>
                       </div>
                       {(d.newTotalPoints || 0) >= 3 && (
-                        <div style={{background:'#f8d7da',border:'1px solid #f5c6cb',borderRadius:'6px',padding:'10px',marginTop:'10px',color:'#721c24',fontWeight:'bold',textAlign:'center'}}>⚠️ EMPLOYEE HAS REACHED 3.00 POINTS — TERMINATION</div>
+                        <div style={{background:'#fff3cd',border:'1px solid #ffc107',borderRadius:'6px',padding:'10px',marginTop:'10px',color:'#856404',fontWeight:'bold',textAlign:'center'}}>⚠️ WARNING: You have reached 3.00 points. Termination may result. Please take this seriously.</div>
                       )}
                       {d.decision && <div style={{background:'#fff',border:'1px solid #ddd',borderRadius:'4px',padding:'10px',marginTop:'10px',whiteSpace:'pre-wrap'}}><strong>Decision:</strong> {d.decision}</div>}
                     </div>
