@@ -124,11 +124,10 @@ function EmployeeDiscipline() {
 
   const pointsNum = parseFloat(form.points) || 0;
   const projectedTotal = Math.min(selectedEmpPoints + pointsNum, 3);
-  const willTerminate = projectedTotal >= 3;
+  const willRequireReview = projectedTotal >= 3;
 
   const submit = async (e) => {
     e.preventDefault();
-    if (selectedEmpTerminated) { alert('This employee is already terminated.'); return; }
     setSubmitting(true);
     setSuccessMsg('');
     try {
@@ -215,7 +214,7 @@ function EmployeeDiscipline() {
                         {emp.totalPoints.toFixed(2)} / 3.00
                       </td>
                       <td style={{border:'1px solid #ddd',padding:8,textAlign:'center'}}>
-                        {emp.terminated ? <span style={{color:'#c0392b',fontWeight:'bold'}}>❌ Terminated</span> : <span style={{color:'#27ae60'}}>Active</span>}
+                        {emp.terminated ? <span style={{color:'#c0392b',fontWeight:'bold'}}>❌ Terminated</span> : emp.totalPoints >= 3 ? <span style={{color:'#e67e22',fontWeight:'bold'}}>⚠️ Review Required</span> : <span style={{color:'#27ae60'}}>Active</span>}
                       </td>
                       <td style={{border:'1px solid #ddd',padding:8,textAlign:'center'}}>
                         <button type="button" className="btn" style={{fontSize:11,padding:'4px 8px'}} onClick={() => handleDeleteEmployee(emp._id)}>Remove</button>
@@ -245,8 +244,8 @@ function EmployeeDiscipline() {
             <label>Select Employee from Roster
               <select value={selectedEmpId} onChange={e => handleSelectEmployee(e.target.value)} style={{width:'100%',padding:8}}>
                 <option value="">-- Select Employee --</option>
-                {employees.filter(e => !e.terminated).map(emp => (
-                  <option key={emp._id} value={emp._id}>{emp.name} — {emp.totalPoints.toFixed(2)} pts{emp.position ? ` (${emp.position})` : ''}</option>
+                {employees.map(emp => (
+                  <option key={emp._id} value={emp._id}>{emp.name} — {emp.totalPoints.toFixed(2)} pts{emp.position ? ` (${emp.position})` : ''}{emp.totalPoints >= 3 ? ' ⚠️' : ''}</option>
                 ))}
               </select>
             </label>
@@ -315,9 +314,9 @@ function EmployeeDiscipline() {
             {selectedEmpId && (
               <div style={{marginTop:10}}>
                 <p>Previous: <strong>{selectedEmpPoints.toFixed(2)}</strong> + Adding: <strong>{pointsNum.toFixed(2)}</strong> = New Total: <strong style={{color: willTerminate ? '#c0392b' : '#1e3a8a',fontSize:18}}>{projectedTotal.toFixed(2)} / 3.00</strong></p>
-                {willTerminate && (
-                  <div style={{background:'#f8d7da',border:'1px solid #f5c6cb',borderRadius:6,padding:10,marginTop:8,color:'#721c24',fontWeight:'bold',textAlign:'center'}}>
-                    ⚠️ WARNING: This will bring the employee to {projectedTotal.toFixed(2)} points — TERMINATION
+                {willRequireReview && (
+                  <div style={{background:'#fff3cd',border:'1px solid #ffc107',borderRadius:6,padding:10,marginTop:8,color:'#856404',fontWeight:'bold',textAlign:'center'}}>
+                    ⚠️ WARNING: This will bring the employee to {projectedTotal.toFixed(2)} points — Carson & Rowel to review for possible termination
                   </div>
                 )}
               </div>
@@ -327,8 +326,8 @@ function EmployeeDiscipline() {
 
 
 </div>
-          <button className="btn workorder-btn" type="submit" disabled={selectedEmpTerminated || submitting}>
-            {submitting ? 'Submitting...' : selectedEmpTerminated ? 'Employee Already Terminated' : 'Submit Disciplinary Action'}
+          <button className="btn workorder-btn" type="submit" disabled={submitting}>
+            {submitting ? 'Submitting...' : 'Submit Disciplinary Action'}
           </button>
           {successMsg && <div style={{background:'#d4edda',color:'#155724',border:'1px solid #c3e6cb',borderRadius:6,padding:12,marginTop:12,textAlign:'center',fontWeight:'bold'}}>{successMsg}</div>}
           </div>
