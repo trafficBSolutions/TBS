@@ -1893,7 +1893,7 @@ selected={
           <button className="btn" style={{padding:'6px 14px',fontSize:'12px'}} onClick={async () => {
             if (!addLineEmp || !addLineDate || !addLineIn || !addLineOut) { setAddLineMsg('All fields required'); return; }
             try {
-              const res = await axios.post('/timeclock/add-punch', { employeeId: addLineEmp, date: addLineDate, clockIn: addLineIn, clockOut: addLineOut, purpose: addLinePurpose });
+              const res = await axios.post('/timeclock/add-punch', { employeeId: addLineEmp, date: addLineDate, clockIn: addLineIn, clockOut: addLineOut, purpose: addLinePurpose, tzOffset: new Date().getTimezoneOffset() });
               setAddLineMsg(res.data.message);
               setAddLineIn(''); setAddLineOut('');
               // Refresh hours
