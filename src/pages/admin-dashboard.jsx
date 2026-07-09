@@ -60,6 +60,7 @@ const [editingShopInvoice, setEditingShopInvoice] = useState(null);
 const [editShopInv, setEditShopInv] = useState({ payMethod: '', cardType: '', cardLast4: '', checkNumber: '', notes: '', taxExemptNumber: '' });
 const [invFilter, setInvFilter] = useState({ search: '', month: '', status: '' });
 const [printCostInvoice, setPrintCostInvoice] = useState(null);
+const [invoicePageIndex, setInvoicePageIndex] = useState(0);
 const [printCostLogDate, setPrintCostLogDate] = useState(new Date());
 const [printCostLogs, setPrintCostLogs] = useState([]);
 const [printCostLogMonthly, setPrintCostLogMonthly] = useState({});
@@ -2361,8 +2362,8 @@ selected={
       {showInvoiceStats && (
         <div style={{marginTop:'1rem'}}>
           <div style={{display:'flex',gap:'8px',flexWrap:'wrap',marginBottom:'1rem',padding:'10px',background:'#f8f9fa',borderRadius:'8px',border:'1px solid #dee2e6'}}>
-            <input type="text" placeholder="Search invoice #, customer, company..." value={invFilter.search} onChange={(e) => setInvFilter({...invFilter, search: e.target.value})} style={{padding:'6px 10px',borderRadius:'6px',border:'1px solid #ccc',flex:'1',minWidth:'180px'}} />
-            <select value={invFilter.month} onChange={(e) => setInvFilter({...invFilter, month: e.target.value})} style={{padding:'6px 10px',borderRadius:'6px',border:'1px solid #ccc'}}>
+            <input type="text" placeholder="Search invoice #, customer, company..." value={invFilter.search} onChange={(e) => { setInvFilter({...invFilter, search: e.target.value}); setInvoicePageIndex(0); }} style={{padding:'6px 10px',borderRadius:'6px',border:'1px solid #ccc',flex:'1',minWidth:'180px'}} />
+            <select value={invFilter.month} onChange={(e) => { setInvFilter({...invFilter, month: e.target.value}); setInvoicePageIndex(0); }} style={{padding:'6px 10px',borderRadius:'6px',border:'1px solid #ccc'}}>
               <option value="">All Months</option>
               <option value="Jan">January</option>
               <option value="Feb">February</option>
@@ -2377,13 +2378,13 @@ selected={
               <option value="Nov">November</option>
               <option value="Dec">December</option>
             </select>
-            <select value={invFilter.status} onChange={(e) => setInvFilter({...invFilter, status: e.target.value})} style={{padding:'6px 10px',borderRadius:'6px',border:'1px solid #ccc'}}>
+            <select value={invFilter.status} onChange={(e) => { setInvFilter({...invFilter, status: e.target.value}); setInvoicePageIndex(0); }} style={{padding:'6px 10px',borderRadius:'6px',border:'1px solid #ccc'}}>
               <option value="">All Status</option>
               <option value="paid">Paid</option>
               <option value="unpaid">Unpaid</option>
             </select>
             {(invFilter.search || invFilter.month || invFilter.status) && (
-              <button style={{padding:'6px 12px',background:'#888',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer',fontSize:'12px'}} onClick={() => setInvFilter({search:'',month:'',status:''})}>Clear Filters</button>
+              <button style={{padding:'6px 12px',background:'#888',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer',fontSize:'12px'}} onClick={() => { setInvFilter({search:'',month:'',status:''}); setInvoicePageIndex(0); }}>Clear Filters</button>
             )}
           </div>
           {(() => {
@@ -2406,11 +2407,29 @@ selected={
             return (
               <>
                 <p style={{fontWeight:'bold',fontSize:'1.1rem',marginBottom:'0.5rem'}}>Showing {filtered.length} of {invoiceStats.total} invoices</p>
-                {sortedMonths.map(month => (
+                <div style={{background:'#e8f5e9',border:'1px solid #a5d6a7',borderRadius:'8px',padding:'12px',marginBottom:'1rem'}}>
+                  <h5 style={{margin:'0 0 8px',color:'#2e7d32'}}>📊 Sales Tax Collected Per Month</h5>
+                  <div style={{display:'flex',gap:'10px',flexWrap:'wrap'}}>
+                    {sortedMonths.map(mo => {
+                      const moTax = grouped[mo].reduce((sum, inv) => sum + (inv.computed?.taxDue || 0), 0);
+                      return <div key={mo} style={{background:'#fff',borderRadius:'6px',padding:'6px 12px',border:'1px solid #c8e6c9',fontSize:'0.85rem'}}><strong>{mo}:</strong> ${moTax.toFixed(2)}</div>;
+                    })}
+                  </div>
+                  <p style={{margin:'8px 0 0',fontWeight:'bold',color:'#1b5e20'}}>Total Tax: ${filtered.reduce((s, inv) => s + (inv.computed?.taxDue || 0), 0).toFixed(2)}</p>
+                </div>
+                {sortedMonths.map(month => {
+                  const monthInvoices = grouped[month];
+                  const paged = monthInvoices.slice(invoicePageIndex, invoicePageIndex + 2);
+                  return (
                   <div key={month} style={{marginBottom:'1.5rem'}}>
-                    <h4 style={{margin:'0.5rem 0',color:'#1e3a8a',borderBottom:'2px solid #1e3a8a',paddingBottom:'4px'}}>{month} — {grouped[month].length} invoice{grouped[month].length !== 1 ? 's' : ''}</h4>
+                    <h4 style={{margin:'0.5rem 0',color:'#1e3a8a',borderBottom:'2px solid #1e3a8a',paddingBottom:'4px'}}>{month} — {monthInvoices.length} invoice{monthInvoices.length !== 1 ? 's' : ''}</h4>
+                    <div className="admin-applicant-controls" style={{marginBottom:'0.5rem'}}>
+                      <button className="btn" onClick={() => setInvoicePageIndex(prev => Math.max(prev - 2, 0))} disabled={invoicePageIndex === 0}>◀</button>
+                      <span style={{fontSize:'0.85rem',color:'#555'}}>Showing {invoicePageIndex + 1}–{Math.min(invoicePageIndex + 2, monthInvoices.length)} of {monthInvoices.length}</span>
+                      <button className="btn" onClick={() => setInvoicePageIndex(prev => Math.min(prev + 2, monthInvoices.length - 1))} disabled={invoicePageIndex + 2 >= monthInvoices.length}>▶</button>
+                    </div>
                     <div className="job-info-list">
-                {grouped[month].map((q, idx) => (
+                {paged.map((q, idx) => (
                   <div key={q._id || idx} className="job-card">
                     {(!q.cardLast4 && !q.checkNumber) && (
                       <div style={{background:'#fff3cd',border:'1px solid #ffc107',borderRadius:'6px',padding:'10px',marginBottom:'10px'}}>
@@ -2682,7 +2701,8 @@ selected={
                 ))}
               </div>
             </div>
-          ))}
+          );
+          })}
           {filtered.length === 0 && <p>No invoices match your filters.</p>}
               </>
             );
