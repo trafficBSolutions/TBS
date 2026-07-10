@@ -4,8 +4,9 @@ import Footer from '../components/Footer'
 import images from '../utils/tbsImages';
 import '../css/employee.css';
 import '../css/kiosk.css';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import SignatureCanvas from 'react-signature-canvas';
 
 const EmployeeDashboard = () => {
   const navigate = useNavigate();
@@ -32,6 +33,11 @@ const EmployeeDashboard = () => {
   const [clockPurpose, setClockPurpose] = useState('');
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [pendingCount, setPendingCount] = useState(() => JSON.parse(localStorage.getItem('tbs_punch_queue') || '[]').length);
+  const [showHandbook, setShowHandbook] = useState(false);
+  const [handbookPersonName, setHandbookPersonName] = useState('');
+  const [handbookScrolled, setHandbookScrolled] = useState(false);
+  const sigCanvasRef = useRef(null);
+  const handbookContentRef = useRef(null);
 
   const getPunchQueue = () => JSON.parse(localStorage.getItem('tbs_punch_queue') || '[]');
   const savePunchQueue = (queue) => { localStorage.setItem('tbs_punch_queue', JSON.stringify(queue)); setPendingCount(queue.length); };
@@ -155,6 +161,11 @@ const EmployeeDashboard = () => {
         setStoredPin(pin);
         setCurrentDisciplineIndex(0);
         setShowDisciplineModal(true);
+        setClockMsg('');
+      } else if (data?.action === 'handbook_required') {
+        setHandbookPersonName(data.personName);
+        setShowHandbook(true);
+        setHandbookScrolled(false);
         setClockMsg('');
       } else {
         setClockMsg(data?.message || 'Failed to punch. Try again.');
@@ -373,6 +384,82 @@ const EmployeeDashboard = () => {
             </div>
           )}
         </div>
+
+        {/* Handbook Review Modal */}
+        {showHandbook && (
+          <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.85)',zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center',padding:'1rem'}}>
+            <div style={{background:'#fff',borderRadius:'12px',maxWidth:'700px',width:'100%',maxHeight:'90vh',display:'flex',flexDirection:'column',padding:'1.5rem'}}>
+              <h2 style={{margin:'0 0 0.5rem',color:'#333'}}>📋 Employee Handbook Review</h2>
+              <p style={{margin:'0 0 0.5rem',color:'#666'}}>{handbookPersonName}, you must read and sign the Employee Handbook before clocking out.</p>
+              <div
+                ref={handbookContentRef}
+                onScroll={(e) => {
+                  const { scrollTop, scrollHeight, clientHeight } = e.target;
+                  if (scrollTop + clientHeight >= scrollHeight - 50) setHandbookScrolled(true);
+                }}
+                style={{flex:1,overflow:'auto',border:'1px solid #ddd',borderRadius:'8px',padding:'1rem',marginBottom:'1rem',fontSize:'0.85rem',lineHeight:1.6,maxHeight:'40vh'}}
+              >
+                <h3>Employee Handbook - Traffic & Barrier Solutions, LLC</h3>
+                <p><b>Effective Date:</b> 01/07/26</p>
+                <h4>1. Welcome & Company Overview</h4>
+                <p>Welcome to Traffic & Barrier Solutions, LLC. This handbook outlines general company policies and expectations. It is not an employment contract.</p>
+                <h4>2. Employment Policies</h4>
+                <p>Employment is at-will. Hiring requires background checks, drug testing, valid driver's license, and required certifications.</p>
+                <h4>3. Work Hours, Attendance & Conduct</h4>
+                <p>Schedules vary by project. Overtime at 1.5x for hours over 40/week. Monitor GroupMe for schedules. Notify supervisor 1 hour before shift if unable to work.</p>
+                <h4>4. Safety & Traffic Control Operations</h4>
+                <p>Safety is our highest priority. Required PPE: safety vest, TBS shirt, hard hat, boots, long pants. Drug/alcohol-free workplace. Report all incidents within 24 hours.</p>
+                <h4>5. Compensation & Benefits</h4>
+                <p>Paid weekly. Approved job-related expenses reimbursed with documentation.</p>
+                <h4>6. Discipline & Separation</h4>
+                <p>Policy violations may result in disciplinary action up to termination. Provide 2 weeks notice. Return all company property.</p>
+                <h4>7. Acknowledgment</h4>
+                <p>I acknowledge receipt of the Employee Handbook and understand that employment is at-will and that I am responsible for following company policies.</p>
+                <p style={{marginTop:'1rem',padding:'0.75rem',background:'#fff3cd',borderRadius:'6px',fontWeight:'bold'}}>⬇️ Scroll to the bottom to enable signing.</p>
+              </div>
+              {!handbookScrolled && <p style={{color:'#e67e22',fontWeight:'bold',textAlign:'center'}}>⬇️ Please scroll through the entire handbook to sign</p>}
+              {handbookScrolled && (
+                <div>
+                  <p style={{fontWeight:'bold',marginBottom:'0.5rem'}}>Sign below to acknowledge:</p>
+                  <div style={{border:'2px solid #ccc',borderRadius:'8px',background:'#fafafa'}}>
+                    <SignatureCanvas
+                      ref={sigCanvasRef}
+                      canvasProps={{width:600,height:150,style:{width:'100%',height:'150px'}}}
+                    />
+                  </div>
+                  <div style={{display:'flex',gap:'0.5rem',marginTop:'0.75rem'}}>
+                    <button onClick={() => sigCanvasRef.current?.clear()} style={{padding:'0.5rem 1rem',borderRadius:'6px',border:'1px solid #ccc',cursor:'pointer'}}>Clear</button>
+                    <button
+                      onClick={async () => {
+                        if (!sigCanvasRef.current || sigCanvasRef.current.isEmpty()) { setClockMsg('Please provide your signature'); return; }
+                        setClockLoading(true);
+                        try {
+                          const signature = sigCanvasRef.current.toDataURL();
+                          await axios.post('/timeclock/acknowledge-handbook', { pin, signature });
+                          setShowHandbook(false);
+                          setClockMsg('✅ Handbook signed! Now clocking you out...');
+                          const res = await axios.post('/timeclock/punch', { pin });
+                          setClockMsg(res.data.message);
+                          setPin(''); setClockPurpose('');
+                          fetchClockedIn();
+                          setTimeout(() => { setSelectedEmployee(null); setClockMsg(''); }, 3000);
+                        } catch (err) {
+                          setClockMsg(err.response?.data?.message || 'Error signing handbook. Try again.');
+                        } finally { setClockLoading(false); }
+                      }}
+                      disabled={clockLoading}
+                      style={{padding:'0.5rem 1.5rem',borderRadius:'6px',background:'#4CAF50',color:'#fff',border:'none',cursor:'pointer',fontWeight:'bold'}}
+                    >
+                      {clockLoading ? 'Submitting...' : 'Sign & Clock Out'}
+                    </button>
+                    <button onClick={() => { setShowHandbook(false); setClockMsg(''); }} style={{padding:'0.5rem 1rem',borderRadius:'6px',border:'1px solid #ccc',cursor:'pointer'}}>Cancel</button>
+                  </div>
+                </div>
+              )}
+              {clockMsg && <p style={{color:'red',marginTop:'0.5rem'}}>{clockMsg}</p>}
+            </div>
+          </div>
+        )}
 
         {/* Discipline Acknowledgment Modal */}
         {showDisciplineModal && pendingDisciplines.length > 0 && (
