@@ -7,6 +7,7 @@ import '../css/kiosk.css';
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import SignatureCanvas from 'react-signature-canvas';
+import HandbookContent from '../components/HandbookContent';
 
 const EmployeeDashboard = () => {
   const navigate = useNavigate();
@@ -399,23 +400,7 @@ const EmployeeDashboard = () => {
                 }}
                 style={{flex:1,overflow:'auto',border:'1px solid #ddd',borderRadius:'8px',padding:'1rem',marginBottom:'1rem',fontSize:'0.85rem',lineHeight:1.6,maxHeight:'40vh'}}
               >
-                <h3>Employee Handbook - Traffic & Barrier Solutions, LLC</h3>
-                <p><b>Effective Date:</b> 01/07/26</p>
-                <h4>1. Welcome & Company Overview</h4>
-                <p>Welcome to Traffic & Barrier Solutions, LLC. This handbook outlines general company policies and expectations. It is not an employment contract.</p>
-                <h4>2. Employment Policies</h4>
-                <p>Employment is at-will. Hiring requires background checks, drug testing, valid driver's license, and required certifications.</p>
-                <h4>3. Work Hours, Attendance & Conduct</h4>
-                <p>Schedules vary by project. Overtime at 1.5x for hours over 40/week. Monitor GroupMe for schedules. Notify supervisor 1 hour before shift if unable to work.</p>
-                <h4>4. Safety & Traffic Control Operations</h4>
-                <p>Safety is our highest priority. Required PPE: safety vest, TBS shirt, hard hat, boots, long pants. Drug/alcohol-free workplace. Report all incidents within 24 hours.</p>
-                <h4>5. Compensation & Benefits</h4>
-                <p>Paid weekly. Approved job-related expenses reimbursed with documentation.</p>
-                <h4>6. Discipline & Separation</h4>
-                <p>Policy violations may result in disciplinary action up to termination. Provide 2 weeks notice. Return all company property.</p>
-                <h4>7. Acknowledgment</h4>
-                <p>I acknowledge receipt of the Employee Handbook and understand that employment is at-will and that I am responsible for following company policies.</p>
-                <p style={{marginTop:'1rem',padding:'0.75rem',background:'#fff3cd',borderRadius:'6px',fontWeight:'bold'}}>⬇️ Scroll to the bottom to enable signing.</p>
+                <HandbookContent />
               </div>
               {!handbookScrolled && <p style={{color:'#e67e22',fontWeight:'bold',textAlign:'center'}}>⬇️ Please scroll through the entire handbook to sign</p>}
               {handbookScrolled && (
