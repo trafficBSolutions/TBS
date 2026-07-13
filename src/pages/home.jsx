@@ -19,13 +19,45 @@ export default function Home() {
         <img src={images['../assets/tbs_companies/TBS New logo White.svg'].default} alt="Material WorX Logo" />
     </div>
         </div>
-        <section className="section-hero">
-          <div className="hero">
-            <div className="hero-text-box">
-              <h1 className="heading-primary">
-                TRAFFIC & BARRIER SOLUTIONS, LLC
-              </h1>
+        <section className="section-storm-home">
+          <video className="storm-home-bg-video" autoPlay loop muted playsInline>
+            <source src={images['../assets/videos/hydrovac.MOV'].default} type="video/mp4"></source>
+          </video>
+          <div className="storm-home-fade storm-home-fade--top"></div>
+          <div className="storm-home-fade storm-home-fade--bottom"></div>
+          <div className="storm-home-container">
+            <h1 className="storm-home-title">Storm Services, Restoration & Hydrovac Work</h1>
+            <p className="storm-home-text">TBS provides emergency storm response, restoration work, and hydrovac services to keep communities safe and infrastructure intact.</p>
+            <div className="storm-home-services">
+              <div className="storm-home-card">
+                <h3 className="storm-home-card-title">⚡ Storm Services</h3>
+                <ul className="storm-home-list">
+                  <li>Emergency traffic control during storms</li>
+                  <li>Downed tree & debris traffic management</li>
+                  <li>Power line hazard zone control</li>
+                  <li>Road closure & detour setup</li>
+                </ul>
+              </div>
+              <div className="storm-home-card">
+                <h3 className="storm-home-card-title">🔧 Restoration Work</h3>
+                <ul className="storm-home-list">
+                  <li>Post-storm road restoration support</li>
+                  <li>Utility restoration traffic control</li>
+                  <li>Infrastructure repair zone management</li>
+                  <li>Long-term project traffic planning</li>
+                </ul>
+              </div>
+              <div className="storm-home-card">
+                <h3 className="storm-home-card-title">🚿 Hydrovac Work</h3>
+                <ul className="storm-home-list">
+                  <li>Traffic control for hydrovac excavation</li>
+                  <li>Utility locate & potholing support</li>
+                  <li>Underground utility exposure zones</li>
+                  <li>Multi-site daily traffic management</li>
+                </ul>
+              </div>
             </div>
+            <a href="/trafficcontrol" className="schedule-btn storm-home-btn">Request Storm/Hydrovac Services</a>
           </div>
         </section>
         <section className="section-featured">
@@ -135,42 +167,7 @@ export default function Home() {
             <a href="/bollardswheels" className="schedule-btn bollard-home-btn">Request Installation</a>
           </div>
         </section>
-        <section className="section-storm-home">
-          <div className="storm-home-container">
-            <h1 className="storm-home-title">Storm Services, Restoration & Hydrovac Work</h1>
-            <p className="storm-home-text">TBS provides emergency storm response, restoration work, and hydrovac services to keep communities safe and infrastructure intact.</p>
-            <div className="storm-home-services">
-              <div className="storm-home-card">
-                <h3 className="storm-home-card-title">⚡ Storm Services</h3>
-                <ul className="storm-home-list">
-                  <li>Emergency traffic control during storms</li>
-                  <li>Downed tree & debris traffic management</li>
-                  <li>Power line hazard zone control</li>
-                  <li>Road closure & detour setup</li>
-                </ul>
-              </div>
-              <div className="storm-home-card">
-                <h3 className="storm-home-card-title">🔧 Restoration Work</h3>
-                <ul className="storm-home-list">
-                  <li>Post-storm road restoration support</li>
-                  <li>Utility restoration traffic control</li>
-                  <li>Infrastructure repair zone management</li>
-                  <li>Long-term project traffic planning</li>
-                </ul>
-              </div>
-              <div className="storm-home-card">
-                <h3 className="storm-home-card-title">🚿 Hydrovac Work</h3>
-                <ul className="storm-home-list">
-                  <li>Traffic control for hydrovac excavation</li>
-                  <li>Utility locate & potholing support</li>
-                  <li>Underground utility exposure zones</li>
-                  <li>Multi-site daily traffic management</li>
-                </ul>
-              </div>
-            </div>
-            <a href="/trafficcontrol" className="schedule-btn storm-home-btn">Request Storm/Hydrovac Services</a>
-          </div>
-        </section>
+        
         <section className="now-hiring">
           <div className="now-hiring-container">
             <h1 className="now-hiring-title">APPLY NOW</h1>
