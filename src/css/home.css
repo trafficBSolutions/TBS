@@ -1542,6 +1542,20 @@ body {
   .bollard-home-svg { width: 90px; }
 }
 
+
+.banner-storm-row {
+  display: flex;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+.banner-storm-row .page-banner {
+  flex: 1;
+  padding: 100px 0;
+}
+.banner-storm-row .section-storm-home {
+  flex: 1;
+}
 /* Storm Services & Hydrovac Home Section */
 .section-storm-home {
   position: relative;
@@ -1629,6 +1643,10 @@ body {
 }
 .storm-home-btn {
   margin-top: 1rem;
+}
+@media screen and (max-width: 640px) {
+  .banner-storm-row { display: block; }
+  .banner-storm-row .page-banner { padding: 100px 0; }
 }
 @media screen and (max-width: 640px) {
   .storm-home-title { font-size: 2.2rem; }
