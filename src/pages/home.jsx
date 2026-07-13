@@ -16,7 +16,7 @@ export default function Home() {
             <source src={images["../assets/videos/TBS Roadblock Video.mp4"].default} type="video/mp4"></source>
           </video>
           <div className="tbs-container">
-        <img src={images['../assets/tbs_companies/tbs white.svg'].default} alt="Material WorX Logo" />
+        <img src={images['../assets/tbs_companies/TBS New logo White.svg'].default} alt="Material WorX Logo" />
     </div>
         </div>
         <section className="section-hero">
