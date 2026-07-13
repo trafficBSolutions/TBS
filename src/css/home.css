@@ -1543,17 +1543,17 @@ body {
 }
 
 
-.banner-storm-row {
+.storm-bollard-row {
   display: flex;
   width: 100%;
   margin: 0;
   padding: 0;
 }
-.banner-storm-row .page-banner {
+.storm-bollard-row .section-storm-home {
   flex: 1;
   padding: 100px 0;
 }
-.banner-storm-row .section-storm-home {
+.storm-bollard-row .section-bollard-home {
   flex: 1;
 }
 /* Storm Services & Hydrovac Home Section */
@@ -1645,8 +1645,8 @@ body {
   margin-top: 1rem;
 }
 @media screen and (max-width: 640px) {
-  .banner-storm-row { display: block; }
-  .banner-storm-row .page-banner { padding: 100px 0; }
+  .storm-bollard-row { display: block; }
+
 }
 @media screen and (max-width: 640px) {
   .storm-home-title { font-size: 2.2rem; }
