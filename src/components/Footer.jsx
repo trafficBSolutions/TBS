@@ -6,7 +6,7 @@ function Footer() {
     <>
       <footer className="footer">
         <div className="site-footer__inner">
-          <img className="tbs-logo" alt="TBS logo" src={images["../assets/tbs_companies/tbs white.svg"].default} />
+          <img className="tbs-logo" alt="TBS logo" src={images["../assets/tbs_companies/TBS New logo White.svg"].default} />
           <div className="footer-navigation-content">
             <h2 className="footer-title">Navigation</h2>
             <ul className="footer-navigate">
