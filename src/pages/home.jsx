@@ -11,6 +11,7 @@ export default function Home() {
       <div>
       <Header activePage="/" />
           <main>
+          <div className="banner-storm-row">
           <div className="page-banner">
           <video className="page-banner__bg-vid-dash" autoPlay loop muted playsInline>
             <source src={images["../assets/videos/TBS Roadblock Video.mp4"].default} type="video/mp4"></source>
@@ -60,6 +61,7 @@ export default function Home() {
             <a href="/trafficcontrol" className="schedule-btn storm-home-btn">Request Storm/Hydrovac Services</a>
           </div>
         </section>
+        </div>
         <section className="section-featured">
           <div className="map-contain-home">
             <h1 className="schedule-title">Need to Schedule a Job?</h1>
