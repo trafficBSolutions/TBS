@@ -1610,17 +1610,16 @@ body {
   margin-bottom: 2rem;
 }
 .storm-home-services {
-  display: flex;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 20px;
-  flex-wrap: wrap;
   margin-bottom: 2rem;
 }
 .storm-home-card {
   background: rgba(255,255,255,0.08);
   border-radius: 12px;
   padding: 20px;
-  width: 300px;
+  width: 100%;
   text-align: left;
 }
 .storm-home-card-title {
@@ -1651,5 +1650,6 @@ body {
 @media screen and (max-width: 640px) {
   .storm-home-title { font-size: 2.2rem; }
   .storm-home-text { font-size: 1.3rem; }
+  .storm-home-services { grid-template-columns: 1fr; }
   .storm-home-card { width: 100%; }
 }
