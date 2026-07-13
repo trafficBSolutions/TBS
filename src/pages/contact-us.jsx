@@ -109,7 +109,7 @@ const Contact = () => {
             <source src={images["../assets/videos/TBS Roadblock Video.mp4"].default} type="video/mp4"></source>
           </video>
     <div className="tbs-container">
-        <img src={images['../assets/tbs_companies/tbs white.svg'].default} alt="Material WorX Logo" />
+        <img src={images['../assets/tbs_companies/TBS New logo White.svg'].default} alt="Material WorX Logo" />
     </div>
 </div>
     <h1 className="contact-material">Contact Traffic & Barrier Solutions, LLC</h1>
@@ -273,6 +273,13 @@ onChange={handlePhoneChange}
 <MapComponent/>
 </div>
 <div className="contact-alternative">
+  <div className="phone-number-contacting">
+    <img
+      src={images["../assets/service image buttons/phone-call.svg"].default}
+      className="phone-img-contact"
+      alt="Phone icon"
+    />
+  </div>
   <div className="email-contacting">
     <img
       src={images["../assets/service image buttons/email.svg"].default}
