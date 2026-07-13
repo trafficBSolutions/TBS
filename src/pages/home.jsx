@@ -11,7 +11,6 @@ export default function Home() {
       <div>
       <Header activePage="/" />
           <main>
-          <div className="banner-storm-row">
           <div className="page-banner">
           <video className="page-banner__bg-vid-dash" autoPlay loop muted playsInline>
             <source src={images["../assets/videos/TBS Roadblock Video.mp4"].default} type="video/mp4"></source>
@@ -20,6 +19,7 @@ export default function Home() {
         <img src={images['../assets/tbs_companies/TBS New logo White.svg'].default} alt="Material WorX Logo" />
     </div>
         </div>
+        <div className="storm-bollard-row">
         <section className="section-storm-home">
           <video className="storm-home-bg-video" autoPlay loop muted playsInline>
             <source src={images['../assets/videos/hydrovac2.MOV'].default} type="video/mp4"></source>
@@ -61,7 +61,6 @@ export default function Home() {
             <a href="/trafficcontrol" className="schedule-btn storm-home-btn">Request Storm/Hydrovac Services</a>
           </div>
         </section>
-        </div>
         <section className="section-featured">
           <div className="map-contain-home">
             <h1 className="schedule-title">Need to Schedule a Job?</h1>
@@ -169,6 +168,7 @@ export default function Home() {
             <a href="/bollardswheels" className="schedule-btn bollard-home-btn">Request Installation</a>
           </div>
         </section>
+        </div>
         
         <section className="now-hiring">
           <div className="now-hiring-container">
