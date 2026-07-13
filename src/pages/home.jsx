@@ -21,7 +21,7 @@ export default function Home() {
         </div>
         <section className="section-storm-home">
           <video className="storm-home-bg-video" autoPlay loop muted playsInline>
-            <source src={images['../assets/videos/hydrovac.MOV'].default} type="video/mp4"></source>
+            <source src={images['../assets/videos/hydrovac2.MOV'].default} type="video/mp4"></source>
           </video>
           <div className="storm-home-fade storm-home-fade--top"></div>
           <div className="storm-home-fade storm-home-fade--bottom"></div>
