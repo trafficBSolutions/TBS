@@ -354,7 +354,7 @@ const clearOfficerSignature = () => {
   const PERMANENT_SUPERVISORS = [
     { id: 'carson-permanent', name: 'Carson Speer', position: 'Foreman' },
     { id: 'bryson-permanent', name: 'Bryson Davis', position: 'Foreman' },
-    { id: 'william-permanent', name: 'William Rowell', position: 'Foreman' },
+    { id: 'william-permanent', name: 'William Rowell', position: 'Driver' },
   ];
 
   const [overnightConfirmed, setOvernightConfirmed] = useState(false);
