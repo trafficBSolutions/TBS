@@ -20,6 +20,7 @@ import '../css/trafficcontrol.css';
 import { useNavigate } from 'react-router-dom';
 import SignatureCanvas from 'react-signature-canvas';
 const RATE = ["Excellent", "Good", "Fair", "Poor"];
+const SUPERVISORS = ["Carson", "Bryson", "William"];
 const TRUCKS = [
   'TBS Truck 1','TBS Truck 2','TBS Truck 3','TBS Truck 4','TBS Truck 5',
   'TBS Truck 6','TBS Truck 7','TBS Truck 8','TBS Truck 9','TBS Truck 10',
@@ -246,7 +247,8 @@ useEffect(() => {
         ...empRes.data.hourlyAdmins.map(a => ({ id: a._id, name: a.name, position: 'Foreman' }))
       ].filter(e => e.name);
       const result = allEmps.filter(e => validIds.has(e.id)).sort((a, b) => a.name.localeCompare(b.name));
-      setWoEmployeeList(result);
+      const merged = [...PERMANENT_SUPERVISORS.filter(s => !result.some(r => r.name === s.name)), ...result].sort((a, b) => a.name.localeCompare(b.name));
+      setWoEmployeeList(merged);
     } catch {
       try {
         const today = new Date();
@@ -277,7 +279,8 @@ useEffect(() => {
           ...empRes.data.hourlyAdmins.map(a => ({ id: a._id, name: a.name, position: 'Foreman' }))
         ].filter(e => e.name);
         const result = allEmps.filter(e => validIds.has(e.id)).sort((a, b) => a.name.localeCompare(b.name));
-        setWoEmployeeList(result);
+        const merged = [...PERMANENT_SUPERVISORS.filter(s => !result.some(r => r.name === s.name)), ...result].sort((a, b) => a.name.localeCompare(b.name));
+        setWoEmployeeList(merged);
       } catch { /* no-op */ }
     }
   };
@@ -311,6 +314,7 @@ const formatName = (name) => {
   const sigRef = useRef(null);
   const officerSigRef = useRef(null);
   const [policeOfficer, setPoliceOfficer] = useState({ used: false, name: '', signature: '' });
+  const [supervisors, setSupervisors] = useState([]);
 
 const officerSigCanvasProps = React.useMemo(
   () => ({
@@ -348,6 +352,12 @@ const clearOfficerSignature = () => {
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
   const [woEmployeeList, setWoEmployeeList] = useState([]);
+
+  const PERMANENT_SUPERVISORS = [
+    { id: 'carson-permanent', name: 'Carson Speer', position: 'Foreman' },
+    { id: 'bryson-permanent', name: 'Bryson Davis', position: 'Foreman' },
+    { id: 'william-permanent', name: 'William Rowell', position: 'Foreman' },
+  ];
 
   const [overnightConfirmed, setOvernightConfirmed] = useState(false);
   const [basic, setBasic] = useState({
@@ -696,6 +706,7 @@ const onSubmit = async (e) => {
   formData.append('mismatch', hasMismatch);
   formData.append('foremanSignature', foremanSig);
   formData.append('policeOfficer', JSON.stringify(policeOfficer));
+  formData.append('supervisors', JSON.stringify(supervisors));
   formData.append('jobAddresses', JSON.stringify(jobAddresses.filter(a => a.address.trim())));
 
   photos.forEach(photo => {
@@ -763,6 +774,7 @@ const onSubmit = async (e) => {
     sigRef.current?.clear();
     officerSigRef.current?.clear();
     setPoliceOfficer({ used: false, name: '', signature: '' });
+    setSupervisors([]);
     setJobAddresses([{ ...emptyAddress }]);
     setTbs({
       flagger1: '',
@@ -1338,6 +1350,24 @@ const isSubmitReady = useMemo(() => {
     </div>
   </div>
 </div>
+              <div className="supervisor-section" style={{ marginTop: '20px', padding: '15px', border: '1px solid #ddd', borderRadius: '8px', background: '#f9f9f9' }}>
+                <h4 style={{ marginTop: 0 }}>🚨 Emergency Supervisors</h4>
+                <p style={{ fontSize: '13px', color: '#555' }}>Select supervisors who need to respond to this emergency job.</p>
+                {SUPERVISORS.map(name => (
+                  <label key={name} style={{ display: 'block', margin: '6px 0' }}>
+                    <input
+                      type="checkbox"
+                      checked={supervisors.includes(name)}
+                      onChange={(e) => {
+                        setSupervisors(prev =>
+                          e.target.checked ? [...prev, name] : prev.filter(s => s !== name)
+                        );
+                      }}
+                    /> {name}
+                  </label>
+                ))}
+              </div>
+
               <div className="police-officer-section" style={{ marginTop: '20px', padding: '15px', border: '1px solid #ddd', borderRadius: '8px', background: '#f9f9f9' }}>
                 <h4 style={{ marginTop: 0 }}>🚔 Police Officer On Site</h4>
                 <p style={{ fontSize: '13px', color: '#555' }}>If a police officer was used at this job, check the box below and have the officer sign.</p>
