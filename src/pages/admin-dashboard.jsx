@@ -2411,11 +2411,11 @@ selected={
                   <h5 style={{margin:'0 0 8px',color:'#2e7d32'}}>📊 Sales Tax Collected Per Month</h5>
                   <div style={{display:'flex',gap:'10px',flexWrap:'wrap'}}>
                     {sortedMonths.map(mo => {
-                      const moTax = grouped[mo].reduce((sum, inv) => sum + (inv.computed?.taxDue || 0), 0);
+                      const moTax = grouped[mo].filter(inv => inv.cardLast4 || inv.checkNumber).reduce((sum, inv) => sum + (inv.computed?.taxDue || 0), 0);
                       return <div key={mo} style={{background:'#fff',borderRadius:'6px',padding:'6px 12px',border:'1px solid #c8e6c9',fontSize:'0.85rem'}}><strong>{mo}:</strong> ${moTax.toFixed(2)}</div>;
                     })}
                   </div>
-                  <p style={{margin:'8px 0 0',fontWeight:'bold',color:'#1b5e20'}}>Total Tax: ${filtered.reduce((s, inv) => s + (inv.computed?.taxDue || 0), 0).toFixed(2)}</p>
+                  <p style={{margin:'8px 0 0',fontWeight:'bold',color:'#1b5e20'}}>Total Tax: ${filtered.filter(inv => inv.cardLast4 || inv.checkNumber).reduce((s, inv) => s + (inv.computed?.taxDue || 0), 0).toFixed(2)}</p>
                 </div>
                 {sortedMonths.map(month => {
                   const monthInvoices = grouped[month];
