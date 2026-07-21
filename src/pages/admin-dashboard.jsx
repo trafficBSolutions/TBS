@@ -1836,7 +1836,7 @@ selected={
         try { const res = await axios.get(`/timeclock/time-worked?location=${encodeURIComponent(clockLocation)}&startDate=${satStr}&endDate=${friStr}`); setTimeWorked(res.data); } catch(e) {}
         }}>Open Time Clock</button>
       {viewMode === 'timeclock' && (
-  <>
+ <>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.5rem'}}>
         <h3 style={{margin:0}}>⏰ Employee Time Clock</h3>
         <div style={{display:'flex',gap:'0.5rem'}}>
@@ -2050,8 +2050,10 @@ selected={
                                     {r.purpose && <span style={{display:'block',marginTop:'2px',background:'#e3f2fd',color:'#1565c0',padding:'1px 6px',borderRadius:'3px',fontSize:'0.7rem',maxWidth:'fit-content',margin:'2px auto 0'}}>{r.purpose}{canEditHours && <button style={{marginLeft:'4px',padding:'0 3px',fontSize:'9px',background:'#1565c0',color:'#fff',border:'none',borderRadius:'2px',cursor:'pointer'}} onClick={async () => {
                                       const purposes = ['2 Man Crew','3 Man Crew','Arrow Board/Message Board Job','Emergency Job','Weekend Work','Shop Work','Standby','Drive Time'];
                                       const newPurpose = prompt('Select new purpose:\n\n' + purposes.map((p,idx2) => `${idx2+1}. ${p}`).join('\n') + '\n\nEnter number or type purpose:', r.purpose);
-                                      if (!newPurpose || newPurpose === r.purpose) return;
-                                      const final = purposes[parseInt(newPurpose) - 1] || newPurpose;
+                                      if (newPurpose === null || newPurpose === r.purpose) return;
+                                      const parsed = parseInt(newPurpose);
+                                      const final = (!isNaN(parsed) && parsed >= 1 && parsed <= purposes.length) ? purposes[parsed - 1] : newPurpose.trim();
+                                      if (!final) return;
                                       try {
                                         await axios.put(`/timeclock/edit-purpose/${r._id}`, { purpose: final });
                                         await refreshTimeWorked();
