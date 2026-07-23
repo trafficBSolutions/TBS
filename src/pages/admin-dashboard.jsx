@@ -1736,6 +1736,15 @@ selected={
     <button className="btn workorder-btn" onClick={() => navigate('/admin-dashboard/shop-work-order')}>Open Shop Work Order</button>
   </div>
 
+  {allowedForShopWo && (
+  <div className="tool-card">
+    <h3>📋 Shop WO Log</h3>
+    <p>View, approve, and manage shop work orders</p>
+    {pendingShopWos.length > 0 && <p style={{color:'#ff9800',fontWeight:'bold',margin:'4px 0'}}>⏳ {pendingShopWos.length} pending</p>}
+    <button className="btn workorder-btn" onClick={() => navigate('/admin-dashboard/shop-work-order-log')}>Open Log</button>
+  </div>
+  )}
+
   <div className="tool-card">
     <h3>🚧 TCP Designer</h3>
     <p>Design Traffic Control Plans</p>
@@ -3006,24 +3015,8 @@ selected={
 {allowedForShopWo && pendingShopWos.length > 0 && (
 <section className="admin-section" style={{marginTop:'2rem'}}>
   <h2 className="admin-plans-title">🛠️ Pending Shop Work Orders <span style={{color:'#ff9800'}}>({pendingShopWos.length})</span></h2>
-  <div className="job-info-list">
-    {pendingShopWos.map((wo) => (
-      <div key={wo._id} className="job-card">
-        <h4 className="job-company">{wo.employeeNames}</h4>
-        <p><strong>Date:</strong> {wo.date}</p>
-        <p><strong>Time:</strong> {wo.inTime} - {wo.outTime}</p>
-        <p><strong>Location:</strong> {wo.location}</p>
-        <p><strong>Truck:</strong> {wo.truckNumber || 'N/A'}</p>
-        <p><strong>Supervisor:</strong> {wo.supervisor}</p>
-        <p><strong>Description:</strong> {wo.description}</p>
-        <p><strong>Submitted:</strong> {new Date(wo.createdAt).toLocaleString()}</p>
-        <div style={{display:'flex',gap:'8px',marginTop:'10px'}}>
-          <button className="btn" style={{background:'#4CAF50',color:'#fff'}} onClick={() => handleShopWoApprove(wo._id)}>✅ Approve</button>
-          <button className="btn" style={{background:'#f44336',color:'#fff'}} onClick={() => handleShopWoDisapprove(wo._id)}>❌ Disapprove</button>
-        </div>
-      </div>
-    ))}
-  </div>
+  <p style={{color:'#555',marginBottom:'0.75rem'}}>Review and approve/disapprove shop work orders in the log.</p>
+  <button className="btn workorder-btn" onClick={() => navigate('/admin-dashboard/shop-work-order-log')}>📋 Open Shop Work Order Log</button>
 </section>
 )}
 
