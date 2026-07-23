@@ -33,4 +33,5 @@ import TCPDesigner from './tcp-designer'
 import ShopWorkOrder from './shop-work-order'
 import ShopWorkOrderStatus from './shop-work-order-status'
 import TimeClockKiosk from './time-clock-kiosk'
-export { TimeClockKiosk, LeaveRequest, AdminDashboard, ShopWorkOrderStatus, ShopWorkOrder, TCPDesigner, Quote, EmployeeHandbook, RescheduleJob, EmployeeDiscipline, ConfirmAdditionalFlagger, EmployeeLogin, EmployeeDashboard, EmployeeComplaintForm, Work, Invoice, CancelJob, About, Contact, Apply, Home, AdminLog, TrafficControl, TrafficPlan, BollardsWheels, Signs, Rentals, PPE, Error, TService, Product, ManageJob, TrafficControlTest, ManageJobTest, CancelJobTest };
+import ShopWorkOrderLog from './shop-work-order-log'
+export { ShopWorkOrderLog, TimeClockKiosk, LeaveRequest, AdminDashboard, ShopWorkOrderStatus, ShopWorkOrder, TCPDesigner, Quote, EmployeeHandbook, RescheduleJob, EmployeeDiscipline, ConfirmAdditionalFlagger, EmployeeLogin, EmployeeDashboard, EmployeeComplaintForm, Work, Invoice, CancelJob, About, Contact, Apply, Home, AdminLog, TrafficControl, TrafficPlan, BollardsWheels, Signs, Rentals, PPE, Error, TService, Product, ManageJob, TrafficControlTest, ManageJobTest, CancelJobTest };
