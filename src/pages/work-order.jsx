@@ -311,8 +311,9 @@ const formatName = (name) => {
 };
 
   const sigRef = useRef(null);
-  const officerSigRef = useRef(null);
-  const [policeOfficer, setPoliceOfficer] = useState({ used: false, name: '', signature: '' });
+  const officerSigRefs = useRef([]);
+  const [policeOfficersUsed, setPoliceOfficersUsed] = useState(false);
+  const [policeOfficers, setPoliceOfficers] = useState([{ name: '', signature: '' }]);
 
 const officerSigCanvasProps = React.useMemo(
   () => ({
@@ -324,11 +325,11 @@ const officerSigCanvasProps = React.useMemo(
   []
 );
 
-const handleOfficerSigEnd = () => {
-  const pad = officerSigRef.current;
+const handleOfficerSigEnd = (idx) => {
+  const pad = officerSigRefs.current[idx];
   if (!pad) return;
   if (typeof pad.isEmpty === 'function' && pad.isEmpty()) {
-    setPoliceOfficer(prev => ({ ...prev, signature: '' }));
+    setPoliceOfficers(prev => prev.map((o, i) => i === idx ? { ...o, signature: '' } : o));
     return;
   }
   let dataUrl;
@@ -339,12 +340,24 @@ const handleOfficerSigEnd = () => {
   } catch {
     dataUrl = pad.getCanvas().toDataURL('image/png');
   }
-  setPoliceOfficer(prev => ({ ...prev, signature: dataUrl.split(',')[1] }));
+  setPoliceOfficers(prev => prev.map((o, i) => i === idx ? { ...o, signature: dataUrl.split(',')[1] } : o));
 };
 
-const clearOfficerSignature = () => {
-  officerSigRef.current?.clear();
-  setPoliceOfficer(prev => ({ ...prev, signature: '' }));
+const clearOfficerSignature = (idx) => {
+  officerSigRefs.current[idx]?.clear();
+  setPoliceOfficers(prev => prev.map((o, i) => i === idx ? { ...o, signature: '' } : o));
+};
+
+const addOfficer = () => setPoliceOfficers(prev => [...prev, { name: '', signature: '' }]);
+const removeOfficer = (idx) => {
+  officerSigRefs.current.splice(idx, 1);
+  setPoliceOfficers(prev => prev.filter((_, i) => i !== idx));
+  setErrors(prev => {
+    const next = { ...prev };
+    delete next[`officerName_${idx}`];
+    delete next[`officerSignature_${idx}`];
+    return next;
+  });
 };
 
   const [loading, setLoading] = useState(true);
@@ -354,7 +367,7 @@ const clearOfficerSignature = () => {
   const PERMANENT_SUPERVISORS = [
     { id: 'carson-permanent', name: 'Carson Speer', position: 'Foreman' },
     { id: 'bryson-permanent', name: 'Bryson Davis', position: 'Foreman' },
-    { id: 'william-permanent', name: 'William Rowell', position: 'Driver' },
+    { id: 'william-permanent', name: 'William Rowell', position: 'Foreman' },
   ];
 
   const [overnightConfirmed, setOvernightConfirmed] = useState(false);
@@ -663,14 +676,14 @@ const onSubmit = async (e) => {
   setErrorMessage('');
 
   // Police officer validation
-  if (policeOfficer.used) {
-    if (!policeOfficer.name.trim()) {
-      setErrors(prev => ({ ...prev, officerName: 'Officer name is required' }));
-      setErrorMessage('Required fields are missing.');
-      return;
-    }
-    if (!policeOfficer.signature) {
-      setErrors(prev => ({ ...prev, officerSignature: 'Officer signature is required' }));
+  if (policeOfficersUsed) {
+    const officerErrs = {};
+    policeOfficers.forEach((o, idx) => {
+      if (!o.name.trim()) officerErrs[`officerName_${idx}`] = 'Officer name is required';
+      if (!o.signature) officerErrs[`officerSignature_${idx}`] = 'Officer signature is required';
+    });
+    if (Object.keys(officerErrs).length > 0) {
+      setErrors(prev => ({ ...prev, ...officerErrs }));
       setErrorMessage('Required fields are missing.');
       return;
     }
@@ -703,7 +716,7 @@ const onSubmit = async (e) => {
   formData.append('tbs', JSON.stringify(tbs));
   formData.append('mismatch', hasMismatch);
   formData.append('foremanSignature', foremanSig);
-  formData.append('policeOfficer', JSON.stringify(policeOfficer));
+  formData.append('policeOfficers', JSON.stringify(policeOfficersUsed ? policeOfficers : []));
   formData.append('jobAddresses', JSON.stringify(jobAddresses.filter(a => a.address.trim())));
 
   photos.forEach(photo => {
@@ -769,8 +782,10 @@ const onSubmit = async (e) => {
     setRequiresPhotos(false);
     setOvernightConfirmed(false);
     sigRef.current?.clear();
-    officerSigRef.current?.clear();
-    setPoliceOfficer({ used: false, name: '', signature: '' });
+    officerSigRefs.current.forEach(ref => ref?.clear());
+    officerSigRefs.current = [];
+    setPoliceOfficersUsed(false);
+    setPoliceOfficers([{ name: '', signature: '' }]);
     setJobAddresses([{ ...emptyAddress }]);
     setTbs({
       flagger1: '',
@@ -1347,65 +1362,75 @@ const isSubmitReady = useMemo(() => {
   </div>
 </div>
               <div className="police-officer-section" style={{ marginTop: '20px', padding: '15px', border: '1px solid #ddd', borderRadius: '8px', background: '#f9f9f9' }}>
-                <h4 style={{ marginTop: 0 }}>🚔 Police Officer On Site</h4>
-                <p style={{ fontSize: '13px', color: '#555' }}>If a police officer was used at this job, check the box below and have the officer sign.</p>
+                <h4 style={{ marginTop: 0 }}>🚔 Police Officer(s) On Site</h4>
+                <p style={{ fontSize: '13px', color: '#555' }}>If police officers were used at this job, check the box below and have each officer sign.</p>
                 <label>
                   <input
                     type="checkbox"
-                    checked={policeOfficer.used}
+                    checked={policeOfficersUsed}
                     onChange={(e) => {
                       const checked = e.target.checked;
-                      setPoliceOfficer(prev => ({
-                        ...prev,
-                        used: checked,
-                        ...(!checked ? { name: '', signature: '' } : {})
-                      }));
+                      setPoliceOfficersUsed(checked);
                       if (!checked) {
-                        officerSigRef.current?.clear();
-                        setErrors(prev => { const n = {...prev}; delete n.officerName; delete n.officerSignature; return n; });
+                        officerSigRefs.current.forEach(ref => ref?.clear());
+                        officerSigRefs.current = [];
+                        setPoliceOfficers([{ name: '', signature: '' }]);
+                        setErrors(prev => {
+                          const next = { ...prev };
+                          Object.keys(next).forEach(k => { if (k.startsWith('officerName') || k.startsWith('officerSignature')) delete next[k]; });
+                          return next;
+                        });
                       }
                     }}
-                  /> A police officer was present at this job
+                  /> Police officer(s) were present at this job
                 </label>
 
-                {policeOfficer.used && (
+                {policeOfficersUsed && (
                   <div style={{ marginTop: '15px' }}>
-                    <label>Officer Name *</label>
-                    <input
-                      type="text"
-                      placeholder="Officer First & Last Name"
-                      value={policeOfficer.name}
-                      onChange={(e) => {
-                        const val = formatName(e.target.value);
-                        setPoliceOfficer(prev => ({ ...prev, name: val }));
-                        if (val.trim()) setErrors(prev => ({ ...prev, officerName: '' }));
-                      }}
-                    />
-                    {errors.officerName && <div className="error-message">{errors.officerName}</div>}
+                    {policeOfficers.map((officer, idx) => (
+                      <div key={idx} style={{ marginBottom: '20px', padding: '12px', border: '1px solid #ccc', borderRadius: '8px', background: '#fff' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                          <strong>Officer #{idx + 1}</strong>
+                          {policeOfficers.length > 1 && (
+                            <button type="button" className="btn" style={{ padding: '3px 10px', fontSize: '12px', background: '#f44336', color: '#fff' }} onClick={() => removeOfficer(idx)}>Remove</button>
+                          )}
+                        </div>
+                        <label>Officer Name *</label>
+                        <input
+                          type="text"
+                          placeholder="Officer First & Last Name"
+                          value={officer.name}
+                          onChange={(e) => {
+                            const val = formatName(e.target.value);
+                            setPoliceOfficers(prev => prev.map((o, i) => i === idx ? { ...o, name: val } : o));
+                            if (val.trim()) setErrors(prev => { const n = {...prev}; delete n[`officerName_${idx}`]; return n; });
+                          }}
+                        />
+                        {errors[`officerName_${idx}`] && <div className="error-message">{errors[`officerName_${idx}`]}</div>}
 
-                    <label style={{ marginTop: '10px', display: 'block' }}>Officer Signature *</label>
-                    <p className="sign-here">Please have the officer sign below to confirm their presence.</p>
-                    <div className="sig-canvas-wrap">
-                      <SignatureCanvas
-                        ref={officerSigRef}
-                        penColor="#000"
-                        onEnd={handleOfficerSigEnd}
-                        canvasProps={officerSigCanvasProps}
-                      />
-                      <div className="sig-actions">
-                        <button type="button" className="btn sig-clear" onClick={clearOfficerSignature}>
-                          Clear Signature
-                        </button>
+                        <label style={{ marginTop: '10px', display: 'block' }}>Officer Signature *</label>
+                        <p className="sign-here">Please have the officer sign below to confirm their presence.</p>
+                        <div className="sig-canvas-wrap">
+                          <SignatureCanvas
+                            ref={el => officerSigRefs.current[idx] = el}
+                            penColor="#000"
+                            onEnd={() => handleOfficerSigEnd(idx)}
+                            canvasProps={officerSigCanvasProps}
+                          />
+                          <div className="sig-actions">
+                            <button type="button" className="btn sig-clear" onClick={() => clearOfficerSignature(idx)}>Clear Signature</button>
+                          </div>
+                        </div>
+                        {errors[`officerSignature_${idx}`] && <div className="error-message">{errors[`officerSignature_${idx}`]}</div>}
+                        {officer.signature && (
+                          <div className="sig-preview">
+                            <span>Captured:</span>
+                            <img alt="Officer signature preview" src={`data:image/png;base64,${officer.signature}`} />
+                          </div>
+                        )}
                       </div>
-                    </div>
-                    {errors.officerSignature && <div className="error-message">{errors.officerSignature}</div>}
-
-                    {policeOfficer.signature && (
-                      <div className="sig-preview">
-                        <span>Captured:</span>
-                        <img alt="Officer signature preview" src={`data:image/png;base64,${policeOfficer.signature}`} />
-                      </div>
-                    )}
+                    ))}
+                    <button type="button" className="btn" style={{ marginTop: '8px' }} onClick={addOfficer}>+ Add Another Officer</button>
                   </div>
                 )}
               </div>
