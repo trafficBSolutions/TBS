@@ -180,6 +180,25 @@ const [changePinValue, setChangePinValue] = useState('');
 const [adminPunchPurpose, setAdminPunchPurpose] = useState('');
 const [manualPurpose, setManualPurpose] = useState('');
 
+const refreshForLocation = async (loc) => {
+  axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {});
+  axios.get('/timeclock/employees?location=' + encodeURIComponent(loc)).then(r => setPinEmployees(r.data.employees)).catch(() => {});
+  const now = new Date();
+  const sat = new Date(now); sat.setDate(now.getDate() - ((now.getDay() + 1) % 7));
+  const satStr = `${sat.getFullYear()}-${String(sat.getMonth()+1).padStart(2,'0')}-${String(sat.getDate()).padStart(2,'0')}`;
+  const fri = new Date(sat); fri.setDate(sat.getDate() + 6);
+  const friStr = `${fri.getFullYear()}-${String(fri.getMonth()+1).padStart(2,'0')}-${String(fri.getDate()).padStart(2,'0')}`;
+  setTimeWorkedWeekStart(satStr);
+  try { const res = await axios.get(`/timeclock/time-worked?location=${encodeURIComponent(loc)}&startDate=${satStr}&endDate=${friStr}`); setTimeWorked(res.data); } catch(e) {}
+};
+
+const refreshTimeWorked = async () => {
+  const start = new Date(timeWorkedWeekStart + 'T00:00:00');
+  const end = new Date(start); end.setDate(start.getDate() + 6);
+  const endStr = `${end.getFullYear()}-${String(end.getMonth()+1).padStart(2,'0')}-${String(end.getDate()).padStart(2,'0')}`;
+  try { const res = await axios.get(`/timeclock/time-worked?location=${encodeURIComponent(clockLocation)}&startDate=${timeWorkedWeekStart}&endDate=${endStr}`); setTimeWorked(res.data); } catch(e) {}
+};
+
 
 
 
