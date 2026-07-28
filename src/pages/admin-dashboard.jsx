@@ -162,11 +162,11 @@ const [addLinePurpose, setAddLinePurpose] = useState('');
 const [addLineMsg, setAddLineMsg] = useState('');
 
 // Admins who can edit/add/delete hours
-const canEditHoursEmails = new Set(['tbsolutions9@gmail.com', 'tbsolutions4@gmail.com', 'tbsolutions1999@gmail.com', 'tbsolutions1995@gmail.com', 'materialworx2@gmail.com']);
+const canEditHoursEmails = new Set(['tbsolutions9@gmail.com', 'tbsolutions4@gmail.com', 'tbsolutions1999@gmail.com', 'tbsolutions1995@gmail.com', 'materialworx2@gmail.com', 'davissmithtbs@gmail.com']);
 const canEditHours = canEditHoursEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email);
 
 const [pinEmployees, setPinEmployees] = useState([]);
-const [clockLocation, setClockLocation] = useState('North GA');
+const [clockLocation, setClockLocation] = useState(JSON.parse(localStorage.getItem('adminUser') || '{}').email === 'davissmithtbs@gmail.com' ? 'South GA' : 'North GA');
 const [pinMsg, setPinMsg] = useState('');
 const [showPinManager, setShowPinManager] = useState(false);
 const [newEmpFirst, setNewEmpFirst] = useState('');
@@ -211,7 +211,8 @@ const salaryAdminEmails = new Set([
   'tbsolutions1999@gmail.com',
   'tbsolutions77@gmail.com',
   'tbsolutions14@gmail.com',
-  'materialworx2@gmail.com'
+  'materialworx2@gmail.com',
+  'davissmithtbs@gmail.com'
 ]);
 
 // Admins who get a personal time clock widget (clock in/out only, no admin view)
