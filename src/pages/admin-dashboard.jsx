@@ -107,6 +107,9 @@ const [allowedForEmpPassword, setAllowedForEmpPassword] = useState(false);
 const [bollardDate, setBollardDate] = useState(new Date());
 const [bollardList, setBollardList] = useState([]);
 const [bollardMonthly, setBollardMonthly] = useState({});
+const [hydrovacDate, setHydrovacDate] = useState(new Date());
+const [hydrovacList, setHydrovacList] = useState([]);
+const [hydrovacMonthly, setHydrovacMonthly] = useState({});
 const [allowedForSignShop, setAllowedForSignShop] = useState(false);
 const [signShopDate, setSignShopDate] = useState(new Date());
 const [signShopList, setSignShopList] = useState([]);
@@ -562,6 +565,33 @@ const handleLeaveDeny = async (id) => {
   }
 };
 
+const fetchMonthlyHydrovac = async (date) => {
+  try {
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+    const res = await axios.get(`/hydrovac/month?month=${month}&year=${year}`);
+    const grouped = {};
+    (res.data || []).forEach(h => {
+      const dateStr = new Date(h.createdAt).toISOString().split('T')[0];
+      (grouped[dateStr] ||= []).push(h);
+    });
+    setHydrovacMonthly(grouped);
+  } catch (e) {
+    setHydrovacMonthly({});
+  }
+};
+
+const fetchHydrovacForDay = async (date) => {
+  if (!date) return;
+  try {
+    const dateStr = date.toISOString().split('T')[0];
+    const res = await axios.get(`/hydrovac/day?date=${dateStr}`);
+    setHydrovacList(res.data || []);
+  } catch (e) {
+    setHydrovacList([]);
+  }
+};
+
 const fetchMonthlyBollards = async (date) => {
   try {
     const month = date.getMonth() + 1;
@@ -908,6 +938,13 @@ useEffect(() => {
 }, [bollardDate]);
 
 useEffect(() => {
+  if (hydrovacDate) {
+    fetchMonthlyHydrovac(hydrovacDate);
+    fetchHydrovacForDay(hydrovacDate);
+  }
+}, [hydrovacDate]);
+
+useEffect(() => {
   if (signShopDate && allowedForSignShop) {
     fetchMonthlySignShop(signShopDate);
     fetchSignShopForDay(signShopDate);
@@ -1056,6 +1093,7 @@ useEffect(() => {
         <button className={`btn ${viewMode === 'quotes' ? 'active' : ''}`} onClick={() => setViewMode('quotes')}>Material WorX</button>
       )}
       <button className={`btn ${viewMode === 'bollards' ? 'active' : ''}`} onClick={() => setViewMode('bollards')}>Bollards/Wheels</button>
+      <button className={`btn ${viewMode === 'hydrovac' ? 'active' : ''}`} onClick={() => setViewMode('hydrovac')}>Hydrovac</button>
       {allowedForSignShop && (
         <button className={`btn ${viewMode === 'signshop' ? 'active' : ''}`} onClick={() => setViewMode('signshop')}>Sign Shop</button>
       )}
@@ -1098,6 +1136,7 @@ selected={
     : viewMode === 'discipline' ? disciplineDate
     : viewMode === 'quotes' ? quotesDate
     : viewMode === 'bollards' ? bollardDate
+    : viewMode === 'hydrovac' ? hydrovacDate
     : viewMode === 'signshop' ? signShopDate
     : viewMode === 'shopwo' ? shopWoDate
     : taskDate
@@ -1109,6 +1148,7 @@ selected={
   else if (viewMode === 'discipline') setDisciplineDate(date);
   else if (viewMode === 'quotes') setQuotesDate(date);
   else if (viewMode === 'bollards') setBollardDate(date);
+  else if (viewMode === 'hydrovac') setHydrovacDate(date);
   else if (viewMode === 'signshop') setSignShopDate(date);
   else if (viewMode === 'shopwo') setShopWoDate(date);
   else setTaskDate(date);
@@ -1121,6 +1161,7 @@ selected={
   else if (viewMode === 'discipline') fetchMonthlyDiscipline(date);
   else if (viewMode === 'quotes') fetchMonthlyQuotes(date);
   else if (viewMode === 'bollards') fetchMonthlyBollards(date);
+  else if (viewMode === 'hydrovac') fetchMonthlyHydrovac(date);
   else if (viewMode === 'signshop') fetchMonthlySignShop(date);
   else if (viewMode === 'shopwo') fetchMonthlyShopWo(date);
   else fetchTasks();
@@ -1149,6 +1190,7 @@ selected={
   : viewMode === 'discipline' ? disciplineMonthly
   : viewMode === 'quotes' ? quotesMonthly
   : viewMode === 'bollards' ? bollardMonthly
+  : viewMode === 'hydrovac' ? hydrovacMonthly
   : viewMode === 'signshop' ? signShopMonthly
   : viewMode === 'shopwo' ? shopWoMonthly
   : tasks;
@@ -1173,6 +1215,8 @@ selected={
       dataSource = quotesMonthly;
     } else if (viewMode === 'bollards') {
       dataSource = bollardMonthly;
+    } else if (viewMode === 'hydrovac') {
+      dataSource = hydrovacMonthly;
     } else if (viewMode === 'signshop') {
       dataSource = signShopMonthly;
     } else if (viewMode === 'shopwo') {
@@ -1193,6 +1237,7 @@ selected={
             : viewMode === 'discipline' ? 'Discipline'
             : viewMode === 'quotes' ? 'Quotes'
             : viewMode === 'bollards' ? 'Bollard Quotes'
+            : viewMode === 'hydrovac' ? 'Hydrovac Requests'
             : viewMode === 'signshop' ? 'Sign Jobs'
             : viewMode === 'shopwo' ? 'Shop WOs'
             : 'Tasks'}{viewMode !== 'traffic' ? ` ${itemCount}` : ''}
@@ -1664,6 +1709,26 @@ selected={
         </div>
       ))}
       {bollardList.length === 0 && <p>No bollard/wheel stop quotes on this day.</p>}
+    </div>
+  </>
+)}
+{viewMode === 'hydrovac' && (
+  <>
+    <h3>Hydrovac Service Requests on {hydrovacDate?.toLocaleDateString()}</h3>
+    <div className="job-info-list">
+      {hydrovacList.map((h, i) => (
+        <div key={h._id || i} className="job-card">
+          <h4 className="job-company">{h.first} {h.last} — {h.company}</h4>
+          <p><strong>Email:</strong> {h.email}</p>
+          <p><strong>Phone:</strong> <a href={`tel:${h.phone}`}>{h.phone}</a></p>
+          <p><strong>Address:</strong> {h.address}, {h.city}, {h.state} {h.zip}</p>
+          <p><strong>Service Type:</strong> {h.serviceType}</p>
+          <p><strong>Preferred Date:</strong> {h.preferredDate}</p>
+          <p><strong>Message:</strong> {h.message}</p>
+          <p><strong>Submitted:</strong> {new Date(h.createdAt).toLocaleString()}</p>
+        </div>
+      ))}
+      {hydrovacList.length === 0 && <p>No hydrovac requests on this day.</p>}
     </div>
   </>
 )}
