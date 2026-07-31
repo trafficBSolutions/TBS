@@ -35,7 +35,6 @@ const INITIAL_DATA = {
 };
 
 const INITIAL_FILES = {
-  idFile: null,
   ssnCard: null,
   driversLicense: null,
   drivingRecordFile: null,
@@ -254,7 +253,7 @@ const ApplyNow = () => {
     }
 
     if (stepIndex === 4) {
-      ["idFile", "ssnCard", "driversLicense", "drivingRecordFile", "civilianRequest"]
+      ["ssnCard", "driversLicense", "drivingRecordFile", "civilianRequest"]
         .forEach((field) => {
           if (!files[field]) nextErrors[field] = "This document is required.";
         });
@@ -956,7 +955,6 @@ const ApplyNow = () => {
 
   const renderDocumentsStep = () => {
     const requiredUploads = [
-      ["idFile", "Government-Issued ID"],
       ["ssnCard", "Social Security Card"],
       ["driversLicense", "Driver's License"],
       ["drivingRecordFile", "7-Year Driving Record"],
