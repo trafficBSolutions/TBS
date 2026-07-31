@@ -126,6 +126,7 @@ const [shopWoDate, setShopWoDate] = useState(new Date());
 const [shopWoList, setShopWoList] = useState([]);
 const [shopWoMonthly, setShopWoMonthly] = useState({});
 const [allowedForShopWo, setAllowedForShopWo] = useState(false);
+const [allowedForPayroll, setAllowedForPayroll] = useState(false);
 const [leaveRequests, setLeaveRequests] = useState([]);
 const [pendingShopWos, setPendingShopWos] = useState([]);
 const [clockedInList, setClockedInList] = useState([]);
@@ -796,6 +797,13 @@ useEffect(() => {
       'tbsolutions1999@gmail.com'
     ]);
     setAllowedForPrintCosts(printCostEmails.has(user.email));
+
+    const payrollEmails = new Set([
+      'tbsolutions9@gmail.com',
+      'tbsolutions1995@gmail.com',
+      'materialworx2@gmail.com'
+    ]);
+    setAllowedForPayroll(payrollEmails.has(user.email));
   }
 }, []);
 const fetchComplaintsForDay = async (date) => {
@@ -2957,6 +2965,20 @@ selected={
 
       <h5>Additional Information</h5>
           <p><strong>Message:</strong> {app.message}</p>
+          {allowedForPayroll && app.payrollInfo && app.payrollInfo.paymentMethod && (
+            <div style={{marginTop:'0.75rem',padding:'0.75rem',background:'#fff8e1',border:'1px solid #ffe082',borderRadius:'8px'}}>
+              <h5 style={{margin:'0 0 0.5rem',color:'#e65100'}}>💰 Payroll Information</h5>
+              <p><strong>Payment Method:</strong> {app.payrollInfo.paymentMethod}</p>
+              {app.payrollInfo.paymentMethod === 'Direct Deposit' && (
+                <>
+                  <p><strong>Bank:</strong> {app.payrollInfo.bankName}</p>
+                  <p><strong>Account Type:</strong> {app.payrollInfo.accountType}</p>
+                  <p><strong>Routing #:</strong> {app.payrollInfo.routingNumber}</p>
+                  <p><strong>Account #:</strong> {app.payrollInfo.accountNumber}</p>
+                </>
+              )}
+            </div>
+          )}
           <div className="applicant-actions">
           {app.resume && (
             <button
