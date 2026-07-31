@@ -33,7 +33,7 @@
     margin: 20px auto;
     max-width: 1100px;
     border-radius: 12px;
-    border-left: 5px solid #e67e22;
+    border-left: 5px solid rgb(236, 77, 7);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
@@ -47,13 +47,13 @@
     margin: 8px 0;
     border-radius: 6px;
     background-color: #fdf6f0;
-    border-left: 3px solid #e67e22;
+    border-left: 3px solid rgb(236, 77, 7);
     list-style: none;
     line-height: 1.5;
   }
   .internal-hiring-notice {
     background-color: #fff8e1;
-    border: 2px dashed #e67e22;
+    border: 2px dashed rgb(236, 77, 7);
     border-radius: 8px;
     padding: 15px 20px;
     margin-bottom: 20px;
@@ -82,7 +82,7 @@
     text-align: left;
     font-family: "Moveo Sans w00 Bold", Arial, sans-serif;
     color: #5a270f;
-    border-bottom: 2px solid #e67e22;
+    border-bottom: 2px solid rgb(236, 77, 7);
     margin-bottom: 15px;
   }
   .requirements, .duties-div, .skills-required {
@@ -90,7 +90,7 @@
     padding: 0 0 10px;
     text-align: left;
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-    color: #e67e22;
+    color: rgb(236, 77, 7);
     border-bottom: 1px solid #eee;
     margin-bottom: 10px;
   }
@@ -221,7 +221,7 @@
   .add-button,
   .remove-button,
   .remove-employment-btn {
-    background-color: #e67e22; /* Background color of the button */
+    background-color: rgb(236, 77, 7); /* Background color of the button */
     color: #fff;
     border: none;
     display: flex;
@@ -239,7 +239,7 @@
   .file-apply-label,
   .remove-apply-file-button
    {
-    background-color: #e67e22; /* Background color of the button */
+    background-color: rgb(236, 77, 7); /* Background color of the button */
     color: #fff;
     border: none;
     display: flex;
