@@ -36,6 +36,7 @@ export default function HydrovacServices() {
   const [recaptchaSize, setRecaptchaSize] = useState('normal');
   const [phone, setPhone] = useState('');
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     first: '', last: '', company: '', email: '', phone: '',
     address: '', city: '', state: '', zip: '',
@@ -78,6 +79,7 @@ export default function HydrovacServices() {
       return;
     }
 
+    setIsSubmitting(true);
     try {
       await axios.post('/hydrovac', { ...formData, token }, { headers: { 'Content-Type': 'application/json' } });
       setFormData({ first: '', last: '', company: '', email: '', phone: '', address: '', city: '', state: '', zip: '', serviceType: '', preferredDate: '', message: '' });
@@ -88,6 +90,8 @@ export default function HydrovacServices() {
     } catch (err) {
       toast.error(err.response?.data?.error || 'An error occurred. Please try again.');
       recaptchaRef.current?.reset();
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -245,7 +249,15 @@ export default function HydrovacServices() {
                 {errors.recaptcha && <div className="error-message">{errors.recaptcha}</div>}
               </div>
 
-              <button type="submit" className="hydrovac-submit-btn">SUBMIT HYDROVAC SERVICE REQUEST</button>
+              <button type="submit" className="hydrovac-submit-btn" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <div className="spinner-button">
+                    <span className="spinner"></span> Submitting...
+                  </div>
+                ) : (
+                  'SUBMIT HYDROVAC SERVICE REQUEST'
+                )}
+              </button>
             </form>
             <ToastContainer position="top-center" autoClose={5000} />
           </div>
