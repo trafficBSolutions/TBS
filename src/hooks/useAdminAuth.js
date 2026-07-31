@@ -40,6 +40,11 @@ const EMAIL_SETS = {
     'tbsolutions9@gmail.com', 'tbsolutions4@gmail.com', 'materialworx2@gmail.com',
     'tbsolutions.work.orders@gmail.com', 'tbsolutions1999@gmail.com',
     'tbsolutions1995@gmail.com', 'trafficandbarriersolutions.ap@gmail.com'
+  ]),
+  payroll: new Set([
+    'tbsolutions9@gmail.com',
+    'tbsolutions1995@gmail.com',
+    'materialworx2@gmail.com'
   ])
 };
 
@@ -55,6 +60,7 @@ export const useAdminAuth = () => {
     allowedForSignShop: false,
     allowedForShopWo: false,
     allowedForPrintCosts: false,
+    allowedForPayroll: false,
     isSalaryAdmin: false,
     canEditHours: false,
     isPersonalClock: false,
@@ -84,6 +90,7 @@ export const useAdminAuth = () => {
       allowedForSignShop: EMAIL_SETS.signShop.has(user.email),
       allowedForShopWo: EMAIL_SETS.shopWo.has(user.email),
       allowedForPrintCosts: EMAIL_SETS.printCosts.has(user.email),
+      allowedForPayroll: EMAIL_SETS.payroll.has(user.email),
       isSalaryAdmin: EMAIL_SETS.salary.has(user.email),
       canEditHours: EMAIL_SETS.editHours.has(user.email),
       isPersonalClock: EMAIL_SETS.personalClock.has(user.email),
