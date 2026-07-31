@@ -4,8 +4,6 @@ import '../css/header.css';
 import '../css/footer.css';
 import axios from 'axios';
 import ReCAPTCHA from 'react-google-recaptcha';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -37,6 +35,8 @@ export default function HydrovacServices() {
   const [phone, setPhone] = useState('');
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionMessage, setSubmissionMessage] = useState('');
+  const [submissionError, setSubmissionError] = useState('');
   const [formData, setFormData] = useState({
     first: '', last: '', company: '', email: '', phone: '',
     address: '', city: '', state: '', zip: '',
@@ -86,9 +86,11 @@ export default function HydrovacServices() {
       setPhone('');
       setErrors({});
       recaptchaRef.current?.reset();
-      toast.success('Hydrovac Service Request Submitted! We will contact you within 48 hours.');
+      setSubmissionMessage('Hydrovac Service Request Submitted! We will contact you within 48 hours.');
+      setSubmissionError('');
     } catch (err) {
-      toast.error(err.response?.data?.error || 'An error occurred. Please try again.');
+      setSubmissionError(err.response?.data?.error || 'An error occurred. Please try again.');
+      setSubmissionMessage('');
       recaptchaRef.current?.reset();
     } finally {
       setIsSubmitting(false);
@@ -249,7 +251,7 @@ export default function HydrovacServices() {
                 {errors.recaptcha && <div className="error-message">{errors.recaptcha}</div>}
               </div>
 
-              <button type="submit" className="hydrovac-submit-btn" disabled={isSubmitting}>
+              <button type="submit" className="hydrovac-submit-btn" disabled={isSubmitting} onClick={() => { setSubmissionMessage(''); setSubmissionError(''); }}>
                 {isSubmitting ? (
                   <div className="spinner-button">
                     <span className="spinner"></span> Submitting...
@@ -258,8 +260,14 @@ export default function HydrovacServices() {
                   'SUBMIT HYDROVAC SERVICE REQUEST'
                 )}
               </button>
+              {submissionMessage && (
+                <div className="hydrovac-toast success">{submissionMessage}</div>
+              )}
+              {submissionError && (
+                <div className="hydrovac-toast error">{submissionError}</div>
+              )}
             </form>
-            <ToastContainer position="top-center" autoClose={5000} />
+            
           </div>
         </section>
       </main>
