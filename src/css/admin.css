@@ -11,7 +11,7 @@
   --adm-text: #1a1a1a;
   --adm-text-soft: #4a4a4a;
   --adm-text-muted: #888888;
-  --adm-accent: #e67e22;
+  --adm-accent: rgb(236, 77, 7);
   --adm-accent-2: #f39c12;
   --adm-accent-3: #27ae60;
   --adm-danger: #e74c3c;
@@ -70,7 +70,7 @@
 }
 
 .stat-chip {
-  background: rgba(230, 126, 34, 0.1);
+  background: rgba(236, 77, 7, 0.1);
   border: 1px solid var(--adm-border);
   border-radius: 999px;
   padding: 0.5rem 1.25rem;
@@ -383,7 +383,7 @@
 .view-toggle button:hover,
 .view-toggle button.active:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 18px rgba(230, 126, 34, 0.3);
+  box-shadow: 0 8px 18px rgba(236, 77, 7, 0.3);
 }
 
 .view-toggle {
@@ -440,7 +440,7 @@
 }
 
 .admin-date-picker .react-datepicker__header {
-  background: linear-gradient(135deg, rgba(230, 126, 34, 0.1), rgba(243, 156, 18, 0.08));
+  background: linear-gradient(135deg, rgba(236, 77, 7, 0.1), rgba(243, 156, 18, 0.08));
   border-bottom: 1px solid var(--adm-border);
   padding: 1rem 0;
 }
@@ -476,19 +476,19 @@
 }
 
 .admin-date-picker .react-datepicker__day:hover {
-  background: rgba(230, 126, 34, 0.15);
+  background: rgba(236, 77, 7, 0.15);
 }
 
 .admin-date-picker .react-datepicker__day--selected,
 .admin-date-picker .has-jobs {
-  background: linear-gradient(135deg, rgba(230, 126, 34, 0.3), rgba(243, 156, 18, 0.25));
-  border-color: rgba(230, 126, 34, 0.5);
+  background: linear-gradient(135deg, rgba(236, 77, 7, 0.3), rgba(243, 156, 18, 0.25));
+  border-color: rgba(236, 77, 7, 0.5);
   color: #1a1a1a;
   font-weight: 700;
 }
 
 .admin-date-picker .react-datepicker__day--keyboard-selected {
-  background: rgba(230, 126, 34, 0.2);
+  background: rgba(236, 77, 7, 0.2);
   color: #1a1a1a;
 }
 
@@ -537,7 +537,7 @@
 
 .admin-date-picker .react-datepicker__year-option:hover,
 .admin-date-picker .react-datepicker__month-option:hover {
-  background: rgba(230, 126, 34, 0.15);
+  background: rgba(236, 77, 7, 0.15);
 }
 
 /* Triangle / popover arrow */
@@ -571,7 +571,7 @@
 }
 
 .calendar-day-kiss .job-count {
-  background: rgba(230, 126, 34, 0.15);
+  background: rgba(236, 77, 7, 0.15);
   color: #b35a00;
 }
 
@@ -756,7 +756,7 @@
 }
 
 .task-date-header {
-  background: linear-gradient(135deg, #e67e22, #f39c12);
+  background: linear-gradient(135deg, rgb(236, 77, 7), #f39c12);
   color: #fff;
   padding: 0.75rem 1rem;
   margin: 0;
@@ -781,7 +781,7 @@
 }
 
 .selected-date-tasks h4 {
-  color: #e67e22;
+  color: rgb(236, 77, 7);
   font-size: 1.4rem;
   margin-bottom: 1rem;
   text-align: center;
@@ -899,7 +899,7 @@
   height: 42px;
   border: none;
   border-radius: 999px;
-  background: linear-gradient(135deg, #e67e22, #f39c12);
+  background: linear-gradient(135deg, rgb(236, 77, 7), #f39c12);
   color: #fff;
   font-size: 1.5rem;
   cursor: pointer;
@@ -1000,4 +1000,307 @@
   .selected-date-tasks h4 {
     font-size: 1.2rem;
   }
+}
+
+
+/* =========================
+   ADMIN TIME CLOCK
+========================= */
+
+.tc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.tc-header h3 {
+  margin: 0;
+  font-size: 1.8rem;
+  color: var(--adm-text);
+}
+
+.tc-close-btn {
+  background: #888;
+  color: #fff;
+  padding: 6px 16px;
+  border: none;
+  border-radius: 999px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--adm-transition);
+}
+
+.tc-close-btn:hover {
+  background: #666;
+}
+
+/* Status Section */
+.tc-status-section {
+  margin-bottom: 1.5rem;
+}
+
+.tc-status-section h4 {
+  color: var(--adm-accent-3);
+  font-size: 1.4rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Section Dividers */
+.tc-divider {
+  border: none;
+  border-top: 1px solid var(--adm-border);
+  margin: 1.5rem 0;
+}
+
+/* Section Headings */
+.tc-section-title {
+  font-size: 1.4rem;
+  color: var(--adm-text);
+  margin-bottom: 0.5rem;
+}
+
+.tc-section-hint {
+  font-size: 0.85rem;
+  color: var(--adm-text-muted);
+  margin-bottom: 0.75rem;
+}
+
+/* Form Rows */
+.tc-form-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.tc-form-row select,
+.tc-form-row input[type="date"],
+.tc-form-row input[type="time"],
+.tc-form-row input[type="number"],
+.tc-form-row input[type="text"] {
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--adm-radius-sm);
+  border: 1px solid var(--adm-border);
+  background: var(--adm-bg);
+  color: var(--adm-text);
+  font-size: 1rem;
+}
+
+.tc-form-row select {
+  min-width: 150px;
+}
+
+.tc-form-row input[type="text"] {
+  flex: 1;
+  min-width: 120px;
+}
+
+.tc-form-row input[type="number"] {
+  width: 90px;
+}
+
+.tc-form-row label {
+  font-size: 0.85rem;
+  color: var(--adm-text-soft);
+  font-weight: 600;
+}
+
+/* Messages */
+.tc-msg-success {
+  color: var(--adm-accent-3);
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
+.tc-msg-error {
+  color: var(--adm-danger);
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
+/* Time Worked Summary */
+.tc-week-nav {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.tc-week-nav span {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--adm-text);
+}
+
+.tc-employee-summary {
+  margin-bottom: 0.75rem;
+  background: var(--adm-bg);
+  border-radius: var(--adm-radius-sm);
+  padding: 12px;
+  border: 1px solid var(--adm-border);
+}
+
+.tc-employee-summary summary {
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--adm-text);
+}
+
+.tc-hours-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  margin-top: 0.5rem;
+}
+
+.tc-hours-table th,
+.tc-hours-table td {
+  border: 1px solid var(--adm-border);
+  padding: 8px;
+  color: var(--adm-text-soft);
+}
+
+.tc-hours-table th {
+  background: rgba(236, 77, 7, 0.08);
+  text-align: left;
+  font-weight: 700;
+}
+
+.tc-hours-table td:nth-child(2),
+.tc-hours-table td:nth-child(3),
+.tc-hours-table th:nth-child(2),
+.tc-hours-table th:nth-child(3) {
+  text-align: center;
+}
+
+.tc-hours-table tr.has-data {
+  background: rgba(39, 174, 96, 0.05);
+}
+
+.tc-hours-table tr.week-total {
+  background: rgba(236, 77, 7, 0.08);
+  font-weight: 700;
+}
+
+.tc-hours-table .still-in {
+  color: var(--adm-accent-3);
+  font-weight: 700;
+}
+
+/* PIN Manager */
+.tc-pin-section {
+  margin-top: 0.5rem;
+}
+
+.tc-add-employee {
+  background: rgba(33, 150, 243, 0.05);
+  border: 2px dashed #2196F3;
+  border-radius: var(--adm-radius-sm);
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.tc-add-employee h5 {
+  margin: 0 0 0.75rem;
+  font-size: 1.2rem;
+  color: var(--adm-text);
+}
+
+.tc-employee-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 1rem 1.2rem;
+  background: var(--adm-card);
+  border: 1px solid var(--adm-border);
+  border-left: 4px solid var(--adm-accent);
+  border-radius: var(--adm-radius-sm);
+  margin-bottom: 0.5rem;
+}
+
+.tc-employee-info strong {
+  font-size: 1.1rem;
+  color: var(--adm-text);
+}
+
+.tc-employee-info .tc-position-badge {
+  margin-left: 0.5rem;
+  background: rgba(33, 150, 243, 0.12);
+  color: #1565c0;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.tc-employee-info .tc-pin {
+  color: var(--adm-accent-3);
+  margin: 2px 0;
+  font-size: 0.95rem;
+}
+
+.tc-employee-info .tc-points {
+  margin: 2px 0;
+  font-size: 0.9rem;
+}
+
+.tc-employee-info .tc-points.warning { color: #ff9800; }
+.tc-employee-info .tc-points.danger { color: var(--adm-danger); }
+
+.tc-employee-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.tc-btn {
+  padding: 5px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: var(--adm-transition);
+}
+
+.tc-btn:hover {
+  transform: translateY(-1px);
+}
+
+.tc-btn-clock {
+  background: var(--adm-accent);
+  color: #fff;
+}
+
+.tc-btn-writeup {
+  background: #ff9800;
+  color: #fff;
+}
+
+.tc-btn-remove {
+  background: var(--adm-danger);
+  color: #fff;
+}
+
+.tc-btn-pin {
+  background: #2196F3;
+  color: #fff;
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  margin-top: 4px;
+}
+
+.tc-btn-deduct {
+  background: var(--adm-danger);
+  color: #fff;
 }
