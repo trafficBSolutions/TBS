@@ -58,7 +58,7 @@ export default function Home() {
                 </ul>
               </div>
             </div>
-            <a href="/trafficcontrol" className="schedule-btn storm-home-btn">Request Storm/Hydrovac Services</a>
+            <a href="/hydrovac-services" className="schedule-btn storm-home-btn">Request Storm/Hydrovac Services</a>
           </div>
         </section>
         <section className="section-featured">
