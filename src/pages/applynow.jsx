@@ -216,7 +216,7 @@ const ApplyNow = () => {
     setErrors((current) => ({ ...current, background: "" }));
   };
 
-  const validateStep = (stepIndex) => {
+  const validateStep = (stepIndex, { silent = false } = {}) => {
     const nextErrors = {};
 
     if (stepIndex === 0) {
@@ -290,7 +290,7 @@ const ApplyNow = () => {
       }
     }
 
-    setErrors(nextErrors);
+    if (!silent) setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
 
@@ -312,7 +312,7 @@ const ApplyNow = () => {
 
   const findFirstInvalidStep = () => {
     for (let index = 0; index < STEPS.length - 1; index += 1) {
-      if (!validateStep(index)) return index;
+      if (!validateStep(index, { silent: true })) return index;
     }
     return -1;
   };
@@ -1216,7 +1216,13 @@ const ApplyNow = () => {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} noValidate>
+          <form
+            onSubmit={handleSubmit}
+            noValidate
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && step < STEPS.length - 1) e.preventDefault();
+            }}
+          >
             {renderCurrentStep()}
 
             <div className="wizard-actions">
