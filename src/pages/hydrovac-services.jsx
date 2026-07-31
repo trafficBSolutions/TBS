@@ -9,6 +9,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
+import images from '../utils/tbsImages';
+
 const states = [
   { abbreviation: 'AL', name: 'Alabama' },
   { abbreviation: 'FL', name: 'Florida' },
@@ -126,6 +128,20 @@ export default function HydrovacServices() {
               <p>Non-destructive excavation reduces soil disturbance and minimizes environmental impact compared to mechanical digging.</p>
             </div>
           </div>
+        </section>
+
+        <section className="hydrovac-video-section">
+          <h2 className="hydrovac-video-title">See Hydrovac in Action</h2>
+          <video
+            className="hydrovac-video"
+            autoPlay
+            loop
+            muted
+            playsInline
+            controls
+          >
+            <source src={images['../assets/videos/hydrovac2.MOV'].default} type="video/mp4" />
+          </video>
         </section>
 
         <section className="hydrovac-form-section">
