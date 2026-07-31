@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate} from 'react-router-dom'
-import { HydrovacServices, About, EmployeeHandbook, Quote, ConfirmAdditionalFlagger, EmployeeDiscipline, Invoice, Work, ManageJobTest, CancelJobTest, ManageJob, CancelJob, AdminLog, AdminDashboard, Contact, Apply, Home, TrafficControl, TrafficPlan, Rentals, PPE, Signs, BollardsWheels, Error, TService, Product, TrafficControlTest, EmployeeDashboard, EmployeeComplaintForm, LeaveRequest } from './pages';
+import { About, EmployeeHandbook, Quote, ConfirmAdditionalFlagger, EmployeeDiscipline, Invoice, Work, ManageJobTest, CancelJobTest, ManageJob, CancelJob, AdminLog, AdminDashboard, Contact, Apply, Home, TrafficControl, TrafficPlan, Rentals, PPE, Signs, BollardsWheels, Error, TService, Product, TrafficControlTest, EmployeeDashboard, EmployeeComplaintForm, LeaveRequest } from './pages';
 import TCPDesigner from './pages/tcp-designer';
+import HydrovacServices from './pages/hydrovac-services'
 import ShopWorkOrder from './pages/shop-work-order';
 import ShopWorkOrderStatus from './pages/shop-work-order-status';
 import ShopWorkOrderLog from './pages/shop-work-order-log';
