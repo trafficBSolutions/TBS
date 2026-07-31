@@ -1,0 +1,178 @@
+.hydrovac-main {
+  background-color: #bcc3bd;
+}
+.hydrovac-banner {
+  background-color: #1a1a1a;
+  padding: 40px 20px;
+  text-align: center;
+}
+.hydrovac-banner-title {
+  font-size: 8rem;
+  font-weight: bold;
+  color: #ffffff;
+  font-family: "Moveo Sans W00 Bold";
+  text-shadow: 3px 3px 0 rgb(236, 77, 7);
+  margin: 0;
+}
+.hydrovac-info-section {
+  background-color: #f7d7bc;
+  padding: 40px 20px;
+}
+.hydrovac-info-title {
+  font-size: 5rem;
+  font-weight: bold;
+  text-align: center;
+  color: #000;
+  font-family: "Moveo Sans W00 Bold";
+  margin-bottom: 20px;
+}
+.hydrovac-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.hydrovac-card {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  width: 280px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  border-top: 5px solid rgb(236, 77, 7);
+}
+.hydrovac-card h3 {
+  font-size: 2.2rem;
+  color: rgb(236, 77, 7);
+  margin-bottom: 10px;
+  font-family: "Moveo Sans W00 Bold";
+}
+.hydrovac-card p {
+  font-size: 1.6rem;
+  color: #333;
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.5;
+}
+.hydrovac-video-section {
+  background-color: #1a1a1a;
+  padding: 40px 20px;
+  text-align: center;
+}
+.hydrovac-video-title {
+  font-size: 4rem;
+  color: #fff;
+  font-family: "Moveo Sans W00 Bold";
+  margin-bottom: 20px;
+}
+.hydrovac-video {
+  max-width: 800px;
+  width: 100%;
+  border: 6px solid rgb(236, 77, 7);
+  border-radius: 8px;
+}
+.hydrovac-form-section {
+  background-color: #fff;
+  padding: 40px 20px;
+}
+.hydrovac-form-container {
+  background-color: #fff;
+  padding: 20px;
+  box-shadow: 0 4px 10px #0000001a;
+  margin: 0 auto;
+  max-width: 900px;
+}
+.hydrovac-form-title {
+  font-size: 3.5rem;
+  text-align: center;
+  color: #64340d;
+  margin-bottom: 8px;
+  font-family: "Moveo Sans W00 Bold";
+}
+.hydrovac-form-subtitle {
+  font-size: 2rem;
+  color: #8b4c18;
+  text-align: center;
+  margin-bottom: 30px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+.hydrovac-field-group {
+  background-color: #f1f1f1;
+  padding: 20px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 10px #00000084;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.hydrovac-field {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 200px;
+}
+.hydrovac-field label {
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+.hydrovac-field input,
+.hydrovac-field select,
+.hydrovac-field textarea {
+  font-size: 1.5rem;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+.hydrovac-field textarea {
+  height: 14rem;
+  resize: vertical;
+}
+.hydrovac-field-full {
+  flex: 1 1 100%;
+}
+.hydrovac-submit-btn {
+  display: block;
+  width: 100%;
+  background-color: rgb(236, 77, 7);
+  color: #fff;
+  border: none;
+  padding: 14px;
+  font-size: 1.8rem;
+  font-family: "Moveo Sans W00 Bold";
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 10px;
+}
+.hydrovac-submit-btn:hover {
+  background-color: #b83d00;
+}
+.error-message {
+  color: #c0392b;
+  font-size: 1.3rem;
+  margin-top: 4px;
+}
+
+@media screen and (max-width: 1200px) and (orientation: landscape) {
+  .hydrovac-banner-title { font-size: 5rem; }
+  .hydrovac-info-title { font-size: 3.5rem; }
+}
+@media screen and (max-width: 1200px) and (orientation: portrait) {
+  .hydrovac-banner-title { font-size: 5rem; }
+  .hydrovac-info-title { font-size: 3rem; }
+  .hydrovac-cards { flex-direction: column; align-items: center; }
+}
+@media screen and (min-width: 320px) and (max-width: 640px) and (orientation: portrait) {
+  .hydrovac-banner-title { font-size: 3rem; }
+  .hydrovac-info-title { font-size: 2.5rem; }
+  .hydrovac-form-title { font-size: 2.5rem; }
+  .hydrovac-card { width: 100%; }
+}
+@media screen and (max-width: 320px) {
+  .hydrovac-banner-title { font-size: 2.5rem; }
+  .hydrovac-info-title { font-size: 2rem; }
+  .hydrovac-form-title { font-size: 2rem; }
+}
