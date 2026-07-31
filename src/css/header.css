@@ -20,7 +20,7 @@
   justify-content: center;
 }
 .admin-worx-logo:hover, .admin-dashboard-link:hover {
-  background-color: #e67e22;
+  background-color: rgb(236, 77, 7);
 }
 .header-logo {
   width: auto;
@@ -54,7 +54,7 @@
     max-width: 250px; /* Set max-width to prevent distortion */
 }
   .header-logo:hover {
-    background-color: #e67e22;
+    background-color: rgb(236, 77, 7);
   }
 
   .header-logo img {
@@ -75,21 +75,22 @@
   transition: color 0.3s;
 }
 .main-nav-link:hover {
-  color: #e67e22;
+  color: rgb(236, 77, 7);
 }
   .sub-nav-list {
     display: none;
-    position: absolute; /* Makes the dropdown appear over the content */
-    background-color: #333; /* Background color for the dropdown */
+    position: absolute;
+    background-color: #333;
     padding: 1rem;
     line-height: 1.8rem;
     text-decoration: none;
     text-align: center;
-    flex-direction: column; /* Makes the items appear in a column */
-    box-shadow: none; /* Optional shadow for dropdown */
-    border-radius: 6px; /* Rounded edges for the dropdown */
-    z-index: 1000; /* Ensure it's above other content */
+    flex-direction: column;
+    box-shadow: none;
+    border-radius: 6px;
+    z-index: 1000;
     list-style: none;
+    min-width: 260px;
   }
   .sub-main-nav-link-view {
     color: #FAF0CA;
@@ -152,7 +153,7 @@
   }
 
   .mobile-nav {
-    background-color: #e67e22;
+    background-color: rgb(236, 77, 7);
     color: #fff;
     border: none;
     text-align: center;
@@ -163,7 +164,7 @@
   }
 .phone-header-link {
   text-decoration: none;
-  color: #e67e22; /* Your original text color */
+  color: rgb(236, 77, 7); /* Your original text color */
   font-weight: 500;
   font-size: 2.7rem; /* Adjust font size */
   transition: all 0.3s;
@@ -212,7 +213,7 @@
     background-color: rgb(163, 156, 136);
 }
 .btn-main {
-  background-color: #e67e22;
+  background-color: rgb(236, 77, 7);
   color: #fff;
   border: none;
   padding: 10px 20px;
@@ -284,7 +285,7 @@
     padding: 0 10px;
 }
 .mobile-nav {
-  background-color: #e67e22;
+  background-color: rgb(236, 77, 7);
   color: #fff;
   border: none;
   text-align: center;
@@ -407,7 +408,7 @@ height: auto;
     padding: 0 10px;
 }
 .mobile-nav {
-  background-color: #e67e22;
+  background-color: rgb(236, 77, 7);
   color: #fff;
   border: none;
   text-align: center;
@@ -530,7 +531,7 @@ padding: 5px 10px;
     padding: 0 10px;
 }
 .mobile-nav {
-  background-color: #e67e22;
+  background-color: rgb(236, 77, 7);
   color: #fff;
   border: none;
   text-align: center;
@@ -652,7 +653,7 @@ max-width: 100px;
     padding: 0 10px;
 }
 .mobile-nav {
-  background-color: #e67e22;
+  background-color: rgb(236, 77, 7);
   color: #fff;
   border: none;
   text-align: center;
@@ -783,7 +784,7 @@ width: 100%;
     padding: 0 10px;
 }
 .mobile-nav {
-  background-color: #e67e22;
+  background-color: rgb(236, 77, 7);
   color: #fff;
   border: none;
   text-align: center;
