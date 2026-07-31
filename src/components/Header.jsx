@@ -94,6 +94,7 @@ function Header({ activePage }) {
               <li>{navLink('/bollardswheels', 'Bollards & Wheel Stops')}</li>
               <li>{navLink('/signs', 'Traffic Sign Manufacturing')}</li>
               <li>{navLink('/ppe', 'PPE Sales')}</li>
+              <li>{navLink('/hydrovac-services', 'Hydrovac Services')}</li>
             </ul>
           </li>
           <li>{navLink('/contact-us', 'Contact Us')}</li>
