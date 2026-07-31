@@ -1176,16 +1176,19 @@ const ApplyNow = () => {
     </section>
   );
 
-  const stepContent = [
-    renderApplicantStep(),
-    renderEducationStep(),
-    renderEmploymentStep(),
-    renderBackgroundStep(),
-    renderDocumentsStep(),
-    renderDrugStep(),
-    renderPayrollStep(),
-    renderReviewStep()
-  ];
+  const renderCurrentStep = () => {
+    switch (step) {
+      case 0: return renderApplicantStep();
+      case 1: return renderEducationStep();
+      case 2: return renderEmploymentStep();
+      case 3: return renderBackgroundStep();
+      case 4: return renderDocumentsStep();
+      case 5: return renderDrugStep();
+      case 6: return renderPayrollStep();
+      case 7: return renderReviewStep();
+      default: return null;
+    }
+  };
 
   return (
     <div>
@@ -1216,7 +1219,7 @@ const ApplyNow = () => {
           </div>
 
           <form onSubmit={handleSubmit} noValidate>
-            {stepContent[step]}
+            {renderCurrentStep()}
 
             <div className="wizard-actions">
               {step > 0 && (
