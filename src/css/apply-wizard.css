@@ -1,0 +1,291 @@
+.apply-wizard-page {
+  min-height: 100vh;
+  padding: 48px 18px;
+  background: #f4f6f8;
+}
+
+.apply-wizard-shell {
+  width: min(1100px, 100%);
+  margin: 0 auto;
+}
+
+.wizard-header,
+.wizard-card,
+.wizard-progress {
+  background: #fff;
+  border: 1px solid #dde2e7;
+  border-radius: 18px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.07);
+}
+
+.wizard-header {
+  padding: 34px;
+  margin-bottom: 20px;
+}
+
+.wizard-header h1 {
+  margin: 0 0 8px;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+}
+
+.wizard-eyebrow {
+  margin: 0 0 6px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.wizard-progress {
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+
+.wizard-progress-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.wizard-progress-track {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e7ebef;
+}
+
+.wizard-progress-value {
+  height: 100%;
+  border-radius: inherit;
+  background: #e87523;
+  transition: width 0.2s ease;
+}
+
+.wizard-card {
+  padding: 28px;
+}
+
+.wizard-card h2 {
+  margin-top: 0;
+}
+
+.wizard-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.wizard-grid.two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.wizard-grid.five {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.wizard-card label,
+.wizard-card fieldset {
+  display: block;
+  font-weight: 700;
+}
+
+.wizard-card input,
+.wizard-card select,
+.wizard-card textarea {
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 7px;
+  padding: 12px 13px;
+  border: 1px solid #b8c0c8;
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+}
+
+.wizard-card textarea {
+  min-height: 115px;
+  resize: vertical;
+}
+
+.wizard-card input:focus,
+.wizard-card select:focus,
+.wizard-card textarea:focus {
+  outline: 3px solid rgba(232, 117, 35, 0.18);
+  border-color: #e87523;
+}
+
+.wizard-card fieldset {
+  margin: 0 0 18px;
+  padding: 16px;
+  border: 1px solid #d8dde2;
+  border-radius: 12px;
+}
+
+.inline-choice {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 18px 0 0;
+  font-weight: 600 !important;
+}
+
+.inline-choice input {
+  width: auto;
+  margin: 0;
+}
+
+.apply-error {
+  margin-top: 6px;
+  color: #b42318;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.wizard-subcard,
+.wizard-note,
+.wizard-warning {
+  margin: 20px 0;
+  padding: 18px;
+  border-radius: 12px;
+  background: #f8fafb;
+  border: 1px solid #dfe5ea;
+}
+
+.wizard-warning {
+  background: #fff5eb;
+  border-color: #ffd7b0;
+}
+
+.wizard-add,
+.wizard-back,
+.wizard-next,
+.wizard-submit,
+.entry-card button {
+  border: 0;
+  border-radius: 10px;
+  padding: 12px 18px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.wizard-add,
+.wizard-next,
+.wizard-submit {
+  background: #e87523;
+  color: #fff;
+}
+
+.wizard-back {
+  background: #dfe4e8;
+  color: #1e2933;
+}
+
+.wizard-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.wizard-next,
+.wizard-submit {
+  margin-left: auto;
+}
+
+.entry-list,
+.upload-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.entry-card,
+.upload-card {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid #d8dde2;
+  border-radius: 12px;
+  background: #fafbfc;
+}
+
+.entry-card p {
+  margin: 5px 0 0;
+}
+
+.entry-card button {
+  background: #f2d7d4;
+  color: #8a1c12;
+}
+
+.upload-card {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.upload-card input {
+  margin: 0;
+}
+
+.review-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.review-grid article {
+  padding: 18px;
+  border: 1px solid #d8dde2;
+  border-radius: 12px;
+  background: #fafbfc;
+}
+
+.review-grid article h3 {
+  margin-top: 0;
+}
+
+.review-grid article p {
+  overflow-wrap: anywhere;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+@media (max-width: 850px) {
+  .wizard-grid.two,
+  .wizard-grid.five,
+  .review-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wizard-progress-row {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+@media (max-width: 520px) {
+  .apply-wizard-page {
+    padding: 24px 10px;
+  }
+
+  .wizard-header,
+  .wizard-card,
+  .wizard-progress {
+    padding: 20px;
+    border-radius: 14px;
+  }
+
+  .wizard-actions {
+    flex-direction: column-reverse;
+  }
+
+  .wizard-actions button {
+    width: 100%;
+    margin: 0;
+  }
+}
