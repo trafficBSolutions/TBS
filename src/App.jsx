@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate} from 'react-router-dom'
-import { HydrovacServices, About, EmployeeHandbook, Quote, ConfirmAdditionalFlagger, EmployeeDiscipline, Invoice, Work, ManageJobTest, CancelJobTest, ManageJob, CancelJob, AdminLog, AdminDashboard, Contact, Apply, Home, TrafficControl, TrafficPlan, Rentals, PPE, Signs, BollardsWheels, Error, TService, Product, TrafficControlTest, EmployeeDashboard, EmployeeComplaintForm, LeaveRequest } from './pages';
+import { HydrovacServices, About, EmployeeHandbook, Quote, ConfirmAdditionalFlagger, EmployeeDiscipline, Invoice, Work, ManageJobTest, CancelJobTest, ManageJob, CancelJob, AdminLog, AdminDashboard, Contact, Apply, Home, TrafficControl, TrafficPlan, Rentals, PPE, Signs, BollardsWheels, Error, TService, Product, TrafficControlTest, EmployeeDashboard, EmployeeComplaintForm, LeaveRequest, DirectDeposit } from './pages';
 import TCPDesigner from './pages/tcp-designer';
 import ShopWorkOrder from './pages/shop-work-order';
 import ShopWorkOrderStatus from './pages/shop-work-order-status';
@@ -91,6 +91,7 @@ function App() {
   <Toaster position='bottom-right' toastOptions={{duration: 2000}} />
   <Routes>
     <Route path="/applynow" element={<Apply/>}/>
+    <Route path="/direct-deposit" element={<DirectDeposit />}/>
     <Route path="/" element={<Home/>}/>
 <Route path="/work-order/:legacyId" element={<Navigate to="/work-order" replace />} />
      <Route
