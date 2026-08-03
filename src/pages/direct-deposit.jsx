@@ -73,6 +73,30 @@ const DirectDeposit = () => {
         <h1>Payroll / Direct Deposit</h1>
         <p>Submit your payroll preference to Traffic &amp; Barrier Solutions.</p>
 
+        <div style={{ marginTop: 16, padding: 16, background: "#fffbeb", borderRadius: 8, border: "1px solid #f5d87e" }}>
+          <strong>W-9 Required</strong>
+          <p style={{ margin: "6px 0 10px" }}>
+            Please download and complete the W-9 form, then email the completed form to{" "}
+            <a href="mailto:materialworx2@gmail.com">materialworx2@gmail.com</a>.
+          </p>
+          <a
+            href="https://www.irs.gov/pub/irs-pdf/fw9.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: "inline-block",
+              padding: "10px 20px",
+              background: "#efad76",
+              borderRadius: 6,
+              fontWeight: "bold",
+              textDecoration: "none",
+              color: "#000"
+            }}
+          >
+            Download W-9 (IRS)
+          </a>
+        </div>
+
         {submitted ? (
           <div style={{ marginTop: 32, padding: 24, background: "#f0fdf4", borderRadius: 8 }}>
             <strong>✅ Submitted successfully.</strong>
