@@ -124,7 +124,6 @@ const ApplyNow = () => {
   const [files, setFiles] = useState(INITIAL_FILES);
   const [drivingRecord, setDrivingRecord] = useState(INITIAL_DRIVING_RECORD);
   const [drugScreening, setDrugScreening] = useState(INITIAL_DRUG_SCREENING);
-  const [payrollInfo, setPayrollInfo] = useState(INITIAL_PAYROLL);
 
   const [educationEntries, setEducationEntries] = useState([]);
   const [educationDraft, setEducationDraft] = useState(EMPTY_EDUCATION);
@@ -268,27 +267,6 @@ const ApplyNow = () => {
         });
     }
 
-    if (stepIndex === 6) {
-      if (!payrollInfo.paymentMethod) {
-        nextErrors.payroll_paymentMethod = "Choose a payment method.";
-      }
-
-      if (payrollInfo.paymentMethod === "Direct Deposit") {
-        ["bankName", "accountType", "routingNumber", "accountNumber"].forEach((field) => {
-          if (!payrollInfo[field].trim()) {
-            nextErrors[`payroll_${field}`] = "Required";
-          }
-        });
-
-        if (
-          payrollInfo.routingNumber &&
-          !/^\d{9}$/.test(payrollInfo.routingNumber)
-        ) {
-          nextErrors.payroll_routingNumber =
-            "Routing number must contain exactly 9 digits.";
-        }
-      }
-    }
 
     if (!silent) setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
@@ -338,7 +316,6 @@ const ApplyNow = () => {
       data.wantsDriver === "Yes" ? drivingRecord : {}
     ));
     payload.append("drugScreening", JSON.stringify(drugScreening));
-    payload.append("payrollInfo", JSON.stringify(payrollInfo));
 
     Object.entries(files).forEach(([key, file]) => {
       if (file) payload.append(key, file);
@@ -1029,100 +1006,6 @@ const ApplyNow = () => {
     </section>
   );
 
-  const renderPayrollStep = () => (
-    <section className="wizard-card">
-      <h2>Payroll Information</h2>
-
-      <fieldset>
-        <legend>Payment Method *</legend>
-        {["Direct Deposit", "Check"].map((method) => (
-          <label key={method} className="inline-choice">
-            <input
-              type="radio"
-              name="paymentMethod"
-              value={method}
-              checked={payrollInfo.paymentMethod === method}
-              onChange={(e) =>
-                setPayrollInfo((current) => ({
-                  ...current,
-                  paymentMethod: e.target.value
-                }))
-              }
-            />
-            {method}
-          </label>
-        ))}
-        <ErrorText>{errors.payroll_paymentMethod}</ErrorText>
-      </fieldset>
-
-      {payrollInfo.paymentMethod === "Direct Deposit" && (
-        <div className="wizard-grid two">
-          <label>
-            Bank Name *
-            <input
-              value={payrollInfo.bankName}
-              onChange={(e) =>
-                setPayrollInfo((current) => ({
-                  ...current,
-                  bankName: e.target.value
-                }))
-              }
-            />
-            <ErrorText>{errors.payroll_bankName}</ErrorText>
-          </label>
-
-          <label>
-            Account Type *
-            <select
-              value={payrollInfo.accountType}
-              onChange={(e) =>
-                setPayrollInfo((current) => ({
-                  ...current,
-                  accountType: e.target.value
-                }))
-              }
-            >
-              <option value="">Select account type</option>
-              <option value="Checking">Checking</option>
-              <option value="Savings">Savings</option>
-            </select>
-            <ErrorText>{errors.payroll_accountType}</ErrorText>
-          </label>
-
-          <label>
-            Routing Number *
-            <input
-              inputMode="numeric"
-              maxLength={9}
-              value={payrollInfo.routingNumber}
-              onChange={(e) =>
-                setPayrollInfo((current) => ({
-                  ...current,
-                  routingNumber: e.target.value.replace(/\D/g, "").slice(0, 9)
-                }))
-              }
-            />
-            <ErrorText>{errors.payroll_routingNumber}</ErrorText>
-          </label>
-
-          <label>
-            Account Number *
-            <input
-              inputMode="numeric"
-              value={payrollInfo.accountNumber}
-              onChange={(e) =>
-                setPayrollInfo((current) => ({
-                  ...current,
-                  accountNumber: e.target.value.replace(/\D/g, "")
-                }))
-              }
-            />
-            <ErrorText>{errors.payroll_accountNumber}</ErrorText>
-          </label>
-        </div>
-      )}
-    </section>
-  );
 
   const renderReviewStep = () => (
     <section className="wizard-card">
@@ -1154,17 +1037,6 @@ const ApplyNow = () => {
           ))}
         </article>
 
-        <article>
-          <h3>Payroll</h3>
-          <p>{payrollInfo.paymentMethod || "Not selected"}</p>
-          {payrollInfo.paymentMethod === "Direct Deposit" && (
-            <>
-              <p>{payrollInfo.bankName}</p>
-              <p>{payrollInfo.accountType}</p>
-              <p>Account ending in {payrollInfo.accountNumber.slice(-4)}</p>
-            </>
-          )}
-        </article>
       </div>
 
       <p className="wizard-warning">
