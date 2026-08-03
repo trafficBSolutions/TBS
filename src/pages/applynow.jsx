@@ -1054,7 +1054,6 @@ const ApplyNow = () => {
       case 3: return renderBackgroundStep();
       case 4: return renderDocumentsStep();
       case 5: return renderDrugStep();
-      case 6: return renderPayrollStep();
       case 7: return renderReviewStep();
       default: return null;
     }
