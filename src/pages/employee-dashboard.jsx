@@ -303,6 +303,8 @@ const EmployeeDashboard = () => {
                     <option value="Weekend Work">Weekend Work</option>
                     <option value="Shop Work">Shop Work</option>
                     <option value="Standby">Standby</option>
+                    <option value="Drive Time">Drive Time</option>
+                    <option value="Hydrovac">Hydrovac</option>
                   </select>
                 )}
                 <input
@@ -631,6 +633,17 @@ const EmployeeDashboard = () => {
               <div className="work-order-icon">🏖️</div>
               <h2 className="work-order-title">Request Time Off</h2>
               <p className="text-gray-600">Submit a leave request for approval</p>
+            </div>
+          </Link>
+
+          <Link 
+            to="/hydrovac-work-order"
+            className="btn-links"
+          >
+            <div className="text-center">
+              <div className="work-order-icon">🚛</div>
+              <h2 className="work-order-title">Hydrovac Work Order</h2>
+              <p className="text-gray-600">Submit a hydrovac daily work order</p>
             </div>
           </Link>
         </div>
