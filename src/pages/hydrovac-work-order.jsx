@@ -13,13 +13,12 @@ const TRUCKS = [
   'TBS Truck 6','TBS Truck 7','TBS Truck 8','TBS Truck 9','TBS Truck 10',
   'TBS Truck 11','TBS Truck 12','TBS Truck 13','TBS Truck 14','TBS Truck 15',
   'TBS Truck 16','TBS Truck 17','TBS Truck 18','TBS Truck 19','TBS Truck 20',
-  'TBS Truck 21','TBS Truck 22','TBS Truck 23','TBS Truck 24',
+  'TBS Truck 21','TBS Truck 22','TBS Truck 23','TBS Truck 24', 'TBS Truck 25'
 ];
 
-const PERMANENT_SUPERVISORS = [
-  { id: 'carson-permanent', name: 'Carson Speer', position: 'Foreman' },
-  { id: 'bryson-permanent', name: 'Bryson Davis', position: 'Foreman' },
-  { id: 'william-permanent', name: 'William Rowell', position: 'Driver' },
+const CDL_DRIVERS = [
+  { id: 'carson-cdl', name: 'Carson Speer', position: 'CDL Driver' },
+  { id: 'damien-cdl', name: 'Damien', position: 'CDL Driver' },
 ];
 
 export default function HydrovacWorkOrder() {
@@ -93,12 +92,12 @@ export default function HydrovacWorkOrder() {
         const now = Date.now();
         todayHist.data.forEach(r => {
           const p = (r.purpose || '').trim();
-          if (p !== 'Shop Work' && p !== 'Standby') validIds.add(r.employeeId);
+          if (p === 'Hydrovac' || (p !== 'Shop Work' && p !== 'Standby')) validIds.add(r.employeeId);
         });
         yesterdayHist.data.forEach(r => {
           if (now - new Date(r.clockIn).getTime() <= 86400000) {
             const p = (r.purpose || '').trim();
-            if (p !== 'Shop Work' && p !== 'Standby') validIds.add(r.employeeId);
+            if (p === 'Hydrovac' || (p !== 'Shop Work' && p !== 'Standby')) validIds.add(r.employeeId);
           }
         });
 
@@ -108,8 +107,10 @@ export default function HydrovacWorkOrder() {
         ].filter(e => e.name);
 
         const result = allEmps.filter(e => validIds.has(e.id)).sort((a, b) => a.name.localeCompare(b.name));
+
+        // Always include CDL drivers (Carson & Damien), then merge with clocked-in employees
         const merged = [
-          ...PERMANENT_SUPERVISORS.filter(s => !result.some(r => r.name === s.name)),
+          ...CDL_DRIVERS.filter(d => !result.some(r => r.name === d.name)),
           ...result,
         ].sort((a, b) => a.name.localeCompare(b.name));
         setWoEmployeeList(merged);
