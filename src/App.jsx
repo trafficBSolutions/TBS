@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate} from 'react-router-dom'
+import HydrovacWorkOrder from './pages/hydrovac-work-order';
 import { HydrovacServices, About, EmployeeHandbook, Quote, ConfirmAdditionalFlagger, EmployeeDiscipline, Invoice, Work, ManageJobTest, CancelJobTest, ManageJob, CancelJob, AdminLog, AdminDashboard, Contact, Apply, Home, TrafficControl, TrafficPlan, Rentals, PPE, Signs, BollardsWheels, Error, TService, Product, TrafficControlTest, EmployeeDashboard, EmployeeComplaintForm, LeaveRequest, DirectDeposit } from './pages';
 import TCPDesigner from './pages/tcp-designer';
 import ShopWorkOrder from './pages/shop-work-order';
@@ -139,6 +140,7 @@ function App() {
 />
     <Route path="/time-clock" element={<TimeClockKiosk />} />
     <Route path="/hydrovac-services" element={<HydrovacServices />} />
+    <Route path="/hydrovac-work-order" element={<RequireStaff><HydrovacWorkOrder /></RequireStaff>} />
     <Route path="/time-clock-kiosk" element={<TimeClockKiosk />} />
     <Route path="/shop-work-order" element={<ShopWorkOrder />} />
     <Route path="/employee-dashboard" element={<RequireStaff><EmployeeDashboard /></RequireStaff>} />
