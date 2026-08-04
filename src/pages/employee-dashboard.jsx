@@ -143,11 +143,16 @@ const EmployeeDashboard = () => {
 
     try {
       const res = await axios.post('/timeclock/punch', { pin, purpose: isClockedIn ? undefined : clockPurpose });
-      setClockMsg(res.data.message);
+      let msg = res.data.message;
+      if (res.data.action === 'clocked_out' && res.data.record?.clockIn && res.data.record?.clockOut) {
+        const mins = Math.round((new Date(res.data.record.clockOut) - new Date(res.data.record.clockIn)) / 60000);
+        msg += ` — ${(mins / 60).toFixed(2)} hrs (${mins} min) this session`;
+      }
+      setClockMsg(msg);
       setPin('');
       setClockPurpose('');
       fetchClockedIn();
-      setTimeout(() => { setSelectedEmployee(null); setClockMsg(''); }, 3000);
+      setTimeout(() => { setSelectedEmployee(null); setClockMsg(''); }, 5000);
     } catch (err) {
       const data = err.response?.data;
       if (!err.response) {
@@ -376,7 +381,9 @@ const EmployeeDashboard = () => {
                         )) : '—'}
                       </td>
                       <td style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>
-                        {weekData.days[day] ? `${(weekData.days[day].minutes / 60).toFixed(2)} hrs` : '—'}
+                        {weekData.days[day] ? weekData.days[day].records.map((r, i) => (
+                          <div key={i}>{r.clockOut ? `${(r.minutes / 60).toFixed(2)} hrs` : <span style={{color:'#4CAF50'}}>active</span>}</div>
+                        )) : '—'}
                       </td>
                     </tr>
                   ))}
