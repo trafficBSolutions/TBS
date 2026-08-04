@@ -37,8 +37,9 @@ export default function HydrovacWorkOrder() {
 
   const [form, setForm] = useState({
     date: new Date().toISOString().split('T')[0],
-    foreman: '',
-    numberOfCrewmen: '',
+    coordinator: '',
+    cdlDriver: '',
+    secondWorker: '',
     // Pipe & job metrics
     extensionPipeLength: '100',
     timesDumped: '',
@@ -150,8 +151,9 @@ export default function HydrovacWorkOrder() {
   const validate = () => {
     const errs = {};
     if (!form.date) errs.date = 'Date is required';
-    if (!form.foreman.trim()) errs.foreman = 'Foreman is required';
-    if (!form.numberOfCrewmen) errs.numberOfCrewmen = 'Number of crewmen is required';
+    if (!form.coordinator.trim()) errs.coordinator = 'Coordinator is required';
+    if (!form.cdlDriver) errs.cdlDriver = 'CDL Driver is required';
+    if (!form.secondWorker) errs.secondWorker = 'Second worker is required';
     if (!form.timesDumped) errs.timesDumped = 'Times dumped is required';
     if (!form.utilitiesFound) errs.utilitiesFound = 'Utilities/holes found is required';
     if (!form.engineHoursStart) errs.engineHoursStart = 'Engine hours start is required';
@@ -199,7 +201,7 @@ export default function HydrovacWorkOrder() {
       setSubmissionMessage('✅ Hydrovac Work Order submitted successfully!');
       setForm({
         date: new Date().toISOString().split('T')[0],
-        foreman: '', numberOfCrewmen: '',
+        coordinator: '', cdlDriver: '', secondWorker: '',
         extensionPipeLength: '100', timesDumped: '', utilitiesFound: '',
         engineHoursStart: '', engineHoursEnd: '',
         mileageStart: '', mileageEnd: '',
@@ -274,20 +276,46 @@ export default function HydrovacWorkOrder() {
               </div>
 
               <div className="hydrovac-field">
-                <label>Foreman *</label>
-                <select value={form.foreman} onChange={e => setField('foreman', e.target.value)}>
-                  <option value="">-- Select Foreman --</option>
-                  {woEmployeeList.filter(e => e.position === 'Foreman' || e.position === 'Driver').map(e => (
-                    <option key={e.name} value={e.name}>{e.name} ({e.position})</option>
+                <label>Coordinator (Client-Side) *</label>
+                <input
+                  type="text"
+                  placeholder="Coordinator name"
+                  value={form.coordinator}
+                  onChange={e => setField('coordinator', e.target.value)}
+                />
+                {errors.coordinator && <div className="error-message">{errors.coordinator}</div>}
+              </div>
+            </div>
+
+            <h3 className="comp-section">Crew</h3>
+            <div className="hydrovac-field-group">
+              <div className="hydrovac-field">
+                <label>CDL Driver *</label>
+                <select value={form.cdlDriver} onChange={e => setField('cdlDriver', e.target.value)}>
+                  <option value="">-- Select CDL Driver --</option>
+                  {CDL_DRIVERS.map(d => (
+                    <option key={d.id} value={d.name}>{d.name}</option>
                   ))}
                 </select>
-                {errors.foreman && <div className="error-message">{errors.foreman}</div>}
+                {errors.cdlDriver && <div className="error-message">{errors.cdlDriver}</div>}
               </div>
 
               <div className="hydrovac-field">
-                <label>Number of Crewmen *</label>
-                <input type="number" min="1" value={form.numberOfCrewmen} onChange={e => setField('numberOfCrewmen', e.target.value)} />
-                {errors.numberOfCrewmen && <div className="error-message">{errors.numberOfCrewmen}</div>}
+                <label>Second Worker *</label>
+                <select value={form.secondWorker} onChange={e => setField('secondWorker', e.target.value)}>
+                  <option value="">-- Select Second Worker --</option>
+                  {/* CDL drivers available as second worker (excluding whoever is CDL driver) */}
+                  {CDL_DRIVERS.filter(d => d.name !== form.cdlDriver).map(d => (
+                    <option key={d.id} value={d.name}>{d.name} (CDL Driver)</option>
+                  ))}
+                  {/* Anyone clocked in as Hydrovac, excluding the selected CDL driver */}
+                  {woEmployeeList
+                    .filter(e => e.name !== form.cdlDriver && !CDL_DRIVERS.some(d => d.name === e.name))
+                    .map(e => (
+                      <option key={e.id || e.name} value={e.name}>{e.name} ({e.position})</option>
+                    ))}
+                </select>
+                {errors.secondWorker && <div className="error-message">{errors.secondWorker}</div>}
               </div>
             </div>
 
