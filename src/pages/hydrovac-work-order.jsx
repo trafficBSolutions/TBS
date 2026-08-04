@@ -18,7 +18,7 @@ const TRUCKS = [
 
 const CDL_DRIVERS = [
   { id: 'carson-cdl', name: 'Carson Speer', position: 'CDL Driver' },
-  { id: 'damien-cdl', name: 'Damien', position: 'CDL Driver' },
+  { id: 'damien-cdl', name: 'Damien Diskey', position: 'CDL Driver' },
 ];
 
 export default function HydrovacWorkOrder() {
