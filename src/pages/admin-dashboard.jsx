@@ -1824,6 +1824,12 @@ selected={
   </div>
 
   <div className="tool-card">
+    <h3>🚛 Hydrovac Work Order</h3>
+    <p>Submit a hydrovac daily work order</p>
+    <button className="btn workorder-btn" onClick={() => navigate('/hydrovac-work-order')}>Open Hydrovac WO</button>
+  </div>
+
+  <div className="tool-card">
     <h3>🏗️ Shop Work Order</h3>
     <p>Submit a shop work order for approval</p>
     <button className="btn workorder-btn" onClick={() => navigate('/admin-dashboard/shop-work-order')}>Open Shop Work Order</button>
@@ -1993,6 +1999,7 @@ selected={
             <option value="Weekend Work">Weekend Work</option>
             <option value="Shop Work">Shop Work</option>
             <option value="Drive Time">Drive Time</option>
+            <option value="Hydrovac">Hydrovac</option>
           </select>
           <div style={{display:'flex',gap:'0.4rem',alignItems:'center'}}>
             <label style={{fontSize:'0.8rem'}}>In:</label>
@@ -2150,7 +2157,7 @@ selected={
                                       </div>
                                     )}
                                     {r.purpose && <span style={{display:'block',marginTop:'2px',background:'#e3f2fd',color:'#1565c0',padding:'1px 6px',borderRadius:'3px',fontSize:'0.7rem',maxWidth:'fit-content',margin:'2px auto 0'}}>{r.purpose}{canEditHours && <button style={{marginLeft:'4px',padding:'0 3px',fontSize:'9px',background:'#1565c0',color:'#fff',border:'none',borderRadius:'2px',cursor:'pointer'}} onClick={async () => {
-                                      const purposes = ['2 Man Crew','3 Man Crew','Arrow Board/Message Board Job','Emergency Job','Weekend Work','Shop Work','Standby','Drive Time'];
+                                      const purposes = ['2 Man Crew','3 Man Crew','Arrow Board/Message Board Job','Emergency Job','Weekend Work','Shop Work','Standby','Drive Time','Hydrovac'];
                                       const newPurpose = prompt('Select new purpose:\n\n' + purposes.map((p,idx2) => `${idx2+1}. ${p}`).join('\n') + '\n\nEnter number or type purpose:', r.purpose);
                                       if (newPurpose === null || newPurpose === r.purpose) return;
                                       const parsed = parseInt(newPurpose);
@@ -2286,6 +2293,7 @@ selected={
                       <option value="Weekend Work">Weekend Work</option>
                       <option value="Shop Work">Shop Work</option>
                       <option value="Drive Time">Drive Time</option>
+                      <option value="Hydrovac">Hydrovac</option>
                     </select>
                   )}
                   <button className="btn" style={{padding:'4px 14px',fontSize:'12px'}} onClick={async () => {
