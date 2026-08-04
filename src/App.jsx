@@ -141,6 +141,7 @@ function App() {
     <Route path="/time-clock" element={<TimeClockKiosk />} />
     <Route path="/hydrovac-services" element={<HydrovacServices />} />
     <Route path="/hydrovac-work-order" element={<RequireStaff><HydrovacWorkOrder /></RequireStaff>} />
+    <Route path="/employee-dashboard/hydrovac-work-order" element={<RequireStaff><HydrovacWorkOrder /></RequireStaff>} />
     <Route path="/time-clock-kiosk" element={<TimeClockKiosk />} />
     <Route path="/shop-work-order" element={<ShopWorkOrder />} />
     <Route path="/employee-dashboard" element={<RequireStaff><EmployeeDashboard /></RequireStaff>} />
