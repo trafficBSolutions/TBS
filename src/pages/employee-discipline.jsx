@@ -255,6 +255,7 @@ function EmployeeDiscipline() {
                         <button type="button" className="btn" style={{fontSize:11,padding:'4px 8px',background:'#1e3a8a',color:'#fff'}} onClick={() => { setAdjustEmpId(adjustEmpId === emp._id ? null : emp._id); setAdjustDelta(''); setAdjustReason(''); }}>± Points</button>
                       </td>
                     </tr>
+                  ))}
                     {adjustEmpId === emp._id && (
                       <tr key={`adj-${emp._id}`}>
                         <td colSpan={5} style={{border:'1px solid #1e3a8a',padding:12,background:'#f0f4ff'}}>
@@ -272,10 +273,10 @@ function EmployeeDiscipline() {
                         </td>
                       </tr>
                     )}
-                  ))}
                   {employees.length === 0 && (
                     <tr><td colSpan={5} style={{border:'1px solid #ddd',padding:12,textAlign:'center',color:'#999'}}>No employees added yet.</td></tr>
                   )}
+                  
                 </tbody>
               </table>
             </div>
