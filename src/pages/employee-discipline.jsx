@@ -238,45 +238,46 @@ function EmployeeDiscipline() {
                 </thead>
                 <tbody>
                   {employees.map(emp => (
-                    <tr key={emp._id} style={{background: emp.terminated ? '#f8d7da' : emp.totalPoints >= 2 ? '#fff3cd' : 'white'}}>
-                      <td style={{border:'1px solid #ddd',padding:8}}>{emp.name}</td>
-                      <td style={{border:'1px solid #ddd',padding:8}}>{emp.position}</td>
-                      <td style={{border:'1px solid #ddd',padding:8,textAlign:'center',fontWeight:'bold',color: emp.totalPoints >= 3 ? '#c0392b' : emp.totalPoints >= 2 ? '#e67e22' : '#27ae60'}}>
-                        {emp.totalPoints.toFixed(2)} / 3.00
-                      </td>
-                      <td style={{border:'1px solid #ddd',padding:8,textAlign:'center'}}>
-                        {emp.terminated ? <span style={{color:'#c0392b',fontWeight:'bold'}}>❌ Terminated</span> : <span style={{color:'#27ae60'}}>Active</span>}
-                      </td>
-                      <td style={{border:'1px solid #ddd',padding:8,textAlign:'center',display:'flex',gap:4,justifyContent:'center',flexWrap:'wrap'}}>
-                        {!emp.terminated && emp.totalPoints >= 3 && (
-                          <button type="button" className="btn" style={{fontSize:11,padding:'4px 8px',background:'#c0392b',color:'#fff'}} onClick={() => handleTerminateEmployee(emp._id, emp.name)}>Terminate?</button>
-                        )}
-                        <button type="button" className="btn" style={{fontSize:11,padding:'4px 8px'}} onClick={() => handleDeleteEmployee(emp._id)}>Remove</button>
-                        <button type="button" className="btn" style={{fontSize:11,padding:'4px 8px',background:'#1e3a8a',color:'#fff'}} onClick={() => { setAdjustEmpId(adjustEmpId === emp._id ? null : emp._id); setAdjustDelta(''); setAdjustReason(''); }}>± Points</button>
-                      </td>
-                    </tr>
-                  ))}
-                    {adjustEmpId === emp._id && (
-                      <tr key={`adj-${emp._id}`}>
-                        <td colSpan={5} style={{border:'1px solid #1e3a8a',padding:12,background:'#f0f4ff'}}>
-                          <strong>Adjust Points for {emp.name}</strong> (current: {emp.totalPoints.toFixed(2)})
-                          <div style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:8,alignItems:'flex-end'}}>
-                            <label style={{margin:0}}>Delta (negative to remove)
-                              <input type="number" step="0.25" value={adjustDelta} onChange={e=>setAdjustDelta(e.target.value)} style={{width:110,padding:6,fontSize:14}} placeholder="e.g. -0.25" />
-                            </label>
-                            <label style={{margin:0,flex:1}}>Reason
-                              <input type="text" value={adjustReason} onChange={e=>setAdjustReason(e.target.value)} style={{width:'100%',padding:6,fontSize:14}} placeholder="Reason for adjustment" />
-                            </label>
-                            <button type="button" className="btn workorder-btn" disabled={adjusting} onClick={() => handleAdjustPoints(emp)} style={{padding:'6px 14px'}}>{adjusting ? '...' : 'Apply'}</button>
-                            <button type="button" className="btn" onClick={() => setAdjustEmpId(null)} style={{padding:'6px 14px'}}>Cancel</button>
-                          </div>
+                    <React.Fragment key={emp._id}>
+                      <tr style={{background: emp.terminated ? '#f8d7da' : emp.totalPoints >= 2 ? '#fff3cd' : 'white'}}>
+                        <td style={{border:'1px solid #ddd',padding:8}}>{emp.name}</td>
+                        <td style={{border:'1px solid #ddd',padding:8}}>{emp.position}</td>
+                        <td style={{border:'1px solid #ddd',padding:8,textAlign:'center',fontWeight:'bold',color: emp.totalPoints >= 3 ? '#c0392b' : emp.totalPoints >= 2 ? '#e67e22' : '#27ae60'}}>
+                          {emp.totalPoints.toFixed(2)} / 3.00
+                        </td>
+                        <td style={{border:'1px solid #ddd',padding:8,textAlign:'center'}}>
+                          {emp.terminated ? <span style={{color:'#c0392b',fontWeight:'bold'}}>❌ Terminated</span> : <span style={{color:'#27ae60'}}>Active</span>}
+                        </td>
+                        <td style={{border:'1px solid #ddd',padding:8,textAlign:'center',display:'flex',gap:4,justifyContent:'center',flexWrap:'wrap'}}>
+                          {!emp.terminated && emp.totalPoints >= 3 && (
+                            <button type="button" className="btn" style={{fontSize:11,padding:'4px 8px',background:'#c0392b',color:'#fff'}} onClick={() => handleTerminateEmployee(emp._id, emp.name)}>Terminate?</button>
+                          )}
+                          <button type="button" className="btn" style={{fontSize:11,padding:'4px 8px'}} onClick={() => handleDeleteEmployee(emp._id)}>Remove</button>
+                          <button type="button" className="btn" style={{fontSize:11,padding:'4px 8px',background:'#1e3a8a',color:'#fff'}} onClick={() => { setAdjustEmpId(adjustEmpId === emp._id ? null : emp._id); setAdjustDelta(''); setAdjustReason(''); }}>± Points</button>
                         </td>
                       </tr>
-                    )}
+                      {adjustEmpId === emp._id && (
+                        <tr>
+                          <td colSpan={5} style={{border:'1px solid #1e3a8a',padding:12,background:'#f0f4ff'}}>
+                            <strong>Adjust Points for {emp.name}</strong> (current: {emp.totalPoints.toFixed(2)})
+                            <div style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:8,alignItems:'flex-end'}}>
+                              <label style={{margin:0}}>Delta (negative to remove)
+                                <input type="number" step="0.25" value={adjustDelta} onChange={e=>setAdjustDelta(e.target.value)} style={{width:110,padding:6,fontSize:14}} placeholder="e.g. -0.25" />
+                              </label>
+                              <label style={{margin:0,flex:1}}>Reason
+                                <input type="text" value={adjustReason} onChange={e=>setAdjustReason(e.target.value)} style={{width:'100%',padding:6,fontSize:14}} placeholder="Reason for adjustment" />
+                              </label>
+                              <button type="button" className="btn workorder-btn" disabled={adjusting} onClick={() => handleAdjustPoints(emp)} style={{padding:'6px 14px'}}>{adjusting ? '...' : 'Apply'}</button>
+                              <button type="button" className="btn" onClick={() => setAdjustEmpId(null)} style={{padding:'6px 14px'}}>Cancel</button>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  ))}
                   {employees.length === 0 && (
                     <tr><td colSpan={5} style={{border:'1px solid #ddd',padding:12,textAlign:'center',color:'#999'}}>No employees added yet.</td></tr>
                   )}
-                  
                 </tbody>
               </table>
             </div>
