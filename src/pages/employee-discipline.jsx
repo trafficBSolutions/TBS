@@ -325,7 +325,7 @@ function EmployeeDiscipline() {
             </label>
             {selectedEmpId && (
               <div style={{marginTop:10}}>
-                <p>Previous: <strong>{selectedEmpPoints.toFixed(2)}</strong> + Adding: <strong>{pointsNum.toFixed(2)}</strong> = New Total: <strong style={{color: willTerminate ? '#c0392b' : '#1e3a8a',fontSize:18}}>{projectedTotal.toFixed(2)} / 3.00</strong></p>
+                <p>Previous: <strong>{selectedEmpPoints.toFixed(2)}</strong> + Adding: <strong>{pointsNum.toFixed(2)}</strong> = New Total: <strong style={{color: willRequireReview ? '#c0392b' : '#1e3a8a',fontSize:18}}>{projectedTotal.toFixed(2)} / 3.00</strong></p>
                 {willRequireReview && (
                   <div style={{background:'#fff3cd',border:'1px solid #ffc107',borderRadius:6,padding:10,marginTop:8,color:'#856404',fontWeight:'bold',textAlign:'center'}}>
                     ⚠️ WARNING: This will bring the employee to {projectedTotal.toFixed(2)} points — Carson & Rowel to review for possible termination
