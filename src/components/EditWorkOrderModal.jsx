@@ -6,7 +6,8 @@ const EDIT_EMAILS = new Set([
   'tbsolutions4@gmail.com',
   'tbsolutions1999@gmail.com',
   'tbsolutions1995@gmail.com',
-  'materialworx2@gmail.com'
+  'materialworx2@gmail.com',
+  'davissmithtbs@gmail.com'
 ]);
 
 export function canEditWorkOrders() {
