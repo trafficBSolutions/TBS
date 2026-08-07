@@ -110,6 +110,8 @@ const clearSignature = () => {
   setForemanSig('');
 };
   const [foremanName, setForemanName] = useState('');
+  const [submissionCoords, setSubmissionCoords] = useState({ lat: null, lng: null });
+  const [detectedRegion, setDetectedRegion] = useState(null);
   const [allowedDates, setAllowedDates] = useState([]);
   // Build allowed date list from jobDates (array of { date, ... })
 // Pretty label for the selected date (e.g., Monday, February 3, 2025)
@@ -206,6 +208,28 @@ useEffect(() => {
     navigate('/employee-login', { replace: true });
   }
 }, [navigate, fromKiosk]);
+
+// Request GPS location on mount to detect district
+useEffect(() => {
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      setSubmissionCoords({ lat, lng });
+      // Detect region client-side using same haversine logic
+      const TIFTON_LAT = 31.4505, TIFTON_LNG = -83.5085;
+      const toRad = d => d * Math.PI / 180;
+      const dLat = toRad(lat - TIFTON_LAT), dLng = toRad(lng - TIFTON_LNG);
+      const a = Math.sin(dLat/2)**2 + Math.cos(toRad(TIFTON_LAT)) * Math.cos(toRad(lat)) * Math.sin(dLng/2)**2;
+      const miles = 3958.8 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      // Tennessee bounding box
+      if (lat >= 34.98 && lat <= 36.68 && lng >= -90.31 && lng <= -81.65) setDetectedRegion('tn');
+      else setDetectedRegion(miles <= 100 ? 'south' : 'north');
+    },
+    () => {} // silently ignore denial
+  );
+}, []);
 
 // Fetch employees who clocked in within the last 24 hours (exclude Shop Work/Standby)
 useEffect(() => {
@@ -707,6 +731,8 @@ const onSubmit = async (e) => {
   const formData = new FormData();
   formData.append('jobId', jobId || '');
   formData.append('scheduledDate', basic.dateOfJob);
+  if (submissionCoords.lat !== null) formData.append('submissionLat', submissionCoords.lat);
+  if (submissionCoords.lng !== null) formData.append('submissionLng', submissionCoords.lng);
   formData.append('basic', JSON.stringify({
     ...basic,
     foremanName: foremanName.trim(),
@@ -911,6 +937,15 @@ const isSubmitReady = useMemo(() => {
               <div style={{ background: '#fff3cd', border: '1px solid #ffc107', borderRadius: '8px', padding: '15px', margin: '15px 0', textAlign: 'center' }}>
                 <strong>⚠️ You must complete this Work Order before clocking out.</strong>
                 <p style={{ margin: '5px 0 0', fontSize: '14px' }}>All Foremen/Drivers must submit a work order for the day. Once submitted, you will be clocked out automatically.</p>
+              </div>
+            )}
+            {detectedRegion && (
+              <div style={{ display: 'inline-block', padding: '6px 14px', borderRadius: '6px', fontWeight: 'bold', fontSize: '14px', margin: '10px 0',
+                background: detectedRegion === 'south' ? '#fff3e0' : detectedRegion === 'tn' ? '#e8f5e9' : '#e3f2fd',
+                color: detectedRegion === 'south' ? '#e65100' : detectedRegion === 'tn' ? '#2e7d32' : '#1565c0',
+                border: `1px solid ${detectedRegion === 'south' ? '#e65100' : detectedRegion === 'tn' ? '#2e7d32' : '#1565c0'}`
+              }}>
+                📍 {detectedRegion === 'south' ? '🟧 South GA District' : detectedRegion === 'tn' ? '🟩 Tennessee District' : '🟦 North GA District'}
               </div>
             )}
             <h3 className="comp-section">Company Section:</h3>
