@@ -74,6 +74,9 @@ const [jobs, setJobs] = useState([]);
 const [calendarViewDate, setCalendarViewDate] = useState(new Date());
 const [isAdmin, setIsAdmin] = useState(false);
 const [jobRegionFilter, setJobRegionFilter] = useState(''); // '', 'north', 'south', 'tn'
+const [woRegionFilter, setWoRegionFilter] = useState(
+  JSON.parse(localStorage.getItem('adminUser') || '{}').email === 'davissmithtbs@gmail.com' ? 'south' : ''
+);
 const [woSelectedDate, setWoSelectedDate] = useState(null);
 const [woMonthly, setWoMonthly] = useState({});
 const [woList, setWoList] = useState([]);
@@ -894,11 +897,12 @@ const fetchMonthlyWorkOrders = async (date) => {
 };
 
 
-const fetchWorkOrdersForDay = async (date) => {
+const fetchWorkOrdersForDay = async (date, region) => {
   if (!date) return;
   try {
     const dateStr = date.toISOString().split('T')[0];
-    const res = await axios.get(`/work-orders?date=${dateStr}`);
+    const regionParam = region ? `&region=${region}` : '';
+    const res = await axios.get(`/work-orders?date=${dateStr}${regionParam}`);
     setWoList(res.data);
   } catch (e) {
     console.error('Failed to fetch daily work orders:', e);
@@ -909,7 +913,7 @@ useEffect(() => {
     const d = new Date();
     setWoSelectedDate(d);
     fetchMonthlyWorkOrders(d);
-    fetchWorkOrdersForDay(d);
+    fetchWorkOrdersForDay(d, woRegionFilter);
     setComplaintsDate(d);
     fetchMonthlyComplaints(d);
     fetchComplaintsForDay(d);
@@ -921,9 +925,9 @@ useEffect(() => {
 useEffect(() => {
   if (woSelectedDate) {
     fetchMonthlyWorkOrders(woSelectedDate);
-    fetchWorkOrdersForDay(woSelectedDate);
+    fetchWorkOrdersForDay(woSelectedDate, woRegionFilter);
   }
-}, [woSelectedDate]);
+}, [woSelectedDate, woRegionFilter]);
 useEffect(() => {
   if (complaintsDate) {
     fetchMonthlyComplaints(complaintsDate);
@@ -1358,6 +1362,11 @@ selected={
   {viewMode === 'workorders' && (
     <>
     <h3>Work Orders on {woSelectedDate?.toLocaleDateString()}</h3>
+    <div style={{display:'flex',gap:'8px',marginBottom:'1rem',flexWrap:'wrap'}}>
+      <button className={`btn ${woRegionFilter === '' ? 'active' : ''}`} onClick={() => setWoRegionFilter('')}>All Work Orders</button>
+      <button className={`btn ${woRegionFilter === 'north' ? 'active' : ''}`} style={{background: woRegionFilter === 'north' ? '#1e88e5' : ''}} onClick={() => setWoRegionFilter('north')}>🟦 North GA</button>
+      <button className={`btn ${woRegionFilter === 'south' ? 'active' : ''}`} style={{background: woRegionFilter === 'south' ? '#e65100' : ''}} onClick={() => setWoRegionFilter('south')}>🟧 South GA</button>
+    </div>
     {woSelectedDate && tasks[woSelectedDate.toISOString().split('T')[0]] && (
       <div className="selected-date-tasks">
         <h4>📋 Tasks for {woSelectedDate.toLocaleDateString()}</h4>
@@ -1460,6 +1469,22 @@ selected={
           <p><strong>Completed:</strong> {new Date(wo.createdAt).toLocaleDateString()} at {new Date(wo.createdAt).toLocaleTimeString()}</p>
           <HoursFlag startTime={wo.basic?.startTime} endTime={wo.basic?.endTime} hoursFlag={wo.hoursFlag} />
           <AdminNotesDisplay adminNotes={wo.adminNotes} adminNotesBy={wo.adminNotesBy} adminCorrections={wo.adminCorrections} />
+          {wo.basic?.region && (
+            <p style={{margin:'4px 0'}}><span style={{display:'inline-block',padding:'2px 8px',borderRadius:'4px',fontSize:'0.75rem',fontWeight:'bold',background: wo.basic.region === 'south' ? '#fff3e0' : wo.basic.region === 'tn' ? '#e8f5e9' : '#e3f2fd',color: wo.basic.region === 'south' ? '#e65100' : wo.basic.region === 'tn' ? '#2e7d32' : '#1565c0'}}>{wo.basic.region === 'south' ? '🟧 South GA' : wo.basic.region === 'tn' ? '🟩 TN' : '🟦 North GA'}</span></p>
+          )}
+          {wo.clockIns && wo.clockIns.length > 0 && (
+            <div style={{marginTop:'8px'}}>
+              <strong>TBS Employee Clock In Times:</strong>
+              <table style={{width:'100%',borderCollapse:'collapse',marginTop:'4px',fontSize:'12px'}}>
+                <thead><tr style={{backgroundColor:'#f2f2f2'}}><th style={{border:'1px solid #ddd',padding:'4px'}}>Employee</th><th style={{border:'1px solid #ddd',padding:'4px'}}>Clock In</th></tr></thead>
+                <tbody>
+                  {wo.clockIns.map((c, i) => (
+                    <tr key={i}><td style={{border:'1px solid #ddd',padding:'4px'}}>{c.name}</td><td style={{border:'1px solid #ddd',padding:'4px'}}>{c.clockIn}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
           {canEditWorkOrders() && (
             <button style={{marginTop:'8px',padding:'6px 14px',fontSize:'12px',background:'#2196F3',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer',fontWeight:'bold'}} onClick={() => setEditingTCWorkOrder(wo)}>✏️ Edit Work Order</button>
           )}
