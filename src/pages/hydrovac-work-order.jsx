@@ -153,7 +153,6 @@ export default function HydrovacWorkOrder() {
     if (!form.date) errs.date = 'Date is required';
     if (!form.coordinator.trim()) errs.coordinator = 'Coordinator is required';
     if (!form.cdlDriver) errs.cdlDriver = 'CDL Driver is required';
-    if (!form.secondWorker) errs.secondWorker = 'Second worker is required';
     if (!form.timesDumped) errs.timesDumped = 'Times dumped is required';
     if (!form.utilitiesFound) errs.utilitiesFound = 'Utilities/holes found is required';
     if (!form.engineHoursStart) errs.engineHoursStart = 'Engine hours start is required';
@@ -301,7 +300,7 @@ export default function HydrovacWorkOrder() {
               </div>
 
               <div className="hydrovac-field">
-                <label>Second Worker *</label>
+                <label>Second Worker (optional)</label>
                 <select value={form.secondWorker} onChange={e => setField('secondWorker', e.target.value)}>
                   <option value="">-- Select Second Worker --</option>
                   {/* CDL drivers available as second worker (excluding whoever is CDL driver) */}
