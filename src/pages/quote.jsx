@@ -90,6 +90,7 @@ export default function Quote() {
   const [invMessage, setInvMessage] = useState("");
   const [invDonation, setInvDonation] = useState(0);
   const [invNotes, setInvNotes] = useState("");
+  const [invAttachments, setInvAttachments] = useState([]);
   const [activeSection, setActiveSection] = useState('quote');
 
   const updateInvRow = (id, patch) => setInvRows(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r));
@@ -119,7 +120,8 @@ export default function Quote() {
     setInvSending(true);
     setInvMessage("");
     try {
-      await api.post('/api/invoice', {
+      const fd = new FormData();
+      const payload = {
         invoiceNumber: invNumber.trim(),
         date: invDate, company: invCompany, customer: invCustomer,
         email: invEmail, phone: invPhone,
@@ -129,7 +131,10 @@ export default function Quote() {
         donation: invComputed.donation,
         notes: invNotes,
         rows: invRows, computed: invComputed
-      });
+      };
+      fd.append('data', JSON.stringify(payload));
+      invAttachments.forEach(file => fd.append('attachments', file));
+      await api.post('/api/invoice', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       setInvMessage("Invoice sent successfully!");
     } catch {
       setInvMessage("Failed to send invoice. Please try again.");
@@ -567,6 +572,32 @@ export default function Quote() {
         <label style={{ display: 'block', marginTop: '10px' }}>Notes
           <textarea value={invNotes} onChange={(e) => setInvNotes(e.target.value)} placeholder="Additional notes..." rows={3} style={{ width: '100%' }} />
         </label>
+
+        <div style={{ marginTop: '10px' }}>
+          <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600 }}>
+            Attach Documents (Work Orders, Tax Exemption Forms, PDFs, etc.)
+          </label>
+          <input
+            type="file"
+            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+            multiple
+            onChange={(e) => setInvAttachments(prev => [...prev, ...Array.from(e.target.files)])}
+          />
+          {invAttachments.length > 0 && (
+            <ul style={{ marginTop: '6px', paddingLeft: '16px' }}>
+              {invAttachments.map((f, i) => (
+                <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                  <span>{f.name}</span>
+                  <button
+                    type="button"
+                    className="icon-btn"
+                    onClick={() => setInvAttachments(prev => prev.filter((_, idx) => idx !== i))}
+                  >✕</button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
 
         <div className="quote-send-area">
           <button type="button" className="btn" onClick={handleSendInvoice} disabled={invSending}>
