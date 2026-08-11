@@ -118,6 +118,8 @@ const [hydrovacWoList, setHydrovacWoList] = useState([]);
 const [hydrovacWoMonthly, setHydrovacWoMonthly] = useState({});
 const [editingHydrovacWo, setEditingHydrovacWo] = useState(null);
 const [editHydrovacWo, setEditHydrovacWo] = useState({});
+const [hydrovacWoSaving, setHydrovacWoSaving] = useState(false);
+const [hydrovacWoSaveMsg, setHydrovacWoSaveMsg] = useState('');
 const [allowedForSignShop, setAllowedForSignShop] = useState(false);
 const [signShopDate, setSignShopDate] = useState(new Date());
 const [signShopList, setSignShopList] = useState([]);
@@ -1855,16 +1857,23 @@ selected={
               <label style={{display:'block',marginTop:'8px',fontSize:'13px'}}>Notes:
                 <textarea rows={3} value={editHydrovacWo.notes || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, notes: e.target.value})} style={{width:'100%',padding:'4px'}} />
               </label>
-              <div style={{display:'flex',gap:'8px',marginTop:'10px'}}>
-                <button className="btn" style={{background:'#4CAF50',color:'#fff',padding:'6px 14px',fontSize:'12px'}} onClick={async () => {
+              <div style={{display:'flex',gap:'8px',marginTop:'10px',alignItems:'center'}}>
+                <button className="btn" style={{background:'#4CAF50',color:'#fff',padding:'6px 14px',fontSize:'12px'}} disabled={hydrovacWoSaving} onClick={async () => {
+                  setHydrovacWoSaving(true);
+                  setHydrovacWoSaveMsg('');
                   try {
                     await axios.put(`/hydrovac-work-order/${wo._id}`, editHydrovacWo);
+                    setHydrovacWoSaveMsg('✅ Saved & email sent!');
                     setEditingHydrovacWo(null);
                     fetchHydrovacWoForDay(hydrovacWoDate);
                     fetchMonthlyHydrovacWo(hydrovacWoDate);
-                  } catch (e) { alert(e.response?.data?.error || 'Failed to save'); }
-                }}>Save</button>
-                <button className="btn" style={{background:'#888',color:'#fff',padding:'6px 14px',fontSize:'12px'}} onClick={() => setEditingHydrovacWo(null)}>Cancel</button>
+                    setTimeout(() => setHydrovacWoSaveMsg(''), 4000);
+                  } catch (e) {
+                    setHydrovacWoSaveMsg('❌ ' + (e.response?.data?.error || 'Failed to save'));
+                  } finally { setHydrovacWoSaving(false); }
+                }}>{hydrovacWoSaving ? 'Saving...' : 'Save & Email PDF'}</button>
+                <button className="btn" style={{background:'#888',color:'#fff',padding:'6px 14px',fontSize:'12px'}} onClick={() => { setEditingHydrovacWo(null); setHydrovacWoSaveMsg(''); }}>Cancel</button>
+                {hydrovacWoSaveMsg && <span style={{fontSize:'12px',fontWeight:'bold',color: hydrovacWoSaveMsg.startsWith('✅') ? '#4CAF50' : '#f44336'}}>{hydrovacWoSaveMsg}</span>}
               </div>
             </div>
           ) : (
@@ -1887,7 +1896,7 @@ selected={
               {wo.notes && <p><strong>Notes:</strong> {wo.notes}</p>}
               <p style={{fontSize:'0.8rem',color:'#888'}}>Submitted: {new Date(wo.createdAt).toLocaleString()}</p>
               <div style={{display:'flex',gap:'8px',marginTop:'8px'}}>
-                <a href={`/hydrovac-work-order/${wo._id}/pdf`} target="_blank" rel="noreferrer"
+                <a href={`/hydrovac-work-order/${wo._id}/pdf?t=${Date.now()}`} target="_blank" rel="noreferrer"
                   style={{padding:'6px 14px',fontSize:'12px',background:'#e53935',color:'#fff',borderRadius:'6px',textDecoration:'none',fontWeight:'bold'}}>
                   📄 PDF
                 </a>
