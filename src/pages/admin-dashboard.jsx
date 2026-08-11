@@ -113,6 +113,11 @@ const [bollardMonthly, setBollardMonthly] = useState({});
 const [hydrovacDate, setHydrovacDate] = useState(new Date());
 const [hydrovacList, setHydrovacList] = useState([]);
 const [hydrovacMonthly, setHydrovacMonthly] = useState({});
+const [hydrovacWoDate, setHydrovacWoDate] = useState(new Date());
+const [hydrovacWoList, setHydrovacWoList] = useState([]);
+const [hydrovacWoMonthly, setHydrovacWoMonthly] = useState({});
+const [editingHydrovacWo, setEditingHydrovacWo] = useState(null);
+const [editHydrovacWo, setEditHydrovacWo] = useState({});
 const [allowedForSignShop, setAllowedForSignShop] = useState(false);
 const [signShopDate, setSignShopDate] = useState(new Date());
 const [signShopList, setSignShopList] = useState([]);
@@ -569,6 +574,29 @@ const handleLeaveDeny = async (id) => {
   }
 };
 
+const fetchMonthlyHydrovacWo = async (date) => {
+  try {
+    const month = date.getMonth() + 1, year = date.getFullYear();
+    const res = await axios.get(`/hydrovac-work-orders?month=${month}&year=${year}`);
+    const grouped = {};
+    (res.data || []).forEach(wo => { (grouped[wo.date] ||= []).push(wo); });
+    setHydrovacWoMonthly(grouped);
+  } catch (e) {
+    setHydrovacWoMonthly({});
+  }
+};
+
+const fetchHydrovacWoForDay = async (date) => {
+  if (!date) return;
+  try {
+    const dateStr = date.toISOString().split('T')[0];
+    const res = await axios.get(`/hydrovac-work-orders?date=${dateStr}`);
+    setHydrovacWoList(res.data || []);
+  } catch (e) {
+    setHydrovacWoList([]);
+  }
+};
+
 const fetchMonthlyHydrovac = async (date) => {
   try {
     const month = date.getMonth() + 1;
@@ -957,6 +985,13 @@ useEffect(() => {
 }, [hydrovacDate]);
 
 useEffect(() => {
+  if (hydrovacWoDate) {
+    fetchMonthlyHydrovacWo(hydrovacWoDate);
+    fetchHydrovacWoForDay(hydrovacWoDate);
+  }
+}, [hydrovacWoDate]);
+
+useEffect(() => {
   if (signShopDate && allowedForSignShop) {
     fetchMonthlySignShop(signShopDate);
     fetchSignShopForDay(signShopDate);
@@ -1106,6 +1141,7 @@ useEffect(() => {
       )}
       <button className={`btn ${viewMode === 'bollards' ? 'active' : ''}`} onClick={() => setViewMode('bollards')}>Bollards/Wheels</button>
       <button className={`btn ${viewMode === 'hydrovac' ? 'active' : ''}`} onClick={() => setViewMode('hydrovac')}>Hydrovac</button>
+      <button className={`btn ${viewMode === 'hydrovacwo' ? 'active' : ''}`} onClick={() => { setViewMode('hydrovacwo'); fetchMonthlyHydrovacWo(hydrovacWoDate); fetchHydrovacWoForDay(hydrovacWoDate); }}>🚛 Hydrovac WOs</button>
       {allowedForSignShop && (
         <button className={`btn ${viewMode === 'signshop' ? 'active' : ''}`} onClick={() => setViewMode('signshop')}>Sign Shop</button>
       )}
@@ -1149,6 +1185,7 @@ selected={
     : viewMode === 'quotes' ? quotesDate
     : viewMode === 'bollards' ? bollardDate
     : viewMode === 'hydrovac' ? hydrovacDate
+    : viewMode === 'hydrovacwo' ? hydrovacWoDate
     : viewMode === 'signshop' ? signShopDate
     : viewMode === 'shopwo' ? shopWoDate
     : taskDate
@@ -1161,6 +1198,7 @@ selected={
   else if (viewMode === 'quotes') setQuotesDate(date);
   else if (viewMode === 'bollards') setBollardDate(date);
   else if (viewMode === 'hydrovac') setHydrovacDate(date);
+  else if (viewMode === 'hydrovacwo') setHydrovacWoDate(date);
   else if (viewMode === 'signshop') setSignShopDate(date);
   else if (viewMode === 'shopwo') setShopWoDate(date);
   else setTaskDate(date);
@@ -1174,6 +1212,7 @@ selected={
   else if (viewMode === 'quotes') fetchMonthlyQuotes(date);
   else if (viewMode === 'bollards') fetchMonthlyBollards(date);
   else if (viewMode === 'hydrovac') fetchMonthlyHydrovac(date);
+  else if (viewMode === 'hydrovacwo') fetchMonthlyHydrovacWo(date);
   else if (viewMode === 'signshop') fetchMonthlySignShop(date);
   else if (viewMode === 'shopwo') fetchMonthlyShopWo(date);
   else fetchTasks();
@@ -1203,6 +1242,7 @@ selected={
   : viewMode === 'quotes' ? quotesMonthly
   : viewMode === 'bollards' ? bollardMonthly
   : viewMode === 'hydrovac' ? hydrovacMonthly
+  : viewMode === 'hydrovacwo' ? hydrovacWoMonthly
   : viewMode === 'signshop' ? signShopMonthly
   : viewMode === 'shopwo' ? shopWoMonthly
   : tasks;
@@ -1229,6 +1269,8 @@ selected={
       dataSource = bollardMonthly;
     } else if (viewMode === 'hydrovac') {
       dataSource = hydrovacMonthly;
+    } else if (viewMode === 'hydrovacwo') {
+      dataSource = hydrovacWoMonthly;
     } else if (viewMode === 'signshop') {
       dataSource = signShopMonthly;
     } else if (viewMode === 'shopwo') {
@@ -1250,6 +1292,7 @@ selected={
             : viewMode === 'quotes' ? 'Quotes'
             : viewMode === 'bollards' ? 'Bollard Quotes'
             : viewMode === 'hydrovac' ? 'Hydrovac Requests'
+            : viewMode === 'hydrovacwo' ? 'Hydrovac WOs'
             : viewMode === 'signshop' ? 'Sign Jobs'
             : viewMode === 'shopwo' ? 'Shop WOs'
             : 'Tasks'}{viewMode !== 'traffic' ? ` ${itemCount}` : ''}
@@ -1762,6 +1805,100 @@ selected={
         </div>
       ))}
       {hydrovacList.length === 0 && <p>No hydrovac requests on this day.</p>}
+    </div>
+  </>
+)}
+{viewMode === 'hydrovacwo' && (
+  <>
+    <h3>🚛 Hydrovac Work Orders on {hydrovacWoDate?.toLocaleDateString()}</h3>
+    <div className="job-info-list">
+      {hydrovacWoList.map((wo) => (
+        <div key={wo._id} className="job-card">
+          {editingHydrovacWo?._id === wo._id ? (
+            <div>
+              <h4 style={{marginBottom:'10px'}}>✏️ Editing Work Order</h4>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',fontSize:'13px'}}>
+                <label>Date:<input type="date" value={editHydrovacWo.date || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, date: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                <label>Coordinator:<input type="text" value={editHydrovacWo.coordinator || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, coordinator: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                <label>CDL Driver:<input type="text" value={editHydrovacWo.cdlDriver || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, cdlDriver: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                <label>Second Worker:<input type="text" value={editHydrovacWo.secondWorker || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, secondWorker: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                <label>Engine Hours Start:<input type="number" value={editHydrovacWo.engineHoursStart || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, engineHoursStart: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                <label>Engine Hours End:<input type="number" value={editHydrovacWo.engineHoursEnd || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, engineHoursEnd: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                <label>Mileage Start:<input type="number" value={editHydrovacWo.mileageStart || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, mileageStart: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                <label>Mileage End:<input type="number" value={editHydrovacWo.mileageEnd || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, mileageEnd: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                <label>Times Dumped:<input type="number" value={editHydrovacWo.timesDumped ?? ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, timesDumped: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                <label>Utilities Found:<input type="number" value={editHydrovacWo.utilitiesFound ?? ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, utilitiesFound: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                <label>Arrival at Locate:<input type="text" value={editHydrovacWo.arrivalAtLocate || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, arrivalAtLocate: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                <label>Back at Shop:<input type="text" value={editHydrovacWo.arrivalBackAtShop || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, arrivalBackAtShop: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                <label>Truck Cleaned Out:
+                  <select value={editHydrovacWo.truckCleanedOut || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, truckCleanedOut: e.target.value})} style={{width:'100%',padding:'4px'}}>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                  </select>
+                </label>
+                <label>Filter Cleaned:
+                  <select value={editHydrovacWo.filterCleaned || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, filterCleaned: e.target.value})} style={{width:'100%',padding:'4px'}}>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                  </select>
+                </label>
+                <label>Water Refill:
+                  <select value={editHydrovacWo.waterRefill || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, waterRefill: e.target.value})} style={{width:'100%',padding:'4px'}}>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                  </select>
+                </label>
+                <label style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                  <input type="checkbox" checked={!!editHydrovacWo.greasePointsChecked} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, greasePointsChecked: e.target.checked})} /> Grease Points Checked
+                </label>
+              </div>
+              <label style={{display:'block',marginTop:'8px',fontSize:'13px'}}>Notes:
+                <textarea rows={3} value={editHydrovacWo.notes || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, notes: e.target.value})} style={{width:'100%',padding:'4px'}} />
+              </label>
+              <div style={{display:'flex',gap:'8px',marginTop:'10px'}}>
+                <button className="btn" style={{background:'#4CAF50',color:'#fff',padding:'6px 14px',fontSize:'12px'}} onClick={async () => {
+                  try {
+                    await axios.put(`/hydrovac-work-order/${wo._id}`, editHydrovacWo);
+                    setEditingHydrovacWo(null);
+                    fetchHydrovacWoForDay(hydrovacWoDate);
+                    fetchMonthlyHydrovacWo(hydrovacWoDate);
+                  } catch (e) { alert(e.response?.data?.error || 'Failed to save'); }
+                }}>Save</button>
+                <button className="btn" style={{background:'#888',color:'#fff',padding:'6px 14px',fontSize:'12px'}} onClick={() => setEditingHydrovacWo(null)}>Cancel</button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <h4 className="job-company">{wo.cdlDriver} & {wo.secondWorker}</h4>
+              <p><strong>Date:</strong> {wo.date}</p>
+              <p><strong>Coordinator:</strong> {wo.coordinator}</p>
+              <p><strong>Engine Hours:</strong> {wo.engineHoursStart} → {wo.engineHoursEnd} ({(wo.engineHoursEnd - wo.engineHoursStart).toFixed(1)} hrs)</p>
+              <p><strong>Mileage:</strong> {wo.mileageStart} → {wo.mileageEnd} ({wo.mileageEnd - wo.mileageStart} mi)</p>
+              <p><strong>Extension Pipe:</strong> {wo.extensionPipeLength} ft</p>
+              <p><strong>Times Dumped:</strong> {wo.timesDumped}</p>
+              <p><strong>Utilities Found:</strong> {wo.utilitiesFound}</p>
+              <p><strong>Arrival at Locate:</strong> {wo.arrivalAtLocate}</p>
+              <p><strong>Back at Shop:</strong> {wo.arrivalBackAtShop}</p>
+              <p><strong>Grease Points:</strong> {wo.greasePointsChecked ? 'Yes' : 'No'}</p>
+              <p><strong>Truck Cleaned:</strong> {wo.truckCleanedOut} | <strong>Filter:</strong> {wo.filterCleaned} | <strong>Water Refill:</strong> {wo.waterRefill}</p>
+              {wo.trafficControlUsed && (
+                <p><strong>TC:</strong> {wo.tcStartTime} – {wo.tcEndTime}{wo.tcTrucks?.length ? ` | Trucks: ${wo.tcTrucks.join(', ')}` : ''}</p>
+              )}
+              {wo.notes && <p><strong>Notes:</strong> {wo.notes}</p>}
+              <p style={{fontSize:'0.8rem',color:'#888'}}>Submitted: {new Date(wo.createdAt).toLocaleString()}</p>
+              <div style={{display:'flex',gap:'8px',marginTop:'8px'}}>
+                <a href={`/hydrovac-work-order/${wo._id}/pdf`} target="_blank" rel="noreferrer"
+                  style={{padding:'6px 14px',fontSize:'12px',background:'#e53935',color:'#fff',borderRadius:'6px',textDecoration:'none',fontWeight:'bold'}}>
+                  📄 PDF
+                </a>
+                <button style={{padding:'6px 14px',fontSize:'12px',background:'#2196F3',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer',fontWeight:'bold'}}
+                  onClick={() => { setEditingHydrovacWo(wo); setEditHydrovacWo({...wo}); }}>✏️ Edit</button>
+              </div>
+            </>
+          )}
+        </div>
+      ))}
+      {hydrovacWoList.length === 0 && <p>No hydrovac work orders on this day.</p>}
     </div>
   </>
 )}
