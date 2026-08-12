@@ -392,6 +392,9 @@ const removeOfficer = (idx) => {
     { id: 'carson-permanent', name: 'Carson Speer', position: 'Foreman' },
     { id: 'bryson-permanent', name: 'Bryson Davis', position: 'Foreman' },
     { id: 'william-permanent', name: 'William Rowell', position: 'Driver' },
+     { id: 'chris-permanent', name: 'Chris Linton', position: 'Driver' },
+    { id: 'travon-permanent', name: 'Travon Warrior', position: 'Driver' },
+    { id: 'abelardo-permanent', name: 'Abelardo Avellaneda', position: 'Flagger' },
   ];
 
   const [overnightConfirmed, setOvernightConfirmed] = useState(false);
