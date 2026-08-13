@@ -194,6 +194,7 @@ const [changePinId, setChangePinId] = useState(null);
 const [changePinValue, setChangePinValue] = useState('');
 const [adminPunchPurpose, setAdminPunchPurpose] = useState('');
 const [manualPurpose, setManualPurpose] = useState('');
+const [purposeFilter, setPurposeFilter] = useState('All');
 const refreshForLocation = async (loc) => {
   axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {});
   axios.get('/timeclock/employees?location=' + encodeURIComponent(loc)).then(r => setPinEmployees(r.data.employees)).catch(() => {});
