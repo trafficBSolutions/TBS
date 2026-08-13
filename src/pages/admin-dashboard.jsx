@@ -2171,7 +2171,6 @@ selected={
             <option value="Weekend Work">Weekend Work</option>
             <option value="Shop Work">Shop Work</option>
             <option value="Drive Time">Drive Time</option>
-            <option value="Hydrovac">Hydrovac</option>
           </select>
           <div style={{display:'flex',gap:'0.4rem',alignItems:'center'}}>
             <label style={{fontSize:'0.8rem'}}>In:</label>
@@ -2196,7 +2195,23 @@ selected={
 
       {/* Time Worked Summary */}
       <div style={{background:'#f8f9fa',border:'1px solid #dee2e6',borderRadius:'10px',padding:'1rem',marginBottom:'1.5rem'}}>
-        <h4 style={{margin:'0 0 0.75rem',color:'#1e3a8a'}}>📊 Weekly Time Summary</h4>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'0.5rem',marginBottom:'0.75rem'}}>
+          <h4 style={{margin:0,color:'#1e3a8a'}}>📊 Weekly Time Summary</h4>
+          <div style={{display:'flex',alignItems:'center',gap:'0.5rem'}}>
+            <label style={{fontSize:'0.85rem',fontWeight:'bold',color:'#555'}}>View by Purpose:</label>
+            <select value={purposeFilter} onChange={e => setPurposeFilter(e.target.value)} style={{padding:'4px 8px',borderRadius:'6px',border:'1px solid #ccc',fontSize:'0.85rem'}}>
+              <option value="All">All Hours</option>
+              <option value="2 Man Crew">2 Man Crew</option>
+              <option value="Arrow Board/Message Board Job">Arrow Board/Message Board Job</option>
+              <option value="Emergency Job">Emergency Job</option>
+              <option value="Weekend Work">Weekend Work</option>
+              <option value="Shop Work">Shop Work</option>
+              <option value="Drive Time">Drive Time</option>
+              <option value="Standby">Standby</option>
+            </select>
+          </div>
+        </div>
+        {pdfMsg && <p style={{color: pdfMsg.includes('emailed') || pdfMsg.includes('sent') ? '#4CAF50' : '#ff6b6b', fontWeight:'bold', fontSize:'0.85rem', margin:'0 0 0.5rem'}}>{pdfMsg}</p>}
         {editPunchMsg && <p style={{color: editPunchMsg === 'Saved' ? '#4CAF50' : '#ff6b6b', fontWeight:'bold', fontSize:'0.85rem', margin:'0 0 0.5rem'}}>{editPunchMsg}</p>}
         {(() => {
           const weekStart = new Date(timeWorkedWeekStart + 'T00:00:00');
@@ -2233,14 +2248,59 @@ selected={
             {timeWorked.map((emp, i) => {
               const sun = new Date(timeWorkedWeekStart + 'T00:00:00');
               let weekTotalMin = 0;
+              // Build purpose totals across the whole week
+              const purposeTotals = {};
               for (let d = 0; d < 7; d++) {
                 const dt = new Date(sun); dt.setDate(sun.getDate() + d);
                 const key = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
                 if (emp.days[key] && emp.days[key].minutes) weekTotalMin += emp.days[key].minutes;
+                if (emp.days[key] && emp.days[key].records) {
+                  emp.days[key].records.forEach(r => {
+                    if (r.purpose && r.minutes > 0) {
+                      purposeTotals[r.purpose] = (purposeTotals[r.purpose] || 0) + r.minutes;
+                    }
+                  });
+                }
               }
+              // Filtered total for the selected purpose
+              const filteredMin = purposeFilter === 'All' ? weekTotalMin : (purposeTotals[purposeFilter] || 0);
               return (
                 <details key={i} style={{marginBottom:'0.75rem',background:'#f8f9fa',borderRadius:'8px',padding:'14px',border:'1px solid #ddd'}}>
-                  <summary style={{cursor:'pointer',fontWeight:'bold',fontSize:'1.15rem'}}>{emp.name} {emp.position && <span style={{fontWeight:'normal',fontSize:'0.9rem',color:'#1565c0',background:'#e3f2fd',padding:'2px 8px',borderRadius:'4px',marginLeft:'6px'}}>{emp.position}</span>} — {(weekTotalMin / 60).toFixed(2)} hrs ({weekTotalMin} min)</summary>
+                  <summary style={{cursor:'pointer',fontWeight:'bold',fontSize:'1.15rem',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'0.5rem'}}>
+                    <span>{emp.name} {emp.position && <span style={{fontWeight:'normal',fontSize:'0.9rem',color:'#1565c0',background:'#e3f2fd',padding:'2px 8px',borderRadius:'4px',marginLeft:'6px'}}>{emp.position}</span>} — {(filteredMin / 60).toFixed(2)} hrs{purposeFilter !== 'All' ? ` (${purposeFilter})` : ''}</span>
+                    {canEditHours && (
+                      <button
+                        style={{padding:'3px 10px',fontSize:'11px',background:'#1e3a8a',color:'#fff',border:'none',borderRadius:'5px',cursor:'pointer',flexShrink:0}}
+                        disabled={pdfLoadingEmp === emp.name}
+                        onClick={async (e) => {
+                          e.preventDefault();
+                          setPdfLoadingEmp(emp.name);
+                          setPdfMsg('');
+                          const weekEnd = new Date(sun); weekEnd.setDate(sun.getDate() + 6);
+                          const weekEndStr = `${weekEnd.getFullYear()}-${String(weekEnd.getMonth()+1).padStart(2,'0')}-${String(weekEnd.getDate()).padStart(2,'0')}`;
+                          try {
+                            const res = await axios.post('/timeclock/hours-pdf', {
+                              employeeName: emp.name,
+                              position: emp.position,
+                              weekStart: timeWorkedWeekStart,
+                              weekEnd: weekEndStr,
+                              days: emp.days,
+                              weekTotalMin,
+                              purposeTotals
+                            });
+                            setPdfMsg(res.data.message);
+                          } catch (err) {
+                            setPdfMsg(err.response?.data?.message || 'Error generating PDF');
+                          } finally {
+                            setPdfLoadingEmp(null);
+                            setTimeout(() => setPdfMsg(''), 6000);
+                          }
+                        }}
+                      >
+                        {pdfLoadingEmp === emp.name ? '⏳ Generating...' : '📄 Generate PDF & Email'}
+                      </button>
+                    )}
+                  </summary>
                   <table style={{width:'100%',borderCollapse:'collapse',fontSize:'1rem',marginTop:'0.5rem'}}>
                     <thead>
                       <tr style={{background:'#e9ecef'}}>
@@ -2257,6 +2317,12 @@ selected={
                           const key = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
                           const dayName = dt.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
                           const dayData = emp.days[key];
+                          // Filter records by purpose
+                          const filteredRecords = dayData && dayData.records
+                            ? (purposeFilter === 'All' ? dayData.records : dayData.records.filter(r => r.purpose === purposeFilter))
+                            : null;
+                          const filteredDayMin = filteredRecords ? filteredRecords.reduce((s, r) => s + (r.minutes || 0), 0) : 0;
+                          if (purposeFilter !== 'All' && !filteredRecords?.length) continue;
                           days.push(
                             <tr key={key} style={{background: dayData ? '#f0fff0' : 'transparent'}}>
                               <td style={{border:'1px solid #ddd',padding:'8px',fontWeight:'bold'}}>
@@ -2265,7 +2331,6 @@ selected={
                                   <div style={{marginTop:'4px'}}>
                                     {dayData.records.some(r => r.purpose === 'Shop Work' || r.purpose === 'Standby') && (
                                       <button style={{padding:'2px 8px',fontSize:'10px',background:'#ff9800',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer',marginRight:'4px'}} onClick={() => {
-                                        const d2 = new Date(key + 'T00:00:00');
                                         setViewMode('shopwo');
                                       }}>📋 Shop WO</button>
                                     )}
@@ -2278,7 +2343,7 @@ selected={
                                 )}
                               </td>
                               <td style={{border:'1px solid #ddd',padding:'8px',textAlign:'center',fontSize:'0.95rem'}}>
-                                {dayData && dayData.records ? dayData.records.map((r, idx) => (
+                                {filteredRecords && filteredRecords.length > 0 ? filteredRecords.map((r, idx) => (
                                   <div key={idx} style={{marginBottom: idx < dayData.records.length - 1 ? '6px' : 0}}>
                                     {editingPunchId === r._id ? (
                                       <div style={{display:'flex',gap:'4px',alignItems:'center',flexWrap:'wrap',justifyContent:'center'}}>
@@ -2329,7 +2394,7 @@ selected={
                                       </div>
                                     )}
                                     {r.purpose && <span style={{display:'block',marginTop:'2px',background:'#e3f2fd',color:'#1565c0',padding:'1px 6px',borderRadius:'3px',fontSize:'0.7rem',maxWidth:'fit-content',margin:'2px auto 0'}}>{r.purpose}{canEditHours && <button style={{marginLeft:'4px',padding:'0 3px',fontSize:'9px',background:'#1565c0',color:'#fff',border:'none',borderRadius:'2px',cursor:'pointer'}} onClick={async () => {
-                                      const purposes = ['2 Man Crew','3 Man Crew','Arrow Board/Message Board Job','Emergency Job','Weekend Work','Shop Work','Standby','Drive Time','Hydrovac'];
+                                      const purposes = ['2 Man Crew','3 Man Crew','Arrow Board/Message Board Job','Emergency Job','Weekend Work','Shop Work','Standby','Drive Time'];
                                       const newPurpose = prompt('Select new purpose:\n\n' + purposes.map((p,idx2) => `${idx2+1}. ${p}`).join('\n') + '\n\nEnter number or type purpose:', r.purpose);
                                       if (newPurpose === null || newPurpose === r.purpose) return;
                                       const parsed = parseInt(newPurpose);
@@ -2344,7 +2409,7 @@ selected={
                                 )) : '—'}
                               </td>
                               <td style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>
-                                {dayData && dayData.records ? dayData.records.map((r, idx) => (
+                                {filteredRecords && filteredRecords.length > 0 ? filteredRecords.map((r, idx) => (
                                   <div key={idx}>{r.clockOut ? `${(r.minutes / 60).toFixed(2)} hrs` : <span style={{color:'#4CAF50'}}>active</span>}</div>
                                 )) : '—'}
                               </td>
@@ -2357,6 +2422,12 @@ selected={
                         <td style={{border:'1px solid #ddd',padding:'8px'}} colSpan={2}>Week Total</td>
                         <td style={{border:'1px solid #ddd',padding:'8px',textAlign:'center',fontSize:'1rem'}}>{(weekTotalMin / 60).toFixed(2)} hrs</td>
                       </tr>
+                      {purposeFilter === 'All' && Object.keys(purposeTotals).length > 0 && Object.entries(purposeTotals).map(([p, mins]) => (
+                        <tr key={p} style={{background:'#f0f4ff'}}>
+                          <td style={{border:'1px solid #ddd',padding:'6px 8px',fontSize:'0.85rem',color:'#555',paddingLeft:'20px'}}>{p}</td>
+                          <td style={{border:'1px solid #ddd',padding:'6px 8px',fontSize:'0.85rem',color:'#1565c0',fontWeight:'bold'}} colSpan={2}>{(mins / 60).toFixed(2)} hrs</td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </details>
@@ -2465,7 +2536,6 @@ selected={
                       <option value="Weekend Work">Weekend Work</option>
                       <option value="Shop Work">Shop Work</option>
                       <option value="Drive Time">Drive Time</option>
-                      <option value="Hydrovac">Hydrovac</option>
                     </select>
                   )}
                   <button className="btn" style={{padding:'4px 14px',fontSize:'12px'}} onClick={async () => {
