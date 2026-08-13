@@ -179,40 +179,50 @@ const [addLineMsg, setAddLineMsg] = useState('');
 // Admins who can edit/add/delete hours
 const canEditHoursEmails = new Set(['tbsolutions9@gmail.com', 'tbsolutions4@gmail.com', 'tbsolutions1999@gmail.com', 'tbsolutions1995@gmail.com', 'materialworx2@gmail.com', 'davissmithtbs@gmail.com']);
 const canEditHours = canEditHoursEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email);
-
-const [pinEmployees, setPinEmployees] = useState([]);
-const [clockLocation, setClockLocation] = useState(JSON.parse(localStorage.getItem('adminUser') || '{}').email === 'davissmithtbs@gmail.com' ? 'South GA' : 'North GA');
-const [pinMsg, setPinMsg] = useState('');
 const [showPinManager, setShowPinManager] = useState(false);
-const [newEmpFirst, setNewEmpFirst] = useState('');
-const [newEmpLast, setNewEmpLast] = useState('');
-const [newEmpPin, setNewEmpPin] = useState('');
-const [newEmpPosition, setNewEmpPosition] = useState('');
-const [newEmpLocation, setNewEmpLocation] = useState('North GA');
-const [addEmpLoading, setAddEmpLoading] = useState(false);
-const [changePinId, setChangePinId] = useState(null);
-const [changePinValue, setChangePinValue] = useState('');
-const [adminPunchPurpose, setAdminPunchPurpose] = useState('');
-const [manualPurpose, setManualPurpose] = useState('');
+  const [pinMsg, setPinMsg] = useState('');
+  const [newEmpFirst, setNewEmpFirst] = useState('');
+  const [newEmpLast, setNewEmpLast] = useState('');
+  const [newEmpPin, setNewEmpPin] = useState('');
+  const [newEmpPosition, setNewEmpPosition] = useState('');
+  const [newEmpLocation, setNewEmpLocation] = useState('North GA');
+  const [addEmpLoading, setAddEmpLoading] = useState(false);
+  const [changePinId, setChangePinId] = useState(null);
+  const [changePinValue, setChangePinValue] = useState('');
+  const [adminPunchPurpose, setAdminPunchPurpose] = useState('');
+  const [editingPunchId, setEditingPunchId] = useState(null);
+  const [editPunchIn, setEditPunchIn] = useState('');
+  const [editPunchOut, setEditPunchOut] = useState('');
+  const [editPunchMsg, setEditPunchMsg] = useState('');
+  const [addLineEmp, setAddLineEmp] = useState(null);
+  const [addLineDate, setAddLineDate] = useState('');
+  const [addLineIn, setAddLineIn] = useState('');
+  const [addLineOut, setAddLineOut] = useState('');
+  const [addLinePurpose, setAddLinePurpose] = useState('');
+  const [addLineMsg, setAddLineMsg] = useState('');
+  const [clockLocation, setClockLocation] = useState('North GA');
+  const [purposeFilter, setPurposeFilter] = useState('All');
+  const [pdfLoadingEmp, setPdfLoadingEmp] = useState(null);
+  const [pdfMsg, setPdfMsg] = useState('');
 
-const refreshForLocation = async (loc) => {
-  axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {});
-  axios.get('/timeclock/employees?location=' + encodeURIComponent(loc)).then(r => setPinEmployees(r.data.employees)).catch(() => {});
-  const now = new Date();
-  const sat = new Date(now); sat.setDate(now.getDate() - ((now.getDay() + 1) % 7));
-  const satStr = `${sat.getFullYear()}-${String(sat.getMonth()+1).padStart(2,'0')}-${String(sat.getDate()).padStart(2,'0')}`;
-  const fri = new Date(sat); fri.setDate(sat.getDate() + 6);
-  const friStr = `${fri.getFullYear()}-${String(fri.getMonth()+1).padStart(2,'0')}-${String(fri.getDate()).padStart(2,'0')}`;
-  setTimeWorkedWeekStart(satStr);
-  try { const res = await axios.get(`/timeclock/time-worked?location=${encodeURIComponent(loc)}&startDate=${satStr}&endDate=${friStr}`); setTimeWorked(res.data); } catch(e) {}
-};
+  const refreshTimeWorked = async () => {
+    const weekEnd = new Date(new Date(timeWorkedWeekStart + 'T00:00:00'));
+    weekEnd.setDate(weekEnd.getDate() + 6);
+    const endStr = `${weekEnd.getFullYear()}-${String(weekEnd.getMonth()+1).padStart(2,'0')}-${String(weekEnd.getDate()).padStart(2,'0')}`;
+    try {
+      const res = await axios.get(`/timeclock/time-worked?startDate=${timeWorkedWeekStart}&endDate=${endStr}&location=${encodeURIComponent(clockLocation)}`);
+      setTimeWorked(res.data);
+    } catch(e) {}
+  };
 
-const refreshTimeWorked = async () => {
-  const start = new Date(timeWorkedWeekStart + 'T00:00:00');
-  const end = new Date(start); end.setDate(start.getDate() + 6);
-  const endStr = `${end.getFullYear()}-${String(end.getMonth()+1).padStart(2,'0')}-${String(end.getDate()).padStart(2,'0')}`;
-  try { const res = await axios.get(`/timeclock/time-worked?location=${encodeURIComponent(clockLocation)}&startDate=${timeWorkedWeekStart}&endDate=${endStr}`); setTimeWorked(res.data); } catch(e) {}
-};
+  const refreshForLocation = async (loc) => {
+    try {
+      const res = await axios.get(`/timeclock/employees?location=${encodeURIComponent(loc)}`);
+      setPinEmployees(res.data.employees);
+      const statusRes = await axios.get('/timeclock/status');
+      setClockedInList(statusRes.data);
+    } catch (e) { console.error(e); }
+  };
 
 
 
