@@ -18,6 +18,9 @@ const EmployeeDashboard = () => {
   const [clockMsg, setClockMsg] = useState('');
   const [clockLoading, setClockLoading] = useState(false);
   const [ipAllowed, setIpAllowed] = useState(null);
+  const [gpsAllowed, setGpsAllowed] = useState(null);
+  const [usingGps, setUsingGps] = useState(false);
+  const [detectedLocation, setDetectedLocation] = useState(null);
   const [weekData, setWeekData] = useState(null);
   const [weekLoading, setWeekLoading] = useState(false);
   const [pendingDisciplines, setPendingDisciplines] = useState([]);
@@ -54,8 +57,27 @@ const EmployeeDashboard = () => {
     savePunchQueue(remaining);
   };
 
+  const checkGpsLocation = () => {
+    if (!navigator.geolocation) { setGpsAllowed(false); return; }
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const res = await axios.post('/timeclock/check-gps', { lat: pos.coords.latitude, lng: pos.coords.longitude });
+          setGpsAllowed(res.data.allowed);
+          if (res.data.allowed) { setUsingGps(true); setDetectedLocation(res.data.location); }
+        } catch { setGpsAllowed(false); }
+      },
+      () => setGpsAllowed(false),
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
   useEffect(() => {
-    axios.get('/timeclock/check-ip').then(res => setIpAllowed(res.data.allowed)).catch(() => setIpAllowed(true));
+    axios.get('/timeclock/check-ip').then(res => {
+      setIpAllowed(res.data.allowed);
+      if (res.data.allowed) setDetectedLocation(res.data.location || 'North GA');
+      else checkGpsLocation();
+    }).catch(() => { setIpAllowed(true); setDetectedLocation('North GA'); });
     fetchEmployees();
     fetchClockedIn();
     syncOfflinePunches();
@@ -142,7 +164,18 @@ const EmployeeDashboard = () => {
     }
 
     try {
-      const res = await axios.post('/timeclock/punch', { pin, purpose: isClockedIn ? undefined : clockPurpose });
+      const punchPayload = { pin, purpose: isClockedIn ? undefined : clockPurpose };
+      const punchUrl = usingGps ? '/timeclock/punch-gps' : '/timeclock/punch';
+      if (usingGps) {
+        await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => { punchPayload.lat = pos.coords.latitude; punchPayload.lng = pos.coords.longitude; resolve(); },
+            reject,
+            { enableHighAccuracy: true, timeout: 10000 }
+          );
+        });
+      }
+      const res = await axios.post(punchUrl, punchPayload);
       let msg = res.data.message;
       if (res.data.action === 'clocked_out' && res.data.record?.clockIn && res.data.record?.clockOut) {
         const mins = Math.round((new Date(res.data.record.clockOut) - new Date(res.data.record.clockIn)) / 60000);
@@ -251,18 +284,28 @@ const EmployeeDashboard = () => {
           </div>
 
           {/* Punch In/Out - hidden on phones only if IP not allowed */}
-          <div className={`time-clock-punch-only${ipAllowed === false ? ' ip-blocked' : ''}`}>
+          <div className={`time-clock-punch-only${(ipAllowed === false && !gpsAllowed) ? ' ip-blocked' : ''}`}>
             <div style={{background:'#fff3cd',border:'1px solid #ffc107',borderRadius:'8px',padding:'14px 18px',marginBottom:'1rem',textAlign:'left'}}>
               <p style={{color:'#856404',fontSize:'1rem',margin:0,fontWeight:'bold'}}>⚠️ WARNING: You are NOT allowed to clock anyone else in or out or share your PIN with other employees. Doing so will be subjected to Disciplinary Action.</p>
               <p style={{color:'#856404',fontSize:'1rem',margin:'8px 0 0'}}>📶 You must be connected to the WIFI at the TBS Shop to clock in and out.</p>
               <p style={{color:'#856404',fontSize:'1rem',margin:'8px 0 0'}}>📞 Forgot your PIN? Call or Text Salvador: <a href="tel:+17066595468" style={{color:'#856404',fontWeight:'bold'}}>(706) 659-5468</a></p>
             </div>
-            {ipAllowed === false && (
+            {ipAllowed === false && gpsAllowed === false && (
               <p style={{color:'#ff6b6b'}}>⚠️ You are not at the designated work location. Clock-in/out is disabled.</p>
             )}
-            {ipAllowed === true && !selectedEmployee && (
+            {ipAllowed === false && gpsAllowed === null && (
+              <p style={{color:'#aaa'}}>📍 Checking your GPS location...</p>
+            )}
+            {(ipAllowed === true || gpsAllowed === true) && !selectedEmployee && (
               <div className="kiosk-employee-grid" style={{marginBottom:'1rem'}}>
-                {employees.map(emp => (
+                {detectedLocation && (
+                  <p style={{width:'100%',textAlign:'center',color:'#4CAF50',fontWeight:'bold',marginBottom:'0.5rem',fontSize:'1rem'}}>
+                    📍 {detectedLocation} — Showing {detectedLocation} employees
+                  </p>
+                )}
+                {employees
+                  .filter(emp => !detectedLocation || (emp.location || 'North GA') === detectedLocation)
+                  .map(emp => (
                   <button
                     key={emp._id}
                     className={`kiosk-employee-card ${clockedInIds.includes(emp._id) ? 'clocked-in' : ''}`}
@@ -272,10 +315,10 @@ const EmployeeDashboard = () => {
                     <span className="kiosk-emp-position">{emp.position}</span>
                     {clockedInIds.includes(emp._id) && <span className="kiosk-status-badge">● Clocked In</span>}
                   </button>
-                ))}
+                  ))}
               </div>
             )}
-            {ipAllowed === true && selectedEmployee && (
+            {(ipAllowed === true || gpsAllowed === true) && selectedEmployee && (
               <div className="kiosk-punch-panel">
                 {!clockMsg.includes('clocked') && !clockMsg.includes('✅') && (
                 <button className="kiosk-back-btn" onClick={() => { setSelectedEmployee(null); setClockMsg(''); }}>
@@ -329,13 +372,13 @@ const EmployeeDashboard = () => {
                 {clockMsg && <p className={`kiosk-message ${clockMsg.includes('clocked') || clockMsg.includes('✅') ? 'success' : 'error'}`}>{clockMsg}</p>}
               </div>
             )}
-            {ipAllowed === null && <p style={{color:'#aaa'}}>Checking location...</p>}
+            {ipAllowed === null && gpsAllowed === null && <p style={{color:'#aaa'}}>Checking location...</p>}
           </div>
 
 
 
           {/* Phone-only message when IP blocked */}
-          <p className={`time-clock-phone-msg${ipAllowed === false ? ' ip-blocked' : ''}`} style={{color:'#aaa',margin:'1rem 0'}}>⏰ Clock in/out is only available from the designated work location.</p>
+          <p className={`time-clock-phone-msg${(ipAllowed === false && !gpsAllowed) ? ' ip-blocked' : ''}`} style={{color:'#aaa',margin:'1rem 0'}}>⏰ Clock in/out is only available from the designated work location.</p>
 
           {/* View Hours - available everywhere */}
           <div className="time-clock-view-hours">
