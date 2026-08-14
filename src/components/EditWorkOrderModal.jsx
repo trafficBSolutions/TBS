@@ -1,5 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+
+// Mirrors gaRegions.js logic — no API call needed for known GA/TN cities
+const TIFTON_LAT = 31.4505;
+const TIFTON_LNG = -83.5085;
+const SOUTH_GA_RADIUS_MILES = 100;
+
+function haversineDistance(lat1, lng1, lat2, lng2) {
+  const toRad = (d) => d * (Math.PI / 180);
+  const R = 3958.8;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+async function detectRegionFromCity(city, state) {
+  if (!city || !state) return null;
+  if (state === 'TN') return 'tn';
+  try {
+    const res = await axios.get(`/api/geocode?city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}`);
+    if (res.data?.lat && res.data?.lng) {
+      const dist = haversineDistance(TIFTON_LAT, TIFTON_LNG, res.data.lat, res.data.lng);
+      return dist <= SOUTH_GA_RADIUS_MILES ? 'south' : 'north';
+    }
+  } catch (e) { /* fall through */ }
+  return null;
+}
 
 const EDIT_EMAILS = new Set([
   'tbsolutions9@gmail.com',
@@ -60,6 +87,8 @@ export function EditTCWorkOrderModal({ workOrder, onClose, onSaved }) {
   const [adminNotes, setAdminNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
+  const [regionDetecting, setRegionDetecting] = useState(false);
+  const [regionDetectMsg, setRegionDetectMsg] = useState('');
 
   useEffect(() => {
     if (workOrder) {
@@ -78,6 +107,7 @@ export function EditTCWorkOrderModal({ workOrder, onClose, onSaved }) {
         'basic.notice24': workOrder.basic?.notice24 || '',
         'basic.callBack': workOrder.basic?.callBack || '',
         'basic.notes': workOrder.basic?.notes || '',
+        'basic.region': workOrder.basic?.region || 'north',
         'tbs.flagger1': workOrder.tbs?.flagger1 || '',
         'tbs.flagger2': workOrder.tbs?.flagger2 || '',
         'tbs.flagger3': workOrder.tbs?.flagger3 || '',
@@ -87,6 +117,23 @@ export function EditTCWorkOrderModal({ workOrder, onClose, onSaved }) {
       setAdminNotes(workOrder.adminNotes || '');
     }
   }, [workOrder]);
+
+  const handleAutoDetectRegion = useCallback(async () => {
+    const city = form['basic.city'];
+    const state = form['basic.state'];
+    if (!city || !state) { setRegionDetectMsg('Enter city and state first'); return; }
+    setRegionDetecting(true);
+    setRegionDetectMsg('');
+    const detected = await detectRegionFromCity(city, state);
+    setRegionDetecting(false);
+    if (detected) {
+      setForm(prev => ({ ...prev, 'basic.region': detected }));
+      setRegionDetectMsg(`✅ Detected: ${detected === 'south' ? '🟧 South GA' : detected === 'tn' ? '🟩 TN' : '🟦 North GA'}`);
+    } else {
+      setRegionDetectMsg('Could not detect — set manually below');
+    }
+    setTimeout(() => setRegionDetectMsg(''), 4000);
+  }, [form]);
 
   const handleSave = async () => {
     setSaving(true); setMsg('');
@@ -108,6 +155,7 @@ export function EditTCWorkOrderModal({ workOrder, onClose, onSaved }) {
         'basic.notice24': workOrder.basic?.notice24 || '',
         'basic.callBack': workOrder.basic?.callBack || '',
         'basic.notes': workOrder.basic?.notes || '',
+        'basic.region': workOrder.basic?.region || 'north',
         'tbs.flagger1': workOrder.tbs?.flagger1 || '',
         'tbs.flagger2': workOrder.tbs?.flagger2 || '',
         'tbs.flagger3': workOrder.tbs?.flagger3 || '',
@@ -158,6 +206,34 @@ export function EditTCWorkOrderModal({ workOrder, onClose, onSaved }) {
           <label style={labelStyle}>Rating<input style={fieldStyle} value={form['basic.rating'] || ''} onChange={(e) => setForm({...form, 'basic.rating': e.target.value})} /></label>
           <label style={labelStyle}>24hr Notice<input style={fieldStyle} value={form['basic.notice24'] || ''} onChange={(e) => setForm({...form, 'basic.notice24': e.target.value})} /></label>
           <label style={labelStyle}>Call Back<input style={fieldStyle} value={form['basic.callBack'] || ''} onChange={(e) => setForm({...form, 'basic.callBack': e.target.value})} /></label>
+        </div>
+
+        <div style={{marginTop:'0.75rem',padding:'12px',background:'#f0f4ff',border:'2px solid #1565c0',borderRadius:'8px'}}>
+          <div style={{display:'flex',alignItems:'center',gap:'0.75rem',flexWrap:'wrap'}}>
+            <label style={{...labelStyle,color:'#1565c0',margin:0}}>📍 Region</label>
+            <select
+              style={{...fieldStyle,width:'auto',minWidth:'160px',fontWeight:'bold',
+                color: form['basic.region'] === 'south' ? '#e65100' : form['basic.region'] === 'tn' ? '#2e7d32' : '#1565c0',
+                borderColor: form['basic.region'] === 'south' ? '#e65100' : form['basic.region'] === 'tn' ? '#2e7d32' : '#1565c0'
+              }}
+              value={form['basic.region'] || 'north'}
+              onChange={(e) => setForm({...form, 'basic.region': e.target.value})}
+            >
+              <option value="north">🟦 North GA</option>
+              <option value="south">🟧 South GA</option>
+              <option value="tn">🟩 Tennessee</option>
+            </select>
+            <button
+              type="button"
+              disabled={regionDetecting}
+              onClick={handleAutoDetectRegion}
+              style={{padding:'6px 14px',background:'#1565c0',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer',fontSize:'0.85rem',fontWeight:'bold',whiteSpace:'nowrap'}}
+            >
+              {regionDetecting ? '🔍 Detecting...' : '🔍 Auto-Detect from City'}
+            </button>
+            {regionDetectMsg && <span style={{fontSize:'0.85rem',fontWeight:'bold',color: regionDetectMsg.startsWith('✅') ? '#2e7d32' : '#d32f2f'}}>{regionDetectMsg}</span>}
+          </div>
+          <p style={{margin:'6px 0 0',fontSize:'0.78rem',color:'#555'}}>Auto-detect uses the city/state fields above to calculate distance from Tifton, GA.</p>
         </div>
 
         <h4 style={{marginTop:'1rem',marginBottom:'0.5rem',color:'#1a1a1a'}}>Flaggers</h4>
