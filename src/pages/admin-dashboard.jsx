@@ -1145,7 +1145,7 @@ useEffect(() => {
         <button className={`btn ${viewMode === 'quotes' ? 'active' : ''}`} onClick={() => setViewMode('quotes')}>Material WorX</button>
       )}
       <button className={`btn ${viewMode === 'bollards' ? 'active' : ''}`} onClick={() => setViewMode('bollards')}>Bollards/Wheels</button>
-      <button className={`btn ${viewMode === 'hydrovac' ? 'active' : ''}`} onClick={() => setViewMode('hydrovac')}>Hydrovac Jobs</button>
+      <button className={`btn ${viewMode === 'hydrovac' ? 'active' : ''}`} onClick={() => setViewMode('hydrovac')}>Hydrovac</button>
       <button className={`btn ${viewMode === 'hydrovacwo' ? 'active' : ''}`} onClick={() => { setViewMode('hydrovacwo'); fetchMonthlyHydrovacWo(hydrovacWoDate); fetchHydrovacWoForDay(hydrovacWoDate); }}>🚛 Hydrovac WOs</button>
       {allowedForSignShop && (
         <button className={`btn ${viewMode === 'signshop' ? 'active' : ''}`} onClick={() => setViewMode('signshop')}>Sign Shop</button>
@@ -3160,6 +3160,7 @@ selected={
       <option value="Atlanta GA">Atlanta GA</option>
       <option value="Calhoun GA">Calhoun GA</option>
       <option value="Valdosta GA">Valdosta GA</option>
+      <option value="Tifton GA">Tifton GA</option>
     </select>
   </div>
   {applicants.filter(a => !applicantLocationFilter || a.location === applicantLocationFilter).length > 0 && (
