@@ -101,7 +101,7 @@ const POSITIONS = [
   "Traffic Control CDL Driver"
 ];
 
-const LOCATIONS = ["Calhoun GA", "Atlanta GA", "Valdosta GA"];
+const LOCATIONS = ["Calhoun GA", "Atlanta GA", "Valdosta GA", "Tifton GA"];
 const LANGUAGES = [
   "English (Inglés)",
   "Spanish (Español)",
