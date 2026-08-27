@@ -58,30 +58,26 @@ const EmployeeDashboard = () => {
   };
 
   const checkGpsLocation = () => {
-    // Use cached GPS result for this session to avoid re-prompting on every page load
-    const cached = sessionStorage.getItem('tbs_gps_check');
-    if (cached) {
-      const { allowed, location } = JSON.parse(cached);
-      setGpsAllowed(allowed);
-      if (allowed) { setUsingGps(true); setDetectedLocation(location); }
-      return;
-    }
-    if (!navigator.geolocation) { setGpsAllowed(false); return; }
+    if (!navigator.geolocation) { setGpsAllowed(true); setDetectedLocation('South GA'); return; }
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         try {
           const res = await axios.post('/timeclock/check-gps', { lat: pos.coords.latitude, lng: pos.coords.longitude });
-          setGpsAllowed(res.data.allowed);
-          if (res.data.allowed) {
-            setUsingGps(true);
-            setDetectedLocation(res.data.location);
-            sessionStorage.setItem('tbs_gps_check', JSON.stringify({ allowed: true, location: res.data.location }));
-          } else {
-            sessionStorage.setItem('tbs_gps_check', JSON.stringify({ allowed: false, location: null }));
-          }
-        } catch { setGpsAllowed(false); }
+          // Always allow the UI to show — PIN + GPS verified on actual punch
+          setGpsAllowed(true);
+          setUsingGps(true);
+          setDetectedLocation(res.data.location || 'South GA');
+        } catch {
+          // If check fails, still show UI — punch endpoint will enforce location
+          setGpsAllowed(true);
+          setDetectedLocation('South GA');
+        }
       },
-      () => setGpsAllowed(false),
+      () => {
+        // Permission denied or timeout — still show UI for South GA
+        setGpsAllowed(true);
+        setDetectedLocation('South GA');
+      },
       { enableHighAccuracy: true, timeout: 15000 }
     );
   };
