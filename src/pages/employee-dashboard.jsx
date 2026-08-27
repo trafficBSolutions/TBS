@@ -185,9 +185,10 @@ const EmployeeDashboard = () => {
           punchPayload.lng = pos.coords.longitude;
           punchUrl = '/timeclock/punch-gps';
         } catch {
-          // GPS failed mid-punch — fall back to IP-based punch
-          punchUrl = '/timeclock/punch';
+          punchUrl = ipAllowed ? '/timeclock/punch' : '/timeclock/punch-pin';
         }
+      } else if (!ipAllowed) {
+        punchUrl = '/timeclock/punch-pin';
       }
       const res = await axios.post(punchUrl, punchPayload);
       let msg = res.data.message;
@@ -276,7 +277,9 @@ const EmployeeDashboard = () => {
               retryPayload.lat = pos.coords.latitude;
               retryPayload.lng = pos.coords.longitude;
               retryUrl = '/timeclock/punch-gps';
-            } catch { /* fall back to IP */ }
+            } catch { retryUrl = ipAllowed ? '/timeclock/punch' : '/timeclock/punch-pin'; }
+          } else if (!ipAllowed) {
+            retryUrl = '/timeclock/punch-pin';
           }
           const punchRes = await axios.post(retryUrl, retryPayload);
           setClockMsg(punchRes.data.message);
@@ -511,7 +514,9 @@ const EmployeeDashboard = () => {
                               hbPayload.lat = pos.coords.latitude;
                               hbPayload.lng = pos.coords.longitude;
                               hbUrl = '/timeclock/punch-gps';
-                            } catch { /* fall back to IP */ }
+                            } catch { hbUrl = ipAllowed ? '/timeclock/punch' : '/timeclock/punch-pin'; }
+                          } else if (!ipAllowed) {
+                            hbUrl = '/timeclock/punch-pin';
                           }
                           const res = await axios.post(hbUrl, hbPayload);
                           setClockMsg(res.data.message);
