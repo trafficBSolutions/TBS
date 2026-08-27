@@ -330,11 +330,11 @@ const EmployeeDashboard = () => {
               <div className="kiosk-employee-grid" style={{marginBottom:'1rem'}}>
                 {detectedLocation && (
                   <p style={{width:'100%',textAlign:'center',color:'#4CAF50',fontWeight:'bold',marginBottom:'0.5rem',fontSize:'1rem'}}>
-                    📍 {detectedLocation} — Showing {detectedLocation} employees
+                    📍 {detectedLocation} — Showing {detectedLocation === 'South GA' ? 'all' : detectedLocation} employees
                   </p>
                 )}
                 {employees
-                  .filter(emp => !detectedLocation || (emp.location || 'North GA') === detectedLocation)
+                  .filter(emp => !detectedLocation || detectedLocation === 'South GA' || (emp.location || 'North GA') === detectedLocation)
                   .map(emp => (
                   <button
                     key={emp._id}
