@@ -58,17 +58,31 @@ const EmployeeDashboard = () => {
   };
 
   const checkGpsLocation = () => {
+    // Use cached GPS result for this session to avoid re-prompting on every page load
+    const cached = sessionStorage.getItem('tbs_gps_check');
+    if (cached) {
+      const { allowed, location } = JSON.parse(cached);
+      setGpsAllowed(allowed);
+      if (allowed) { setUsingGps(true); setDetectedLocation(location); }
+      return;
+    }
     if (!navigator.geolocation) { setGpsAllowed(false); return; }
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         try {
           const res = await axios.post('/timeclock/check-gps', { lat: pos.coords.latitude, lng: pos.coords.longitude });
           setGpsAllowed(res.data.allowed);
-          if (res.data.allowed) { setUsingGps(true); setDetectedLocation(res.data.location); }
+          if (res.data.allowed) {
+            setUsingGps(true);
+            setDetectedLocation(res.data.location);
+            sessionStorage.setItem('tbs_gps_check', JSON.stringify({ allowed: true, location: res.data.location }));
+          } else {
+            sessionStorage.setItem('tbs_gps_check', JSON.stringify({ allowed: false, location: null }));
+          }
         } catch { setGpsAllowed(false); }
       },
       () => setGpsAllowed(false),
-      { enableHighAccuracy: true, timeout: 10000 }
+      { enableHighAccuracy: true, timeout: 15000 }
     );
   };
 
