@@ -175,8 +175,8 @@ const EmployeeDashboard = () => {
 
     try {
       const punchPayload = { pin, purpose: isClockedIn ? undefined : clockPurpose };
-      let punchUrl = '/timeclock/punch';
-      if (usingGps) {
+      let punchUrl = ipAllowed ? '/timeclock/punch' : '/timeclock/punch-pin';
+      if (ipAllowed && usingGps) {
         try {
           const pos = await new Promise((resolve, reject) =>
             navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 })
@@ -185,10 +185,8 @@ const EmployeeDashboard = () => {
           punchPayload.lng = pos.coords.longitude;
           punchUrl = '/timeclock/punch-gps';
         } catch {
-          punchUrl = ipAllowed ? '/timeclock/punch' : '/timeclock/punch-pin';
+          punchUrl = '/timeclock/punch';
         }
-      } else if (!ipAllowed) {
-        punchUrl = '/timeclock/punch-pin';
       }
       const res = await axios.post(punchUrl, punchPayload);
       let msg = res.data.message;
@@ -267,9 +265,9 @@ const EmployeeDashboard = () => {
         setEmpStatement('');
         setAckMsg('');
         try {
-          let retryUrl = '/timeclock/punch';
+          let retryUrl = ipAllowed ? '/timeclock/punch' : '/timeclock/punch-pin';
           const retryPayload = { pin: storedPin };
-          if (usingGps) {
+          if (ipAllowed && usingGps) {
             try {
               const pos = await new Promise((resolve, reject) =>
                 navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 })
@@ -277,9 +275,7 @@ const EmployeeDashboard = () => {
               retryPayload.lat = pos.coords.latitude;
               retryPayload.lng = pos.coords.longitude;
               retryUrl = '/timeclock/punch-gps';
-            } catch { retryUrl = ipAllowed ? '/timeclock/punch' : '/timeclock/punch-pin'; }
-          } else if (!ipAllowed) {
-            retryUrl = '/timeclock/punch-pin';
+            } catch { retryUrl = '/timeclock/punch'; }
           }
           const punchRes = await axios.post(retryUrl, retryPayload);
           setClockMsg(punchRes.data.message);
@@ -504,9 +500,9 @@ const EmployeeDashboard = () => {
                           await axios.post('/timeclock/acknowledge-handbook', { pin, signature });
                           setShowHandbook(false);
                           setClockMsg('✅ Handbook signed! Now clocking you out...');
-                          let hbUrl = '/timeclock/punch';
+                          let hbUrl = ipAllowed ? '/timeclock/punch' : '/timeclock/punch-pin';
                           const hbPayload = { pin };
-                          if (usingGps) {
+                          if (ipAllowed && usingGps) {
                             try {
                               const pos = await new Promise((resolve, reject) =>
                                 navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 })
@@ -514,9 +510,7 @@ const EmployeeDashboard = () => {
                               hbPayload.lat = pos.coords.latitude;
                               hbPayload.lng = pos.coords.longitude;
                               hbUrl = '/timeclock/punch-gps';
-                            } catch { hbUrl = ipAllowed ? '/timeclock/punch' : '/timeclock/punch-pin'; }
-                          } else if (!ipAllowed) {
-                            hbUrl = '/timeclock/punch-pin';
+                            } catch { hbUrl = '/timeclock/punch'; }
                           }
                           const res = await axios.post(hbUrl, hbPayload);
                           setClockMsg(res.data.message);
