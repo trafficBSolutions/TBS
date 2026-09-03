@@ -16,8 +16,29 @@ const EmployeeHandbook = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
+  const [versionStatus, setVersionStatus] = useState(null); // null | 'checking' | 'current' | 'needs-resign'
   const navigate = useNavigate();
   const sigCanvas = useRef();
+
+  // Check if this person has already signed the current version
+  const checkVersion = async () => {
+    const { firstName, lastName } = formData;
+    if (!firstName.trim() || !lastName.trim()) {
+      setMessage('Enter your first and last name, then click Check Status.');
+      return;
+    }
+    setVersionStatus('checking');
+    try {
+      const res = await fetch(
+        `https://tbs-server.onrender.com/api/employee-handbook/check?firstName=${encodeURIComponent(firstName)}&lastName=${encodeURIComponent(lastName)}`
+      );
+      const data = await res.json();
+      setVersionStatus(data.signed ? 'current' : 'needs-resign');
+      setMessage('');
+    } catch {
+      setVersionStatus('needs-resign');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -311,18 +332,6 @@ const EmployeeHandbook = () => {
 
           <form onSubmit={handleSubmit} className="control-container">
             <h2 className="control-app-box">Acknowledgment Form</h2>
-            
-            <div className="first-control-input">
-              <label className="terms-text">
-                <input
-                  type="checkbox"
-                  checked={formData.hasRead}
-                  onChange={(e) => setFormData({...formData, hasRead: e.target.checked})}
-                  style={{ marginRight: '10px', width: '20px', height: '20px' }}
-                />
-                I have read and understand the Employee Handbook
-              </label>
-            </div>
 
             <div className="company-input">
               <label className="first-control-label-name">First Name</label>
@@ -344,53 +353,85 @@ const EmployeeHandbook = () => {
               />
             </div>
 
+            {/* Version check */}
             <div className="address-controler-container">
-              <label className="first-control-label-name">Signature</label>
-              <div style={{ border: '2px solid #ccc', borderRadius: '5px', backgroundColor: '#fff' }}>
-                <SignatureCanvas
-                  ref={sigCanvas}
-                  canvasProps={{
-                    width: 500,
-                    height: 200,
-                    className: 'signature-canvas',
-                    style: { width: '100%', height: '200px' }
-                  }}
-                />
-              </div>
               <button
                 type="button"
-                onClick={() => sigCanvas.current.clear()}
-                style={{
-                  marginTop: '10px',
-                  padding: '10px 20px',
-                  backgroundColor: '#e67e22',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                  fontSize: '1rem'
-                }}
+                onClick={checkVersion}
+                disabled={versionStatus === 'checking'}
+                style={{ padding: '10px 24px', background: '#1e3a8a', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '1rem' }}
               >
-                Clear Signature
+                {versionStatus === 'checking' ? 'Checking...' : 'Check My Signature Status'}
               </button>
+
+              {versionStatus === 'current' && (
+                <div style={{ marginTop: '12px', padding: '12px 16px', background: '#d4edda', border: '1px solid #28a745', borderRadius: '6px', color: '#155724', fontWeight: 'bold' }}>
+                  ✅ You have already signed the current version of the handbook (v2026-01-07). No action needed.
+                </div>
+              )}
+
+              {versionStatus === 'needs-resign' && (
+                <div style={{ marginTop: '12px', padding: '12px 16px', background: '#fff3cd', border: '1px solid #ffc107', borderRadius: '6px', color: '#856404', fontWeight: 'bold' }}>
+                  ⚠️ The handbook has been updated or you have not signed the current version. Please read and sign below.
+                </div>
+              )}
             </div>
 
-            {message && (
-              <div className="submission-control-message">
-                {message}
-              </div>
+            {/* Only show the rest of the form if re-sign is needed */}
+            {(versionStatus === 'needs-resign' || versionStatus === null) && (
+              <>
+                <div className="first-control-input">
+                  <label className="terms-text">
+                    <input
+                      type="checkbox"
+                      checked={formData.hasRead}
+                      onChange={(e) => setFormData({...formData, hasRead: e.target.checked})}
+                      style={{ marginRight: '10px', width: '20px', height: '20px' }}
+                    />
+                    I have read and understand the Employee Handbook
+                  </label>
+                </div>
+
+                <div className="address-controler-container">
+                  <label className="first-control-label-name">Signature</label>
+                  <div style={{ border: '2px solid #ccc', borderRadius: '5px', backgroundColor: '#fff' }}>
+                    <SignatureCanvas
+                      ref={sigCanvas}
+                      canvasProps={{
+                        width: 500,
+                        height: 200,
+                        className: 'signature-canvas',
+                        style: { width: '100%', height: '200px' }
+                      }}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => sigCanvas.current.clear()}
+                    style={{ marginTop: '10px', padding: '10px 20px', backgroundColor: '#e67e22', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '1rem' }}
+                  >
+                    Clear Signature
+                  </button>
+                </div>
+
+                {message && <div className="submission-control-message">{message}</div>}
+
+                <div className="submit-control">
+                  <button
+                    type="submit"
+                    className="file-control-label"
+                    disabled={isSubmitting}
+                    style={{ width: 'auto', padding: '15px 40px' }}
+                  >
+                    {isSubmitting ? 'Submitting...' : 'Submit Acknowledgment'}
+                  </button>
+                </div>
+              </>
             )}
 
-            <div className="submit-control">
-              <button
-                type="submit"
-                className="file-control-label"
-                disabled={isSubmitting}
-                style={{ width: 'auto', padding: '15px 40px' }}
-              >
-                {isSubmitting ? 'Submitting...' : 'Submit Acknowledgment'}
-              </button>
-            </div>
+            {versionStatus === 'current' && message && (
+              <div className="submission-control-message">{message}</div>
+            )}
           </form>
         </div>
       </main>
