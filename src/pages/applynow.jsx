@@ -17,7 +17,7 @@ const STEPS = [
   "Background",
   "Documents",
   "Drug Screening",
-  "Payroll",
+  "Handbook",
   "Review"
 ];
 
@@ -56,14 +56,6 @@ const INITIAL_DRUG_SCREENING = {
   specimenId: "",
   testReason: "",
   signature: ""
-};
-
-const INITIAL_PAYROLL = {
-  bankName: "",
-  accountType: "",
-  routingNumber: "",
-  accountNumber: "",
-  paymentMethod: ""
 };
 
 const EMPTY_EDUCATION = {
@@ -124,6 +116,7 @@ const ApplyNow = () => {
   const [files, setFiles] = useState(INITIAL_FILES);
   const [drivingRecord, setDrivingRecord] = useState(INITIAL_DRIVING_RECORD);
   const [drugScreening, setDrugScreening] = useState(INITIAL_DRUG_SCREENING);
+  const [handbookAck, setHandbookAck] = useState({ hasRead: false, typedName: '' });
 
   const [educationEntries, setEducationEntries] = useState([]);
   const [educationDraft, setEducationDraft] = useState(EMPTY_EDUCATION);
@@ -267,6 +260,10 @@ const ApplyNow = () => {
         });
     }
 
+    if (stepIndex === 6) {
+      if (!handbookAck.hasRead) nextErrors.handbookRead = "You must confirm you have read the handbook.";
+      if (!handbookAck.typedName.trim()) nextErrors.handbookName = "Type your full name to acknowledge.";
+    }
 
     if (!silent) setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
@@ -316,6 +313,8 @@ const ApplyNow = () => {
       data.wantsDriver === "Yes" ? drivingRecord : {}
     ));
     payload.append("drugScreening", JSON.stringify(drugScreening));
+    payload.append("handbookVersion", "2026-01-07");
+    payload.append("handbookAckName", handbookAck.typedName);
 
     Object.entries(files).forEach(([key, file]) => {
       if (file) payload.append(key, file);
@@ -1007,6 +1006,88 @@ const ApplyNow = () => {
   );
 
 
+  const renderHandbookStep = () => (
+    <section className="wizard-card">
+      <h2>Employee Handbook Acknowledgment</h2>
+      <p className="wizard-note">
+        Read the full handbook below before continuing. You must confirm you have read it and type your name to proceed.
+      </p>
+
+      <div
+        style={{
+          maxHeight: '420px',
+          overflowY: 'auto',
+          border: '1px solid #ccc',
+          borderRadius: '8px',
+          padding: '1.25rem',
+          marginBottom: '1.25rem',
+          fontSize: '0.9rem',
+          lineHeight: 1.7,
+          background: '#fafafa'
+        }}
+      >
+        <h3>Traffic &amp; Barrier Solutions, LLC — Employee Handbook</h3>
+        <p><strong>Effective Date:</strong> 01/07/26</p>
+
+        <h4>1. Welcome &amp; Company Overview</h4>
+        <p>Welcome to Traffic &amp; Barrier Solutions, LLC, a Georgia-based traffic control services provider dedicated to protecting workers, motorists, pedestrians, and the public. This handbook outlines general company policies and expectations. It is not an employment contract. Policies may be updated at any time.</p>
+
+        <h4>2. Employment Policies</h4>
+        <p><strong>Equal Employment Opportunity:</strong> We do not discriminate based on race, color, religion, sex, national origin, age, disability, veteran status, or any legally protected characteristic.</p>
+        <p><strong>At-Will Employment (Georgia):</strong> Either the employee or the company may end employment at any time, with or without cause or notice.</p>
+        <p><strong>Hiring &amp; Qualifications:</strong> Employment requires background checks, drug and alcohol testing, valid driver's license and driving record (for driving positions), and required certifications (e.g., ATSSA Flagger).</p>
+        <p><strong>Introductory Period:</strong> New hires are subject to a 90-day introductory period.</p>
+        <p><strong>Employee Legal Information &amp; License Updates:</strong> All employees must promptly notify Bryson of any changes to legal or employment-related information, including license updates, name changes, or any changes affecting employment or payroll. Failure to do so may result in disciplinary action up to termination.</p>
+
+        <h4>3. Work Hours, Attendance &amp; Conduct</h4>
+        <p><strong>Work Hours &amp; Overtime:</strong> Non-exempt employees are paid overtime at 1.5x for hours over 40 per workweek. Overtime must be approved in advance.</p>
+        <p><strong>Attendance:</strong> Schedules are communicated through GroupMe. Employees must notify supervisors at least 1 hour before their shift if unable to work. Repeated issues may result in disciplinary action.</p>
+        <p><strong>Standards of Conduct:</strong> Follow all safety rules, act professionally on job sites, and treat coworkers, clients, and the public with respect.</p>
+
+        <h4>4. Safety &amp; Traffic Control Operations</h4>
+        <p><strong>Safety Commitment:</strong> Employees must comply with MUTCD Part 6, GDOT requirements, and company safety policies.</p>
+        <p><strong>PPE Required:</strong> Company-approved safety vest, TBS-branded shirt, hard hat, boots, long pants, and additional PPE as required.</p>
+        <p><strong>Drug- &amp; Alcohol-Free Workplace:</strong> Use, possession, or impairment from drugs or alcohol during work hours, on job sites, or in company vehicles is prohibited.</p>
+        <p><strong>Harassment, Discrimination &amp; Violence:</strong> Will not be tolerated. Report concerns immediately. Retaliation is prohibited.</p>
+        <p><strong>Vehicle &amp; Equipment Use:</strong> Company vehicles are for authorized use only. Daily inspections required. Report damage or accidents immediately.</p>
+        <p><strong>Traffic Laws &amp; Tolls:</strong> Employees are solely responsible for any violations, fines, or tolls incurred while operating company vehicles. Costs may be charged back to the employee where permitted by law.</p>
+        <p><strong>Incident Reporting:</strong> All accidents, injuries, or near-misses must be reported immediately and documented within 24 hours.</p>
+        <p><strong>Work Order Completion (Crew Leaders):</strong> All work orders must be accurately completed and signed by the Superintendent prior to submission. Failure to comply may result in suspension of pay or disciplinary action.</p>
+
+        <h4>5. Compensation &amp; Benefits</h4>
+        <p>Employees are paid weekly for the prior workweek. Approved job-related expenses are reimbursed with documentation.</p>
+
+        <h4>6. Discipline &amp; Separation</h4>
+        <p>Policy violations may result in disciplinary action up to termination. Employees are encouraged to provide 2 weeks notice. All company property must be returned upon separation.</p>
+
+        <h4>7. Acknowledgment</h4>
+        <p>I acknowledge receipt of the Traffic &amp; Barrier Solutions, LLC Employee Handbook and understand that employment is at-will and that I am responsible for following company policies.</p>
+      </div>
+
+      <label className="inline-choice" style={{ marginBottom: '1rem', display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+        <input
+          type="checkbox"
+          checked={handbookAck.hasRead}
+          onChange={(e) => setHandbookAck((cur) => ({ ...cur, hasRead: e.target.checked }))}
+          style={{ marginTop: '3px', width: '18px', height: '18px', flexShrink: 0 }}
+        />
+        <span>I have read and understand the Employee Handbook. I acknowledge that employment is at-will and I am responsible for following company policies.</span>
+      </label>
+      <ErrorText>{errors.handbookRead}</ErrorText>
+
+      <label style={{ marginTop: '0.75rem' }}>
+        Type your full name as your signature *
+        <input
+          value={handbookAck.typedName}
+          onChange={(e) => setHandbookAck((cur) => ({ ...cur, typedName: e.target.value }))}
+          placeholder="Full legal name"
+          style={{ fontStyle: 'italic' }}
+        />
+        <ErrorText>{errors.handbookName}</ErrorText>
+      </label>
+    </section>
+  );
+
   const renderReviewStep = () => (
     <section className="wizard-card">
       <h2>Review and Submit</h2>
@@ -1054,6 +1135,7 @@ const ApplyNow = () => {
       case 3: return renderBackgroundStep();
       case 4: return renderDocumentsStep();
       case 5: return renderDrugStep();
+      case 6: return renderHandbookStep();
       case 7: return renderReviewStep();
       default: return null;
     }
