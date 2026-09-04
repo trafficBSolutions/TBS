@@ -197,7 +197,8 @@ export function EditTCWorkOrderModal({ workOrder, onClose, onSaved }) {
           <label style={labelStyle}>Coordinator<input style={fieldStyle} value={form['basic.coordinator'] || ''} onChange={(e) => setForm({...form, 'basic.coordinator': e.target.value})} /></label>
           <label style={labelStyle}>Project<input style={fieldStyle} value={form['basic.project'] || ''} onChange={(e) => setForm({...form, 'basic.project': e.target.value})} /></label>
           <label style={labelStyle}>Foreman<input style={fieldStyle} value={form['basic.foremanName'] || ''} onChange={(e) => setForm({...form, 'basic.foremanName': e.target.value})} /></label>
-          <label style={labelStyle}>Start Time (HH:MM)<input style={fieldStyle} value={form['basic.startTime'] || ''} onChange={(e) => setForm({...form, 'basic.startTime': e.target.value})} placeholder="07:00" /></label>
+          <label style={labelStyle}>⏰ Clock In Time (HH:MM)<input style={fieldStyle} value={form['basic.startTime'] || ''} onChange={(e) => setForm({...form, 'basic.startTime': e.target.value})} placeholder="07:00" /></label>
+          <label style={labelStyle}>⏰ Clock Out Time (HH:MM)<input style={fieldStyle} value={form['basic.endTime'] || ''} onChange={(e) => setForm({...form, 'basic.endTime': e.target.value})} placeholder="17:00" /></label>
           <label style={labelStyle}>End Time (HH:MM)<input style={fieldStyle} value={form['basic.endTime'] || ''} onChange={(e) => setForm({...form, 'basic.endTime': e.target.value})} placeholder="17:00" /></label>
           <label style={labelStyle}>Address<input style={fieldStyle} value={form['basic.address'] || ''} onChange={(e) => setForm({...form, 'basic.address': e.target.value})} /></label>
           <label style={labelStyle}>City<input style={fieldStyle} value={form['basic.city'] || ''} onChange={(e) => setForm({...form, 'basic.city': e.target.value})} /></label>
