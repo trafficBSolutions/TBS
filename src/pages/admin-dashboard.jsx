@@ -176,6 +176,51 @@ const [addLineOut, setAddLineOut] = useState('');
 const [addLinePurpose, setAddLinePurpose] = useState('');
 const [addLineMsg, setAddLineMsg] = useState('');
 
+// Safety Meetings
+const [safetyMeetingDate, setSafetyMeetingDate] = useState(new Date());
+const [safetyMeetingList, setSafetyMeetingList] = useState([]);
+const [safetyMeetingMonthly, setSafetyMeetingMonthly] = useState({});
+const [safetyMeetingForm, setSafetyMeetingForm] = useState({
+  jobsite: '', meetingLeader: '', toolboxTopic: '', topicNotes: '',
+  topics: { trafficControl: false, ppe: false, flagging: false, workZoneSetup: false, vehicleSafety: false, heatColdStress: false, firstAidEmergency: false, hazardCommunication: false, slipsTripsFalls: false, liftingErgonomics: false, incidentReporting: false, other: false, otherText: '' },
+  hazards: [], attendees: [], notes: '', followUpRequired: false, followUpDate: ''
+});
+const [safetyMeetingMsg, setSafetyMeetingMsg] = useState('');
+const [safetyMeetingSubmitting, setSafetyMeetingSubmitting] = useState(false);
+const [showSafetyForm, setShowSafetyForm] = useState(false);
+
+// Job Inspections
+const [jobInspectionDate, setJobInspectionDate] = useState(new Date());
+const [jobInspectionList, setJobInspectionList] = useState([]);
+const [jobInspectionMonthly, setJobInspectionMonthly] = useState({});
+const [jobInspectionForm, setJobInspectionForm] = useState({
+  jobsite: '', inspector: '', foreman: '', result: 'Pass', stopWorkReason: '',
+  followUpRequired: false, followUpDate: '', inspectorSignature: '', foremanSignature: '',
+  items: [
+    { label: 'Traffic-control plan on site and current', status: 'NA', correctiveAction: '' },
+    { label: 'TCP authorization / permit posted', status: 'NA', correctiveAction: '' },
+    { label: 'Warning signs present and properly spaced', status: 'NA', correctiveAction: '' },
+    { label: 'Tapers set to correct length', status: 'NA', correctiveAction: '' },
+    { label: 'Channelizing devices upright and spaced correctly', status: 'NA', correctiveAction: '' },
+    { label: 'Arrow board / PCM operating and positioned', status: 'NA', correctiveAction: '' },
+    { label: 'Flagger(s) in correct position with proper equipment', status: 'NA', correctiveAction: '' },
+    { label: 'Flagger communications working', status: 'NA', correctiveAction: '' },
+    { label: 'All workers wearing required PPE (vest, hard hat, safety glasses)', status: 'NA', correctiveAction: '' },
+    { label: 'Workers staying within protected work zone', status: 'NA', correctiveAction: '' },
+    { label: 'Vehicles and equipment have backup alarms and lights', status: 'NA', correctiveAction: '' },
+    { label: 'Trailer / equipment secured and not blocking sight lines', status: 'NA', correctiveAction: '' },
+    { label: 'Weather / environmental hazards assessed', status: 'NA', correctiveAction: '' },
+    { label: 'No slip, trip, or fall hazards in work area', status: 'NA', correctiveAction: '' },
+    { label: 'First-aid kit accessible on site', status: 'NA', correctiveAction: '' },
+    { label: 'Emergency contact numbers posted or available', status: 'NA', correctiveAction: '' },
+    { label: 'Work area clean; debris and materials controlled', status: 'NA', correctiveAction: '' },
+    { label: 'End-of-day closeout: devices stored, signs removed or covered', status: 'NA', correctiveAction: '' }
+  ]
+});
+const [jobInspectionMsg, setJobInspectionMsg] = useState('');
+const [jobInspectionSubmitting, setJobInspectionSubmitting] = useState(false);
+const [showInspectionForm, setShowInspectionForm] = useState(false);
+
 // Admins who can edit/add/delete hours
 const canEditHoursEmails = new Set(['tbsolutions9@gmail.com', 'tbsolutions4@gmail.com', 'tbsolutions1999@gmail.com', 'tbsolutions1995@gmail.com', 'materialworx2@gmail.com', 'davissmithtbs@gmail.com']);
 const canEditHours = canEditHoursEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email);
@@ -602,6 +647,74 @@ const fetchHydrovacWoForDay = async (date) => {
   }
 };
 
+const fetchMonthlySafetyMeetings = async (date) => {
+  try {
+    const res = await axios.get(`/safety-meetings/month?month=${date.getMonth()+1}&year=${date.getFullYear()}`);
+    setSafetyMeetingMonthly(res.data || {});
+  } catch (e) { setSafetyMeetingMonthly({}); }
+};
+
+const fetchSafetyMeetingsForDay = async (date) => {
+  if (!date) return;
+  try {
+    const res = await axios.get(`/safety-meetings?date=${date.toISOString().split('T')[0]}`);
+    setSafetyMeetingList(res.data || []);
+  } catch (e) { setSafetyMeetingList([]); }
+};
+
+const fetchMonthlyJobInspections = async (date) => {
+  try {
+    const res = await axios.get(`/job-inspections/month?month=${date.getMonth()+1}&year=${date.getFullYear()}`);
+    setJobInspectionMonthly(res.data || {});
+  } catch (e) { setJobInspectionMonthly({}); }
+};
+
+const fetchJobInspectionsForDay = async (date) => {
+  if (!date) return;
+  try {
+    const res = await axios.get(`/job-inspections?date=${date.toISOString().split('T')[0]}`);
+    setJobInspectionList(res.data || []);
+  } catch (e) { setJobInspectionList([]); }
+};
+
+const submitSafetyMeeting = async () => {
+  if (!safetyMeetingForm.jobsite || !safetyMeetingForm.meetingLeader || !safetyMeetingForm.toolboxTopic) {
+    setSafetyMeetingMsg('Jobsite, meeting leader, and toolbox topic are required.');
+    return;
+  }
+  setSafetyMeetingSubmitting(true);
+  try {
+    await axios.post('/safety-meetings', { ...safetyMeetingForm, meetingDate: safetyMeetingDate });
+    setSafetyMeetingMsg('✅ Safety meeting submitted!');
+    setShowSafetyForm(false);
+    fetchSafetyMeetingsForDay(safetyMeetingDate);
+    fetchMonthlySafetyMeetings(safetyMeetingDate);
+    setSafetyMeetingForm(f => ({ ...f, jobsite: '', meetingLeader: '', toolboxTopic: '', topicNotes: '', notes: '', hazards: [], attendees: [] }));
+    setTimeout(() => setSafetyMeetingMsg(''), 5000);
+  } catch (e) {
+    setSafetyMeetingMsg(e.response?.data?.error || 'Failed to submit.');
+  } finally { setSafetyMeetingSubmitting(false); }
+};
+
+const submitJobInspection = async () => {
+  if (!jobInspectionForm.jobsite || !jobInspectionForm.inspector) {
+    setJobInspectionMsg('Jobsite and inspector are required.');
+    return;
+  }
+  setJobInspectionSubmitting(true);
+  try {
+    await axios.post('/job-inspections', { ...jobInspectionForm, inspectionDate: jobInspectionDate });
+    setJobInspectionMsg('✅ Inspection submitted!');
+    setShowInspectionForm(false);
+    fetchJobInspectionsForDay(jobInspectionDate);
+    fetchMonthlyJobInspections(jobInspectionDate);
+    setJobInspectionForm(f => ({ ...f, jobsite: '', inspector: '', foreman: '', result: 'Pass', stopWorkReason: '', items: f.items.map(i => ({ ...i, status: 'NA', correctiveAction: '' })) }));
+    setTimeout(() => setJobInspectionMsg(''), 5000);
+  } catch (e) {
+    setJobInspectionMsg(e.response?.data?.error || 'Failed to submit.');
+  } finally { setJobInspectionSubmitting(false); }
+};
+
 const fetchMonthlyHydrovac = async (date) => {
   try {
     const month = date.getMonth() + 1;
@@ -1009,6 +1122,14 @@ useEffect(() => {
     fetchShopWoForDay(shopWoDate);
   }
 }, [shopWoDate, allowedForShopWo]);
+
+useEffect(() => {
+  if (safetyMeetingDate) { fetchMonthlySafetyMeetings(safetyMeetingDate); fetchSafetyMeetingsForDay(safetyMeetingDate); }
+}, [safetyMeetingDate]);
+
+useEffect(() => {
+  if (jobInspectionDate) { fetchMonthlyJobInspections(jobInspectionDate); fetchJobInspectionsForDay(jobInspectionDate); }
+}, [jobInspectionDate]);
 // Update the fetchMonthlyJobs function to focus only on active jobs
 const fetchMonthlyJobs = async (date, region) => {
   try {
@@ -1155,6 +1276,8 @@ useEffect(() => {
       )}
       <button className={`btn ${viewMode === 'complaints' ? 'active' : ''}`} onClick={() => setViewMode('complaints')}>Complaints</button>
       <button className={`btn ${viewMode === 'tasks' ? 'active' : ''}`} onClick={() => setViewMode('tasks')}>Tasks</button>
+      <button className={`btn ${viewMode === 'safetymeeting' ? 'active' : ''}`} onClick={() => { setViewMode('safetymeeting'); fetchMonthlySafetyMeetings(safetyMeetingDate); fetchSafetyMeetingsForDay(safetyMeetingDate); }}>🦺 Safety Meetings</button>
+      <button className={`btn ${viewMode === 'jobinspection' ? 'active' : ''}`} onClick={() => { setViewMode('jobinspection'); fetchMonthlyJobInspections(jobInspectionDate); fetchJobInspectionsForDay(jobInspectionDate); }}>🔍 Job Inspections</button>
       {salaryAdminEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email) && (
         <button className={`btn ${viewMode === 'timeclock' ? 'active' : ''}`} onClick={async () => {
           setViewMode('timeclock');
@@ -1193,6 +1316,8 @@ selected={
     : viewMode === 'hydrovacwo' ? hydrovacWoDate
     : viewMode === 'signshop' ? signShopDate
     : viewMode === 'shopwo' ? shopWoDate
+    : viewMode === 'safetymeeting' ? safetyMeetingDate
+    : viewMode === 'jobinspection' ? jobInspectionDate
     : taskDate
 }
   onChange={(date) => {
@@ -1206,6 +1331,8 @@ selected={
   else if (viewMode === 'hydrovacwo') setHydrovacWoDate(date);
   else if (viewMode === 'signshop') setSignShopDate(date);
   else if (viewMode === 'shopwo') setShopWoDate(date);
+  else if (viewMode === 'safetymeeting') setSafetyMeetingDate(date);
+  else if (viewMode === 'jobinspection') setJobInspectionDate(date);
   else setTaskDate(date);
 }}
   onMonthChange={(date) => {
@@ -1220,6 +1347,8 @@ selected={
   else if (viewMode === 'hydrovacwo') fetchMonthlyHydrovacWo(date);
   else if (viewMode === 'signshop') fetchMonthlySignShop(date);
   else if (viewMode === 'shopwo') fetchMonthlyShopWo(date);
+  else if (viewMode === 'safetymeeting') fetchMonthlySafetyMeetings(date);
+  else if (viewMode === 'jobinspection') fetchMonthlyJobInspections(date);
   else fetchTasks();
 }}
   calendarClassName="admin-date-picker"
@@ -1250,6 +1379,8 @@ selected={
   : viewMode === 'hydrovacwo' ? hydrovacWoMonthly
   : viewMode === 'signshop' ? signShopMonthly
   : viewMode === 'shopwo' ? shopWoMonthly
+  : viewMode === 'safetymeeting' ? safetyMeetingMonthly
+  : viewMode === 'jobinspection' ? jobInspectionMonthly
   : tasks;
     const hasItems = dataSource[dateStr] && dataSource[dateStr].length > 0;
     return hasItems ? 'has-jobs' : '';
@@ -1280,6 +1411,10 @@ selected={
       dataSource = signShopMonthly;
     } else if (viewMode === 'shopwo') {
       dataSource = shopWoMonthly;
+    } else if (viewMode === 'safetymeeting') {
+      dataSource = safetyMeetingMonthly;
+    } else if (viewMode === 'jobinspection') {
+      dataSource = jobInspectionMonthly;
     }
     
     const itemsOnDate = dataSource?.[dateStr];
@@ -1300,6 +1435,8 @@ selected={
             : viewMode === 'hydrovacwo' ? 'Hydrovac WOs'
             : viewMode === 'signshop' ? 'Sign Jobs'
             : viewMode === 'shopwo' ? 'Shop WOs'
+            : viewMode === 'safetymeeting' ? 'Safety Meetings'
+            : viewMode === 'jobinspection' ? 'Inspections'
             : 'Tasks'}{viewMode !== 'traffic' ? ` ${itemCount}` : ''}
           </div>
         )}
@@ -1980,6 +2117,174 @@ selected={
     </div>
   </>
 )}
+
+{viewMode === 'safetymeeting' && (
+  <>
+    <h3>🦺 Safety Meetings on {safetyMeetingDate?.toLocaleDateString()}</h3>
+    {safetyMeetingMsg && <p style={{color: safetyMeetingMsg.includes('✅') ? '#4CAF50' : '#f44336', fontWeight:'bold'}}>{safetyMeetingMsg}</p>}
+    <button className="btn" style={{marginBottom:'1rem'}} onClick={() => setShowSafetyForm(f => !f)}>
+      {showSafetyForm ? 'Cancel' : '+ New Safety Meeting'}
+    </button>
+    {showSafetyForm && (
+      <div className="job-card" style={{background:'#f0f8ff',border:'2px dashed #1e3a8a',marginBottom:'1rem'}}>
+        <h4 style={{marginBottom:'0.75rem',color:'#1e3a8a'}}>New Safety Meeting</h4>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginBottom:'8px'}}>
+          <label style={{fontSize:'12px'}}>Jobsite *<input value={safetyMeetingForm.jobsite} onChange={e => setSafetyMeetingForm(f => ({...f, jobsite: e.target.value}))} style={{width:'100%',padding:'4px'}} /></label>
+          <label style={{fontSize:'12px'}}>Meeting Leader *<input value={safetyMeetingForm.meetingLeader} onChange={e => setSafetyMeetingForm(f => ({...f, meetingLeader: e.target.value}))} style={{width:'100%',padding:'4px'}} /></label>
+          <label style={{fontSize:'12px',gridColumn:'1/-1'}}>Toolbox Talk Topic *<input value={safetyMeetingForm.toolboxTopic} onChange={e => setSafetyMeetingForm(f => ({...f, toolboxTopic: e.target.value}))} style={{width:'100%',padding:'4px'}} /></label>
+          <label style={{fontSize:'12px',gridColumn:'1/-1'}}>Topic Notes<textarea rows={2} value={safetyMeetingForm.topicNotes} onChange={e => setSafetyMeetingForm(f => ({...f, topicNotes: e.target.value}))} style={{width:'100%',padding:'4px'}} /></label>
+        </div>
+        <div style={{marginBottom:'8px'}}>
+          <strong style={{fontSize:'12px'}}>Safety Topics Covered:</strong>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'4px',marginTop:'4px'}}>
+            {[['trafficControl','Traffic Control'],['ppe','PPE'],['flagging','Flagging'],['workZoneSetup','Work Zone Setup'],['vehicleSafety','Vehicle Safety'],['heatColdStress','Heat/Cold Stress'],['firstAidEmergency','First Aid & Emergency'],['hazardCommunication','Hazard Communication'],['slipsTripsFalls','Slips, Trips & Falls'],['liftingErgonomics','Lifting & Ergonomics'],['incidentReporting','Incident Reporting'],['other','Other']].map(([key, label]) => (
+              <label key={key} style={{fontSize:'11px',display:'flex',alignItems:'center',gap:'4px'}}>
+                <input type="checkbox" checked={safetyMeetingForm.topics[key]} onChange={e => setSafetyMeetingForm(f => ({...f, topics: {...f.topics, [key]: e.target.checked}}))} />{label}
+              </label>
+            ))}
+          </div>
+          {safetyMeetingForm.topics.other && (
+            <input placeholder="Other topic..." value={safetyMeetingForm.topics.otherText} onChange={e => setSafetyMeetingForm(f => ({...f, topics: {...f.topics, otherText: e.target.value}}))} style={{width:'100%',padding:'4px',marginTop:'4px',fontSize:'12px'}} />
+          )}
+        </div>
+        <div style={{marginBottom:'8px'}}>
+          <strong style={{fontSize:'12px'}}>Attendees (up to 12):</strong>
+          {safetyMeetingForm.attendees.map((a, i) => (
+            <div key={i} style={{display:'flex',gap:'4px',marginTop:'4px',alignItems:'center'}}>
+              <span style={{fontSize:'11px',flex:1}}>{i+1}. {a.name}</span>
+              <button style={{padding:'1px 6px',fontSize:'10px',background:'#f44336',color:'#fff',border:'none',borderRadius:'3px',cursor:'pointer'}} onClick={() => setSafetyMeetingForm(f => ({...f, attendees: f.attendees.filter((_,j) => j !== i)}))}>✕</button>
+            </div>
+          ))}
+          {safetyMeetingForm.attendees.length < 12 && (
+            <div style={{display:'flex',gap:'4px',marginTop:'4px'}}>
+              <input id="sm-attendee" placeholder="Employee name" style={{flex:1,padding:'4px',fontSize:'12px'}} onKeyDown={e => { if (e.key === 'Enter' && e.target.value.trim()) { setSafetyMeetingForm(f => ({...f, attendees: [...f.attendees, {name: e.target.value.trim()}]})); e.target.value = ''; }}} />
+              <button className="btn" style={{padding:'4px 10px',fontSize:'11px'}} onClick={() => { const el = document.getElementById('sm-attendee'); if (el?.value.trim()) { setSafetyMeetingForm(f => ({...f, attendees: [...f.attendees, {name: el.value.trim()}]})); el.value = ''; }}}>+ Add</button>
+            </div>
+          )}
+        </div>
+        <div style={{marginBottom:'8px'}}>
+          <strong style={{fontSize:'12px'}}>Hazards:</strong>
+          {safetyMeetingForm.hazards.map((h, i) => (
+            <div key={i} style={{display:'flex',gap:'4px',marginTop:'4px',alignItems:'center'}}>
+              <span style={{fontSize:'11px',flex:1}}>{h.description}</span>
+              <button style={{padding:'1px 6px',fontSize:'10px',background:'#f44336',color:'#fff',border:'none',borderRadius:'3px',cursor:'pointer'}} onClick={() => setSafetyMeetingForm(f => ({...f, hazards: f.hazards.filter((_,j) => j !== i)}))}>✕</button>
+            </div>
+          ))}
+          <div style={{display:'flex',gap:'4px',marginTop:'4px'}}>
+            <input id="sm-hazard" placeholder="Hazard description" style={{flex:1,padding:'4px',fontSize:'12px'}} />
+            <button className="btn" style={{padding:'4px 10px',fontSize:'11px'}} onClick={() => { const el = document.getElementById('sm-hazard'); if (el?.value.trim()) { setSafetyMeetingForm(f => ({...f, hazards: [...f.hazards, {description: el.value.trim()}]})); el.value = ''; }}}>+ Add</button>
+          </div>
+        </div>
+        <label style={{fontSize:'12px',display:'flex',alignItems:'center',gap:'6px',marginBottom:'8px'}}>
+          <input type="checkbox" checked={safetyMeetingForm.followUpRequired} onChange={e => setSafetyMeetingForm(f => ({...f, followUpRequired: e.target.checked}))} /> Follow-up required
+          {safetyMeetingForm.followUpRequired && <input type="date" value={safetyMeetingForm.followUpDate} onChange={e => setSafetyMeetingForm(f => ({...f, followUpDate: e.target.value}))} style={{padding:'3px',fontSize:'12px'}} />}
+        </label>
+        <label style={{fontSize:'12px',display:'block',marginBottom:'8px'}}>Notes<textarea rows={2} value={safetyMeetingForm.notes} onChange={e => setSafetyMeetingForm(f => ({...f, notes: e.target.value}))} style={{width:'100%',padding:'4px'}} /></label>
+        <button className="btn" style={{background:'#1e3a8a',color:'#fff',padding:'8px 20px'}} disabled={safetyMeetingSubmitting} onClick={submitSafetyMeeting}>
+          {safetyMeetingSubmitting ? 'Submitting...' : 'Submit Safety Meeting'}
+        </button>
+      </div>
+    )}
+    <div className="job-info-list">
+      {safetyMeetingList.map((m) => (
+        <div key={m._id} className="job-card">
+          <h4 className="job-company">{m.jobsite}</h4>
+          <p><strong>Date:</strong> {new Date(m.meetingDate).toLocaleDateString()}</p>
+          <p><strong>Leader:</strong> {m.meetingLeader}</p>
+          <p><strong>Topic:</strong> {m.toolboxTopic}</p>
+          <p><strong>Attendees:</strong> {m.attendees?.length || 0}</p>
+          <p><strong>Hazards:</strong> {m.hazards?.length || 0}</p>
+          {m.followUpRequired && <p style={{color:'#e65100',fontWeight:'bold'}}>⚠️ Follow-up: {m.followUpDate ? new Date(m.followUpDate).toLocaleDateString() : 'TBD'}</p>}
+          <a href={`/safety-meetings/${m._id}/pdf`} target="_blank" rel="noreferrer" style={{display:'inline-block',marginTop:'8px',padding:'6px 14px',fontSize:'12px',background:'#c0392b',color:'#fff',borderRadius:'6px',textDecoration:'none',fontWeight:'bold'}}>📄 PDF</a>
+        </div>
+      ))}
+      {safetyMeetingList.length === 0 && <p>No safety meetings on this day.</p>}
+    </div>
+  </>
+)}
+
+{viewMode === 'jobinspection' && (
+  <>
+    <h3>🔍 Daily Inspections on {jobInspectionDate?.toLocaleDateString()}</h3>
+    {jobInspectionMsg && <p style={{color: jobInspectionMsg.includes('✅') ? '#4CAF50' : '#f44336', fontWeight:'bold'}}>{jobInspectionMsg}</p>}
+    <button className="btn" style={{marginBottom:'1rem'}} onClick={() => setShowInspectionForm(f => !f)}>
+      {showInspectionForm ? 'Cancel' : '+ New Inspection'}
+    </button>
+    {showInspectionForm && (
+      <div className="job-card" style={{background:'#f0f8ff',border:'2px dashed #1e3a8a',marginBottom:'1rem'}}>
+        <h4 style={{marginBottom:'0.75rem',color:'#1e3a8a'}}>New Daily Inspection</h4>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginBottom:'8px'}}>
+          <label style={{fontSize:'12px'}}>Jobsite *<input value={jobInspectionForm.jobsite} onChange={e => setJobInspectionForm(f => ({...f, jobsite: e.target.value}))} style={{width:'100%',padding:'4px'}} /></label>
+          <label style={{fontSize:'12px'}}>Inspector *<input value={jobInspectionForm.inspector} onChange={e => setJobInspectionForm(f => ({...f, inspector: e.target.value}))} style={{width:'100%',padding:'4px'}} /></label>
+          <label style={{fontSize:'12px'}}>Foreman<input value={jobInspectionForm.foreman} onChange={e => setJobInspectionForm(f => ({...f, foreman: e.target.value}))} style={{width:'100%',padding:'4px'}} /></label>
+          <label style={{fontSize:'12px'}}>Overall Result *
+            <select value={jobInspectionForm.result} onChange={e => setJobInspectionForm(f => ({...f, result: e.target.value}))} style={{width:'100%',padding:'4px'}}>
+              <option value="Pass">✅ Pass</option>
+              <option value="Fail">❌ Fail</option>
+              <option value="WorkStopped">⛔ Work Stopped</option>
+            </select>
+          </label>
+          {jobInspectionForm.result === 'WorkStopped' && (
+            <label style={{fontSize:'12px',gridColumn:'1/-1'}}>Stop-Work Reason<input value={jobInspectionForm.stopWorkReason} onChange={e => setJobInspectionForm(f => ({...f, stopWorkReason: e.target.value}))} style={{width:'100%',padding:'4px'}} /></label>
+          )}
+        </div>
+        <div style={{marginBottom:'8px'}}>
+          <strong style={{fontSize:'12px'}}>Inspection Items:</strong>
+          <table style={{width:'100%',borderCollapse:'collapse',marginTop:'6px',fontSize:'11px'}}>
+            <thead><tr style={{background:'#e9ecef'}}><th style={{border:'1px solid #ccc',padding:'4px',textAlign:'left'}}>Item</th><th style={{border:'1px solid #ccc',padding:'4px',width:'110px'}}>Status</th><th style={{border:'1px solid #ccc',padding:'4px'}}>Corrective Action</th></tr></thead>
+            <tbody>
+              {jobInspectionForm.items.map((item, i) => (
+                <tr key={i} style={{background: i%2===0?'#fff':'#f9f9f9'}}>
+                  <td style={{border:'1px solid #ddd',padding:'4px'}}>{i+1}. {item.label}</td>
+                  <td style={{border:'1px solid #ddd',padding:'4px'}}>
+                    <select value={item.status} onChange={e => setJobInspectionForm(f => ({...f, items: f.items.map((it,j) => j===i ? {...it, status: e.target.value} : it)}))} style={{width:'100%',padding:'2px',fontSize:'11px',color: item.status==='OK'?'#2e7d32':item.status==='Deficiency'?'#c0392b':'#888',fontWeight:'bold'}}>
+                      <option value="OK">✓ OK</option>
+                      <option value="Deficiency">✗ Deficiency</option>
+                      <option value="NA">N/A</option>
+                    </select>
+                  </td>
+                  <td style={{border:'1px solid #ddd',padding:'4px'}}>
+                    {item.status === 'Deficiency' && <input value={item.correctiveAction} onChange={e => setJobInspectionForm(f => ({...f, items: f.items.map((it,j) => j===i ? {...it, correctiveAction: e.target.value} : it)}))} placeholder="Corrective action..." style={{width:'100%',padding:'2px',fontSize:'11px'}} />}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <label style={{fontSize:'12px',display:'flex',alignItems:'center',gap:'6px',marginBottom:'8px'}}>
+          <input type="checkbox" checked={jobInspectionForm.followUpRequired} onChange={e => setJobInspectionForm(f => ({...f, followUpRequired: e.target.checked}))} /> Follow-up required
+          {jobInspectionForm.followUpRequired && <input type="date" value={jobInspectionForm.followUpDate} onChange={e => setJobInspectionForm(f => ({...f, followUpDate: e.target.value}))} style={{padding:'3px',fontSize:'12px'}} />}
+        </label>
+        <button className="btn" style={{background:'#1e3a8a',color:'#fff',padding:'8px 20px'}} disabled={jobInspectionSubmitting} onClick={submitJobInspection}>
+          {jobInspectionSubmitting ? 'Submitting...' : 'Submit Inspection'}
+        </button>
+      </div>
+    )}
+    <div className="job-info-list">
+      {jobInspectionList.map((insp) => {
+        const deficiencies = (insp.items || []).filter(i => i.status === 'Deficiency');
+        const resultColor = insp.result === 'Pass' ? '#2e7d32' : insp.result === 'WorkStopped' ? '#c0392b' : '#e65100';
+        return (
+          <div key={insp._id} className="job-card">
+            <h4 className="job-company">{insp.jobsite}</h4>
+            <p><strong>Date:</strong> {new Date(insp.inspectionDate).toLocaleDateString()}</p>
+            <p><strong>Inspector:</strong> {insp.inspector}{insp.foreman ? ` | Foreman: ${insp.foreman}` : ''}</p>
+            <p><strong>Result:</strong> <span style={{color:resultColor,fontWeight:'bold'}}>{insp.result === 'WorkStopped' ? '⛔ Work Stopped' : insp.result === 'Pass' ? '✅ Pass' : '❌ Fail'}</span></p>
+            {deficiencies.length > 0 && (
+              <div style={{marginTop:'6px'}}>
+                <strong style={{fontSize:'12px',color:'#c0392b'}}>Deficiencies ({deficiencies.length}):</strong>
+                {deficiencies.map((d, i) => <p key={i} style={{fontSize:'11px',margin:'2px 0 0 8px'}}>• {d.label}{d.correctiveAction ? ` — ${d.correctiveAction}` : ''}</p>)}
+              </div>
+            )}
+            {insp.followUpRequired && <p style={{color:'#e65100',fontWeight:'bold',marginTop:'4px'}}>⚠️ Follow-up: {insp.followUpDate ? new Date(insp.followUpDate).toLocaleDateString() : 'TBD'}</p>}
+            <a href={`/job-inspections/${insp._id}/pdf`} target="_blank" rel="noreferrer" style={{display:'inline-block',marginTop:'8px',padding:'6px 14px',fontSize:'12px',background:'#c0392b',color:'#fff',borderRadius:'6px',textDecoration:'none',fontWeight:'bold'}}>📄 PDF</a>
+          </div>
+        );
+      })}
+      {jobInspectionList.length === 0 && <p>No inspections on this day.</p>}
+    </div>
+  </>
+)}
 </div>
 </div>
 </div>
@@ -2168,11 +2473,16 @@ selected={
           <select value={addLinePurpose} onChange={(e) => setAddLinePurpose(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}}>
             <option value="">-- Job Purpose --</option>
             <option value="2 Man Crew">2 Man Crew</option>
-            <option value="Arrow Board/Message Board Job">Arrow Board/Message Board Job</option>
-            <option value="Emergency Job">Emergency Job</option>
-            <option value="Weekend Work">Weekend Work</option>
-            <option value="Shop Work">Shop Work</option>
-            <option value="Drive Time">Drive Time</option>
+                    <option value="3 Man Crew">3 Man Crew</option>
+                    <option value="4 Man Crew">4 Man Crew</option>
+                    <option value="Arrow Board/Message Board Job">Arrow Board/Message Board Job</option>
+                    <option value="Emergency Job">Emergency Job</option>
+                    <option value="Weekend Work">Weekend Work</option>
+                    <option value="Shop Work">Shop Work</option>
+                    <option value="Standby">Standby</option>
+                    <option value="Drive Time">Drive Time</option>
+                    <option value="Hydrovac">Hydrovac</option>
+
           </select>
           <div style={{display:'flex',gap:'0.4rem',alignItems:'center'}}>
             <label style={{fontSize:'0.8rem'}}>In:</label>
