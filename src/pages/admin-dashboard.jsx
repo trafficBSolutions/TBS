@@ -2514,12 +2514,15 @@ selected={
             <select value={purposeFilter} onChange={e => setPurposeFilter(e.target.value)} style={{padding:'4px 8px',borderRadius:'6px',border:'1px solid #ccc',fontSize:'0.85rem'}}>
               <option value="All">All Hours</option>
               <option value="2 Man Crew">2 Man Crew</option>
-              <option value="Arrow Board/Message Board Job">Arrow Board/Message Board Job</option>
-              <option value="Emergency Job">Emergency Job</option>
-              <option value="Weekend Work">Weekend Work</option>
-              <option value="Shop Work">Shop Work</option>
-              <option value="Drive Time">Drive Time</option>
-              <option value="Standby">Standby</option>
+                    <option value="3 Man Crew">3 Man Crew</option>
+                    <option value="4 Man Crew">4 Man Crew</option>
+                    <option value="Arrow Board/Message Board Job">Arrow Board/Message Board Job</option>
+                    <option value="Emergency Job">Emergency Job</option>
+                    <option value="Weekend Work">Weekend Work</option>
+                    <option value="Shop Work">Shop Work</option>
+                    <option value="Standby">Standby</option>
+                    <option value="Drive Time">Drive Time</option>
+                    <option value="Hydrovac">Hydrovac</option>
             </select>
           </div>
         </div>
@@ -2706,7 +2709,7 @@ selected={
                                       </div>
                                     )}
                                     {r.purpose && <span style={{display:'block',marginTop:'2px',background:'#e3f2fd',color:'#1565c0',padding:'1px 6px',borderRadius:'3px',fontSize:'0.7rem',maxWidth:'fit-content',margin:'2px auto 0'}}>{r.purpose}{canEditHours && <button style={{marginLeft:'4px',padding:'0 3px',fontSize:'9px',background:'#1565c0',color:'#fff',border:'none',borderRadius:'2px',cursor:'pointer'}} onClick={async () => {
-                                      const purposes = ['2 Man Crew','3 Man Crew','Arrow Board/Message Board Job','Emergency Job','Weekend Work','Shop Work','Standby','Drive Time'];
+                                      const purposes = ['2 Man Crew','3 Man Crew','Arrow Board/Message Board Job','Emergency Job','Weekend Work','Shop Work','Standby','Drive Time', 'Hydrovac'];
                                       const newPurpose = prompt('Select new purpose:\n\n' + purposes.map((p,idx2) => `${idx2+1}. ${p}`).join('\n') + '\n\nEnter number or type purpose:', r.purpose);
                                       if (newPurpose === null || newPurpose === r.purpose) return;
                                       const parsed = parseInt(newPurpose);
@@ -2843,11 +2846,15 @@ selected={
                     <select value={adminPunchPurpose} onChange={(e) => setAdminPunchPurpose(e.target.value)} style={{padding:'4px',borderRadius:'4px',fontSize:'12px',border:'1px solid #ccc'}}>
                       <option value="">-- Purpose --</option>
                       <option value="2 Man Crew">2 Man Crew</option>
-                      <option value="Arrow Board/Message Board Job">Arrow Board/Message Board Job</option>
-                      <option value="Emergency Job">Emergency Job</option>
-                      <option value="Weekend Work">Weekend Work</option>
-                      <option value="Shop Work">Shop Work</option>
-                      <option value="Drive Time">Drive Time</option>
+                    <option value="3 Man Crew">3 Man Crew</option>
+                    <option value="4 Man Crew">4 Man Crew</option>
+                    <option value="Arrow Board/Message Board Job">Arrow Board/Message Board Job</option>
+                    <option value="Emergency Job">Emergency Job</option>
+                    <option value="Weekend Work">Weekend Work</option>
+                    <option value="Shop Work">Shop Work</option>
+                    <option value="Standby">Standby</option>
+                    <option value="Drive Time">Drive Time</option>
+                    <option value="Hydrovac">Hydrovac</option>
                     </select>
                   )}
                   <button className="btn" style={{padding:'4px 14px',fontSize:'12px'}} onClick={async () => {
