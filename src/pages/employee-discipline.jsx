@@ -362,7 +362,8 @@ function EmployeeDiscipline() {
 
           {/* Points Input */}
           <div style={{background:'#f0f4ff',border:'2px solid #1e3a8a',borderRadius:8,padding:15,margin:'15px 0'}}>
-            <label style={{fontWeight:'bold',fontSize:15}}>Points to Add (0.00 – 3.00)
+            <span style={{fontWeight:'bold',fontSize:15,display:'block'}}>Points to Add (0.00 – 3.00)</span>
+            <label aria-label="Points to Add">
               <input type="number" step="0.25" min="0" max={Math.max(3 - selectedEmpPoints, 0).toFixed(2)} value={form.points} onChange={e=>setForm({...form,points:e.target.value})} style={{fontSize:18,fontWeight:'bold',padding:10,width:'100%'}} />
             </label>
             {selectedEmpId && (
@@ -388,6 +389,37 @@ function EmployeeDiscipline() {
 
           </div>
         </form>
+
+        {/* ── Previous Disciplines ── */}
+        {selectedEmpId && selectedEmpHistory.length > 0 && (
+          <div className="control-container container--narrow page-section" style={{marginTop:20}}>
+            <div className="control-box">
+              <h1 className="control-app-box">Previous Disciplinary Records</h1>
+              <h2 className="control-fill">{form.employeeName} — {selectedEmpHistory.length} record(s)</h2>
+            </div>
+            <div className="job-actual">
+              <div className="first-control-input">
+                {[...selectedEmpHistory].reverse().map((d, i) => (
+                  <div key={i} style={{border:'1px solid #ddd',borderRadius:8,padding:15,marginBottom:12,background: i === 0 ? '#fffbe6' : '#fafafa'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',flexWrap:'wrap',marginBottom:8}}>
+                      <strong>#{selectedEmpHistory.length - i} — {d.incidentDate ? new Date(d.incidentDate).toLocaleDateString() : 'N/A'}</strong>
+                      <span style={{color:'#1e3a8a',fontWeight:'bold'}}>+{(d.points||0).toFixed(2)} pts → Total: {(d.newTotalPoints||0).toFixed(2)}</span>
+                    </div>
+                    <div style={{fontSize:13,marginBottom:4}}><strong>Violations:</strong> {(d.violationTypes||[]).join(', ') || '—'}</div>
+                    {d.incidentPlace && <div style={{fontSize:13,marginBottom:4}}><strong>Location:</strong> {d.incidentPlace}</div>}
+                    {d.supervisorName && <div style={{fontSize:13,marginBottom:4}}><strong>Supervisor:</strong> {d.supervisorName}</div>}
+                    {d.employerStatement && (
+                      <div style={{fontSize:13,marginTop:6,background:'#f0f0f0',borderRadius:4,padding:8}}>
+                        <strong>Statement:</strong> {d.employerStatement}
+                      </div>
+                    )}
+                    {d.dateOfWarning && <div style={{fontSize:12,color:'#888',marginTop:6}}>Warning issued: {new Date(d.dateOfWarning).toLocaleDateString()}</div>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
         </main>
       <Footer />
     </RequireStaff>
