@@ -362,10 +362,8 @@ function EmployeeDiscipline() {
 
           {/* Points Input */}
           <div style={{background:'#f0f4ff',border:'2px solid #1e3a8a',borderRadius:8,padding:15,margin:'15px 0'}}>
-            <span style={{fontWeight:'bold',fontSize:15,display:'block'}}>Points to Add (0.00 – 3.00)</span>
-            <label aria-label="Points to Add">
-              <input type="number" step="0.25" min="0" max={Math.max(3 - selectedEmpPoints, 0).toFixed(2)} value={form.points} onChange={e=>setForm({...form,points:e.target.value})} style={{fontSize:18,fontWeight:'bold',padding:10,width:'100%'}} />
-            </label>
+            <span id="points-label" style={{fontWeight:'bold',fontSize:15,display:'block'}}>Points to Add (0.00 – 3.00)</span>
+            <input id="points-input" type="number" aria-labelledby="points-label" step="0.25" min="0" max={Math.max(3 - selectedEmpPoints, 0).toFixed(2)} value={form.points} onChange={e=>setForm({...form,points:e.target.value})} style={{fontSize:18,fontWeight:'bold',padding:10,width:'100%'}} />
             {selectedEmpId && (
               <div style={{marginTop:10}}>
                 <p>Previous: <strong>{selectedEmpPoints.toFixed(2)}</strong> + Adding: <strong>{pointsNum.toFixed(2)}</strong> = New Total: <strong style={{color: willRequireReview ? '#c0392b' : '#1e3a8a',fontSize:18}}>{projectedTotal.toFixed(2)} / 3.00</strong></p>
@@ -399,10 +397,10 @@ function EmployeeDiscipline() {
             </div>
             <div className="job-actual">
               <div className="first-control-input">
-                {[...selectedEmpHistory].reverse().map((d, i) => (
+                {selectedEmpHistory.map((d, i) => (
                   <div key={i} style={{border:'1px solid #ddd',borderRadius:8,padding:15,marginBottom:12,background: i === 0 ? '#fffbe6' : '#fafafa'}}>
                     <div style={{display:'flex',justifyContent:'space-between',flexWrap:'wrap',marginBottom:8}}>
-                      <strong>#{selectedEmpHistory.length - i} — {d.incidentDate ? new Date(d.incidentDate).toLocaleDateString() : 'N/A'}</strong>
+                      <strong>#{i + 1} — {d.incidentDate ? new Date(d.incidentDate).toLocaleDateString() : 'N/A'}</strong>
                       <span style={{color:'#1e3a8a',fontWeight:'bold'}}>+{(d.points||0).toFixed(2)} pts → Total: {(d.newTotalPoints||0).toFixed(2)}</span>
                     </div>
                     <div style={{fontSize:13,marginBottom:4}}><strong>Violations:</strong> {(d.violationTypes||[]).join(', ') || '—'}</div>
