@@ -102,7 +102,9 @@ function EmployeeDiscipline() {
 
   const fetchHistory = async (name) => {
     try {
+      console.log('[fetchHistory] fetching for:', name);
       const res = await axios.get(`/discipline/by-name/${encodeURIComponent(name)}`);
+      console.log('[fetchHistory] result:', res.data);
       setSelectedEmpHistory(res.data);
     } catch (e) { console.error('Failed to fetch discipline history:', e); }
   };
