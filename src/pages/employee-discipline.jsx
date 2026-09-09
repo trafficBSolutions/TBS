@@ -100,6 +100,13 @@ function EmployeeDiscipline() {
     } catch (e) { alert('Failed to terminate'); }
   };
 
+  const fetchHistory = async (name) => {
+    try {
+      const res = await axios.get(`/discipline/by-name/${encodeURIComponent(name)}`);
+      setSelectedEmpHistory(res.data);
+    } catch (e) { console.error('Failed to fetch discipline history:', e); }
+  };
+
   const handleSelectEmployee = async (empId) => {
     setSelectedEmpId(empId);
     if (!empId) {
@@ -114,8 +121,8 @@ function EmployeeDiscipline() {
       const { employee, history } = res.data;
       setSelectedEmpPoints(employee.totalPoints);
       setSelectedEmpTerminated(employee.terminated);
-      setSelectedEmpHistory(history);
       setForm(f => ({ ...f, employeeName: employee.name, position: employee.position || '' }));
+      await fetchHistory(employee.name);
     } catch (e) { console.error('Failed to fetch employee points:', e); }
   };
 
@@ -171,7 +178,10 @@ function EmployeeDiscipline() {
       };
       await axios.post('/discipline', payload);
       setSuccessMsg('✅ Disciplinary action submitted successfully!');
-      if (selectedEmpId) handleSelectEmployee(selectedEmpId);
+      if (selectedEmpId) {
+        handleSelectEmployee(selectedEmpId);
+        fetchHistory(form.employeeName);
+      }
       fetchEmployees();
     } catch (err) {
       console.error(err);
