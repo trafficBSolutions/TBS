@@ -12,7 +12,10 @@ const EmployeeHandbook = () => {
     firstName: '',
     lastName: '',
     signature: '',
-    hasRead: false
+    hasRead: false,
+    safetyChecks: { 1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false, 8: false },
+    abilityChoice: '',
+    anyResponse: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
@@ -47,6 +50,17 @@ const EmployeeHandbook = () => {
       setMessage('Please confirm you have read the handbook');
       return;
     }
+
+    const allSafetyChecked = Object.values(formData.safetyChecks).every(Boolean);
+    if (!allSafetyChecked) {
+      setMessage('Please check all 8 items in the Safety Agreement to confirm you have read each section.');
+      return;
+    }
+
+    if (!formData.abilityChoice) {
+      setMessage('Please select your ability choice in Section 2 of the Safety Agreement.');
+      return;
+    }
     
     if (!formData.firstName || !formData.lastName) {
       setMessage('Please fill in all fields');
@@ -67,7 +81,12 @@ const EmployeeHandbook = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...formData,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          hasRead: formData.hasRead,
+          safetyChecks: formData.safetyChecks,
+          abilityChoice: formData.abilityChoice,
+          anyResponse: formData.anyResponse,
           signature: signatureData
         })
       });
@@ -95,7 +114,7 @@ const EmployeeHandbook = () => {
   <h2 className="control-app-box">Employee Handbook</h2>
   <p className="traffic-description">
     <b>Traffic &amp; Barrier Solutions, LLC</b><br />
-    <b>Effective Date:</b> 01/07/26
+    <b>Effective Date:</b> 9/9/2026
   </p>
 </section>
 
@@ -328,6 +347,124 @@ const EmployeeHandbook = () => {
     I acknowledge receipt of the Traffic &amp; Barrier Solutions, LLC Employee Handbook and understand that employment is at-will
     and that I am responsible for following company policies.
   </p>
+</section>
+
+{/* SAFETY AGREEMENT FORM */}
+<section className="company-input" style={{ border: '2px solid #efad76', borderRadius: '8px', padding: '1.5rem', marginTop: '2rem' }}>
+  <h2 className="control-app-box" style={{ textAlign: 'center' }}>TRAFFIC &amp; BARRIER SOLUTIONS, LLC</h2>
+  <h3 className="first-control-label-name" style={{ textAlign: 'center' }}>EMPLOYEE ABILITY, ESSENTIAL JOB FUNCTIONS &amp; SAFETY AGREEMENT</h3>
+  <p className="traffic-description" style={{ textAlign: 'center' }}><em>Post-offer acknowledgment</em></p>
+
+  <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+    <p className="traffic-description"><strong>Employee/Applicant Name:</strong> ___________________________</p>
+    <p className="traffic-description"><strong>Date:</strong> _______________</p>
+  </div>
+
+  <p className="traffic-description"><strong>BY SIGNING THIS AGREEMENT, I ACKNOWLEDGE, REPRESENT, AND AGREE TO ALL TERMS BELOW:</strong></p>
+
+  {/* Section 1 */}
+  <h4 className="address-control-label">1. Essential Job Functions</h4>
+  <p className="traffic-description">I have received or reviewed the written job description and understand the essential functions and physical demands of the position, including the checked or applicable duties below:</p>
+  <ol className="traffic-description" style={{ paddingLeft: '1.5rem' }}>
+    <li>Report reliably and remain alert for the scheduled shift, including early mornings, nights, weekends, overtime, or changing work locations when assigned.</li>
+    <li>Stand and walk for prolonged periods on pavement, gravel, slopes, shoulders, construction areas, and other uneven or changing surfaces.</li>
+    <li>Repeatedly enter and exit work vehicles and maintain balance around curbs, cones, equipment, roadside terrain, and active work zones.</li>
+    <li>Lift, carry, push, pull, load, unload, place, and retrieve signs, stands, cones, barrels, sandbags, tools, and related traffic-control equipment within the objective limits established for the position. Max weight 100lbs.</li>
+    <li>Bend, stoop, kneel, crouch, reach, grip, and use both hands and arms to place devices and operate assigned equipment.</li>
+    <li>Work outdoors around moving traffic and construction operations in heat, cold, rain, wind, noise, dust, and reduced-light conditions while wearing required PPE.</li>
+    <li>See and hear hazards and instructions sufficiently, with lawful aids or accommodations if needed, and communicate promptly by voice, hand signal, or radio.</li>
+    <li>Follow supervisor instructions, approved traffic-control plans, Company procedures, work-zone boundaries, and emergency directions.</li>
+    <li>Remain attentive and make timely safety decisions without distraction, impairment, or conduct that could endanger me, coworkers, motorists, or the public.</li>
+    <li>Drive a Company vehicle only when separately authorized and while maintaining all required licenses and qualifications.</li>
+    <li>Not to be under the influence of any drug/alcohol related substances while performing work or 72 hours of start of job.</li>
+  </ol>
+
+  {/* Section 2 */}
+  <h4 className="address-control-label">2. Present Ability to Perform the Work</h4>
+  <p className="traffic-description">To the best of my present knowledge, I state that I can safely perform the essential functions of this position:</p>
+  <div className="traffic-description">
+    <label style={{ display: 'block', marginBottom: '8px' }}>
+      <input type="radio" name="abilityChoice" value="without_accommodation"
+        checked={formData.abilityChoice === 'without_accommodation'}
+        onChange={(e) => setFormData({ ...formData, abilityChoice: e.target.value })}
+        style={{ marginRight: '8px' }} />
+      Without reasonable accommodation.
+    </label>
+    <label style={{ display: 'block' }}>
+      <input type="radio" name="abilityChoice" value="with_notification"
+        checked={formData.abilityChoice === 'with_notification'}
+        onChange={(e) => setFormData({ ...formData, abilityChoice: e.target.value })}
+        style={{ marginRight: '8px' }} />
+      I am presently able to perform all essential functions safely and if not I will identify the affected function to management before performing it.
+    </label>
+  </div>
+
+  {/* Section 3 */}
+  <h4 className="address-control-label">3. Previously Disclosed Condition or Limitation</h4>
+  <p className="traffic-description">If I previously and voluntarily disclosed a medical condition, injury, or physical limitation, I represent that—based on my present knowledge—it does not prevent me from safely performing the essential functions, with or without a reasonable accommodation, except as identified in Section 2. The Company is not requesting a diagnosis on this form.</p>
+
+  {/* Section 4 */}
+  <h4 className="address-control-label">4. Safety Obligations</h4>
+  <p className="traffic-description">I agree to follow all training, traffic-control procedures, approved plans, PPE requirements, lifting and team-lift rules, equipment instructions, vehicle rules, and other Company safety policies. I will use required protective equipment, remain within authorized work areas, and ask for instruction when I do not understand a task or safety requirement.</p>
+  <p className="traffic-description"><strong>MUTCD Acknowledgment.</strong> I acknowledge that Traffic &amp; Barrier Solutions, LLC performs traffic-control work in accordance with the applicable edition of the Manual on Uniform Traffic Control Devices (MUTCD), as adopted or required by the governing authority. I understand the MUTCD requirements and standards applicable to my duties and am fully aware of how to set up, maintain, inspect, adjust, and remove a work zone in accordance with the applicable MUTCD, approved traffic-control plan, site conditions, Company procedures, and supervisor instructions. I represent that I have received, or will complete before working independently, the required training and instruction. I will not deviate from an approved plan or perform duties I do not understand or am not trained or authorized to perform. If uncertain, I will stop when necessary and obtain direction from a qualified supervisor before proceeding.</p>
+  <p className="traffic-description"><strong>Driver Citations and Fines.</strong> When I operate a Company-owned, leased, rented, or otherwise authorized vehicle, I must obey all traffic laws and drive safely. I am personally responsible for paying any speeding ticket or other traffic citation issued to me because of my driving conduct, and the Company will not pay or reimburse that fine unless required by law or approved in writing by the Company. I will promptly report the citation to my supervisor and provide any requested documentation. Nothing in this paragraph authorizes an unlawful wage deduction or makes me responsible for a citation caused solely by a vehicle defect known to the Company, an unlawful Company directive, or another matter that applicable law assigns to the Company. If I (Employee) receive a speeding or citation in a company vehicle, I (Employee) am responsible for payment of citation.</p>
+
+  {/* Section 5 */}
+  <h4 className="address-control-label">5. Duty to Stop and Report</h4>
+  <p className="traffic-description">I will not knowingly perform a task that I reasonably believe I cannot perform safely. I will stop and promptly notify my supervisor of an unsafe condition, inability to perform an assigned essential function safely, need for accommodation, or material change in my ability to work safely. I will promptly and accurately report workplace hazards and any work-related accident, injury, symptom, or illness through the Company's reporting procedure. I understand that I may report injuries, illnesses, hazards, and safety concerns without retaliation.</p>
+
+  {/* Section 6 */}
+  <h4 className="address-control-label">6. Truthfulness and Cooperation</h4>
+  <p className="traffic-description">I certify that the information I have provided concerning my present ability to perform the job is complete and accurate to the best of my knowledge. I understand that a knowingly material false statement or omission may be addressed under lawful Company policy. I agree to cooperate with lawful, job-related requests for functional information or fitness-for-duty documentation and with the reasonable-accommodation process. Any medical information will be maintained as a confidential medical record as required by law.</p>
+
+  {/* Section 7 */}
+  <h4 className="address-control-label">7. Employment Relationship and Preservation of Rights</h4>
+  <p className="traffic-description">This agreement does not guarantee employment for any period, create a contract for continued employment, or alter the at-will employment relationship. Nothing in this agreement waives, releases, limits, discourages, or interferes with any right or benefit under workers' compensation, disability, leave, workplace-safety, anti-discrimination, anti-retaliation, or other applicable law. It does not predetermine whether any future condition or injury is work-related. The Company will evaluate accommodation requests and employment decisions in accordance with applicable law.</p>
+
+  {/* Section 8 */}
+  <h4 className="address-control-label">8. Onboarding and Qualification Requirements</h4>
+  <p className="traffic-description">Before beginning work or receiving a driving assignment, I agree to timely complete and provide all lawful onboarding and job-qualification requirements requested by the Company, including Form W-9, 1099, W-4, documents required to complete payroll and direct-deposit information or another available payment-method election, any required drug-screen process, and authorization and information needed to obtain and evaluate my motor-vehicle record. I understand that failure to complete these requirements may delay my start date, driving authorization, or work assignment, or may affect employment as permitted by law. The Company will not withhold wages already earned, and all earned wages will be paid in accordance with applicable law.</p>
+
+  {/* Checkboxes 1–8 */}
+  <div style={{ background: '#fff9f0', border: '1px solid #efad76', borderRadius: '6px', padding: '1rem', marginTop: '1rem' }}>
+    <p className="traffic-description"><strong>Please check each box to confirm you have read and understood each section:</strong></p>
+    {[
+      { num: 1, label: 'Section 1 – Essential Job Functions' },
+      { num: 2, label: 'Section 2 – Present Ability to Perform the Work' },
+      { num: 3, label: 'Section 3 – Previously Disclosed Condition or Limitation' },
+      { num: 4, label: 'Section 4 – Safety Obligations' },
+      { num: 5, label: 'Section 5 – Duty to Stop and Report' },
+      { num: 6, label: 'Section 6 – Truthfulness and Cooperation' },
+      { num: 7, label: 'Section 7 – Employment Relationship and Preservation of Rights' },
+      { num: 8, label: 'Section 8 – Onboarding and Qualification Requirements' },
+    ].map(({ num, label }) => (
+      <label key={num} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', fontSize: '1rem', cursor: 'pointer' }}>
+        <input
+          type="checkbox"
+          checked={formData.safetyChecks[num]}
+          onChange={(e) => setFormData({ ...formData, safetyChecks: { ...formData.safetyChecks, [num]: e.target.checked } })}
+          style={{ width: '20px', height: '20px', flexShrink: 0 }}
+        />
+        I have read and understood {label}
+      </label>
+    ))}
+  </div>
+
+  {/* Any Response + Entire Acknowledgment */}
+  <div style={{ marginTop: '1.5rem' }}>
+    <h4 className="address-control-label">9. Entire Acknowledgment</h4>
+    <p className="traffic-description">I have read this entire agreement, had an opportunity to ask questions, understand the essential duties and the terms above, and voluntarily sign below. My signature confirms my agreement with every applicable term in Sections 1 through 9.</p>
+    <div style={{ marginTop: '1rem' }}>
+      <label className="first-control-label-name">Any Response?</label>
+      <textarea
+        value={formData.anyResponse}
+        onChange={(e) => setFormData({ ...formData, anyResponse: e.target.value })}
+        placeholder="Optional — enter any questions, concerns, or comments here"
+        rows={4}
+        style={{ width: '100%', padding: '10px', fontSize: '1rem', borderRadius: '5px', border: '1px solid #ccc', marginTop: '6px', resize: 'vertical' }}
+      />
+    </div>
+  </div>
 </section>
 
           <form onSubmit={handleSubmit} className="control-container">
