@@ -163,8 +163,8 @@ function EmployeeDiscipline() {
   };
 
   const pointsNum = parseFloat(form.points) || 0;
-  const projectedTotal = Math.min(selectedEmpPoints + pointsNum, 3);
-  const willRequireReview = projectedTotal >= 3;
+  const projectedTotal = Math.min(selectedEmpPoints + pointsNum, 5);
+  const willRequireReview = projectedTotal >= 5;
 
   const submit = async (e) => {
     e.preventDefault();
@@ -232,7 +232,7 @@ function EmployeeDiscipline() {
                   <label>Name<input type="text" value={newEmpName} onChange={e=>setNewEmpName(capitalize(e.target.value))} placeholder="Employee Full Name" /></label>
                   <label>Position<input type="text" value={newEmpPosition} onChange={e=>setNewEmpPosition(capitalize(e.target.value))} placeholder="e.g. Flagger, Driver" /></label>
                   <label>Existing Points (from paper)
-                    <input type="number" step="0.25" min="0" max="3" value={newEmpPoints} onChange={e=>setNewEmpPoints(e.target.value)} placeholder="0.00" style={{width:100}} />
+                    <input type="number" step="0.25" min="0" max="5" value={newEmpPoints} onChange={e=>setNewEmpPoints(e.target.value)} placeholder="0.00" style={{width:100}} />
                   </label>
                   <button type="button" className="btn workorder-btn" onClick={handleAddEmployee}>Add</button>
                 </div>
@@ -251,17 +251,17 @@ function EmployeeDiscipline() {
                 <tbody>
                   {employees.map(emp => (
                     <React.Fragment key={emp._id}>
-                      <tr style={{background: emp.terminated ? '#f8d7da' : emp.totalPoints >= 2 ? '#fff3cd' : 'white'}}>
+                      <tr style={{background: emp.terminated ? '#f8d7da' : emp.totalPoints >= 3 ? '#fff3cd' : 'white'}}>
                         <td style={{border:'1px solid #ddd',padding:8}}>{emp.name}</td>
                         <td style={{border:'1px solid #ddd',padding:8}}>{emp.position}</td>
-                        <td style={{border:'1px solid #ddd',padding:8,textAlign:'center',fontWeight:'bold',color: emp.totalPoints >= 3 ? '#c0392b' : emp.totalPoints >= 2 ? '#e67e22' : '#27ae60'}}>
-                          {emp.totalPoints.toFixed(2)} / 3.00
+                        <td style={{border:'1px solid #ddd',padding:8,textAlign:'center',fontWeight:'bold',color: emp.totalPoints >= 5 ? '#c0392b' : emp.totalPoints >= 3 ? '#e67e22' : '#27ae60'}}>
+                          {emp.totalPoints.toFixed(2)} / 5.00
                         </td>
                         <td style={{border:'1px solid #ddd',padding:8,textAlign:'center'}}>
                           {emp.terminated ? <span style={{color:'#c0392b',fontWeight:'bold'}}>❌ Terminated</span> : <span style={{color:'#27ae60'}}>Active</span>}
                         </td>
                         <td style={{border:'1px solid #ddd',padding:8,textAlign:'center',display:'flex',gap:4,justifyContent:'center',flexWrap:'wrap'}}>
-                          {!emp.terminated && emp.totalPoints >= 3 && (
+                          {!emp.terminated && emp.totalPoints >= 5 && (
                             <button type="button" className="btn" style={{fontSize:11,padding:'4px 8px',background:'#c0392b',color:'#fff'}} onClick={() => handleTerminateEmployee(emp._id, emp.name)}>Terminate?</button>
                           )}
                           <button type="button" className="btn" style={{fontSize:11,padding:'4px 8px'}} onClick={() => handleDeleteEmployee(emp._id)}>Remove</button>
@@ -311,7 +311,7 @@ function EmployeeDiscipline() {
               <select value={selectedEmpId} onChange={e => handleSelectEmployee(e.target.value)} style={{width:'100%',padding:8}}>
                 <option value="">-- Select Employee --</option>
                 {employees.map(emp => (
-                  <option key={emp._id} value={emp._id}>{emp.name} — {emp.totalPoints.toFixed(2)} pts{emp.position ? ` (${emp.position})` : ''}{emp.totalPoints >= 3 ? ' ⚠️' : ''}</option>
+                  <option key={emp._id} value={emp._id}>{emp.name} — {emp.totalPoints.toFixed(2)} pts{emp.position ? ` (${emp.position})` : ''}{emp.totalPoints >= 5 ? ' ⚠️' : ''}</option>
                 ))}
               </select>
             </label>
@@ -320,12 +320,12 @@ function EmployeeDiscipline() {
             {selectedEmpId && (
               <div style={{background: selectedEmpTerminated ? '#f8d7da' : '#e8f5e9', border:'1px solid #ccc', borderRadius:8, padding:15, margin:'15px 0'}}>
                 <h4 style={{margin:0}}>📊 {form.employeeName} — Point Status</h4>
-                <p style={{fontSize:18,fontWeight:'bold',margin:'8px 0',color: selectedEmpPoints >= 3 ? '#c0392b' : selectedEmpPoints >= 2 ? '#e67e22' : '#27ae60'}}>
-                  Current Points: {selectedEmpPoints.toFixed(2)} / 3.00
+                <p style={{fontSize:18,fontWeight:'bold',margin:'8px 0',color: selectedEmpPoints >= 5 ? '#c0392b' : selectedEmpPoints >= 3 ? '#e67e22' : '#27ae60'}}>
+                  Current Points: {selectedEmpPoints.toFixed(2)} / 5.00
                 </p>
                 {selectedEmpTerminated && <p style={{color:'#c0392b',fontWeight:'bold'}}>❌ This employee has been terminated.</p>}
                 <div style={{background:'#eee',borderRadius:6,height:20,marginTop:8,overflow:'hidden'}}>
-                  <div style={{background: selectedEmpPoints >= 3 ? '#c0392b' : selectedEmpPoints >= 2 ? '#e67e22' : '#27ae60', height:'100%', width:`${Math.min((selectedEmpPoints/3)*100,100)}%`, transition:'width 0.3s'}}></div>
+                  <div style={{background: selectedEmpPoints >= 5 ? '#c0392b' : selectedEmpPoints >= 3 ? '#e67e22' : '#27ae60', height:'100%', width:`${Math.min((selectedEmpPoints/5)*100,100)}%`, transition:'width 0.3s'}}></div>
                 </div>
                 {selectedEmpHistory.length > 0 && (
                   <div style={{marginTop:12}}>
@@ -374,14 +374,14 @@ function EmployeeDiscipline() {
 
           {/* Points Input */}
           <div style={{background:'#f0f4ff',border:'2px solid #1e3a8a',borderRadius:8,padding:15,margin:'15px 0'}}>
-            <span id="points-label" style={{fontWeight:'bold',fontSize:15,display:'block'}}>Points to Add (0.00 – 3.00)</span>
-            <input id="points-input" type="number" aria-labelledby="points-label" step="0.25" min="0" max={Math.max(3 - selectedEmpPoints, 0).toFixed(2)} value={form.points} onChange={e=>setForm({...form,points:e.target.value})} style={{fontSize:18,fontWeight:'bold',padding:10,width:'100%'}} />
+            <span id="points-label" style={{fontWeight:'bold',fontSize:15,display:'block'}}>Points to Add (0.00 – 5.00)</span>
+            <input id="points-input" type="number" aria-labelledby="points-label" step="0.25" min="0" max={Math.max(5 - selectedEmpPoints, 0).toFixed(2)} value={form.points} onChange={e=>setForm({...form,points:e.target.value})} style={{fontSize:18,fontWeight:'bold',padding:10,width:'100%'}} />
             {selectedEmpId && (
               <div style={{marginTop:10}}>
-                <p>Previous: <strong>{selectedEmpPoints.toFixed(2)}</strong> + Adding: <strong>{pointsNum.toFixed(2)}</strong> = New Total: <strong style={{color: willRequireReview ? '#c0392b' : '#1e3a8a',fontSize:18}}>{projectedTotal.toFixed(2)} / 3.00</strong></p>
+                <p>Previous: <strong>{selectedEmpPoints.toFixed(2)}</strong> + Adding: <strong>{pointsNum.toFixed(2)}</strong> = New Total: <strong style={{color: willRequireReview ? '#c0392b' : '#1e3a8a',fontSize:18}}>{projectedTotal.toFixed(2)} / 5.00</strong></p>
                 {willRequireReview && (
                   <div style={{background:'#fff3cd',border:'1px solid #ffc107',borderRadius:6,padding:10,marginTop:8,color:'#856404',fontWeight:'bold',textAlign:'center'}}>
-                    ⚠️ WARNING: This will bring the employee to {projectedTotal.toFixed(2)} points — Carson & Rowel to review for possible termination
+                    ⚠️ WARNING: This will bring the employee to {projectedTotal.toFixed(2)} points — Carson & Rowel to review for possible termination (5.00 max)
                   </div>
                 )}
               </div>
