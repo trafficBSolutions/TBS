@@ -92,6 +92,57 @@ export default function Quote() {
   const [invNotes, setInvNotes] = useState("");
   const [invAttachments, setInvAttachments] = useState([]);
   const [activeSection, setActiveSection] = useState('quote');
+  const [drafts, setDrafts] = useState([]);
+  const [showDrafts, setShowDrafts] = useState(false);
+
+  useEffect(() => {
+    api.get('/api/drafts').then(res => setDrafts(res.data)).catch(() => {});
+  }, []);
+
+  const saveDraft = async () => {
+    const type = activeSection;
+    const data = type === 'quote'
+      ? { date, company, customer, email, phone, taxRate, isTaxExempt, taxExemptNumber, payMethod, cardType, cardLast4, isCheckPayment, checkNumber, rows, donation, notes }
+      : { invNumber, invDate, invCompany, invCustomer, invEmail, invPhone, invTaxRate, invIsTaxExempt, invTaxExemptNumber, invPayMethod, invCardType, invCardLast4, invIsCheckPayment, invCheckNumber, invRows, invDonation, invNotes };
+    try {
+      const res = await api.post('/api/drafts', { type, data });
+      setDrafts(prev => [res.data, ...prev]);
+      alert('Draft saved!');
+    } catch {
+      alert('Failed to save draft.');
+    }
+  };
+
+  const loadDraft = (draft) => {
+    if (draft.type === 'quote') {
+      const d = draft.data;
+      setDate(d.date); setCompany(d.company); setCustomer(d.customer); setEmail(d.email); setPhone(d.phone);
+      setTaxRate(d.taxRate); setIsTaxExempt(d.isTaxExempt); setTaxExemptNumber(d.taxExemptNumber);
+      setPayMethod(d.payMethod); setCardType(d.cardType); setCardLast4(d.cardLast4);
+      setIsCheckPayment(d.isCheckPayment); setCheckNumber(d.checkNumber);
+      setRows(d.rows); setDonation(d.donation); setNotes(d.notes);
+      setActiveSection('quote');
+    } else {
+      const d = draft.data;
+      setInvNumber(d.invNumber); setInvDate(d.invDate); setInvCompany(d.invCompany); setInvCustomer(d.invCustomer);
+      setInvEmail(d.invEmail); setInvPhone(d.invPhone); setInvTaxRate(d.invTaxRate);
+      setInvIsTaxExempt(d.invIsTaxExempt); setInvTaxExemptNumber(d.invTaxExemptNumber);
+      setInvPayMethod(d.invPayMethod); setInvCardType(d.invCardType); setInvCardLast4(d.invCardLast4);
+      setInvIsCheckPayment(d.invIsCheckPayment); setInvCheckNumber(d.invCheckNumber);
+      setInvRows(d.invRows); setInvDonation(d.invDonation); setInvNotes(d.invNotes);
+      setActiveSection('invoice');
+    }
+    setShowDrafts(false);
+  };
+
+  const deleteDraft = async (id) => {
+    try {
+      await api.delete(`/api/drafts/${id}`);
+      setDrafts(prev => prev.filter(d => d._id !== id));
+    } catch {
+      alert('Failed to delete draft.');
+    }
+  };
 
   const updateInvRow = (id, patch) => setInvRows(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r));
   const addInvRow = () => setInvRows(prev => [...prev, blankRow()]);
@@ -236,7 +287,35 @@ export default function Quote() {
       <div className="quote-section-tabs">
         <button className={activeSection === 'quote' ? 'active' : ''} onClick={() => setActiveSection('quote')}>Quote</button>
         <button className={activeSection === 'invoice' ? 'active' : ''} onClick={() => setActiveSection('invoice')}>Invoice</button>
+        <button type="button" className="btn" style={{ marginLeft: 'auto' }} onClick={saveDraft}>💾 Save Draft</button>
+        <button type="button" className="btn" style={{ marginLeft: '8px' }} onClick={() => setShowDrafts(v => !v)}>
+          📂 Drafts{drafts.length > 0 && <span style={{ background: 'red', color: '#fff', borderRadius: '50%', padding: '0 5px', fontSize: '11px', marginLeft: '4px' }}>{drafts.length}</span>}
+        </button>
       </div>
+
+      {showDrafts && (
+        <div style={{ background: '#fff', border: '1px solid #ccc', borderRadius: '8px', padding: '12px', marginBottom: '12px' }}>
+          <h3 style={{ margin: '0 0 8px' }}>Saved Drafts</h3>
+          {drafts.length === 0 ? <p style={{ color: '#888' }}>No saved drafts.</p> : (
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              {drafts.map(d => (
+                <li key={d._id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 0', borderBottom: '1px solid #eee' }}>
+                  <span style={{ flex: 1, fontSize: '14px' }}>
+                    <strong style={{ color: d.type === 'quote' ? '#e67e22' : '#2980b9' }}>
+                      {d.type === 'quote' ? '📋 Unfinished Quote' : '🧾 Unfinished Invoice'}
+                    </strong>
+                    {' – '}{d.type === 'quote' ? (d.data.company || 'No Company') : (d.data.invCompany || 'No Company')}
+                    {d.type === 'invoice' && d.data.invNumber ? ` #${d.data.invNumber}` : ''}
+                    <span style={{ color: '#999', fontSize: '12px', marginLeft: '8px' }}>{new Date(d.createdAt).toLocaleString()}</span>
+                  </span>
+                  <button type="button" className="btn" style={{ padding: '4px 10px', fontSize: '12px' }} onClick={() => loadDraft(d)}>Load</button>
+                  <button type="button" className="icon-btn" onClick={() => deleteDraft(d._id)}>✕</button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       {activeSection === 'quote' && (
       <div className="quote-section-card">
