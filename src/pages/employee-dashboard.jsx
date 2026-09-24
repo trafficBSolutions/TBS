@@ -674,6 +674,17 @@ const EmployeeDashboard = () => {
               <p className="text-gray-600">Submit a hydrovac daily work order</p>
             </div>
           </Link>
+
+          <Link 
+            to="/employee-dashboard/job-site-inspection"
+            className="btn-links"
+          >
+            <div className="text-center">
+              <div className="work-order-icon">🔍</div>
+              <h2 className="work-order-title">Job Site Inspection</h2>
+              <p className="text-gray-600">Complete a job site safety inspection</p>
+            </div>
+          </Link>
         </div>
 </div>
         <div className="ta-images-emp-section">
