@@ -46,6 +46,7 @@ export default function JobSiteInspection() {
     stopWorkReason: '',
     followUpRequired: false,
     followUpDate: '',
+    notes: '',
     items: blankItems(),
   });
 
@@ -264,6 +265,17 @@ export default function JobSiteInspection() {
                         style={{ width: 'auto', margin: 0 }}
                       />
                     )}
+                  </div>
+
+                  {/* Additional Notes */}
+                  <div className="message--container">
+                    <label className="message-control-label">Additional Notes</label>
+                    <textarea
+                      className="message-control-text"
+                      placeholder="Any additional observations, comments, or notes about the inspection..."
+                      value={form.notes}
+                      onChange={(e) => setField('notes', e.target.value)}
+                    />
                   </div>
 
                   {/* Signature */}
