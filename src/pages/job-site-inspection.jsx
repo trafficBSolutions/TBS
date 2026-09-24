@@ -6,23 +6,28 @@ import '../css/complaint.css';
 import axios from 'axios';
 import SignatureCanvas from 'react-signature-canvas';
 
-const RATINGS = ['Pass', 'Fail', 'N/A'];
-
-const CHECKLIST = [
-  { key: 'ppe', label: 'All crew wearing proper PPE (vest, hard hat, etc.)' },
-  { key: 'signs', label: 'All required signs posted and visible' },
-  { key: 'cones', label: 'Cones/barrels properly spaced and positioned' },
-  { key: 'arrowBoard', label: 'Arrow board / message board operational' },
-  { key: 'flaggers', label: 'Flaggers positioned correctly' },
-  { key: 'trafficFlow', label: 'Traffic flow maintained safely' },
-  { key: 'hazards', label: 'No unaddressed hazards on site' },
-  { key: 'equipment', label: 'Equipment in safe working condition' },
-  { key: 'lighting', label: 'Adequate lighting (if night work)' },
-  { key: 'communications', label: 'Crew communication established' },
+const DEFAULT_ITEMS = [
+  'Traffic-control plan on site and current',
+  'TCP authorization / permit posted',
+  'Warning signs present and properly spaced',
+  'Tapers set to correct length',
+  'Channelizing devices upright and spaced correctly',
+  'Arrow board / PCM operating and positioned',
+  'Flagger(s) in correct position with proper equipment',
+  'Flagger communications working',
+  'All workers wearing required PPE (vest, hard hat, safety glasses)',
+  'Workers staying within protected work zone',
+  'Vehicles and equipment have backup alarms and lights',
+  'Trailer / equipment secured and not blocking sight lines',
+  'Weather / environmental hazards assessed',
+  'No slip, trip, or fall hazards in work area',
+  'First-aid kit accessible on site',
+  'Emergency contact numbers posted or available',
+  'Work area clean; debris and materials controlled',
+  'End-of-day closeout: devices stored, signs removed or covered',
 ];
 
-const defaultChecklist = () =>
-  Object.fromEntries(CHECKLIST.map(({ key }) => [key, '']));
+const blankItems = () => DEFAULT_ITEMS.map(label => ({ label, status: 'NA', correctiveAction: '' }));
 
 export default function JobSiteInspection() {
   const sigRef = useRef(null);
@@ -33,20 +38,15 @@ export default function JobSiteInspection() {
   const [errors, setErrors] = useState({});
 
   const [form, setForm] = useState({
-    inspectorName: '',
-    position: '',
-    jobSiteAddress: '',
-    jobNumber: '',
+    jobsite: '',
+    inspector: '',
+    foreman: '',
     inspectionDate: new Date().toISOString().slice(0, 10),
-    inspectionTime: '',
-    weatherConditions: '',
-    crewSize: '',
-    supervisorName: '',
-    checklist: defaultChecklist(),
-    hazardsFound: '',
-    correctiveActions: '',
-    additionalNotes: '',
-    signatureName: '',
+    result: 'Pass',
+    stopWorkReason: '',
+    followUpRequired: false,
+    followUpDate: '',
+    items: blankItems(),
   });
 
   const setField = (k, v) => {
@@ -54,32 +54,28 @@ export default function JobSiteInspection() {
     setErrors(prev => ({ ...prev, [k]: '' }));
   };
 
-  const setCheckItem = (key, value) => {
-    setForm(prev => ({ ...prev, checklist: { ...prev.checklist, [key]: value } }));
-  };
+  const setItemStatus = (i, status) =>
+    setForm(prev => ({ ...prev, items: prev.items.map((it, idx) => idx === i ? { ...it, status } : it) }));
+
+  const setItemAction = (i, correctiveAction) =>
+    setForm(prev => ({ ...prev, items: prev.items.map((it, idx) => idx === i ? { ...it, correctiveAction } : it) }));
 
   const handleSigEnd = () => {
     const pad = sigRef.current;
     if (!pad || pad.isEmpty()) { setSignature(''); return; }
     try {
-      const dataUrl = pad.getTrimmedCanvas().toDataURL('image/png');
-      setSignature(dataUrl.split(',')[1]);
+      setSignature(pad.getTrimmedCanvas().toDataURL('image/png'));
       setErrors(prev => ({ ...prev, signature: '' }));
-    } catch {
-      setSignature('');
-    }
+    } catch { setSignature(''); }
   };
 
   const clearSignature = () => { sigRef.current?.clear(); setSignature(''); };
 
   const validate = () => {
     const errs = {};
-    if (!form.inspectorName.trim()) errs.inspectorName = 'Inspector name is required';
-    if (!form.position.trim()) errs.position = 'Position is required';
-    if (!form.jobSiteAddress.trim()) errs.jobSiteAddress = 'Job site address is required';
+    if (!form.jobsite.trim()) errs.jobsite = 'Job site is required';
+    if (!form.inspector.trim()) errs.inspector = 'Inspector name is required';
     if (!form.inspectionDate) errs.inspectionDate = 'Inspection date is required';
-    if (!form.supervisorName.trim()) errs.supervisorName = 'Supervisor name is required';
-    if (!form.signatureName.trim()) errs.signatureName = 'Signature name is required';
     if (!signature) errs.signature = 'Signature is required';
     return errs;
   };
@@ -100,8 +96,8 @@ export default function JobSiteInspection() {
     setIsSubmitting(true);
     try {
       await axios.post(
-        (import.meta.env.VITE_API_URL || 'https://tbs-server.onrender.com') + '/job-site-inspection',
-        { ...form, signatureBase64: signature },
+        (import.meta.env.VITE_API_URL || 'https://tbs-server.onrender.com') + '/job-inspections',
+        { ...form, inspectorSignature: signature },
         { withCredentials: true }
       );
       setSubmissionMessage('✅ Job site inspection submitted successfully!');
@@ -115,6 +111,8 @@ export default function JobSiteInspection() {
     }
   };
 
+  const resultColor = { Pass: '#2e7d32', Fail: '#e65100', WorkStopped: '#c0392b' };
+
   return (
     <div>
       <Header activePage="/employee-dashboard" />
@@ -126,7 +124,7 @@ export default function JobSiteInspection() {
           <form onSubmit={handleSubmit} className="form-center">
             <div className="control-container container--narrow page-section">
               <div className="control-box">
-                <h1 className="control-app-box">TBS Job Site Inspection</h1>
+                <h1 className="control-app-box">TBS Daily Jobsite Inspection</h1>
                 <h2 className="control-fill">Complete this form after each job site inspection.</h2>
                 <h3 className="control-fill-info">Fields marked with * are required.</h3>
               </div>
@@ -134,55 +132,33 @@ export default function JobSiteInspection() {
               <div className="job-actual">
                 <div className="first-control-input">
 
-                  {/* Inspector Info */}
-                  <label className="first-control-label-name">Inspector Name *</label>
+                  <label className="first-control-label-name">Job Site / Location *</label>
                   <input
                     type="text"
                     className="first-control-name-input"
-                    placeholder="Enter First & Last Name"
-                    value={form.inspectorName}
-                    onChange={(e) => setField('inspectorName', e.target.value)}
+                    placeholder="Enter job site address or name"
+                    value={form.jobsite}
+                    onChange={(e) => setField('jobsite', e.target.value)}
                   />
-                  {errors.inspectorName && <div className="error-message">{errors.inspectorName}</div>}
+                  {errors.jobsite && <div className="error-message">{errors.jobsite}</div>}
 
-                  <label className="project-number-label">Position / Title *</label>
+                  <label className="project-number-label">Inspector Name *</label>
                   <input
                     className="project-number-input"
                     type="text"
-                    placeholder="Enter your position"
-                    value={form.position}
-                    onChange={(e) => setField('position', e.target.value)}
+                    placeholder="Enter your full name"
+                    value={form.inspector}
+                    onChange={(e) => setField('inspector', e.target.value)}
                   />
-                  {errors.position && <div className="error-message">{errors.position}</div>}
+                  {errors.inspector && <div className="error-message">{errors.inspector}</div>}
 
-                  <label className="project-number-label">Supervisor Name *</label>
+                  <label className="project-number-label">Foreman Name</label>
                   <input
                     className="project-number-input"
                     type="text"
-                    placeholder="Enter supervisor name"
-                    value={form.supervisorName}
-                    onChange={(e) => setField('supervisorName', e.target.value)}
-                  />
-                  {errors.supervisorName && <div className="error-message">{errors.supervisorName}</div>}
-
-                  {/* Job Site Info */}
-                  <label className="project-number-label">Job Site Address *</label>
-                  <input
-                    className="project-number-input"
-                    type="text"
-                    placeholder="Enter job site address"
-                    value={form.jobSiteAddress}
-                    onChange={(e) => setField('jobSiteAddress', e.target.value)}
-                  />
-                  {errors.jobSiteAddress && <div className="error-message">{errors.jobSiteAddress}</div>}
-
-                  <label className="project-number-label">Job Number</label>
-                  <input
-                    className="project-number-input"
-                    type="text"
-                    placeholder="Enter job number (optional)"
-                    value={form.jobNumber}
-                    onChange={(e) => setField('jobNumber', e.target.value)}
+                    placeholder="Enter foreman name (optional)"
+                    value={form.foreman}
+                    onChange={(e) => setField('foreman', e.target.value)}
                   />
 
                   <label className="project-number-label">Inspection Date *</label>
@@ -194,62 +170,48 @@ export default function JobSiteInspection() {
                   />
                   {errors.inspectionDate && <div className="error-message">{errors.inspectionDate}</div>}
 
-                  <label className="project-number-label">Inspection Time</label>
-                  <input
-                    className="project-number-input"
-                    type="time"
-                    value={form.inspectionTime}
-                    onChange={(e) => setField('inspectionTime', e.target.value)}
-                  />
-
-                  <label className="project-number-label">Weather Conditions</label>
-                  <input
-                    className="project-number-input"
-                    type="text"
-                    placeholder="e.g. Clear, Rainy, Foggy"
-                    value={form.weatherConditions}
-                    onChange={(e) => setField('weatherConditions', e.target.value)}
-                  />
-
-                  <label className="project-number-label">Crew Size</label>
-                  <input
-                    className="project-number-input"
-                    type="number"
-                    min="1"
-                    placeholder="Number of crew members on site"
-                    value={form.crewSize}
-                    onChange={(e) => setField('crewSize', e.target.value)}
-                  />
-
-                  {/* Safety Checklist */}
+                  {/* Inspection Checklist */}
                   <div style={{ margin: '1.5rem 0 0.5rem' }}>
                     <h3 style={{ color: '#1a1a2e', marginBottom: '0.75rem' }}>Safety Checklist</h3>
                     <div style={{ overflowX: 'auto' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.95rem' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
                         <thead>
                           <tr style={{ background: '#1a1a2e', color: '#fff' }}>
-                            <th style={{ padding: '10px', textAlign: 'left', borderRadius: '6px 0 0 0' }}>Item</th>
-                            {RATINGS.map(r => (
-                              <th key={r} style={{ padding: '10px', textAlign: 'center', minWidth: '60px' }}>{r}</th>
-                            ))}
+                            <th style={{ padding: '10px', textAlign: 'left' }}>Item</th>
+                            <th style={{ padding: '10px', textAlign: 'center', minWidth: '55px' }}>✓ OK</th>
+                            <th style={{ padding: '10px', textAlign: 'center', minWidth: '90px' }}>✗ Deficiency</th>
+                            <th style={{ padding: '10px', textAlign: 'center', minWidth: '55px' }}>N/A</th>
+                            <th style={{ padding: '10px', textAlign: 'left', minWidth: '160px' }}>Corrective Action</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {CHECKLIST.map(({ key, label }, i) => (
-                            <tr key={key} style={{ background: i % 2 === 0 ? '#f9f9f9' : '#fff' }}>
-                              <td style={{ padding: '10px', border: '1px solid #ddd' }}>{label}</td>
-                              {RATINGS.map(r => (
-                                <td key={r} style={{ padding: '10px', textAlign: 'center', border: '1px solid #ddd' }}>
+                          {form.items.map((item, i) => (
+                            <tr key={i} style={{ background: i % 2 === 0 ? '#f9f9f9' : '#fff' }}>
+                              <td style={{ padding: '8px', border: '1px solid #ddd', fontSize: '0.85rem' }}>
+                                {i + 1}. {item.label}
+                              </td>
+                              {['OK', 'Deficiency', 'NA'].map(s => (
+                                <td key={s} style={{ padding: '8px', textAlign: 'center', border: '1px solid #ddd' }}>
                                   <input
                                     type="radio"
-                                    name={key}
-                                    value={r}
-                                    checked={form.checklist[key] === r}
-                                    onChange={() => setCheckItem(key, r)}
+                                    name={`item-${i}`}
+                                    checked={item.status === s}
+                                    onChange={() => setItemStatus(i, s)}
                                     style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                                   />
                                 </td>
                               ))}
+                              <td style={{ padding: '8px', border: '1px solid #ddd' }}>
+                                {item.status === 'Deficiency' && (
+                                  <input
+                                    type="text"
+                                    placeholder="Describe corrective action..."
+                                    value={item.correctiveAction}
+                                    onChange={(e) => setItemAction(i, e.target.value)}
+                                    style={{ width: '100%', padding: '4px', fontSize: '0.8rem', border: '1px solid #ccc', borderRadius: '4px' }}
+                                  />
+                                )}
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -257,35 +219,51 @@ export default function JobSiteInspection() {
                     </div>
                   </div>
 
-                  {/* Hazards & Corrective Actions */}
-                  <div className="message--container">
-                    <label className="message-control-label">Hazards Found</label>
-                    <textarea
-                      className="message-control-text"
-                      placeholder="Describe any hazards found on site (leave blank if none)"
-                      value={form.hazardsFound}
-                      onChange={(e) => setField('hazardsFound', e.target.value)}
-                    />
-                  </div>
+                  {/* Overall Result */}
+                  <label className="project-number-label">Overall Result *</label>
+                  <select
+                    className="state-control-box"
+                    value={form.result}
+                    onChange={(e) => setField('result', e.target.value)}
+                    style={{ color: resultColor[form.result], fontWeight: 'bold' }}
+                  >
+                    <option value="Pass">✅ Pass</option>
+                    <option value="Fail">❌ Fail</option>
+                    <option value="WorkStopped">⛔ Work Stopped</option>
+                  </select>
 
-                  <div className="message--container">
-                    <label className="message-control-label">Corrective Actions Taken</label>
-                    <textarea
-                      className="message-control-text"
-                      placeholder="Describe corrective actions taken (if any)"
-                      value={form.correctiveActions}
-                      onChange={(e) => setField('correctiveActions', e.target.value)}
-                    />
-                  </div>
+                  {form.result === 'WorkStopped' && (
+                    <>
+                      <label className="project-number-label">Stop-Work Reason *</label>
+                      <input
+                        className="project-number-input"
+                        type="text"
+                        placeholder="Describe why work was stopped"
+                        value={form.stopWorkReason}
+                        onChange={(e) => setField('stopWorkReason', e.target.value)}
+                      />
+                    </>
+                  )}
 
-                  <div className="message--container">
-                    <label className="message-control-label">Additional Notes</label>
-                    <textarea
-                      className="message-control-text"
-                      placeholder="Any additional observations or notes"
-                      value={form.additionalNotes}
-                      onChange={(e) => setField('additionalNotes', e.target.value)}
+                  {/* Follow-up */}
+                  <div style={{ margin: '1rem 0', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <input
+                      type="checkbox"
+                      id="followUp"
+                      checked={form.followUpRequired}
+                      onChange={(e) => setField('followUpRequired', e.target.checked)}
+                      style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                     />
+                    <label htmlFor="followUp" style={{ fontWeight: 'bold', cursor: 'pointer' }}>Follow-up Required</label>
+                    {form.followUpRequired && (
+                      <input
+                        type="date"
+                        value={form.followUpDate}
+                        onChange={(e) => setField('followUpDate', e.target.value)}
+                        className="project-number-input"
+                        style={{ width: 'auto', margin: 0 }}
+                      />
+                    )}
                   </div>
 
                   {/* Signature */}
@@ -293,15 +271,6 @@ export default function JobSiteInspection() {
                     <h4 className="signature-h4">Inspector Signature *</h4>
                     <div className="sig-pad">
                       <div className="signature">
-                        <label>Signature Name *</label>
-                        <input
-                          type="text"
-                          value={form.signatureName}
-                          onChange={(e) => setField('signatureName', e.target.value)}
-                          placeholder="Type your full name"
-                        />
-                        {errors.signatureName && <div className="error-message">{errors.signatureName}</div>}
-
                         <label>Draw Signature *</label>
                         <p className="sign-here">Please sign your First & Last Name</p>
                         <div className="sig-canvas-wrap">
@@ -319,7 +288,7 @@ export default function JobSiteInspection() {
                         {signature && (
                           <div className="sig-preview">
                             <span>Captured:</span>
-                            <img alt="Signature preview" src={`data:image/png;base64,${signature}`} />
+                            <img alt="Signature preview" src={signature} />
                           </div>
                         )}
                       </div>
