@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate} from 'react-router-dom'
 import HydrovacWorkOrder from './pages/hydrovac-work-order';
-import { HydrovacServices, About, EmployeeHandbook, Quote, ConfirmAdditionalFlagger, EmployeeDiscipline, Invoice, Work, ManageJobTest, CancelJobTest, ManageJob, CancelJob, AdminLog, AdminDashboard, Contact, Apply, Home, TrafficControl, TrafficPlan, Rentals, PPE, Signs, BollardsWheels, Error, TService, Product, TrafficControlTest, EmployeeDashboard, EmployeeComplaintForm, LeaveRequest, DirectDeposit } from './pages';
+import { JobSiteInspection, HydrovacServices, About, EmployeeHandbook, Quote, ConfirmAdditionalFlagger, EmployeeDiscipline, Invoice, Work, ManageJobTest, CancelJobTest, ManageJob, CancelJob, AdminLog, AdminDashboard, Contact, Apply, Home, TrafficControl, TrafficPlan, Rentals, PPE, Signs, BollardsWheels, Error, TService, Product, TrafficControlTest, EmployeeDashboard, EmployeeComplaintForm, LeaveRequest, DirectDeposit } from './pages';
 import TCPDesigner from './pages/tcp-designer';
 import ShopWorkOrder from './pages/shop-work-order';
 import ShopWorkOrderStatus from './pages/shop-work-order-status';
@@ -153,6 +153,7 @@ function App() {
     <Route path="/employee-dashboard/leave-request" element={<RequireStaff><LeaveRequest /></RequireStaff>} />
     <Route path="/employee-dashboard/employee-complaint-form" element={<RequireStaff><EmployeeComplaintForm /></RequireStaff>} />
     <Route path="/employee-dashboard/employee-handbook" element={<RequireStaff><EmployeeHandbook /></RequireStaff>} />
+    <Route path="/employee-dashboard/job-site-inspection" element={<RequireStaff><JobSiteInspection /></RequireStaff>} />
     <Route path="/cancel-job/:id" element={<CancelJob />} />
     <Route path="/work-order/:id" element={<Work />} />
    <Route path="/manage-job/:id" element={<ManageJob />} />
