@@ -37,4 +37,5 @@ import ShopWorkOrderLog from './shop-work-order-log'
 import HydrovacServices from './hydrovac-services'
 import DirectDeposit from './direct-deposit'
 import HydrovacWorkOrder from './hydrovac-work-order'
-export { HydrovacWorkOrder, DirectDeposit, HydrovacServices, ShopWorkOrderLog, TimeClockKiosk, LeaveRequest, AdminDashboard, ShopWorkOrderStatus, ShopWorkOrder, TCPDesigner, Quote, EmployeeHandbook, RescheduleJob, EmployeeDiscipline, ConfirmAdditionalFlagger, EmployeeLogin, EmployeeDashboard, EmployeeComplaintForm, Work, Invoice, CancelJob, About, Contact, Apply, Home, AdminLog, TrafficControl, TrafficPlan, BollardsWheels, Signs, Rentals, PPE, Error, TService, Product, ManageJob, TrafficControlTest, ManageJobTest, CancelJobTest };
+import JobSiteInspection from './job-site-inspection'
+export { JobSiteInspection, HydrovacWorkOrder, DirectDeposit, HydrovacServices, ShopWorkOrderLog, TimeClockKiosk, LeaveRequest, AdminDashboard, ShopWorkOrderStatus, ShopWorkOrder, TCPDesigner, Quote, EmployeeHandbook, RescheduleJob, EmployeeDiscipline, ConfirmAdditionalFlagger, EmployeeLogin, EmployeeDashboard, EmployeeComplaintForm, Work, Invoice, CancelJob, About, Contact, Apply, Home, AdminLog, TrafficControl, TrafficPlan, BollardsWheels, Signs, Rentals, PPE, Error, TService, Product, ManageJob, TrafficControlTest, ManageJobTest, CancelJobTest };
