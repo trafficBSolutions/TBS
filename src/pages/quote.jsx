@@ -528,7 +528,7 @@ export default function Quote() {
         <h2 className="quote-section-title">Sign Shop Invoice</h2>
       <section className="quote-info">
         <label>Invoice Number *<input type="text" value={invNumber} onChange={(e) => setInvNumber(e.target.value.toUpperCase())} placeholder="e.g., 2026SS001" />
-          {lastInvNumber && <span style={{ fontSize: '12px', color: '#888', marginTop: '4px', display: 'block' }}>Last used: <strong>{lastInvNumber}</strong></span>}
+          {lastInvNumber && <span style={{ fontSize: '12px', color: '#888', marginTop: '4px', display: 'block' }}>Highest on record: <strong style={{ color: '#2980b9' }}>{lastInvNumber}</strong> — next should be higher</span>}
         </label>
         <label>Company/Excavator<input type="text" value={invCompany} onChange={(e) => setInvCompany(e.target.value.replace(/\b\w/g, c => c.toUpperCase()))} /></label>
         <label>Customer<input type="text" value={invCustomer} onChange={(e) => setInvCustomer(e.target.value.replace(/\b\w/g, c => c.toUpperCase()))} /></label>
