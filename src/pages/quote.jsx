@@ -94,9 +94,11 @@ export default function Quote() {
   const [activeSection, setActiveSection] = useState('quote');
   const [drafts, setDrafts] = useState([]);
   const [showDrafts, setShowDrafts] = useState(false);
+  const [lastInvNumber, setLastInvNumber] = useState('');
 
   useEffect(() => {
     api.get('/api/drafts').then(res => setDrafts(res.data)).catch(() => {});
+    api.get('/shop-invoices/last-number').then(res => setLastInvNumber(res.data.lastNumber || '')).catch(() => {});
   }, []);
 
   const saveDraft = async () => {
@@ -525,7 +527,9 @@ export default function Quote() {
       <div className="quote-section-card">
         <h2 className="quote-section-title">Sign Shop Invoice</h2>
       <section className="quote-info">
-        <label>Invoice Number *<input type="text" value={invNumber} onChange={(e) => setInvNumber(e.target.value.toUpperCase())} placeholder="e.g., 2026SS001" /></label>
+        <label>Invoice Number *<input type="text" value={invNumber} onChange={(e) => setInvNumber(e.target.value.toUpperCase())} placeholder="e.g., 2026SS001" />
+          {lastInvNumber && <span style={{ fontSize: '12px', color: '#888', marginTop: '4px', display: 'block' }}>Last used: <strong>{lastInvNumber}</strong></span>}
+        </label>
         <label>Company/Excavator<input type="text" value={invCompany} onChange={(e) => setInvCompany(e.target.value.replace(/\b\w/g, c => c.toUpperCase()))} /></label>
         <label>Customer<input type="text" value={invCustomer} onChange={(e) => setInvCustomer(e.target.value.replace(/\b\w/g, c => c.toUpperCase()))} /></label>
         <label>Email (comma-separated for multiple)<input type="text" value={invEmail} onChange={(e) => setInvEmail(e.target.value)} placeholder="email1@example.com, email2@example.com" /></label>
