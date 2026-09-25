@@ -530,6 +530,10 @@ export default function Quote() {
         <label>Invoice Number *<input type="text" value={invNumber} onChange={(e) => setInvNumber(e.target.value.toUpperCase())} placeholder="e.g., 2026SS001" />
           {lastInvNumber && <span style={{ fontSize: '12px', color: '#888', marginTop: '4px', display: 'block' }}>Highest on record: <strong style={{ color: '#2980b9' }}>{lastInvNumber}</strong> — next should be higher</span>}
         </label>
+        <label>Invoice Date
+          <input type="date" value={invDate} onChange={(e) => setInvDate(e.target.value)} />
+          <span style={{ fontSize: '12px', color: '#888', marginTop: '4px', display: 'block' }}>Change this to backdate — invoice will appear under that month in the dashboard</span>
+        </label>
         <label>Company/Excavator<input type="text" value={invCompany} onChange={(e) => setInvCompany(e.target.value.replace(/\b\w/g, c => c.toUpperCase()))} /></label>
         <label>Customer<input type="text" value={invCustomer} onChange={(e) => setInvCustomer(e.target.value.replace(/\b\w/g, c => c.toUpperCase()))} /></label>
         <label>Email (comma-separated for multiple)<input type="text" value={invEmail} onChange={(e) => setInvEmail(e.target.value)} placeholder="email1@example.com, email2@example.com" /></label>
