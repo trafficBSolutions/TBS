@@ -3061,8 +3061,11 @@ selected={
             });
             const grouped = {};
             filtered.forEach(q => { (grouped[q._month] ||= []).push(q); });
+            Object.keys(grouped).forEach(mo => {
+              grouped[mo].sort((a, b) => (b.invoiceNumber || '').localeCompare(a.invoiceNumber || '', undefined, { numeric: true }));
+            });
             const monthOrder = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-            const sortedMonths = Object.keys(grouped).sort((a,b) => monthOrder.indexOf(a) - monthOrder.indexOf(b));
+            const sortedMonths = Object.keys(grouped).sort((a,b) => monthOrder.indexOf(b) - monthOrder.indexOf(a));
             return (
               <>
                 <p style={{fontWeight:'bold',fontSize:'1.1rem',marginBottom:'0.5rem'}}>Showing {filtered.length} of {invoiceStats.total} invoices</p>
