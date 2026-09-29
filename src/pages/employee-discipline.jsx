@@ -41,6 +41,7 @@ function EmployeeDiscipline() {
     points: '',
     meetingDate:''
   });
+  const [attachments, setAttachments] = useState([]);
 
   useEffect(() => {
     const stored = localStorage.getItem('adminUser');
@@ -171,15 +172,15 @@ function EmployeeDiscipline() {
     setSubmitting(true);
     setSuccessMsg('');
     try {
-      const payload = {
-        ...form,
-        employeeRef: selectedEmpId || undefined,
-        points: pointsNum,
-        incidentDate: form.incidentDate ? new Date(form.incidentDate) : null,
-        dateOfWarning: form.dateOfWarning ? new Date(form.dateOfWarning) : null
-      };
-      await axios.post('/discipline', payload);
+      const formData = new FormData();
+      Object.entries({ ...form, employeeRef: selectedEmpId || '', points: pointsNum }).forEach(([k, v]) => {
+        if (Array.isArray(v)) v.forEach(item => formData.append(k, item));
+        else if (v !== undefined && v !== null) formData.append(k, v);
+      });
+      attachments.forEach(file => formData.append('attachments', file));
+      await axios.post('/discipline', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       setSuccessMsg('✅ Disciplinary action submitted successfully!');
+      setAttachments([]);
       if (selectedEmpId) {
         handleSelectEmployee(selectedEmpId);
         fetchHistory(form.employeeName);
@@ -389,6 +390,28 @@ function EmployeeDiscipline() {
           </div>
 
 
+          {/* Photo Attachments */}
+          <div style={{background:'#f8f9fa',border:'1px solid #ddd',borderRadius:8,padding:15,margin:'15px 0'}}>
+            <label style={{fontWeight:'bold',fontSize:15,display:'block',marginBottom:8}}>📷 Attach Incident Photos (optional)</label>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={e => setAttachments(Array.from(e.target.files))}
+              style={{display:'block',marginBottom:8}}
+            />
+            {attachments.length > 0 && (
+              <div style={{fontSize:13,color:'#555'}}>
+                {attachments.map((f, i) => (
+                  <div key={i} style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                    <img src={URL.createObjectURL(f)} alt={f.name} style={{width:60,height:45,objectFit:'cover',borderRadius:4,border:'1px solid #ccc'}} />
+                    <span>{f.name}</span>
+                    <button type="button" style={{fontSize:11,padding:'2px 6px',cursor:'pointer'}} onClick={() => setAttachments(attachments.filter((_,j)=>j!==i))}>✕</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
 </div>
           <button className="btn workorder-btn" type="submit" disabled={submitting}>
