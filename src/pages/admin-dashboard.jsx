@@ -3220,7 +3220,7 @@ selected={
                         <label style={{fontSize:'12px',display:'block',marginTop:'8px'}}>Notes:
                           <textarea value={editShopInv.notes} onChange={(e) => setEditShopInv({...editShopInv, notes: e.target.value})} rows={2} style={{width:'100%',padding:'4px'}} />
                         </label>
-                        <div style={{display:'flex',gap:'8px',marginTop:'10px'}}>
+                        <div style={{display:'flex',gap:'8px',marginTop:'10px',flexWrap:'wrap'}}>
                           <button className="btn" style={{padding:'6px 14px',fontSize:'12px',background:'#4CAF50',color:'#fff'}} onClick={async () => {
                             try {
                               const rows = editShopInv.rows;
@@ -3240,6 +3240,27 @@ selected={
                               setInvoiceStats({ total: months.reduce((s, mo) => s + mo.count, 0), months });
                             } catch (e) { console.error('Failed to update invoice:', e); }
                           }}>Save</button>
+                          <button className="btn" style={{padding:'6px 14px',fontSize:'12px',background:'#1565c0',color:'#fff'}} onClick={async () => {
+                            try {
+                              const rows = editShopInv.rows;
+                              const subtotal = rows.reduce((s, r) => s + (r.qty || 0) * (r.unitPrice || 0), 0);
+                              const taxableAmt = editShopInv.isTaxExempt ? 0 : rows.reduce((s, r) => r.taxable !== false ? s + (r.qty || 0) * (r.unitPrice || 0) : s, 0);
+                              const taxDue = taxableAmt * 0.08;
+                              const ccFee = editShopInv.payMethod === 'Card' ? (subtotal + taxDue) * 0.03 : 0;
+                              const donationAmt = Number(editShopInv.donation) || 0;
+                              const total = (editShopInv.isTaxExempt ? subtotal + ccFee : subtotal + taxDue + ccFee) - donationAmt;
+                              const computed = { subtotal, taxDue, ccFee, total, donation: donationAmt };
+                              await axios.put(`/shop-invoices/${q._id}`, { ...editShopInv, computed, donation: donationAmt });
+                              await axios.post(`/shop-invoices/${q._id}/resend`);
+                              setEditingShopInvoice(null);
+                              const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                              const cm = new Date().getMonth();
+                              const monthData = await Promise.all(monthNames.slice(0, cm + 1).map((_, i) => axios.get(`/shop-invoices/month?month=${i + 1}&year=2026`).then(r => r.data).catch(() => [])));
+                              const months = monthNames.map((mo, i) => ({ month: mo, count: i <= cm ? (monthData[i]?.length || 0) : 0, invoices: i <= cm ? (monthData[i] || []) : [] }));
+                              setInvoiceStats({ total: months.reduce((s, mo) => s + mo.count, 0), months });
+                              alert('Invoice updated and email resent!');
+                            } catch (e) { console.error('Failed to update & resend invoice:', e); alert('Saved but failed to resend email.'); }
+                          }}>💌 Save & Resend Email</button>
                           <button className="btn" style={{padding:'6px 14px',fontSize:'12px',background:'#888',color:'#fff'}} onClick={() => setEditingShopInvoice(null)}>Cancel</button>
                         </div>
                       </div>
