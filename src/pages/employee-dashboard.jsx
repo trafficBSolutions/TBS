@@ -30,6 +30,7 @@ const EmployeeDashboard = () => {
   const [ackLoading, setAckLoading] = useState(false);
   const [currentDisciplineIndex, setCurrentDisciplineIndex] = useState(0);
   const [storedPin, setStoredPin] = useState('');
+  const [storedPurpose, setStoredPurpose] = useState(undefined);
   const [empStatement, setEmpStatement] = useState('');
   const [employees, setEmployees] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -182,6 +183,8 @@ const EmployeeDashboard = () => {
         setCurrentDisciplineIndex(0);
         setShowDisciplineModal(true);
         setClockMsg('');
+        // preserve purpose so the retry punch after acknowledging doesn't lose it
+        setStoredPurpose(isClockedIn ? undefined : clockPurpose);
       } else if (data?.action === 'handbook_required') {
         setHandbookPersonName(data.personName);
         setShowHandbook(true);
@@ -234,13 +237,19 @@ const EmployeeDashboard = () => {
         setAckMsg('');
         try {
           const retryUrl = '/timeclock/punch';
-          const retryPayload = { pin: storedPin };
+          const retryPayload = { pin: storedPin, purpose: storedPurpose };
           const punchRes = await axios.post(retryUrl, retryPayload);
-          setClockMsg(punchRes.data.message);
+          let msg = punchRes.data.message;
+          if (punchRes.data.action === 'clocked_out' && punchRes.data.record?.clockIn && punchRes.data.record?.clockOut) {
+            const mins = Math.round((new Date(punchRes.data.record.clockOut) - new Date(punchRes.data.record.clockIn)) / 60000);
+            msg += ` — ${(mins / 60).toFixed(2)} hrs (${mins} min) this session`;
+          }
+          setClockMsg(msg);
         } catch (e) {
           setClockMsg(e.response?.data?.message || 'Please try punching in/out again.');
         }
         setStoredPin('');
+        setStoredPurpose(undefined);
       }
     } catch (err) {
       setAckMsg(err.response?.data?.message || 'Failed to acknowledge. Try again.');
@@ -552,11 +561,11 @@ const EmployeeDashboard = () => {
                           <p style={{margin:'4px 0'}}><strong>Previous Points:</strong> {(d.previousPoints || 0).toFixed(2)}</p>
                         </div>
                         <div style={{flex:1}}>
-                          <p style={{margin:'4px 0'}}><strong>New Total:</strong> <span style={{fontSize:'1.1rem',fontWeight:'bold',color:(d.newTotalPoints || 0) >= 3 ? '#d32f2f' : '#1e3a8a'}}>{(d.newTotalPoints || 0).toFixed(2)} / 3.00</span></p>
+                          <p style={{margin:'4px 0'}}><strong>New Total:</strong> <span style={{fontSize:'1.1rem',fontWeight:'bold',color:(d.newTotalPoints || 0) >= 5 ? '#d32f2f' : '#1e3a8a'}}>{(d.newTotalPoints || 0).toFixed(2)} / 5.00</span></p>
                         </div>
                       </div>
-                      {(d.newTotalPoints || 0) >= 3 && (
-                        <div style={{background:'#fff3cd',border:'1px solid #ffc107',borderRadius:'6px',padding:'10px',marginTop:'10px',color:'#856404',fontWeight:'bold',textAlign:'center'}}>⚠️ WARNING: You have reached 3.00 points. Termination may result. Please take this seriously.</div>
+                      {(d.newTotalPoints || 0) >= 5 && (
+                        <div style={{background:'#fff3cd',border:'1px solid #ffc107',borderRadius:'6px',padding:'10px',marginTop:'10px',color:'#856404',fontWeight:'bold',textAlign:'center'}}>⚠️ WARNING: You have reached 5.00 points. Termination may result. Please take this seriously.</div>
                       )}
                       {d.decision && <div style={{background:'#fff',border:'1px solid #ddd',borderRadius:'4px',padding:'10px',marginTop:'10px',whiteSpace:'pre-wrap'}}><strong>Decision:</strong> {d.decision}</div>}
                     </div>
