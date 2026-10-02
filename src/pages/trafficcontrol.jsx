@@ -464,7 +464,7 @@ const isCompanySelected = (formData.company || '').trim().length > 0;
         <div className="section-3d-inner">
           <div className="glass-card" style={{padding:'2.5rem',textAlign:'center',maxWidth:'900px',margin:'0 auto'}}>
           <h1 className="traffic-control-head" style={{color:'#e67e22',fontSize:'2.8rem',marginBottom:'1rem'}}>TRAFFIC CONTROL</h1>
-            <p style={{fontSize:'1.2rem',color:'#000',lineHeight:1.7}}>Traffic control on and around a worksite has two key aims: to manage risks & to ensure work gets done. 
+            <p style={{fontSize:'1.2rem',color:'#ddd',lineHeight:1.7}}>Traffic control on and around a worksite has two key aims: to manage risks & to ensure work gets done. 
           Neither aim can be achieved in isolation. 
           This is why traffic management is crucial. 
           It ensures the safety of everyone while reducing the time and money spent on any one project. 
@@ -479,7 +479,6 @@ const isCompanySelected = (formData.company || '').trim().length > 0;
     <strong> DO NOT SUBMIT REQUESTS HERE!</strong>
   </p>
 <ul className="emergency-contacts">
-  <li><a href="tel:+17062630175">Bryson Davis (Owner): (706) 263-0175</a></li>
   <li><a href="tel:+17065814465">Carson Speer (Traffic Control Manager): (706) 581-4465</a></li>
   <li><a href="tel:+17066595468">Salvador Gonzalez (Foreman Manager - Español / Spanish Help): (706) 659-5468</a></li>
 </ul>
@@ -915,7 +914,7 @@ Barricades
 {formData.equipment.includes('Hydrovac') && (
   <div className="hydrovac-details" style={{marginTop:'1rem',padding:'1rem',border:'1px solid #e67e22',borderRadius:'8px'}}>
     <label style={{fontWeight:'bold',color:'#e67e22'}}>🚜 Hydrovac Details (Required)</label>
-    <p style={{color:'#000',marginTop:'0.5rem'}}>What are you wanting dug? Please provide as much information as possible about the Hydrovac job (depth, location, utilities nearby, etc.)</p>
+    <p style={{color:'#ddd',marginTop:'0.5rem'}}>What are you wanting dug? Please provide as much information as possible about the Hydrovac job (depth, location, utilities nearby, etc.)</p>
     {errors.hydrovacDetails && <div className="error-message">{errors.hydrovacDetails}</div>}
   </div>
 )}
