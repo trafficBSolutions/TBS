@@ -561,6 +561,12 @@ function CompanyProfilesSection() {
     try { return JSON.parse(localStorage.getItem('companyProfiles') || '{}'); }
     catch { return {}; }
   });
+  const [customCompanies, setCustomCompanies] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('customCompanies') || '[]'); }
+    catch { return []; }
+  });
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newCo, setNewCo] = useState({ name: '', address: '', email: '' });
   const [invoicePdf, setInvoicePdf] = useState(null);
   const [workOrderPdf, setWorkOrderPdf] = useState(null);
   const [payStatus, setPayStatus] = useState('unpaid');
@@ -571,8 +577,36 @@ function CompanyProfilesSection() {
   const [sending, setSending] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
+  const allCompanies = [
+    ...companyList.filter(c => !c.startsWith('Other')),
+    ...customCompanies.map(c => c.name),
+  ];
+
+  const getEmail = (name) => {
+    const custom = customCompanies.find(c => c.name === name);
+    return custom?.email || COMPANY_TO_EMAIL[name] || '';
+  };
+  const getAddress = (name) => {
+    const custom = customCompanies.find(c => c.name === name);
+    return custom?.address || BILLING_ADDRESSES[name] || '';
+  };
+
+  const handleAddCompany = () => {
+    const name = newCo.name.trim();
+    if (!name) return toast.error('Company name is required.');
+    if (allCompanies.includes(name)) return toast.error('Company already exists.');
+    const entry = { name, address: newCo.address.trim(), email: newCo.email.trim() };
+    const updated = [...customCompanies, entry];
+    setCustomCompanies(updated);
+    localStorage.setItem('customCompanies', JSON.stringify(updated));
+    setNewCo({ name: '', address: '', email: '' });
+    setShowAddForm(false);
+    setSelectedCompany(name);
+    toast.success(`"${name}" added!`);
+  };
+
   const profile = profiles[selectedCompany] || { history: [] };
-  const companyEmail = COMPANY_TO_EMAIL[selectedCompany] || '';
+  const companyEmail = getEmail(selectedCompany);
 
   const saveProfile = (updated) => {
     const next = { ...profiles, [selectedCompany]: updated };
@@ -625,16 +659,52 @@ function CompanyProfilesSection() {
       <h2 style={{ marginBottom: 16 }}>Company Profiles — Send Invoice</h2>
       <div style={{ marginBottom: 16 }}>
         <label style={{ fontWeight: 'bold', display: 'block', marginBottom: 6 }}>Select Company</label>
-        <select value={selectedCompany} onChange={e => { setSelectedCompany(e.target.value); setShowHistory(false); }}
-          style={{ width: '100%', padding: 8, fontSize: 14, borderRadius: 4, border: '1px solid #ced4da' }}>
-          <option value="">— Choose a company —</option>
-          {companyList.filter(c => !c.startsWith('Other')).map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <select value={selectedCompany} onChange={e => { setSelectedCompany(e.target.value); setShowHistory(false); setShowAddForm(false); }}
+            style={{ flex: 1, padding: 8, fontSize: 14, borderRadius: 4, border: '1px solid #ced4da' }}>
+            <option value="">— Choose a company —</option>
+            {allCompanies.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <button className="btn" onClick={() => { setShowAddForm(f => !f); setSelectedCompany(''); }}
+            style={{ whiteSpace: 'nowrap', fontSize: 13 }}>
+            {showAddForm ? 'Cancel' : '+ Add Company'}
+          </button>
+        </div>
       </div>
+
+      {showAddForm && (
+        <div style={{ marginBottom: 16, padding: 14, border: '1px solid #ced4da', borderRadius: 6, backgroundColor: '#fff' }}>
+          <div style={{ fontWeight: 'bold', marginBottom: 10 }}>New Company</div>
+          <div style={{ display: 'grid', gap: 8 }}>
+            <input
+              placeholder="Company name *"
+              value={newCo.name}
+              onChange={e => setNewCo(p => ({ ...p, name: e.target.value }))}
+              style={{ padding: 8, borderRadius: 4, border: '1px solid #ced4da' }}
+            />
+            <input
+              placeholder="Billing address"
+              value={newCo.address}
+              onChange={e => setNewCo(p => ({ ...p, address: e.target.value }))}
+              style={{ padding: 8, borderRadius: 4, border: '1px solid #ced4da' }}
+            />
+            <input
+              placeholder="Invoice email"
+              type="email"
+              value={newCo.email}
+              onChange={e => setNewCo(p => ({ ...p, email: e.target.value }))}
+              style={{ padding: 8, borderRadius: 4, border: '1px solid #ced4da' }}
+            />
+            <button className="btn btn--primary" onClick={handleAddCompany} style={{ justifySelf: 'start' }}>
+              Save Company
+            </button>
+          </div>
+        </div>
+      )}
       {selectedCompany && (
         <>
           <div style={{ marginBottom: 16, padding: 12, backgroundColor: '#e3f2fd', borderRadius: 6 }}>
-            <div><strong>Billing Address:</strong> {BILLING_ADDRESSES[selectedCompany] || 'Not on file'}</div>
+            <div><strong>Billing Address:</strong> {getAddress(selectedCompany) || 'Not on file'}</div>
             <div><strong>Send To:</strong> {companyEmail || <span style={{ color: '#dc3545' }}>No email on file</span>}</div>
             <div><strong>Sender:</strong> {LEAH_EMAIL}</div>
           </div>
