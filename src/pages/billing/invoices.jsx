@@ -578,6 +578,12 @@ function CompanyProfilesSection() {
   const [remitFile, setRemitFile] = useState(null);
   const [sending, setSending] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [invNumber, setInvNumber] = useState('');
+  const [invStreetNum, setInvStreetNum] = useState('');
+  const [invStreetName, setInvStreetName] = useState('');
+  const [invCity, setInvCity] = useState('');
+  const [invState, setInvState] = useState('');
+  const [invZip, setInvZip] = useState('');
   const [invRows, setInvRows] = useState([blankInvRow()]);
   const invTotal = useMemo(() => invRows.reduce((s, r) => s + (Number(r.amount) || 0), 0), [invRows]);
   const updateInvRow = (id, patch) => setInvRows(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r));
@@ -598,6 +604,19 @@ function CompanyProfilesSection() {
     return custom?.address || BILLING_ADDRESSES[name] || '';
   };
 
+  const parseAddress = (raw) => {
+    if (!raw) return {};
+    const parts = raw.split(',').map(s => s.trim());
+    const streetMatch = parts[0]?.match(/^(\d+)\s+(.+)/);
+    const streetNum = streetMatch?.[1] || '';
+    const streetName = streetMatch?.[2] || parts[0] || '';
+    const city = parts[1] || '';
+    const stateZip = parts[2]?.trim().split(/\s+/) || [];
+    const state = stateZip[0] || '';
+    const zip = stateZip[1] || '';
+    return { streetNum, streetName, city, state, zip };
+  };
+
   const handleAddCompany = () => {
     const name = newCo.name.trim();
     if (!name) return toast.error('Company name is required.');
@@ -610,10 +629,26 @@ function CompanyProfilesSection() {
     setShowAddForm(false);
     setSelectedCompany(name);
     toast.success(`"${name}" added!`);
+    const parsed = parseAddress(entry.address);
+    setInvStreetNum(parsed.streetNum || '');
+    setInvStreetName(parsed.streetName || '');
+    setInvCity(parsed.city || '');
+    setInvState(parsed.state || '');
+    setInvZip(parsed.zip || '');
   };
 
   const profile = profiles[selectedCompany] || { history: [] };
   const companyEmail = getEmail(selectedCompany);
+
+  useEffect(() => {
+    if (!selectedCompany) return;
+    const parsed = parseAddress(getAddress(selectedCompany));
+    setInvStreetNum(parsed.streetNum || '');
+    setInvStreetName(parsed.streetName || '');
+    setInvCity(parsed.city || '');
+    setInvState(parsed.state || '');
+    setInvZip(parsed.zip || '');
+  }, [selectedCompany]);
 
   const saveProfile = (updated) => {
     const next = { ...profiles, [selectedCompany]: updated };
@@ -725,6 +760,34 @@ function CompanyProfilesSection() {
               <label style={{ fontWeight: 'bold', display: 'block', marginBottom: 6 }}>Work Order PDF</label>
               <input type="file" accept="application/pdf" onChange={e => setWorkOrderPdf(e.target.files[0] || null)} />
               {workOrderPdf && <div style={{ fontSize: 12, color: '#28a745', marginTop: 4 }}>✅ {workOrderPdf.name}</div>}
+            </div>
+          </div>
+
+          {/* Invoice Header Fields */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12, marginBottom: 16 }}>
+            <div>
+              <label style={{ fontWeight: 'bold', display: 'block', marginBottom: 4, fontSize: 13 }}>Invoice #</label>
+              <input value={invNumber} onChange={e => setInvNumber(e.target.value.toUpperCase())} placeholder="e.g., TBS-001" style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid #ced4da', fontSize: 13 }} />
+            </div>
+            <div>
+              <label style={{ fontWeight: 'bold', display: 'block', marginBottom: 4, fontSize: 13 }}>Street #</label>
+              <input value={invStreetNum} onChange={e => setInvStreetNum(e.target.value)} placeholder="123" style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid #ced4da', fontSize: 13 }} />
+            </div>
+            <div style={{ gridColumn: 'span 2' }}>
+              <label style={{ fontWeight: 'bold', display: 'block', marginBottom: 4, fontSize: 13 }}>Street Name</label>
+              <input value={invStreetName} onChange={e => setInvStreetName(e.target.value)} placeholder="Main St" style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid #ced4da', fontSize: 13 }} />
+            </div>
+            <div>
+              <label style={{ fontWeight: 'bold', display: 'block', marginBottom: 4, fontSize: 13 }}>City</label>
+              <input value={invCity} onChange={e => setInvCity(e.target.value)} placeholder="Atlanta" style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid #ced4da', fontSize: 13 }} />
+            </div>
+            <div>
+              <label style={{ fontWeight: 'bold', display: 'block', marginBottom: 4, fontSize: 13 }}>State</label>
+              <input value={invState} onChange={e => setInvState(e.target.value)} placeholder="GA" maxLength={2} style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid #ced4da', fontSize: 13, textTransform: 'uppercase' }} />
+            </div>
+            <div>
+              <label style={{ fontWeight: 'bold', display: 'block', marginBottom: 4, fontSize: 13 }}>Zip</label>
+              <input value={invZip} onChange={e => setInvZip(e.target.value)} placeholder="30144" maxLength={10} style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid #ced4da', fontSize: 13 }} />
             </div>
           </div>
 
