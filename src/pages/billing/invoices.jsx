@@ -555,6 +555,8 @@ const handlePdfAttachment = async (files, setAttachedPdfs, setDetectingTotal, se
 
 const LEAH_EMAIL = 'trafficandbarriersolutions.ap@gmail.com';
 
+const blankInvRow = () => ({ id: crypto.randomUUID(), description: '', officerAb: '', abSignsLights: '', mileage: '', extra: '', amount: 0 });
+
 function CompanyProfilesSection() {
   const [selectedCompany, setSelectedCompany] = useState('');
   const [profiles, setProfiles] = useState(() => {
@@ -576,6 +578,11 @@ function CompanyProfilesSection() {
   const [remitFile, setRemitFile] = useState(null);
   const [sending, setSending] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [invRows, setInvRows] = useState([blankInvRow()]);
+  const invTotal = useMemo(() => invRows.reduce((s, r) => s + (Number(r.amount) || 0), 0), [invRows]);
+  const updateInvRow = (id, patch) => setInvRows(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r));
+  const addInvRow = () => setInvRows(prev => [...prev, blankInvRow()]);
+  const removeInvRow = (id) => setInvRows(prev => prev.filter(r => r.id !== id));
 
   const allCompanies = [
     ...companyList.filter(c => !c.startsWith('Other')),
@@ -718,6 +725,63 @@ function CompanyProfilesSection() {
               <label style={{ fontWeight: 'bold', display: 'block', marginBottom: 6 }}>Work Order PDF</label>
               <input type="file" accept="application/pdf" onChange={e => setWorkOrderPdf(e.target.files[0] || null)} />
               {workOrderPdf && <div style={{ fontSize: 12, color: '#28a745', marginTop: 4 }}>✅ {workOrderPdf.name}</div>}
+            </div>
+          </div>
+
+          {/* Line Items */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <label style={{ fontWeight: 'bold' }}>Line Items</label>
+              <button type="button" className="btn" style={{ fontSize: 12, padding: '4px 10px' }} onClick={addInvRow}>+ Add Line</button>
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#17365D', color: 'white' }}>
+                    <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5', minWidth: 160 }}>DESCRIPTION</th>
+                    <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5', minWidth: 120 }}>OFFICER &amp;/OR AB</th>
+                    <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5', minWidth: 160 }}>AB, Signs, Lights, Cones, ConPl</th>
+                    <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5', minWidth: 90 }}>MILEAGE</th>
+                    <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5', minWidth: 90 }}>EXTRA</th>
+                    <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5', minWidth: 100 }}>AMOUNT</th>
+                    <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5', width: 36 }}></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {invRows.map(r => (
+                    <tr key={r.id}>
+                      <td style={{ padding: 4, border: '1px solid #ddd' }}>
+                        <input value={r.description} onChange={e => updateInvRow(r.id, { description: e.target.value })} placeholder="Service description" style={{ width: '100%', padding: '4px 6px', border: '1px solid #ccc', borderRadius: 3 }} />
+                      </td>
+                      <td style={{ padding: 4, border: '1px solid #ddd' }}>
+                        <input value={r.officerAb} onChange={e => updateInvRow(r.id, { officerAb: e.target.value })} style={{ width: '100%', padding: '4px 6px', border: '1px solid #ccc', borderRadius: 3 }} />
+                      </td>
+                      <td style={{ padding: 4, border: '1px solid #ddd' }}>
+                        <input value={r.abSignsLights} onChange={e => updateInvRow(r.id, { abSignsLights: e.target.value })} style={{ width: '100%', padding: '4px 6px', border: '1px solid #ccc', borderRadius: 3 }} />
+                      </td>
+                      <td style={{ padding: 4, border: '1px solid #ddd' }}>
+                        <input value={r.mileage} onChange={e => updateInvRow(r.id, { mileage: e.target.value })} style={{ width: '100%', padding: '4px 6px', border: '1px solid #ccc', borderRadius: 3 }} />
+                      </td>
+                      <td style={{ padding: 4, border: '1px solid #ddd' }}>
+                        <input value={r.extra} onChange={e => updateInvRow(r.id, { extra: e.target.value })} style={{ width: '100%', padding: '4px 6px', border: '1px solid #ccc', borderRadius: 3 }} />
+                      </td>
+                      <td style={{ padding: 4, border: '1px solid #ddd' }}>
+                        <input type="number" step="0.01" min="0" value={r.amount} onChange={e => updateInvRow(r.id, { amount: Number(e.target.value) })} style={{ width: '100%', padding: '4px 6px', border: '1px solid #ccc', borderRadius: 3, textAlign: 'right' }} />
+                      </td>
+                      <td style={{ padding: 4, border: '1px solid #ddd', textAlign: 'center' }}>
+                        <button type="button" onClick={() => removeInvRow(r.id)} style={{ background: 'none', border: 'none', color: '#dc3545', cursor: 'pointer', fontSize: 14, fontWeight: 'bold' }}>✕</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr style={{ backgroundColor: '#f0f0f0', fontWeight: 'bold' }}>
+                    <td colSpan={5} style={{ padding: '7px 8px', border: '1px solid #ddd', textAlign: 'right' }}>TOTAL</td>
+                    <td style={{ padding: '7px 8px', border: '1px solid #ddd', textAlign: 'right' }}>${invTotal.toFixed(2)}</td>
+                    <td style={{ border: '1px solid #ddd' }}></td>
+                  </tr>
+                </tfoot>
+              </table>
             </div>
           </div>
           <div style={{ marginBottom: 16 }}>
