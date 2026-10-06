@@ -800,7 +800,7 @@ const handlePdfAttachment = async (
   }
 };
 
-const LEAH_EMAIL = 'tbsellen@gmail.com';
+const LEAH_EMAIL = 'trafficandbarriersolutions.ap@gmail.com';
 
 function CompanyProfilesSection() {
   const [selectedCompany, setSelectedCompany] = useState('');
