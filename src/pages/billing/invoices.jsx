@@ -1,8 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import api from '../../utils/api';
-import axios from 'axios';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
 import Header from '../../components/Header'
 import Footer from '../../components/Footer'
 import images from '../../utils/tbsImages';
@@ -56,7 +53,6 @@ const COMPANY_TO_KEY = {
   'Atlanta Gas Light': 'agl',
 };
 const GA_POWER_TOKEN = /\b(georgia\s*power|ga\s*power|g\s*power|gpc)\b/i;
-// Add any other "GA Power partner" names you use in combo client strings
 const NON_GA_PARTNERS = [
   'fairway', 'service electric', 'faith electric', 'desoto', 'the desoto group', 'electra grid'
 ];
@@ -97,15 +93,12 @@ const COMPANY_TO_EMAIL = {
   'Wilson Boys Enterprises': 'invoices@wb-enterprises.com',
 };
 
-
-// helpers (keep above component to avoid TDZ issues)
 const fmtUSD = (n) => `$${Number(n || 0).toFixed(2)}`;
 function isGaPowerOnly(name) {
   if (!name) return false;
   const n = String(name).toLowerCase();
   const hasGa = GA_POWER_TOKEN.test(n);
   if (!hasGa) return false;
-  // If any partner word appears anywhere, treat it as NOT GA-only
   const mentionsOther = NON_GA_PARTNERS.some(k => n.includes(k));
   return !mentionsOther;
 }
@@ -121,7 +114,7 @@ const formatTime = (timeStr) => {
 const formatEquipmentName = (key) => {
   const names = {
     hardHats: 'Hard Hats',
-    vests: 'Vests', 
+    vests: 'Vests',
     walkies: 'Walkie Talkies',
     arrowBoards: 'Arrow Boards',
     cones: 'Cones',
@@ -133,26 +126,20 @@ const formatEquipmentName = (key) => {
 };
 
 const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) => {
-  // ----- derived flags / data (no hooks) -----
   const invoiceData = workOrder._invoice;
   const isPaid = workOrder?.paid || (invoiceData && invoiceData.status === 'PAID');
   const hasStripe = !!stripePromise;
-  console.log('PaymentForm - WorkOrder ID:', workOrder._id, 'WorkOrder.paid:', workOrder.paid, 'Invoice status:', invoiceData?.status, 'Combined isPaid:', isPaid);
 
-  // ----- ALL STATE HOOKS FIRST (before any effects) -----
   const [showForm, setShowForm] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [cardType, setCardType] = useState('');
   const [cardLast4, setCardLast4] = useState('');
   const [checkNumber, setCheckNumber] = useState('');
   const [emails, setEmails] = useState([workOrder.invoiceData?.selectedEmail || workOrder.basic?.email || '']);
-
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [totalOwedInput, setTotalOwedInput] = useState('');
   const timerRef = useRef(null);
-
-  // stripe fields
   const [cardNumber, setCardNumber] = useState('');
   const [expMonth, setExpMonth] = useState('');
   const [expYear, setExpYear] = useState('');
@@ -161,39 +148,27 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
   const [clientSecret, setClientSecret] = useState(null);
   const [creatingPI, setCreatingPI] = useState(false);
 
-  // ----- derived amounts (no hooks) -----
   const authoritativeTotalOwed =
     (invoiceData ? (invoiceData.computedTotalDue || invoiceData.principal) : 0) ||
-    workOrder.lastManualTotalOwed ||
-    workOrder.billedAmount ||
-    workOrder.invoiceTotal ||
-    workOrder.invoiceData?.sheetTotal ||
-    workOrder.invoicePrincipal ||
-    0;
+    workOrder.lastManualTotalOwed || workOrder.billedAmount || workOrder.invoiceTotal ||
+    workOrder.invoiceData?.sheetTotal || workOrder.invoicePrincipal || 0;
 
   const totalOwed =
     Number(totalOwedInput) ||
     (invoiceData ? (invoiceData.computedTotalDue || invoiceData.principal) : 0) ||
-    workOrder.lastManualTotalOwed ||
-    workOrder.billedAmount ||
-    workOrder.invoiceTotal ||
-    workOrder.invoiceData?.sheetTotal ||
-    workOrder.invoicePrincipal ||
-    0;
+    workOrder.lastManualTotalOwed || workOrder.billedAmount || workOrder.invoiceTotal ||
+    workOrder.invoiceData?.sheetTotal || workOrder.invoicePrincipal || 0;
 
   const currentBalance = workOrder.currentAmount || totalOwed;
   const payAmt = Number(paymentAmount) || 0;
   const remainingBalance = currentBalance - payAmt;
 
-  // ----- EFFECTS (now safe to reference state) -----
-  // 1) auto-fill total owed once
   useEffect(() => {
     if (authoritativeTotalOwed > 0 && !totalOwedInput) {
       setTotalOwedInput(authoritativeTotalOwed.toString());
     }
   }, [authoritativeTotalOwed, totalOwedInput]);
 
-  // 2) create PaymentIntent when doing Stripe card payments
   useEffect(() => {
     const amt = Number(paymentAmount) || 0;
     if (!processStripe || !hasStripe || !workOrder?._id || amt <= 0) {
@@ -208,8 +183,8 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
           workOrderId: workOrder._id,
           paymentAmount: amt,
         });
-        const cs = data?.clientSecret || data?.client_secret; // 👈 accept either
-     if (!cancelled) setClientSecret(cs || null);
+        const cs = data?.clientSecret || data?.client_secret;
+        if (!cancelled) setClientSecret(cs || null);
       } catch (e) {
         toast.error(e?.response?.data?.message || 'Failed to initialize card payment');
         setClientSecret(null);
@@ -220,111 +195,73 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
     return () => { cancelled = true; };
   }, [processStripe, paymentAmount, workOrder?._id, hasStripe]);
 
-  // 3) auto-save partials (not during Stripe flow)
   useEffect(() => {
     if (!payAmt) return;
     if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
-
     const doPost = async () => {
       const _totalOwed =
         Number(totalOwedInput) ||
         (invoiceData ? (invoiceData.computedTotalDue || invoiceData.principal) : 0) ||
-        workOrder.currentAmount ||
-        workOrder.billedAmount ||
-        workOrder.invoiceTotal ||
-        workOrder.invoiceData?.sheetTotal ||
-        workOrder.invoicePrincipal ||
-        0;
-
+        workOrder.currentAmount || workOrder.billedAmount || workOrder.invoiceTotal ||
+        workOrder.invoiceData?.sheetTotal || workOrder.invoicePrincipal || 0;
       const _payAmt = Number(paymentAmount) || 0;
       const _remaining = Math.max(0, (workOrder.currentAmount || _totalOwed) - _payAmt);
       const paymentDetails = paymentMethod === 'card' ? { cardType, cardLast4 } : { checkNumber };
-
       try {
         await api.post('/api/billing/mark-paid', {
-          workOrderId: workOrder._id,
-          paymentMethod,
-          paymentAmount: _payAmt,
-          totalOwed: _totalOwed,
-          ...paymentDetails,
+          workOrderId: workOrder._id, paymentMethod, paymentAmount: _payAmt,
+          totalOwed: _totalOwed, ...paymentDetails,
         });
-
         const stash = (() => {
           try { return JSON.parse(localStorage.getItem('localPaidProgress') || '{}'); }
           catch { return {}; }
         })();
-
         if (_remaining > 0) {
           stash[workOrder._id] = { billedAmount: _totalOwed, currentAmount: _remaining, updatedAt: Date.now() };
         } else {
           delete stash[workOrder._id];
           try {
             const locallyPaid = JSON.parse(localStorage.getItem('locallyPaid') || '[]');
-            const updated = [...locallyPaid, workOrder._id];
-            localStorage.setItem('locallyPaid', JSON.stringify(updated));
+            localStorage.setItem('locallyPaid', JSON.stringify([...locallyPaid, workOrder._id]));
           } catch {}
         }
         localStorage.setItem('localPaidProgress', JSON.stringify(stash));
         if (_remaining > 0) toast.success('Payment auto-saved!');
         onPaymentComplete();
       } catch (err) {
-        console.error('Auto-save failed:', err);
         toast.error(err?.response?.data?.message || err.message || 'Auto-save failed');
       }
     };
-
     if (remainingBalance > 0 && !(paymentMethod === 'card' && processStripe)) {
       timerRef.current = setTimeout(doPost, 2000);
     }
-    return () => {
-      if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
-    };
-  }, [
-    payAmt,
-    remainingBalance,
-    paymentMethod,
-    processStripe,
-    cardType,
-    cardLast4,
-    checkNumber,
-    totalOwedInput,
-    workOrder?._id,
-    workOrder?.currentAmount,
-  ]);
+    return () => { if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; } };
+  }, [payAmt, remainingBalance, paymentMethod, processStripe, cardType, cardLast4, checkNumber, totalOwedInput, workOrder?._id, workOrder?.currentAmount]);
+
   return (
     <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-  {isPaid ? (
-    <span className="pill" style={{ backgroundColor: '#28a745' }}>Paid</span>
-  ) : workOrder.currentAmount < (workOrder.billedAmount || workOrder.invoiceTotal || 0) ? (
-    <span className="pill" style={{ backgroundColor: '#ffc107', color: '#000' }}>Partial</span>
-  ) : (
-    <span className="pill">Billed</span>
-  )}
-
-  {!isPaid && (
-    <button
-      className="btn"
-      style={{
-        backgroundColor:
-          workOrder.currentAmount < (workOrder.billedAmount || workOrder.invoiceTotal || 0)
-            ? '#ffc107' // yellow for partials
-            : '#28a745', // green for no payments yet
-        color: workOrder.currentAmount < (workOrder.billedAmount || workOrder.invoiceTotal || 0)
-          ? '#000'
-          : '#fff',
-        fontSize: '12px',
-        padding: '4px 8px',
-      }}
-      onClick={() => setShowForm(!showForm)}
-    >
-      {workOrder.currentAmount < (workOrder.billedAmount || workOrder.invoiceTotal || 0)
-        ? 'Finish Paid'
-        : 'Mark Paid'}
-    </button>
-  )}
-</div>
-      
+        {isPaid ? (
+          <span className="pill" style={{ backgroundColor: '#28a745' }}>Paid</span>
+        ) : workOrder.currentAmount < (workOrder.billedAmount || workOrder.invoiceTotal || 0) ? (
+          <span className="pill" style={{ backgroundColor: '#ffc107', color: '#000' }}>Partial</span>
+        ) : (
+          <span className="pill">Billed</span>
+        )}
+        {!isPaid && (
+          <button
+            className="btn"
+            style={{
+              backgroundColor: workOrder.currentAmount < (workOrder.billedAmount || workOrder.invoiceTotal || 0) ? '#ffc107' : '#28a745',
+              color: workOrder.currentAmount < (workOrder.billedAmount || workOrder.invoiceTotal || 0) ? '#000' : '#fff',
+              fontSize: '12px', padding: '4px 8px',
+            }}
+            onClick={() => setShowForm(!showForm)}
+          >
+            {workOrder.currentAmount < (workOrder.billedAmount || workOrder.invoiceTotal || 0) ? 'Finish Paid' : 'Mark Paid'}
+          </button>
+        )}
+      </div>
       {showForm && (
         <div style={{padding: '10px', border: '1px solid #ddd', borderRadius: '4px', backgroundColor: '#f9f9f9'}}>
           <div style={{marginBottom: '8px'}}>
@@ -334,246 +271,139 @@ const PaymentForm = ({ workOrder, onPaymentComplete, onLocalPaid = () => {} }) =
               <option value="check">Check</option>
             </select>
           </div>
-          
           {paymentMethod === 'card' ? (
             <div>
               <div style={{marginBottom: '8px'}}>
-<label>
-    <input
-      type="checkbox"
-      checked={processStripe}
-      onChange={(e) => setProcessStripe(e.target.checked)}
-      style={{ marginRight: '5px' }}
-      disabled={!hasStripe || !(Number(paymentAmount) > 0)} // need amount first
-    />
-    Process card payment through Stripe
-  </label>
+                <label>
+                  <input type="checkbox" checked={processStripe} onChange={(e) => setProcessStripe(e.target.checked)}
+                    style={{ marginRight: '5px' }} disabled={!hasStripe || !(Number(paymentAmount) > 0)} />
+                  Process card payment through Stripe
+                </label>
               </div>
               {processStripe && !hasStripe && (
-    <div style={{ color: '#b91c1c', fontSize: 12, marginTop: 4 }}>
-      Stripe isn’t configured. Set VITE_STRIPE_PUBLISHABLE_KEY in your .env and restart the dev server.
-    </div>
-  )}
- {paymentMethod === 'card' && processStripe && hasStripe ? (
-   clientSecret ? (
-     <Elements stripe={stripePromise} options={{ clientSecret }} key={clientSecret}>
-       <StripeCheckoutInner
-         clientSecret={clientSecret}
-         email={emails.filter(e => e.trim())[0] || ''}
-         onSucceeded={async (pi) => {
-           // mark paid on your server once Stripe confirms
-           try {
-             await api.post('/api/billing/mark-paid', {
-               workOrderId: workOrder._id,
-               paymentMethod: 'card',
-               paymentAmount: Number(paymentAmount) || 0,
-               totalOwed: Number(totalOwedInput) || authoritativeTotalOwed,
-               stripePaymentIntentId: pi.id,
-               emailOverride: email,
-             });
-             toast.success('Payment recorded and receipt sent!');
-             onLocalPaid();
-             onPaymentComplete();
-           } catch (err) {
-             toast.error(err?.response?.data?.message || err.message || 'Failed to record payment');
-           }
-         }}
-       />
-     </Elements>
-   ) : (
-     <div style={{ fontSize:12, color:'#666' }}>
-       {creatingPI ? 'Initializing secure card form…' : 'Enter an amount to create a payment form.'}
-     </div>
-   )
- ) : paymentMethod === 'card' ? (
-   // fallback “manual card type / last4” fields (no Stripe capture)
-   <div style={{display:'flex', gap:8, marginBottom:8}}>
-     <input placeholder="Card Type (Visa, MasterCard, etc.)" value={cardType} onChange={(e)=>setCardType(e.target.value)} style={{flex:1,padding:4}} />
-     <input placeholder="Last 4 digits" value={cardLast4} onChange={(e)=>setCardLast4(e.target.value)} maxLength={4} style={{width:80,padding:4}} />
-   </div>
- ) : (
-   // check number field (unchanged)
-   <div style={{marginBottom:8}}>
-     <input placeholder="Check Number" value={checkNumber} onChange={(e)=>setCheckNumber(e.target.value)} style={{width:120,padding:4}} />
-   </div>
- )}
+                <div style={{ color: '#b91c1c', fontSize: 12, marginTop: 4 }}>
+                  Stripe isn't configured. Set VITE_STRIPE_PUBLISHABLE_KEY in your .env and restart.
+                </div>
+              )}
+              {paymentMethod === 'card' && processStripe && hasStripe ? (
+                clientSecret ? (
+                  <Elements stripe={stripePromise} options={{ clientSecret }} key={clientSecret}>
+                    <StripeCheckoutInner
+                      clientSecret={clientSecret}
+                      email={emails.filter(e => e.trim())[0] || ''}
+                      onSucceeded={async (pi) => {
+                        try {
+                          await api.post('/api/billing/mark-paid', {
+                            workOrderId: workOrder._id, paymentMethod: 'card',
+                            paymentAmount: Number(paymentAmount) || 0,
+                            totalOwed: Number(totalOwedInput) || authoritativeTotalOwed,
+                            stripePaymentIntentId: pi.id,
+                          });
+                          toast.success('Payment recorded and receipt sent!');
+                          onLocalPaid();
+                          onPaymentComplete();
+                        } catch (err) {
+                          toast.error(err?.response?.data?.message || err.message || 'Failed to record payment');
+                        }
+                      }}
+                    />
+                  </Elements>
+                ) : (
+                  <div style={{ fontSize:12, color:'#666' }}>
+                    {creatingPI ? 'Initializing secure card form…' : 'Enter an amount to create a payment form.'}
+                  </div>
+                )
+              ) : paymentMethod === 'card' ? (
+                <div style={{display:'flex', gap:8, marginBottom:8}}>
+                  <input placeholder="Card Type (Visa, MasterCard, etc.)" value={cardType} onChange={(e)=>setCardType(e.target.value)} style={{flex:1,padding:4}} />
+                  <input placeholder="Last 4 digits" value={cardLast4} onChange={(e)=>setCardLast4(e.target.value)} maxLength={4} style={{width:80,padding:4}} />
+                </div>
+              ) : (
+                <div style={{marginBottom:8}}>
+                  <input placeholder="Check Number" value={checkNumber} onChange={(e)=>setCheckNumber(e.target.value)} style={{width:120,padding:4}} />
+                </div>
+              )}
             </div>
           ) : (
             <div style={{marginBottom: '8px'}}>
-              <input
-                placeholder="Check Number"
-                value={checkNumber}
-                onChange={(e) => setCheckNumber(e.target.value)}
-                style={{width: '120px', padding: '4px'}}
-              />
+              <input placeholder="Check Number" value={checkNumber} onChange={(e) => setCheckNumber(e.target.value)} style={{width: '120px', padding: '4px'}} />
             </div>
           )}
-          
           <div style={{marginBottom: '8px'}}>
             <label>Total Owed: </label>
-            <input type="number" step="0.01" min="0"
-              value={totalOwedInput} onChange={e => setTotalOwedInput(e.target.value)} 
-              style={{
-                width: '100px', 
-                padding: '4px', 
-                marginLeft: '5px',
-                backgroundColor: '#f8f9fa',
-                border: '1px solid #ced4da',
-                fontWeight: '600'
-              }}
-              title="Auto-filled from invoice amount - you can override if needed"
-            />
-            <small style={{color: '#6c757d', marginLeft: '5px', fontSize: '11px'}}>
-              {invoiceData ? (invoiceData.computedTotalDue ? '(principal + interest)' : '(from invoice)') : '(calculated)'}
-            </small>
+            <input type="number" step="0.01" min="0" value={totalOwedInput} onChange={e => setTotalOwedInput(e.target.value)}
+              style={{ width: '100px', padding: '4px', marginLeft: '5px', backgroundColor: '#f8f9fa', border: '1px solid #ced4da', fontWeight: '600' }} />
           </div>
-          
           <div style={{marginBottom: '8px'}}>
             <label style={{fontWeight: 'bold'}}>Payment Amount: </label>
-            <input type="number" step="0.01" min="0" max={currentBalance}
-              value={paymentAmount} onChange={e => setPaymentAmount(e.target.value)} 
-              style={{
-                width: '100px', 
-                padding: '4px', 
-                marginLeft: '5px',
-                border: '2px solid #007bff',
-                borderRadius: '4px'
-              }}
-              placeholder="Enter amount"
-              autoFocus
-            />
-            <button 
-              type="button"
-              onClick={() => setPaymentAmount(currentBalance.toString())}
-              style={{
-                marginLeft: '5px',
-                fontSize: '11px',
-                padding: '2px 6px',
-                border: '1px solid #007bff',
-                backgroundColor: '#f8f9fa',
-                color: '#007bff',
-                borderRadius: '3px',
-                cursor: 'pointer'
-              }}
-              title={`Pay remaining balance: $${currentBalance.toFixed(2)}`}
-            >
+            <input type="number" step="0.01" min="0" max={currentBalance} value={paymentAmount}
+              onChange={e => setPaymentAmount(e.target.value)}
+              style={{ width: '100px', padding: '4px', marginLeft: '5px', border: '2px solid #007bff', borderRadius: '4px' }}
+              placeholder="Enter amount" autoFocus />
+            <button type="button" onClick={() => setPaymentAmount(currentBalance.toString())}
+              style={{ marginLeft: '5px', fontSize: '11px', padding: '2px 6px', border: '1px solid #007bff', backgroundColor: '#f8f9fa', color: '#007bff', borderRadius: '3px', cursor: 'pointer' }}>
               Pay ${currentBalance.toFixed(0)}
             </button>
           </div>
-<div style={{ marginBottom: '8px', fontSize: '12px', color: '#666' }}>
-  <div>Original Total: ${totalOwed.toFixed(2)}</div>
-  <div>Current Balance: ${currentBalance.toFixed(2)}</div>
-  <div>After Payment: ${remainingBalance.toFixed(2)}</div>
-  {paymentAmount && remainingBalance > 0 && (
-    <div style={{ color: '#007bff', fontWeight: 'bold' }}>Auto-saving in 2s...</div>
-  )}
-  {paymentAmount && remainingBalance === 0 && (
-    <div style={{ color: '#28a745', fontWeight: 'bold' }}>Finishing payment…</div>
-  )}
-</div>
+          <div style={{ marginBottom: '8px', fontSize: '12px', color: '#666' }}>
+            <div>Original Total: ${totalOwed.toFixed(2)}</div>
+            <div>Current Balance: ${currentBalance.toFixed(2)}</div>
+            <div>After Payment: ${remainingBalance.toFixed(2)}</div>
+            {paymentAmount && remainingBalance > 0 && <div style={{ color: '#007bff', fontWeight: 'bold' }}>Auto-saving in 2s...</div>}
+            {paymentAmount && remainingBalance === 0 && <div style={{ color: '#28a745', fontWeight: 'bold' }}>Finishing payment…</div>}
+          </div>
           <div style={{marginBottom: '8px'}}>
             <label>Receipt Emails:</label>
             {emails.map((email, index) => (
               <div key={index} style={{display: 'flex', gap: '4px', marginBottom: '4px'}}>
-                <input
-                  type="email"
-                  placeholder="Enter email address"
-                  value={email}
-                  onChange={(e) => {
-                    const newEmails = [...emails];
-                    newEmails[index] = e.target.value;
-                    setEmails(newEmails);
-                  }}
-                  style={{flex: 1, padding: '4px'}}
-                />
+                <input type="email" placeholder="Enter email address" value={email}
+                  onChange={(e) => { const n = [...emails]; n[index] = e.target.value; setEmails(n); }}
+                  style={{flex: 1, padding: '4px'}} />
                 {emails.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => setEmails(emails.filter((_, i) => i !== index))}
-                    style={{padding: '4px 8px', fontSize: '12px', color: '#dc3545', border: '1px solid #dc3545', background: 'none', borderRadius: '3px'}}
-                  >
+                  <button type="button" onClick={() => setEmails(emails.filter((_, i) => i !== index))}
+                    style={{padding: '4px 8px', fontSize: '12px', color: '#dc3545', border: '1px solid #dc3545', background: 'none', borderRadius: '3px'}}>
                     Remove
                   </button>
                 )}
               </div>
             ))}
-            <button
-              type="button"
-              onClick={() => setEmails([...emails, ''])}
-              style={{padding: '4px 8px', fontSize: '12px', color: '#007bff', border: '1px solid #007bff', background: 'none', borderRadius: '3px', marginTop: '4px'}}
-            >
+            <button type="button" onClick={() => setEmails([...emails, ''])}
+              style={{padding: '4px 8px', fontSize: '12px', color: '#007bff', border: '1px solid #007bff', background: 'none', borderRadius: '3px', marginTop: '4px'}}>
               Add Email
             </button>
           </div>
-          
-
-          
           {remainingBalance > 0 ? (
-            <div style={{fontSize: '12px', color: '#666', fontStyle: 'italic'}}>
-              Auto-saving partial payments...
-            </div>
+            <div style={{fontSize: '12px', color: '#666', fontStyle: 'italic'}}>Auto-saving partial payments...</div>
           ) : (
-            <button
-              className="btn btn--primary"
-              style={{fontSize: '12px', padding: '4px 8px', marginRight: '5px'}}
+            <button className="btn btn--primary" style={{fontSize: '12px', padding: '4px 8px', marginRight: '5px'}}
               disabled={isSubmitting || !(Number(paymentAmount) > 0) || !emails.some(e => e.trim())}
               onClick={() => {
-                 if (paymentMethod === 'card' && processStripe) {
-                  toast.info('Use the secure card form above to complete payment.');
-                  return;
-                }
+                if (paymentMethod === 'card' && processStripe) { toast.info('Use the secure card form above to complete payment.'); return; }
                 setIsSubmitting(true);
-                const paymentDetails = paymentMethod === 'card' 
-                  ? (processStripe 
-                      ? { cardNumber, expMonth, expYear, cvc, processStripe: true }
-                      : { cardType, cardLast4 })
-                  : { checkNumber };
-                
+                const paymentDetails = paymentMethod === 'card' ? { cardType, cardLast4 } : { checkNumber };
                 api.post('/api/billing/mark-paid', {
-                  workOrderId: workOrder._id,
-                  paymentMethod,
+                  workOrderId: workOrder._id, paymentMethod,
                   emailOverride: emails.filter(e => e.trim()).join(','),
                   paymentAmount: Number(paymentAmount),
                   totalOwed: Number(totalOwedInput) || (invoiceData ? invoiceData.principal : 0) || currentBalance,
                   ...paymentDetails
                 }).then(async () => {
-                toast.success('Payment recorded and receipt sent!');
-                         try {
-           onLocalPaid();
-           // ✅ Clear any cached partial progress for this job
-           const stash = JSON.parse(localStorage.getItem('localPaidProgress') || '{}');
-           if (stash[workOrder._id]) {
-             delete stash[workOrder._id];
-             localStorage.setItem('localPaidProgress', JSON.stringify(stash));
-           }
-         } catch {}
-                // Call onPaymentComplete to refresh data from server (including Invoice status)
-                await onPaymentComplete();
-                setShowForm(false);            // close form after data refresh completes
-
+                  toast.success('Payment recorded and receipt sent!');
+                  try {
+                    onLocalPaid();
+                    const stash = JSON.parse(localStorage.getItem('localPaidProgress') || '{}');
+                    if (stash[workOrder._id]) { delete stash[workOrder._id]; localStorage.setItem('localPaidProgress', JSON.stringify(stash)); }
+                  } catch {}
+                  await onPaymentComplete();
+                  setShowForm(false);
                 }).catch(err => {
                   toast.error('Failed to record payment: ' + (err.response?.data?.message || err.message));
-                }).finally(() => {
-                  setIsSubmitting(false);
-                });
-              }}
-            >
-              {isSubmitting ? (
-                <div className="spinner-button">
-                  <span className="spinner" /> Recording...
-                </div>
-              ) : (
-                'Finish Payment'
-              )}
+                }).finally(() => { setIsSubmitting(false); });
+              }}>
+              {isSubmitting ? <div className="spinner-button"><span className="spinner" /> Recording...</div> : 'Finish Payment'}
             </button>
           )}
-          <button
-            className="btn"
-            style={{fontSize: '12px', padding: '4px 8px'}}
-            onClick={() => setShowForm(false)}
-          >
-            Cancel
-          </button>
+          <button className="btn" style={{fontSize: '12px', padding: '4px 8px'}} onClick={() => setShowForm(false)}>Cancel</button>
         </div>
       )}
     </div>
@@ -590,23 +420,13 @@ function StripeCheckoutInner({ clientSecret, onSucceeded, email }) {
     setSubmitting(true);
     const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
-      confirmParams: {
-        receipt_email: email || undefined,
-        // return_url can be omitted for on-session confirmation
-      },
+      confirmParams: { receipt_email: email || undefined },
       redirect: 'if_required'
     });
     setSubmitting(false);
-
-    if (error) {
-      toast.error(error.message || 'Payment failed');
-      return;
-    }
-    if (paymentIntent?.status === 'succeeded') {
-      onSucceeded(paymentIntent);
-    } else {
-      toast.error(`Payment status: ${paymentIntent?.status || 'unknown'}`);
-    }
+    if (error) { toast.error(error.message || 'Payment failed'); return; }
+    if (paymentIntent?.status === 'succeeded') { onSucceeded(paymentIntent); }
+    else { toast.error(`Payment status: ${paymentIntent?.status || 'unknown'}`); }
   };
 
   return (
@@ -622,48 +442,24 @@ function StripeCheckoutInner({ clientSecret, onSucceeded, email }) {
 function buildBreakdown(sel, rates) {
   if (!sel || !rates) return [];
   const rows = [];
-
-  // Flagging day
   if (sel.flagDay === 'HALF'  && rates.flagHalf  > 0) rows.push({ label: 'Flagging — Half',       qty: 1, unit: 'day',  rate: rates.flagHalf });
   if (sel.flagDay === 'FULL'  && rates.flagFull  > 0) rows.push({ label: 'Flagging — Full',       qty: 1, unit: 'day',  rate: rates.flagFull });
   if (sel.flagDay === 'EMERG' && rates.flagEmerg > 0) rows.push({ label: 'Flagging — Emergency',  qty: 1, unit: 'day',  rate: rates.flagEmerg });
-
-  // Lane closure
   if (sel.laneClosure === 'HALF' && rates.lcHalf > 0) rows.push({ label: 'Lane Closure — Half', qty: 1, unit: 'day', rate: rates.lcHalf });
   if (sel.laneClosure === 'FULL' && rates.lcFull > 0) rows.push({ label: 'Lane Closure — Full', qty: 1, unit: 'day', rate: rates.lcFull });
-
-  // Boards (now support quantities)
-  if (sel.arrowBoardsQty > 0 && rates.arrowBoard > 0) {
-    rows.push({ label: 'Arrow board', qty: sel.arrowBoardsQty, unit: 'each', rate: rates.arrowBoard });
-  }
-  if (sel.messageBoardsQty > 0 && rates.messageBoard > 0) {
-    rows.push({ label: 'Message board', qty: sel.messageBoardsQty, unit: 'each', rate: rates.messageBoard });
-  }
-
-  // Toggles and qtys
+  if (sel.arrowBoardsQty > 0 && rates.arrowBoard > 0) rows.push({ label: 'Arrow board', qty: sel.arrowBoardsQty, unit: 'each', rate: rates.arrowBoard });
+  if (sel.messageBoardsQty > 0 && rates.messageBoard > 0) rows.push({ label: 'Message board', qty: sel.messageBoardsQty, unit: 'each', rate: rates.messageBoard });
   if (sel.roadblock     && rates.roadblock    > 0) rows.push({ label: 'Rolling road block', qty: 1, unit: 'each', rate: rates.roadblock });
   if (sel.extraWorker   && rates.extraWorker  > 0) rows.push({ label: 'Extra 3rd worker',   qty: 1, unit: 'each', rate: rates.extraWorker });
   if (sel.afterHours    && rates.afterHrsFlat > 0) rows.push({ label: 'Signs/equipment after hours', qty: 1, unit: 'each', rate: rates.afterHrsFlat });
   if (sel.nightWeekend  && rates.nightWeekend > 0) rows.push({ label: 'Night/Weekend rate', qty: 1, unit: 'each', rate: rates.nightWeekend });
-
-  if (sel.intersections > 0 && rates.intSign >= 0) {
-    rows.push({ label: 'Secondary intersection sign', qty: sel.intersections, unit: 'each', rate: rates.intSign });
-  }
-  if (sel.afterHoursSigns > 0 && rates.afterHrsSign >= 0) {
-    rows.push({ label: 'After-hours signs', qty: sel.afterHoursSigns, unit: 'each', rate: rates.afterHrsSign });
-  }
-  if (sel.afterHoursCones > 0 && rates.afterHrsCone >= 0) {
-    rows.push({ label: 'After-hours cones', qty: sel.afterHoursCones, unit: 'each', rate: rates.afterHrsCone });
-  }
-
-  // Mileage
-  if (sel.miles > 0 && rates.mileRate > 0) {
-    rows.push({ label: 'Mileage', qty: sel.miles, unit: 'mi', rate: rates.mileRate });
-  }
-
+  if (sel.intersections > 0 && rates.intSign >= 0) rows.push({ label: 'Secondary intersection sign', qty: sel.intersections, unit: 'each', rate: rates.intSign });
+  if (sel.afterHoursSigns > 0 && rates.afterHrsSign >= 0) rows.push({ label: 'After-hours signs', qty: sel.afterHoursSigns, unit: 'each', rate: rates.afterHrsSign });
+  if (sel.afterHoursCones > 0 && rates.afterHrsCone >= 0) rows.push({ label: 'After-hours cones', qty: sel.afterHoursCones, unit: 'each', rate: rates.afterHrsCone });
+  if (sel.miles > 0 && rates.mileRate > 0) rows.push({ label: 'Mileage', qty: sel.miles, unit: 'mi', rate: rates.mileRate });
   return rows;
 }
-// --- PDF helpers (module scope) ---
+
 const fileToArrayBuffer = (file) =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -686,28 +482,19 @@ async function extractPdfText(file) {
 
 function detectTotalFromText(raw) {
   if (!raw) return null;
-  const txt = raw.replace(/\u00A0/g, ' ')
-                 .replace(/[, ]+(?=\d{3}\b)/g, ',')
-                 .replace(/\s+/g, ' ');
-  // TOTAL … $1,234.56
+  const txt = raw.replace(/\u00A0/g, ' ').replace(/[, ]+(?=\d{3}\b)/g, ',').replace(/\s+/g, ' ');
   const a = /total[^0-9$]{0,12}(\$?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/i.exec(txt);
   if (a?.[1]) return Number(a[1].replace(/[$,]/g, ''));
-
   const b = txt.match(/total[^\n\r$]*([$]?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/gi);
   if (b?.length) {
     const last = b[b.length - 1].match(/([$]?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/);
     if (last) return Number(last[0].replace(/[$,]/g, ''));
   }
-
   const c = /total[\s:]*([$]?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/i.exec(txt);
   if (c?.[1]) return Number(c[1].replace(/[$,]/g, ''));
-
   const all = txt.match(/[$]?\d{1,3}(?:,\d{3})*(?:\.\d{2})?/g);
   if (all?.length) {
-    return all
-      .map(s => Number(s.replace(/[$,]/g, '')))
-      .filter(n => Number.isFinite(n))
-      .sort((x, y) => y - x)[0] ?? null;
+    return all.map(s => Number(s.replace(/[$,]/g, ''))).filter(n => Number.isFinite(n)).sort((x, y) => y - x)[0] ?? null;
   }
   return null;
 }
@@ -715,74 +502,41 @@ function detectTotalFromText(raw) {
 async function detectTotalFromFiles(files) {
   let total = 0;
   let foundAny = false;
-
   for (const f of files) {
     const txt = await extractPdfText(f);
     const val = detectTotalFromText(txt);
-    if (Number.isFinite(val) && val > 0) {
-      total += val;
-      foundAny = true;
-    }
+    if (Number.isFinite(val) && val > 0) { total += val; foundAny = true; }
   }
   return foundAny ? total : null;
 }
-// --- end helpers ---
 
-const handlePdfAttachment = async (
-  files,
-  setAttachedPdfs,
-  setDetectingTotal,
-  setDetectError,
-  setDetectedTotal,
-  setSheetRows,
-  toast
-) => {
-  if (!files || files.length === 0) {
-    setAttachedPdfs([]);
-    setDetectedTotal(null);
-    return;
-  }
-
+const handlePdfAttachment = async (files, setAttachedPdfs, setDetectingTotal, setDetectError, setDetectedTotal, setSheetRows, toast) => {
+  if (!files || files.length === 0) { setAttachedPdfs([]); setDetectedTotal(null); return; }
   setAttachedPdfs(Array.from(files));
   setDetectingTotal(true);
   setDetectError('');
-
   try {
-    // 1) Try in-browser detection with PDF.js - now sums all PDFs
     const localDetected = await detectTotalFromFiles(Array.from(files));
-
     if (typeof localDetected === 'number' && localDetected > 0) {
       setDetectedTotal(localDetected);
       setSheetRows(prev => {
         const newRows = [...prev];
-        // Clear amounts; set one main line equal to combined total
         newRows.forEach(r => (r.amount = 0));
-        if (newRows[0]) {
-          newRows[0].service = `Services per ${files.length} attached invoice${files.length > 1 ? 's' : ''}`;
-          newRows[0].amount = localDetected;
-        }
+        if (newRows[0]) { newRows[0].service = `Services per ${files.length} attached invoice${files.length > 1 ? 's' : ''}`; newRows[0].amount = localDetected; }
         return newRows;
       });
       toast.success(`Auto-detected combined total from ${files.length} PDF${files.length > 1 ? 's' : ''}: $${localDetected.toFixed(2)}`);
     } else {
-      // 2) Fallback to your server route if local detection fails
       const formData = new FormData();
       Array.from(files).forEach(file => formData.append('pdfs', file));
-
-      const response = await api.post('/api/billing/detect-pdf-total', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-
+      const response = await api.post('/api/billing/detect-pdf-total', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       const total = response.data?.detectedTotal;
       if (typeof total === 'number' && total > 0) {
         setDetectedTotal(total);
         setSheetRows(prev => {
           const newRows = [...prev];
           newRows.forEach(r => (r.amount = 0));
-          if (newRows[0]) {
-            newRows[0].service = `Services per ${files.length} attached invoice${files.length > 1 ? 's' : ''}`;
-            newRows[0].amount = total;
-          }
+          if (newRows[0]) { newRows[0].service = `Services per ${files.length} attached invoice${files.length > 1 ? 's' : ''}`; newRows[0].amount = total; }
           return newRows;
         });
         toast.success(`Auto-detected combined total from ${files.length} PDF${files.length > 1 ? 's' : ''}: $${total.toFixed(2)}`);
@@ -792,7 +546,6 @@ const handlePdfAttachment = async (
       }
     }
   } catch (err) {
-    console.error('PDF detection error:', err);
     setDetectError(err?.response?.data?.message || err.message || 'Failed to process PDF attachments');
     toast.error('Failed to process PDF attachments');
   } finally {
@@ -830,8 +583,7 @@ function CompanyProfilesSection() {
   const handleSend = async () => {
     if (!selectedCompany) return toast.error('Select a company first.');
     if (!invoicePdf && !workOrderPdf) return toast.error('Attach at least one PDF.');
-    if (!companyEmail) return toast.error('No email on file for this company. Add one to COMPANY_TO_EMAIL.');
-
+    if (!companyEmail) return toast.error('No email on file for this company.');
     setSending(true);
     try {
       const fd = new FormData();
@@ -847,31 +599,20 @@ function CompanyProfilesSection() {
       }
       if (invoicePdf) fd.append('invoicePdf', invoicePdf);
       if (workOrderPdf) fd.append('workOrderPdf', workOrderPdf);
-
-      await api.post('/api/billing/send-company-invoice', fd, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-
+      await api.post('/api/billing/send-company-invoice', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       const entry = {
         sentAt: new Date().toISOString(),
         invoicePdfName: invoicePdf?.name || null,
         workOrderPdfName: workOrderPdf?.name || null,
-        payStatus,
-        payMethod: payStatus === 'paid' ? payMethod : null,
+        payStatus, payMethod: payStatus === 'paid' ? payMethod : null,
         cardNumber: payStatus === 'paid' && payMethod === 'card' ? cardNumber : null,
         checkNumber: payStatus === 'paid' && payMethod === 'check' ? checkNumber : null,
-        remitName: remitFile?.name || null,
-        sentTo: companyEmail,
+        remitName: remitFile?.name || null, sentTo: companyEmail,
       };
       saveProfile({ ...profile, history: [entry, ...(profile.history || [])] });
-
       toast.success(`Invoice sent to ${companyEmail} from ${LEAH_EMAIL}!`);
-      setInvoicePdf(null);
-      setWorkOrderPdf(null);
-      setRemitFile(null);
-      setCardNumber('');
-      setCheckNumber('');
-      setPayStatus('unpaid');
+      setInvoicePdf(null); setWorkOrderPdf(null); setRemitFile(null);
+      setCardNumber(''); setCheckNumber(''); setPayStatus('unpaid');
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to send invoice.');
     } finally {
@@ -882,134 +623,83 @@ function CompanyProfilesSection() {
   return (
     <div style={{ marginBottom: 30, padding: 20, backgroundColor: '#f8f9fa', borderRadius: 8, border: '1px solid #dee2e6' }}>
       <h2 style={{ marginBottom: 16 }}>Company Profiles — Send Invoice</h2>
-
-      {/* Company selector */}
       <div style={{ marginBottom: 16 }}>
         <label style={{ fontWeight: 'bold', display: 'block', marginBottom: 6 }}>Select Company</label>
-        <select
-          value={selectedCompany}
-          onChange={e => { setSelectedCompany(e.target.value); setShowHistory(false); }}
-          style={{ width: '100%', padding: 8, fontSize: 14, borderRadius: 4, border: '1px solid #ced4da' }}
-        >
+        <select value={selectedCompany} onChange={e => { setSelectedCompany(e.target.value); setShowHistory(false); }}
+          style={{ width: '100%', padding: 8, fontSize: 14, borderRadius: 4, border: '1px solid #ced4da' }}>
           <option value="">— Choose a company —</option>
-          {companyList.filter(c => !c.startsWith('Other')).map(c => (
-            <option key={c} value={c}>{c}</option>
-          ))}
+          {companyList.filter(c => !c.startsWith('Other')).map(c => <option key={c} value={c}>{c}</option>)}
         </select>
       </div>
-
       {selectedCompany && (
         <>
-          {/* Company info */}
           <div style={{ marginBottom: 16, padding: 12, backgroundColor: '#e3f2fd', borderRadius: 6 }}>
             <div><strong>Billing Address:</strong> {BILLING_ADDRESSES[selectedCompany] || 'Not on file'}</div>
             <div><strong>Send To:</strong> {companyEmail || <span style={{ color: '#dc3545' }}>No email on file</span>}</div>
             <div><strong>Sender:</strong> {LEAH_EMAIL}</div>
           </div>
-
-          {/* PDF uploads */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
             <div>
               <label style={{ fontWeight: 'bold', display: 'block', marginBottom: 6 }}>Invoice PDF</label>
-              <input type="file" accept="application/pdf"
-                onChange={e => setInvoicePdf(e.target.files[0] || null)}
-              />
+              <input type="file" accept="application/pdf" onChange={e => setInvoicePdf(e.target.files[0] || null)} />
               {invoicePdf && <div style={{ fontSize: 12, color: '#28a745', marginTop: 4 }}>✅ {invoicePdf.name}</div>}
             </div>
             <div>
               <label style={{ fontWeight: 'bold', display: 'block', marginBottom: 6 }}>Work Order PDF</label>
-              <input type="file" accept="application/pdf"
-                onChange={e => setWorkOrderPdf(e.target.files[0] || null)}
-              />
+              <input type="file" accept="application/pdf" onChange={e => setWorkOrderPdf(e.target.files[0] || null)} />
               {workOrderPdf && <div style={{ fontSize: 12, color: '#28a745', marginTop: 4 }}>✅ {workOrderPdf.name}</div>}
             </div>
           </div>
-
-          {/* Payment status */}
           <div style={{ marginBottom: 16 }}>
             <label style={{ fontWeight: 'bold', display: 'block', marginBottom: 6 }}>Payment Status</label>
-            <select
-              value={payStatus}
-              onChange={e => setPayStatus(e.target.value)}
-              style={{ padding: 8, fontSize: 14, borderRadius: 4, border: '1px solid #ced4da', minWidth: 160 }}
-            >
+            <select value={payStatus} onChange={e => setPayStatus(e.target.value)}
+              style={{ padding: 8, fontSize: 14, borderRadius: 4, border: '1px solid #ced4da', minWidth: 160 }}>
               <option value="unpaid">Unpaid</option>
               <option value="paid">Paid</option>
             </select>
           </div>
-
           {payStatus === 'paid' && (
             <div style={{ marginBottom: 16, padding: 12, border: '1px solid #ced4da', borderRadius: 6, backgroundColor: '#fff' }}>
               <label style={{ fontWeight: 'bold', display: 'block', marginBottom: 8 }}>Payment Method</label>
-              <select
-                value={payMethod}
-                onChange={e => setPayMethod(e.target.value)}
-                style={{ padding: 8, fontSize: 14, borderRadius: 4, border: '1px solid #ced4da', marginBottom: 12, minWidth: 160 }}
-              >
+              <select value={payMethod} onChange={e => setPayMethod(e.target.value)}
+                style={{ padding: 8, fontSize: 14, borderRadius: 4, border: '1px solid #ced4da', marginBottom: 12, minWidth: 160 }}>
                 <option value="card">Card</option>
                 <option value="check">Check</option>
                 <option value="remit">Upload Remit</option>
               </select>
-
               {payMethod === 'card' && (
                 <div>
                   <label style={{ display: 'block', marginBottom: 4 }}>Card Number</label>
-                  <input
-                    type="text"
-                    placeholder="Enter card number"
-                    value={cardNumber}
-                    onChange={e => setCardNumber(e.target.value)}
-                    style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #ced4da' }}
-                  />
+                  <input type="text" placeholder="Enter card number" value={cardNumber} onChange={e => setCardNumber(e.target.value)}
+                    style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #ced4da' }} />
                 </div>
               )}
-
               {payMethod === 'check' && (
                 <div>
                   <label style={{ display: 'block', marginBottom: 4 }}>Check Number</label>
-                  <input
-                    type="text"
-                    placeholder="Enter check number"
-                    value={checkNumber}
-                    onChange={e => setCheckNumber(e.target.value)}
-                    style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #ced4da' }}
-                  />
+                  <input type="text" placeholder="Enter check number" value={checkNumber} onChange={e => setCheckNumber(e.target.value)}
+                    style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #ced4da' }} />
                 </div>
               )}
-
               {payMethod === 'remit' && (
                 <div>
                   <label style={{ display: 'block', marginBottom: 4 }}>Upload Remit</label>
-                  <input type="file" accept="application/pdf,image/*"
-                    onChange={e => setRemitFile(e.target.files[0] || null)}
-                  />
+                  <input type="file" accept="application/pdf,image/*" onChange={e => setRemitFile(e.target.files[0] || null)} />
                   {remitFile && <div style={{ fontSize: 12, color: '#28a745', marginTop: 4 }}>✅ {remitFile.name}</div>}
                 </div>
               )}
             </div>
           )}
-
-          {/* Send button */}
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16 }}>
-            <button
-              className="btn btn--primary"
-              onClick={handleSend}
-              disabled={sending || (!invoicePdf && !workOrderPdf)}
-            >
+            <button className="btn btn--primary" onClick={handleSend} disabled={sending || (!invoicePdf && !workOrderPdf)}>
               {sending ? 'Sending…' : `📧 Send via ${LEAH_EMAIL}`}
             </button>
             {profile.history?.length > 0 && (
-              <button
-                className="btn"
-                onClick={() => setShowHistory(h => !h)}
-                style={{ fontSize: 13 }}
-              >
+              <button className="btn" onClick={() => setShowHistory(h => !h)} style={{ fontSize: 13 }}>
                 {showHistory ? 'Hide History' : `View History (${profile.history.length})`}
               </button>
             )}
           </div>
-
-          {/* Send history */}
           {showHistory && profile.history?.length > 0 && (
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -1037,8 +727,7 @@ function CompanyProfilesSection() {
                       <td style={{ padding: '8px 10px' }}>
                         {h.payMethod === 'card' && h.cardNumber ? `Card: ${h.cardNumber}` :
                          h.payMethod === 'check' && h.checkNumber ? `Check: ${h.checkNumber}` :
-                         h.payMethod === 'remit' ? `Remit: ${h.remitName || 'uploaded'}` :
-                         h.payMethod || '—'}
+                         h.payMethod === 'remit' ? `Remit: ${h.remitName || 'uploaded'}` : h.payMethod || '—'}
                       </td>
                       <td style={{ padding: '8px 10px' }}>{h.sentTo}</td>
                     </tr>
@@ -1054,900 +743,204 @@ function CompanyProfilesSection() {
 }
 
 const Invoice = () => {
-  // Companies (string[]) shown in the dropdown
-  const [companyKey, setCompanyKey] = useState(''); // '' = All Companies
-const [readyToSend, setReadyToSend] = useState(false);
-  // Calendar state
-  const [selectedDate, setSelectedDate] = useState(new Date(2026, 0, 1));
-  const [calendarViewDate, setCalendarViewDate] = useState(new Date(2026, 0, 1)); // current month shown
-  const [monthlyJobs, setMonthlyJobs] = useState({}); // { 'YYYY-MM-DD': [job, ...], ... }
-  const [jobsForDay, setJobsForDay] = useState([]);   // jobs for selected day
-const [billingOpen, setBillingOpen] = useState(false);
-const [billingJob, setBillingJob] = useState(null);
-const [isUpdateMode, setIsUpdateMode] = useState(false);
-// --- TCP (Traffic Control Plan) billing state ---
-const [plans, setPlans] = useState([]);
-const [planInvoiceStatus, setPlanInvoiceStatus] = useState({}); // { planId: { billed: true, paid: false, invoiceId: '...' } }
-const [selectedPlanIndex, setSelectedPlanIndex] = useState(null);
-const [previewPlan, setPreviewPlan] = useState(null);
-const [isSubmitting, setIsSubmitting] = useState(false); 
-const [errorMessage, setErrorMessage] = useState('');
-const [submissionMessage, setSubmissionMessage] = useState('');
-const [submissionErrorMessage, setSubmissionErrorMessage] = useState('');
-const [planBillingOpen, setPlanBillingOpen] = useState(false);
-const [planJob, setPlanJob] = useState(null);
-const [planPhases, setPlanPhases] = useState(0);
-const [planRate, setPlanRate] = useState(0);
-const [monthlyKey, setMonthlyKey] = useState(0);
-const [planEmail, setPlanEmail] = useState('');
-const [planReadyToSend, setPlanReadyToSend] = useState(false);
-const [planAttachedPdfs, setPlanAttachedPdfs] = useState([]);
-const [selectedPlanId, setSelectedPlanId] = useState(null);
-const [planMarkPaidOpen, setPlanMarkPaidOpen] = useState(false);
-const [planPaymentMethod, setPlanPaymentMethod] = useState('card');
-const [planPaymentAmount, setPlanPaymentAmount] = useState('');
-const [planPaymentEmail, setPlanPaymentEmail] = useState('');
-const [planCardType, setPlanCardType] = useState('');
-const [planCardLast4, setPlanCardLast4] = useState('');
-const [planCheckNumber, setPlanCheckNumber] = useState('');
-const [planDetectingTotal, setPlanDetectingTotal] = useState(false);
-const [planDetectedTotal, setPlanDetectedTotal] = useState(null);
-const [planDetectError, setPlanDetectError] = useState('');
-const [planCurrentPage, setPlanCurrentPage] = useState(0);
-const [planTbsInvoiceNumber, setPlanTbsInvoiceNumber] = useState('');
-const [workOrderTbsInvoiceNumber, setWorkOrderTbsInvoiceNumber] = useState('');
-const PLANS_PER_PAGE = 2;
-
-// Handle plan billing
-async function handleBillPlan() {
-  if (!planJob) return;
-  setIsSubmitting(true);
-  
-  try {
-    const total = planDetectedTotal || Number((planPhases * planRate).toFixed(2));
-    if (!(total > 0)) {
-      toast.error('Please enter valid phases and rate, or attach PDF with detectable total');
-      return;
-    }
-
-    const payload = {
-      planId: planJob._id,
-      manualAmount: total,
-      emailOverride: planEmail,
-      tbsInvoiceNumber: planTbsInvoiceNumber,
-      invoiceData: {
-        invoiceDate,
-        dueDate,
-        invoiceNumber: '',
-        billToCompany: billToCompany === "Other(Specify if new in message to add to this list)" ? customCompanyName : billToCompany,
-        billToAddress,
-        planPhases,
-        planRate,
-        sheetTotal: total,
-        selectedEmail: planEmail,
-      }
-    };
-
-    const fd = new FormData();
-    fd.append('payload', JSON.stringify(payload));
-    (planAttachedPdfs || []).forEach(f => fd.append('attachments', f));
-
-    await api.post('/api/billing/bill-plan', fd, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+  const [readyToSend, setReadyToSend] = useState(false);
+  const [billingOpen, setBillingOpen] = useState(false);
+  const [billingJob, setBillingJob] = useState(null);
+  const [isUpdateMode, setIsUpdateMode] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [submissionMessage, setSubmissionMessage] = useState('');
+  const [submissionErrorMessage, setSubmissionErrorMessage] = useState('');
+  const [workOrderTbsInvoiceNumber, setWorkOrderTbsInvoiceNumber] = useState('');
+  const [billToCompany, setBillToCompany] = useState('');
+  const [customCompanyName, setCustomCompanyName] = useState('');
+  const [billToAddress, setBillToAddress] = useState('');
+  const [workType, setWorkType] = useState('');
+  const [foreman, setForeman] = useState('');
+  const [location, setLocation] = useState('');
+  const [crewsCount, setCrewsCount] = useState('');
+  const [otHours, setOtHours] = useState('');
+  const [savedInvoices, setSavedInvoices] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('savedInvoices') || '{}'); }
+    catch { return {}; }
+  });
+  const [locallyPaid, setLocallyPaid] = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('locallyPaid') || '[]')); }
+    catch { return new Set(); }
+  });
+  const markLocallyPaid = (id) => {
+    setLocallyPaid(prev => {
+      const next = new Set(prev);
+      next.add(id);
+      localStorage.setItem('locallyPaid', JSON.stringify([...next]));
+      return next;
     });
-
-    // Refresh plan invoice status
-    const statusRes = await api.get(`/api/billing/plan-invoice-status?planIds=${planJob._id}`);
-    setPlanInvoiceStatus(prev => ({ ...prev, ...statusRes.data }));
-
-    toast.success('Plan invoice sent!');
-    setPlanBillingOpen(false);
-    setPlanJob(null); // Clear selected plan
-    setPlanAttachedPdfs([]);
-    setPlanDetectedTotal(null);
-    setPlanTbsInvoiceNumber('');
-  } catch (err) {
-    toast.error(err?.response?.data?.message || 'Failed to send plan invoice');
-  } finally {
-    setIsSubmitting(false);
-  }
-}
-
-async function handleUpdatePlan() {
-  if (!planJob) return;
-  setIsSubmitting(true);
-  
-  try {
-    const total = planDetectedTotal || Number((planPhases * planRate).toFixed(2));
-    if (!(total > 0)) {
-      toast.error('Please enter valid phases and rate, or attach PDF with detectable total');
-      return;
-    }
-
-    const payload = {
-      planId: planJob._id,
-      manualAmount: total,
-      emailOverride: planEmail,
-      tbsInvoiceNumber: planTbsInvoiceNumber,
-      invoiceData: {
-        invoiceDate: new Date().toISOString().slice(0,10),
-        dueDate: new Date(Date.now() + 30*24*60*60*1000).toISOString().slice(0,10),
-        invoiceNumber: '',
-        planPhases,
-        planRate,
-        sheetTotal: total,
-        selectedEmail: planEmail,
-      }
-    };
-
-    const fd = new FormData();
-    fd.append('payload', JSON.stringify(payload));
-    (planAttachedPdfs || []).forEach(f => fd.append('attachments', f));
-
-    await api.post('/api/billing/update-plan', fd, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
-
-    // Refresh plan invoice status
-    const statusRes = await api.get(`/api/billing/plan-invoice-status?planIds=${planJob._id}`);
-    setPlanInvoiceStatus(prev => ({ ...prev, ...statusRes.data }));
-
-    toast.success('Plan invoice updated and resent!');
-    setPlanBillingOpen(false);
-    setPlanJob(null); // Clear selected plan
-    setPlanAttachedPdfs([]);
-    setPlanDetectedTotal(null);
-    setPlanTbsInvoiceNumber('');
-  } catch (err) {
-    toast.error(err?.response?.data?.message || 'Failed to update plan invoice');
-  } finally {
-    setIsSubmitting(false);
-  }
-}
-
-// Handle plan mark paid
-async function handlePlanMarkPaid() {
-  if (!selectedPlanId) return;
-  setIsSubmitting(true);
-  
-  try {
-    const planStatus = planInvoiceStatus[selectedPlanId];
-    if (!planStatus?.invoiceId) {
-      toast.error('No invoice found for this plan');
-      return;
-    }
-
-    const paymentDetails = planPaymentMethod === 'card' 
-      ? { cardType: planCardType, cardLast4: planCardLast4 }
-      : { checkNumber: planCheckNumber };
-
-    const payload = {
-      invoiceId: planStatus.invoiceId,
-      paymentMethod: planPaymentMethod,
-      paymentAmount: Number(planPaymentAmount),
-      emailOverride: planPaymentEmail,
-      tbsInvoiceNumber: planTbsInvoiceNumber,
-      ...paymentDetails
-    };
-
-    await api.post('/api/billing/mark-plan-paid', payload);
-
-    // Refresh plan invoice status
-    const statusRes = await api.get(`/api/billing/plan-invoice-status?planIds=${selectedPlanId}`);
-    setPlanInvoiceStatus(prev => ({ ...prev, ...statusRes.data }));
-
-    toast.success('Plan payment recorded!');
-    setPlanMarkPaidOpen(false);
-    setSelectedPlanId(null);
-    setPlanPaymentAmount('');
-    setPlanPaymentEmail('');
-    setPlanCardType('');
-    setPlanCardLast4('');
-    setPlanCheckNumber('');
-  } catch (err) {
-    toast.error(err?.response?.data?.message || 'Failed to record plan payment');
-  } finally {
-    setIsSubmitting(false);
-  }
-}
-
-
-// Fetch plans and their invoice status on component mount
-useEffect(() => {
-  const fetchPlans = async () => {
-    try {
-      const res = await axios.get('/plan/all');
-      setPlans(res.data);
-      
-      // Fetch invoice status for all plans
-      if (res.data.length > 0) {
-        const planIds = res.data.map(p => p._id).join(',');
-        const statusRes = await api.get(`/api/billing/plan-invoice-status?planIds=${planIds}`);
-        setPlanInvoiceStatus(statusRes.data || {});
-      }
-    } catch (err) {
-      console.error('fetchPlans failed:', err);
-    }
   };
-  fetchPlans();
-}, []);
-// Bill To form state
-const [billToCompany, setBillToCompany] = useState('');
-const [customCompanyName, setCustomCompanyName] = useState('');
-const [billToAddress, setBillToAddress] = useState('');
-const [workType, setWorkType] = useState('');
-const [foreman, setForeman] = useState('');
-const [location, setLocation] = useState('');
-const [crewsCount, setCrewsCount] = useState('');
-const [otHours, setOtHours]       = useState('');
-// Read a single File/Blob into an ArrayBuffer
-// --- inside Invoice component, with the other useState calls ---
-const [savedInvoices, setSavedInvoices] = useState(() => {
-  try {
-    return JSON.parse(localStorage.getItem('savedInvoices') || '{}');
-  } catch {
-    return {};
-  }
-});
-const selectedPlan = useMemo(
-  () => plans.find(p => p._id === selectedPlanId),
-  [plans, selectedPlanId]
-);
-
-const fileToArrayBuffer = (file) =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(reader.error);
-    reader.onload = () => resolve(reader.result);
-    reader.readAsArrayBuffer(file);
-  });
-// Prefill Bill-To when a job is selected
-useEffect(() => {
-  if (!billingJob) return;
-
-  const clientName = (billingJob.basic?.client || '').trim();
-  const inList = companyList.includes(clientName);
-
-  // company dropdown
-  setBillToCompany(inList ? clientName : ''); // or "Other(Specify...)" if you prefer
-
-  // auto-fill email & address if we know them
-  setSelectedEmail(COMPANY_TO_EMAIL[clientName] || billingJob.basic?.email || '');
-  setBillToAddress(BILLING_ADDRESSES[clientName] || '');
-}, [billingJob]);
-
-
-// Extract plain text from a PDF (all pages, joined with newlines)
-async function extractPdfText(file) {
-  const data = await fileToArrayBuffer(file);
-  const pdf = await pdfjsLib.getDocument({ data }).promise;
-  let out = [];
-  for (let p = 1; p <= pdf.numPages; p++) {
-    const page = await pdf.getPage(p);
-    const content = await page.getTextContent();
-    const pageText = content.items.map(it => it.str).join('\n'); // preserve rough order
-    out.push(pageText);
-  }
-  return out.join('\n');
-}
-
-// Try to detect the grand total from free-form text
-function detectTotalFromText(txt) {
-  if (!txt) return null;
-
-  // Normalize
-  const t = txt
-    .replace(/\u00A0/g, ' ')             // nbsp → space
-    .replace(/[, ]+(?=\d{3}\b)/g, ',')   // normalize thousands a bit
-    .replace(/\s+/g, ' ')                // fold whitespace
-    .toLowerCase();
-
-  // 1) Strong pattern: the word "total" followed by a money/number
-  //    e.g., "total 1,245.00" or "TOTAL $1,245.00"
-  const totalAfterLabel = /total[^0-9$]{0,12}(\$?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/i.exec(txt);
-  if (totalAfterLabel && totalAfterLabel[1]) {
-    return Number(totalAfterLabel[1].replace(/[$,]/g, ''));
-  }
-
-  // 2) Look for the last "TOTAL" block line-ish (robust against extra spacing)
-  const lineMatch = txt.match(/TOTAL[^\n\r$]*([$]?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/gi);
-  if (lineMatch && lineMatch.length) {
-    const last = lineMatch[lineMatch.length - 1];
-    const num = last.match(/([$]?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/);
-    if (num) return Number(num[0].replace(/[$,]/g, ''));
-  }
-
-  // 3) Fallback: prefer a number that follows the word TOTAL anywhere
-  const loose = /total[\s:]*([$]?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/i.exec(txt);
-  if (loose && loose[1]) {
-    return Number(loose[1].replace(/[$,]/g, ''));
-  }
-
-  // 4) Absolute last resort: take the largest currency-looking number on the page
-  const allMoney = txt.match(/[$]?\d{1,3}(?:,\d{3})*(?:\.\d{2})?/g);
-  if (allMoney && allMoney.length) {
-    const biggest = allMoney
-      .map(s => Number(s.replace(/[$,]/g, '')))
-      .filter(n => !Number.isNaN(n))
-      .sort((a, b) => b - a)[0];
-    return biggest ?? null;
-  }
-
-  return null;
-}
-
-// Extract the highest-confidence total across multiple PDFs
-async function detectTotalFromFiles(files) {
-  let totalSum = 0;
-  let hasValidTotal = false;
-  
-  for (const f of files) {
-    try {
-      const txt = await extractPdfText(f);
-      const val = detectTotalFromText(txt);
-      if (typeof val === 'number' && isFinite(val) && val > 0) {
-        totalSum += val;
-        hasValidTotal = true;
-        console.log(`Detected $${val} from ${f.name}`);
-      }
-    } catch (err) {
-      console.warn(`Failed to process ${f.name}:`, err);
-    }
-  }
-  
-  console.log(`Total detected: $${totalSum} from ${files.length} files`);
-  return hasValidTotal ? totalSum : null;
-}
-
-const tbsHours = useMemo(() => {
-  const s = billingJob?.basic?.startTime ? formatTime(billingJob.basic.startTime) : '';
-  const e = billingJob?.basic?.endTime   ? formatTime(billingJob.basic.endTime)   : '';
-  if (s && e) return `${s} – ${e}`;
-  return s || e || '';
-}, [billingJob]);
- const [otRate, setOtRate] = useState(0);
-
- // NEW: computed overtime labor total = crews × OT hrs × $/hr
- const otLaborTotal = useMemo(() => {
-   const crews = Number(crewsCount) || 0;
-   const hrs   = Number(otHours) || 0;
-   const rate  = Number(otRate) || 0;
-   return Math.round(crews * hrs * rate * 100) / 100;
- }, [crewsCount, otHours, otRate]);
-// Email validation helper
-const isValidEmail = (email) => true;
-// near other localStorage-backed state
-const [locallyPaid, setLocallyPaid] = useState(() => {
-  try { return new Set(JSON.parse(localStorage.getItem('locallyPaid') || '[]')); }
-  catch { return new Set(); }
-});
-
-const markLocallyPaid = (id) => {
-  setLocallyPaid(prev => {
-    const next = new Set(prev);
-    next.add(id);
-    localStorage.setItem('locallyPaid', JSON.stringify([...next]));
-    return next;
-  });
-};
-
-// Invoice header fields
-const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().slice(0,10));
-const [invoiceNumber, setInvoiceNumber] = useState('');
-const [workRequestNumber1, setWorkRequestNumber1] = useState('');
-const [workRequestNumber2, setWorkRequestNumber2] = useState('');
-const [dueDate, setDueDate] = useState('');
-const [net30Auto, setNet30Auto] = useState(true); // keep due date = invoiceDate + 30 by default
-
-// ===== Spreadsheet editor state (replaces the fixed rates UI) =====
-const VERTEX42_STARTER_ROWS = [
-  { id: 1, service: 'Flagging Operation — 1/2 day', taxed: false, amount: 0 },
-  { id: 2, service: 'Flagging Operation — Full Day', taxed: false, amount: 0 },
-  { id: 3, service: 'Flagging Operation — Emergency', taxed: false, amount: 0 },
-  { id: 4, service: 'Fully loaded vehicle', taxed: false, amount: 0 },
-  { id: 5, service: 'Officer (hrs × $/hr)', taxed: false, amount: 0 },
-  { id: 6, service: 'Rolling road block (per crew)', taxed: false, amount: 0 },
-  { id: 7, service: 'Lights for night/emergency', taxed: false, amount: 0 },
-  { id: 8, service: 'Secondary intersections/closing signs', taxed: false, amount: 0 },
-  { id: 9, service: 'After-hours signs (qty × $/sign)', taxed: false, amount: 0 },
-  { id:10, service: 'Arrow Board (qty × $)', taxed: false, amount: 0 },
-  { id:11, service: 'Message Board (qty × $)', taxed: false, amount: 0 },
-  { id:12, service: 'Mobilization (miles × $/mile/vehicle)', taxed: false, amount: 0 },
-  { id:13, service: 'Cones/Barrels', taxed: false, amount: 0 },
-];
-
-const [sheetRows, setSheetRows] = useState(VERTEX42_STARTER_ROWS);
-const [sheetTaxRate, setSheetTaxRate] = useState(0); // percent
-const [sheetOther, setSheetOther] = useState(0);     // shipping/discount/etc. (can be negative)
-const [attachedPdfs, setAttachedPdfs] = useState([]);
-const [detectedTotal, setDetectedTotal] = useState(null);
-const [detectingTotal, setDetectingTotal] = useState(false);
-const [detectError, setDetectError] = useState('');
-const noteValues = useMemo(() => {
-  const findRow = (needle) =>
-    sheetRows.find(r => r.service?.toLowerCase().includes(needle));
-
-  const intersections = findRow('intersection');      // row 8 in your starter
-  const afterHours    = findRow('after-hours');        // row 9
-  const arrowBoard    = findRow('arrow');              // row 10
-  const messageBoard  = findRow('message');            // row 11
-  const mobilization  = findRow('mobilization');       // row 12
-
-  return {
-    intersectionsPer: Number(intersections?.amount) || 0,
-    afterHoursPer:    Number(afterHours?.amount)    || 0,
-    arrowAmt:         Number(arrowBoard?.amount)    || 0,
-    messageAmt:       Number(messageBoard?.amount)  || 0,
-    mobilizationAmt:  Number(mobilization?.amount)  || 0,
-  };
-}, [sheetRows]);
- const sheetSubtotal = useMemo(() => {
-   const base = sheetRows.reduce((s, r) => s + (Number(r.amount) || 0), 0);
-   return Math.round((base + otLaborTotal) * 100) / 100;
- }, [sheetRows, otLaborTotal]);
- const sheetTaxable = useMemo(() => {
-   return sheetRows.reduce(
-     (sum, r) => sum + (r.taxed ? (Number(r.amount) || 0) : 0),
-     0
-   );
- }, [sheetRows]);
-
-const sheetTaxDue = useMemo(() => {
-  const rate = Number(sheetTaxRate) || 0;       // percent, e.g. 7
-  const due  = (sheetTaxable * rate) / 100;
-  return Math.round(due * 100) / 100;           // round to cents
-}, [sheetTaxable, sheetTaxRate]);
- const sheetTotal = useMemo(
-   () => Number((sheetSubtotal + sheetTaxDue + (Number(sheetOther) || 0)).toFixed(2)),
-   [sheetSubtotal, sheetTaxDue, sheetOther]
- );
- useEffect(() => {
-   if (!invoiceDate) return;
-   if (!net30Auto) return;
-   const base = new Date(invoiceDate);
-   if (Number.isNaN(base.getTime())) return;
-   const d = new Date(base);
-   d.setDate(d.getDate() + 30);
-   setDueDate(d.toISOString().slice(0, 10));
- }, [invoiceDate, net30Auto]);
-// tiny helpers
-const addRow = () =>
-  setSheetRows(rows => [...rows, { id: Date.now(), service: '', taxed: false, amount: 0 }]);
-
-const removeRow = (id) =>
-  setSheetRows(rows => rows.filter(r => r.id !== id));
-
-const updateRow = (id, patch) =>
-  setSheetRows(rows => rows.map(r => (r.id === id ? { ...r, ...patch } : r)));
-
-const planBreakdown = useMemo(() => {
-  const rows = [];
-  if ((Number(planPhases) || 0) > 0 && (Number(planRate) || 0) > 0) {
-    rows.push({
-      label: 'Traffic Control Plan (Phase)',
-      qty: Number(planPhases) || 0,
-      unit: 'phase',
-      rate: Number(planRate) || 0
-    });
-  }
-  return rows;
-}, [planPhases, planRate]);
-
-const planTotal = useMemo(
-  () => planBreakdown.reduce((s, r) => s + (r.qty * r.rate), 0),
-  [planBreakdown]
-);
-const dedupeFiles = (arr) => {
-  const seen = new Set();
-  return arr.filter(f => {
-    const key = [f.name, f.size, f.lastModified].join('|');
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-};
-const [rates, setRates] = useState({
-  flagHalf: 0,
-  flagFull: 0,
-  flagEmerg: 0,
-  lcHalf: 0,
-  lcFull: 0,
-  intSign: 0,
-  afterHrsFlat: 0,
-  afterHrsSign: 0,
-  afterHrsCone: 0,
-  nightWeekend: 0,
-  roadblock: 0,
-  extraWorker: 0,
-  arrowBoard: 200,     // default per your spec
-  messageBoard: 325,   // default per your spec
-  mileRate: 0.82       // default per your spec
-});
-const handleDownloadXLSXStyled = async () => {
-  if (!billingJob) return;
-
-  const company = billingJob.company || '';
-  const jobNum  = billingJob.project || '';
-  const address = [billingJob.address, billingJob.city, billingJob.state, billingJob.zip]
-    .filter(Boolean)
-    .join(', ');
-  const email   = selectedEmail || '';
-  const today   = new Date().toLocaleDateString();
-
-  const wb = new ExcelJS.Workbook();
-  wb.creator = 'TBS Billing';
-  const ws = wb.addWorksheet('Invoice', {
-    pageSetup: {
-      orientation: 'portrait',
-      fitToPage: true,
-      margins: { left:0.5, right:0.5, top:0.75, bottom:0.75 }
-    },
-    views: [{ state: 'frozen', ySplit: 10 }] // freeze top rows
-  });
-
-  // Column widths
-  ws.getColumn(1).width = 38; // Item / Field
-  ws.getColumn(2).width = 10; // Qty / Meta value
-  ws.getColumn(3).width = 12; // Unit
-  ws.getColumn(4).width = 14; // Rate
-  ws.getColumn(5).width = 16; // Line total
-
-  // ===== Title (merged & centered)
-  ws.mergeCells('A1:E1');
-  const title = ws.getCell('A1');
-  title.value = `Invoice — ${company}`;
-  title.font = { bold: true, size: 16 };
-  title.alignment = { horizontal: 'center', vertical: 'middle' };
-  title.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEDF2FF' } }; // light fill
-  ws.getRow(1).height = 26;
-
-  // Blank spacer row
-  ws.addRow([]);
-
-  // ===== Metadata block
-  const metaRows = [
-    ['Company', company],
-    ['Job Number', jobNum],
-    ['Address', address],
-    ['Send To (Email)', email],
-    ['Invoice Date', today]
+  const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().slice(0,10));
+  const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [workRequestNumber1, setWorkRequestNumber1] = useState('');
+  const [workRequestNumber2, setWorkRequestNumber2] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const [net30Auto, setNet30Auto] = useState(true);
+  const VERTEX42_STARTER_ROWS = [
+    { id: 1, service: 'Flagging Operation — 1/2 day', taxed: false, amount: 0 },
+    { id: 2, service: 'Flagging Operation — Full Day', taxed: false, amount: 0 },
+    { id: 3, service: 'Flagging Operation — Emergency', taxed: false, amount: 0 },
+    { id: 4, service: 'Fully loaded vehicle', taxed: false, amount: 0 },
+    { id: 5, service: 'Officer (hrs × $/hr)', taxed: false, amount: 0 },
+    { id: 6, service: 'Rolling road block (per crew)', taxed: false, amount: 0 },
+    { id: 7, service: 'Lights for night/emergency', taxed: false, amount: 0 },
+    { id: 8, service: 'Secondary intersections/closing signs', taxed: false, amount: 0 },
+    { id: 9, service: 'After-hours signs (qty × $/sign)', taxed: false, amount: 0 },
+    { id:10, service: 'Arrow Board (qty × $)', taxed: false, amount: 0 },
+    { id:11, service: 'Message Board (qty × $)', taxed: false, amount: 0 },
+    { id:12, service: 'Mobilization (miles × $/mile/vehicle)', taxed: false, amount: 0 },
+    { id:13, service: 'Cones/Barrels', taxed: false, amount: 0 },
   ];
-
-  // Header for metadata (Field | Value) with subtle styling
-  const metaHeader = ws.addRow(['Field', 'Value']);
-  metaHeader.font = { bold: true };
-  metaHeader.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF3F4F6' } };
-  metaHeader.alignment = { vertical: 'middle' };
-  metaHeader.height = 18;
-  metaRows.forEach(([k, v]) => {
-    const r = ws.addRow([k, v]);
-    r.getCell(1).font = { bold: true };
-    r.getCell(2).alignment = { wrapText: true };
-    // Merge B:E so long values (address) span nicely
-    ws.mergeCells(`B${r.number}:E${r.number}`);
-    // Thin borders
-    [1,2,3,4,5].forEach(c => {
-      const cell = r.getCell(c);
-      cell.border = { 
-        top: {style:'thin', color:{argb:'FFCCCCCC'}},
-        bottom: {style:'thin', color:{argb:'FFCCCCCC'}},
-        left: {style:'thin', color:{argb:'FFCCCCCC'}},
-        right: {style:'thin', color:{argb:'FFCCCCCC'}}
-      };
-    });
+  const [sheetRows, setSheetRows] = useState(VERTEX42_STARTER_ROWS);
+  const [sheetTaxRate, setSheetTaxRate] = useState(0);
+  const [sheetOther, setSheetOther] = useState(0);
+  const [attachedPdfs, setAttachedPdfs] = useState([]);
+  const [detectedTotal, setDetectedTotal] = useState(null);
+  const [detectingTotal, setDetectingTotal] = useState(false);
+  const [detectError, setDetectError] = useState('');
+  const [otRate, setOtRate] = useState(0);
+  const [rates, setRates] = useState({
+    flagHalf: 0, flagFull: 0, flagEmerg: 0, lcHalf: 0, lcFull: 0,
+    intSign: 0, afterHrsFlat: 0, afterHrsSign: 0, afterHrsCone: 0,
+    nightWeekend: 0, roadblock: 0, extraWorker: 0, arrowBoard: 200, messageBoard: 325, mileRate: 0.82
   });
-
-  // Spacer
-  ws.addRow([]);
-  ws.addRow([ 'Selected Items' ]).font = { bold: true, size: 12 };
-  ws.addRow([]);
-
-  // ===== Line Items as a styled Excel Table
-  // Build raw rows (numbers, not $ strings)
-
- const serviceRows = sheetRows.map(r => [
-   r.service || '',
-   '',               // Qty (not used in your Vertex sheet)
-   '',               // Unit (not used)
-   '',               // Rate (not used)
-   Number(r.amount) || 0
- ]);
-
- // Append the computed OT line if any
- if (otLaborTotal > 0) {
-   serviceRows.push([
-     `Overtime labor — ${crewsCount || 0} crew × ${otHours || 0} hr × $${(Number(otRate)||0).toFixed(2)}/hr`,
-     '',
-     '',
-     '',
-     otLaborTotal
-   ]);
- }
-  // Where to place the table
-  const startRow = ws.lastRow.number + 1;
-  const tableRef = `A${startRow}`;
-
-  ws.addTable({
-    name: 'LineItems',
-    ref: tableRef,
-    headerRow: true,
-    totalsRow: true,
-    style: { theme: 'TableStyleMedium9', showRowStripes: true },
-    columns: [
-      { name: 'Item' },
-      { name: 'Qty' },
-      { name: 'Unit' },
-      { name: 'Rate' },
-      { name: 'Line total', totalsRowFunction: 'sum' },
-    ],
-    rows: serviceRows.length ? serviceRows : [['(no items selected)', '', '', '', 0]],
+  const [sel, setSel] = useState({
+    flagDay: '', laneClosure: 'NONE', intersections: 0, arrowBoardsQty: 0,
+    messageBoardsQty: 0, afterHours: false, afterHoursSigns: 0, afterHoursCones: 0,
+    nightWeekend: false, roadblock: false, extraWorker: false, miles: 0
   });
-
-  // Currency number formats for Rate and Line total
-  const headerOffset = 1; // header row inside table
-  const dataStart = startRow + headerOffset;
-  const dataEnd   = dataStart + Math.max(1, serviceRows.length) - 1;
-  for (let r = dataStart; r <= dataEnd; r++) {
-    ws.getCell(`D${r}`).numFmt = '$#,##0.00';
-    ws.getCell(`E${r}`).numFmt = '$#,##0.00';
-  }
-  // Totals row formatting
-  const totalsRowIndex = dataEnd + 1;
-  ws.getCell(`E${totalsRowIndex}`).numFmt = '$#,##0.00';
-  ws.getRow(totalsRowIndex).font = { bold: true };
-
-  // Add an extra bold grand total (explicit from your state), just below the table
-  ws.addRow([]);
-  const totalRow = ws.addRow(['', '', '', 'Grand Total', Number(liveTotal) || 0]);
-  totalRow.font = { bold: true };
-  totalRow.getCell(5).numFmt = '$#,##0.00';
-  // Top border for emphasis
-  totalRow.getCell(4).border = totalRow.getCell(5).border = { top: { style:'thick' } };
-
-  // Final polish: borders around the header cells (table already styled), nice padding rows
-  ws.addRow([]);
-
-  // Download file
-  const ab = await wb.xlsx.writeBuffer();
-  const blob = new Blob([ab], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  const fname = `invoice-${(company||'company').toLowerCase().replace(/[^a-z0-9]+/g,'-')}-${(jobNum||'job').toLowerCase().replace(/[^a-z0-9]+/g,'-')}.xlsx`;
-
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = fname;
-  a.click();
-  URL.revokeObjectURL(a.href);
-};
-const handleDownloadPlanXLSXStyled = async () => {
-  if (!planJob) return;
-
-  const company = planJob.company || '';
-  const jobNum  = planJob.project || '';
-  const address = [planJob.address, planJob.city, planJob.state, planJob.zip].filter(Boolean).join(', ');
-  const email   = planEmail || '';
-  const today   = new Date().toLocaleDateString();
-
-  const wb = new ExcelJS.Workbook();
-  wb.creator = 'TBS Billing';
-  const ws = wb.addWorksheet('Plan Invoice', {
-    pageSetup: { orientation:'portrait', fitToPage:true, margins:{left:0.5,right:0.5,top:0.75,bottom:0.75} },
-    views: [{ state:'frozen', ySplit:10 }]
-  });
-
-  ws.getColumn(1).width = 38; ws.getColumn(2).width = 10; ws.getColumn(3).width = 12; ws.getColumn(4).width = 14; ws.getColumn(5).width = 16;
-
-  ws.mergeCells('A1:E1');
-  const title = ws.getCell('A1');
-  title.value = `Traffic Control Plan — Invoice (${company})`;
-  title.font = { bold:true, size:16 };
-  title.alignment = { horizontal:'center', vertical:'middle' };
-  title.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFEDF2FF' } };
-  ws.getRow(1).height = 26;
-
-  ws.addRow([]);
-  const metaHeader = ws.addRow(['Field', 'Value']);
-  metaHeader.font = { bold:true };
-  metaHeader.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFF3F4F6' } };
-  metaHeader.alignment = { vertical:'middle' };
-  metaHeader.height = 18;
-
-  const metaRows = [
-    ['Company', company],
-    ['Job Number', jobNum],
-    ['Address', address],
-    ['Send To (Email)', email],
-    ['Invoice Date', today]
-  ];
-  metaRows.forEach(([k, v]) => {
-    const r = ws.addRow([k, v]);
-    r.getCell(1).font = { bold:true };
-    r.getCell(2).alignment = { wrapText:true };
-    ws.mergeCells(`B${r.number}:E${r.number}`);
-    [1,2,3,4,5].forEach(c => {
-      const cell = r.getCell(c);
-      cell.border = {
-        top:{style:'thin', color:{argb:'FFCCCCCC'}},
-        bottom:{style:'thin', color:{argb:'FFCCCCCC'}},
-        left:{style:'thin', color:{argb:'FFCCCCCC'}},
-        right:{style:'thin', color:{argb:'FFCCCCCC'}}
-      };
-    });
-  });
-
-  ws.addRow([]);
-  ws.addRow(['Selected Items']).font = { bold:true, size:12 };
-  ws.addRow([]);
-
-  const itemRows = planBreakdown.length
-    ? planBreakdown.map(r => [r.label, r.qty, r.unit, r.rate, r.qty * r.rate])
-    : [['(no items selected)', 0, '', 0, 0]];
-
-  const startRow = ws.lastRow.number + 1;
-  ws.addTable({
-    name: 'PlanItems',
-    ref: `A${startRow}`,
-    headerRow: true,
-    totalsRow: true,
-    style: { theme: 'TableStyleMedium9', showRowStripes: true },
-    columns: [
-      { name: 'Item' },
-      { name: 'Qty' },
-      { name: 'Unit' },
-      { name: 'Rate' },
-      { name: 'Line total', totalsRowFunction: 'sum' },
-    ],
-    rows: itemRows
-  });
-
-  const dataStart = startRow + 1;
-  const dataEnd = dataStart + Math.max(1, itemRows.length) - 1;
-  for (let r = dataStart; r <= dataEnd; r++) {
-    ws.getCell(`D${r}`).numFmt = '$#,##0.00';
-    ws.getCell(`E${r}`).numFmt = '$#,##0.00';
-  }
-  const totalsRowIndex = dataEnd + 1;
-  ws.getCell(`E${totalsRowIndex}`).numFmt = '$#,##0.00';
-  ws.getRow(totalsRowIndex).font = { bold:true };
-
-  ws.addRow([]);
-  const totalRow = ws.addRow(['', '', '', 'Grand Total', Number(planTotal) || 0]);
-  totalRow.font = { bold:true };
-  totalRow.getCell(5).numFmt = '$#,##0.00';
-  totalRow.getCell(4).border = totalRow.getCell(5).border = { top:{style:'thick'} };
-
-  const ab = await wb.xlsx.writeBuffer();
-  const blob = new Blob([ab], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  const fname = `plan-invoice-${(company||'company').toLowerCase().replace(/[^a-z0-9]+/g,'-')}-${(jobNum||'job').toLowerCase().replace(/[^a-z0-9]+/g,'-')}.xlsx`;
-
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = fname;
-  a.click();
-  URL.revokeObjectURL(a.href);
-};
-
-
-// === what the job needs (quantities/toggles) ===
-const [sel, setSel] = useState({
-  flagDay: '',            // '', 'HALF', 'FULL', 'EMERG'
-  laneClosure: 'NONE',    // 'NONE', 'HALF', 'FULL'
-
-  intersections: 0,       // qty
-  arrowBoardsQty: 0,      // qty instead of boolean
-  messageBoardsQty: 0,    // qty instead of boolean
-
-  afterHours: false,      // flat toggle
-  afterHoursSigns: 0,     // qty
-  afterHoursCones: 0,     // qty
-  nightWeekend: false,    // toggle
-  roadblock: false,       // toggle
-  extraWorker: false,     // toggle (keep as boolean unless you want qty)
-  miles: 0                // qty
-});
-
-// returns an object keyed by 'YYYY-MM-DD' -> [jobs...] or null
-const pickByDate = (payload) => {
-  const p = payload?.byDate ?? payload?.jobsByDate ?? payload;
-  if (!p || typeof p !== 'object' || Array.isArray(p)) return null;
-  const vals = Object.values(p);
-  return vals.length && vals.every(v => Array.isArray(v)) ? p : null;
-};
-
-// returns a flat array of jobs (or [])
-const pickList = (payload) => {
-  if (Array.isArray(payload)) return payload;
-  if (Array.isArray(payload?.jobs)) return payload.jobs;
-  if (Array.isArray(payload?.results)) return payload.results;
-  if (Array.isArray(payload?.data)) return payload.data;
-  // sometimes servers nest once more: { data: { results:[...] } } or { data: { byDate: {...} } }
-  const d = payload?.data;
-  if (Array.isArray(d?.jobs)) return d.jobs;
-  if (Array.isArray(d?.results)) return d.results;
-  if (Array.isArray(d)) return d;
-  return [];
-};
-useEffect(() => {
-  if (!billToCompany) return;
-
-  setSelectedEmail(prev => prev || COMPANY_TO_EMAIL[billToCompany] || '');
-  setBillToAddress(prev => prev || BILLING_ADDRESSES[billToCompany] || '');
-}, [billToCompany]);
-
-// === live breakdown & total (DOLLARS) ===
-const breakdown = useMemo(() => buildBreakdown(sel, rates), [sel, rates]);
-const liveTotal = useMemo(
-  () => breakdown.reduce((sum, r) => sum + (Number(r.rate) || 0) * (Number(r.qty) || 0), 0),
-  [breakdown]
-);
-const [selectedEmail, setSelectedEmail] = useState('');
-const [quote, setQuote] = useState(null);
-const [manualOverride, setManualOverride] = useState(false);
-const [manualAmount, setManualAmount] = useState('');
-// Remove localBilledJobs to fix cross-device sync - rely on server data only
+  const [selectedEmail, setSelectedEmail] = useState('');
+  const [quote, setQuote] = useState(null);
+  const [manualOverride, setManualOverride] = useState(false);
+  const [manualAmount, setManualAmount] = useState('');
   const [localPaidProgress, setLocalPaidProgress] = useState(() => {
-  try {
-    return JSON.parse(localStorage.getItem('localPaidProgress') || '{}');
-  } catch {
-    return {};
-  }
-});
-useEffect(() => {
-  // whenever jobsForDay changes, purge any cache entries the server has fully resolved
-  setLocalPaidProgress(prev => {
-    const copy = { ...prev };
-    let changed = false;
-
-    for (const j of jobsForDay) {
-      if (j.paid && copy[j._id]) { delete copy[j._id]; changed = true; }
-    }
-    if (changed) localStorage.setItem('localPaidProgress', JSON.stringify(copy));
-    return copy;
+    try { return JSON.parse(localStorage.getItem('localPaidProgress') || '{}'); }
+    catch { return {}; }
   });
-}, [jobsForDay]);
+  const [showPaymentForm, setShowPaymentForm] = useState({});
 
-const [showPaymentForm, setShowPaymentForm] = useState({});
-  // Gate on client (UX nicety; server still enforces)
-useEffect(() => {
-  const stored = localStorage.getItem('adminUser');
-  if (!stored) {
-    window.location.replace('/admin');
-    return;
-  }
+  const isValidEmail = (email) => true;
 
-  const user = JSON.parse(stored);
+  const tbsHours = useMemo(() => {
+    const s = billingJob?.basic?.startTime ? formatTime(billingJob.basic.startTime) : '';
+    const e = billingJob?.basic?.endTime   ? formatTime(billingJob.basic.endTime)   : '';
+    if (s && e) return `${s} – ${e}`;
+    return s || e || '';
+  }, [billingJob]);
 
-  const legacyEmails = new Set([
-    'tbsolutions9@gmail.com',
-    'tbsolutions1999@gmail.com',
-    'trafficandbarriersolutions.ap@gmail.com',
-    'tbsellen@gmail.com',
-    'tbsolutions1995@gmail.com',
-    'materialworx2@gmail.com',
-  ]);
+  const otLaborTotal = useMemo(() => {
+    const crews = Number(crewsCount) || 0;
+    const hrs   = Number(otHours) || 0;
+    const rate  = Number(otRate) || 0;
+    return Math.round(crews * hrs * rate * 100) / 100;
+  }, [crewsCount, otHours, otRate]);
 
-  const canInvoice =
-    (Array.isArray(user?.roles) && user.roles.includes('billing')) ||
-    (Array.isArray(user?.permissions) && user.permissions.includes('INVOICING')) ||
-    legacyEmails.has(user.email);
+  const sheetSubtotal = useMemo(() => {
+    const base = sheetRows.reduce((s, r) => s + (Number(r.amount) || 0), 0);
+    return Math.round((base + otLaborTotal) * 100) / 100;
+  }, [sheetRows, otLaborTotal]);
 
-  if (!canInvoice) {
-    // optional: toast.error('You do not have permission to access invoicing.');
-    window.location.replace('/admin');
-    return;
-  }
+  const sheetTaxable = useMemo(() =>
+    sheetRows.reduce((sum, r) => sum + (r.taxed ? (Number(r.amount) || 0) : 0), 0),
+  [sheetRows]);
 
-  const saved = localStorage.getItem('savedInvoices');
-  if (saved) setSavedInvoices(JSON.parse(saved));
-}, []);
+  const sheetTaxDue = useMemo(() => {
+    const rate = Number(sheetTaxRate) || 0;
+    return Math.round((sheetTaxable * rate) / 100 * 100) / 100;
+  }, [sheetTaxable, sheetTaxRate]);
 
+  const sheetTotal = useMemo(
+    () => Number((sheetSubtotal + sheetTaxDue + (Number(sheetOther) || 0)).toFixed(2)),
+    [sheetSubtotal, sheetTaxDue, sheetOther]
+  );
+
+  const breakdown = useMemo(() => buildBreakdown(sel, rates), [sel, rates]);
+  const liveTotal = useMemo(
+    () => breakdown.reduce((sum, r) => sum + (Number(r.rate) || 0) * (Number(r.qty) || 0), 0),
+    [breakdown]
+  );
+
+  const dedupeFiles = (arr) => {
+    const seen = new Set();
+    return arr.filter(f => {
+      const key = [f.name, f.size, f.lastModified].join('|');
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  };
+
+  const addRow = () => setSheetRows(rows => [...rows, { id: Date.now(), service: '', taxed: false, amount: 0 }]);
+  const removeRow = (id) => setSheetRows(rows => rows.filter(r => r.id !== id));
+  const updateRow = (id, patch) => setSheetRows(rows => rows.map(r => (r.id === id ? { ...r, ...patch } : r)));
+
+  const pickList = (payload) => {
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload?.jobs)) return payload.jobs;
+    if (Array.isArray(payload?.results)) return payload.results;
+    if (Array.isArray(payload?.data)) return payload.data;
+    const d = payload?.data;
+    if (Array.isArray(d?.jobs)) return d.jobs;
+    if (Array.isArray(d?.results)) return d.results;
+    if (Array.isArray(d)) return d;
+    return [];
+  };
+
+  useEffect(() => {
+    if (!invoiceDate) return;
+    if (!net30Auto) return;
+    const base = new Date(invoiceDate);
+    if (Number.isNaN(base.getTime())) return;
+    const d = new Date(base);
+    d.setDate(d.getDate() + 30);
+    setDueDate(d.toISOString().slice(0, 10));
+  }, [invoiceDate, net30Auto]);
+
+  useEffect(() => {
+    if (!billingJob) return;
+    const clientName = (billingJob.basic?.client || '').trim();
+    const inList = companyList.includes(clientName);
+    setBillToCompany(inList ? clientName : '');
+    setSelectedEmail(COMPANY_TO_EMAIL[clientName] || billingJob.basic?.email || '');
+    setBillToAddress(BILLING_ADDRESSES[clientName] || '');
+  }, [billingJob]);
+
+  useEffect(() => {
+    if (!billToCompany) return;
+    setSelectedEmail(prev => prev || COMPANY_TO_EMAIL[billToCompany] || '');
+    setBillToAddress(prev => prev || BILLING_ADDRESSES[billToCompany] || '');
+  }, [billToCompany]);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('adminUser');
+    if (!stored) { window.location.replace('/admin'); return; }
+    const user = JSON.parse(stored);
+    const legacyEmails = new Set([
+      'tbsolutions9@gmail.com', 'tbsolutions1999@gmail.com',
+      'trafficandbarriersolutions.ap@gmail.com', 'tbsellen@gmail.com',
+      'tbsolutions1995@gmail.com', 'materialworx2@gmail.com',
+    ]);
+    const canInvoice =
+      (Array.isArray(user?.roles) && user.roles.includes('billing')) ||
+      (Array.isArray(user?.permissions) && user.permissions.includes('INVOICING')) ||
+      legacyEmails.has(user.email);
+    if (!canInvoice) { window.location.replace('/admin'); return; }
+    const saved = localStorage.getItem('savedInvoices');
+    if (saved) setSavedInvoices(JSON.parse(saved));
+  }, []);
 
   const saveInvoiceData = () => {
     if (!billingJob) return;
     const invoiceData = {
       invoiceDate, invoiceNumber, workRequestNumber1, workRequestNumber2,
       billToCompany, billToAddress, workType, foreman, location,
-      sheetRows, sheetTaxRate, sheetOther, selectedEmail, crewsCount,
-      otHours, tbsHours,
+      sheetRows, sheetTaxRate, sheetOther, selectedEmail, crewsCount, otHours, tbsHours,
       savedAt: new Date().toISOString()
     };
     const updated = { ...savedInvoices, [billingJob._id]: invoiceData };
@@ -1975,332 +968,152 @@ useEffect(() => {
     setSelectedEmail(saved.selectedEmail || '');
   };
 
-// Calendar: fetch jobs for month (optionally filtered by company)
-// Calendar: fetch jobs for month (optionally filtered by company)
-const fetchMonthlyJobs = async (date, companyName = '') => {
-  try {
-    const month = date.getMonth() + 1;
-    const year = date.getFullYear();
-    const res = await axios.get(`/work-orders/month?month=${month}&year=${year}${companyName ? `&company=${encodeURIComponent(companyName)}` : ''}`);
-
-    // Option A: filter client-side if the API doesn’t support ?company on that endpoint
-    const filtered = companyName
-      ? res.data.filter(wo => (wo.basic?.client || '').trim() === companyName.trim())
-      : res.data;
-
-    const grouped = {};
-    filtered.forEach(wo => {
-      const dateStr = new Date(wo.scheduledDate).toISOString().split('T')[0];
-      (grouped[dateStr] ||= []).push(wo);
+  const handleDownloadXLSXStyled = async () => {
+    if (!billingJob) return;
+    const company = billingJob.company || '';
+    const jobNum  = billingJob.project || '';
+    const address = [billingJob.address, billingJob.city, billingJob.state, billingJob.zip].filter(Boolean).join(', ');
+    const email   = selectedEmail || '';
+    const today   = new Date().toLocaleDateString();
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'TBS Billing';
+    const ws = wb.addWorksheet('Invoice', {
+      pageSetup: { orientation: 'portrait', fitToPage: true, margins: { left:0.5, right:0.5, top:0.75, bottom:0.75 } },
+      views: [{ state: 'frozen', ySplit: 10 }]
     });
-    setMonthlyJobs(grouped);
-    setMonthlyKey(prev => prev + 1);
-  } catch (err) {
-    console.error("Failed to fetch monthly work orders:", err);
-  }
-};
-
-useEffect(() => {
-  fetchMonthlyJobs(new Date()); // 👈 Fetch initial calendar jobs on mount
-}, []);
-
-useEffect(() => {
-  if (selectedDate) {
-    fetchMonthlyJobs(selectedDate);
-  }
-}, [selectedDate]);
-// Calendar: fetch jobs for a single selected day (optionally filtered by company)
-const fetchJobsForDay = async (date, companyName) => {
-  try {
-    if (!date) return setJobsForDay([]);
-    const dateStr = date.toISOString().split('T')[0];
-    const params = { date: dateStr };
-    if (companyName) params.company = companyName;
-
-    const res = await axios.get('/work-orders', { params });
-    const list = pickList(res?.data);
-    if (!Array.isArray(list)) {
-      console.warn('Unexpected /work-orders payload; skipping render', res?.data);
-      setJobsForDay([]);
-      return;
-    }
-    console.log('Fetched jobs with billing data:', list.map(j => ({
-      id: j._id, 
-      client: j.basic?.client, 
-      billed: j.billed,
-      invoiceTotal: j.invoiceTotal,
-      currentAmount: j.currentAmount,
-      billedAmount: j.billedAmount
-    })));
-        // Enrich with invoice status from server
-    const ids = list.map(j => j._id).join(',');
-    let map = {};
-   try {
-       const invRes = await api.get('/api/billing/invoice-status', {
-   params: { 
-     workOrderIds: ids,
-     _t: Date.now() // Cache-busting timestamp
-   },
- });
-      map = invRes?.data?.byWorkOrder || {};
-    } catch (e) {
-      console.warn('Failed to fetch invoice status map:', e);
-   }
-   
-   console.log('Invoice status map fetched:', map);
-
-    const enriched = list.map(j => {
-      const inv = map[j._id] || null;
-      return {
-        ...j,
-        _invoice: inv // attach canonical invoice info (or null)
-      };
+    ws.getColumn(1).width = 38; ws.getColumn(2).width = 10; ws.getColumn(3).width = 12; ws.getColumn(4).width = 14; ws.getColumn(5).width = 16;
+    ws.mergeCells('A1:E1');
+    const title = ws.getCell('A1');
+    title.value = `Invoice — ${company}`;
+    title.font = { bold: true, size: 16 };
+    title.alignment = { horizontal: 'center', vertical: 'middle' };
+    title.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEDF2FF' } };
+    ws.getRow(1).height = 26;
+    ws.addRow([]);
+    const metaRows = [['Company', company],['Job Number', jobNum],['Address', address],['Send To (Email)', email],['Invoice Date', today]];
+    const metaHeader = ws.addRow(['Field', 'Value']);
+    metaHeader.font = { bold: true };
+    metaHeader.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF3F4F6' } };
+    metaHeader.alignment = { vertical: 'middle' };
+    metaHeader.height = 18;
+    metaRows.forEach(([k, v]) => {
+      const r = ws.addRow([k, v]);
+      r.getCell(1).font = { bold: true };
+      r.getCell(2).alignment = { wrapText: true };
+      ws.mergeCells(`B${r.number}:E${r.number}`);
+      [1,2,3,4,5].forEach(c => {
+        const cell = r.getCell(c);
+        cell.border = { top:{style:'thin',color:{argb:'FFCCCCCC'}}, bottom:{style:'thin',color:{argb:'FFCCCCCC'}}, left:{style:'thin',color:{argb:'FFCCCCCC'}}, right:{style:'thin',color:{argb:'FFCCCCCC'}} };
+      });
     });
-    setJobsForDay(enriched);
-  } catch (err) {
-    console.error('fetchJobsForDay failed:', err);
-    setJobsForDay([]);
-  }
-};
-// Remove localBilledJobs cleanup - rely on server data only
-  // Initial calendar load: ALL companies
-  useEffect(() => {
-    (async () => {
-      await fetchMonthlyJobs(calendarViewDate, '');
-      await fetchJobsForDay(selectedDate, '');
-    })();
-  }, []); // run once
-
-  // Auto-refresh every 30 seconds to sync payment status across browsers
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (selectedDate) {
-        fetchJobsForDay(selectedDate, companyKey || '');
-      }
-    }, 30000); // 30 seconds
-    
-    return () => clearInterval(interval);
-  }, [selectedDate, companyKey]);
-
-  // When company changes: refetch month + selected day with that filter
-  useEffect(() => {
-    (async () => {
-      await fetchMonthlyJobs(calendarViewDate, companyKey || '');
-      await fetchJobsForDay(selectedDate, companyKey || '');
-    })();
-  }, [companyKey]);
-
-  // When month changes: refetch month view
-  const onMonthChange = async (date) => {
-    setCalendarViewDate(date);
-    await fetchMonthlyJobs(date, companyKey || '');
+    ws.addRow([]); ws.addRow(['Selected Items']).font = { bold: true, size: 12 }; ws.addRow([]);
+    const serviceRows = sheetRows.map(r => [r.service || '', '', '', '', Number(r.amount) || 0]);
+    if (otLaborTotal > 0) serviceRows.push([`Overtime labor — ${crewsCount || 0} crew × ${otHours || 0} hr × $${(Number(otRate)||0).toFixed(2)}/hr`, '', '', '', otLaborTotal]);
+    const startRow = ws.lastRow.number + 1;
+    ws.addTable({ name: 'LineItems', ref: `A${startRow}`, headerRow: true, totalsRow: true,
+      style: { theme: 'TableStyleMedium9', showRowStripes: true },
+      columns: [{ name: 'Item' },{ name: 'Qty' },{ name: 'Unit' },{ name: 'Rate' },{ name: 'Line total', totalsRowFunction: 'sum' }],
+      rows: serviceRows.length ? serviceRows : [['(no items selected)', '', '', '', 0]],
+    });
+    const dataStart = startRow + 1;
+    const dataEnd = dataStart + Math.max(1, serviceRows.length) - 1;
+    for (let r = dataStart; r <= dataEnd; r++) { ws.getCell(`D${r}`).numFmt = '$#,##0.00'; ws.getCell(`E${r}`).numFmt = '$#,##0.00'; }
+    const totalsRowIndex = dataEnd + 1;
+    ws.getCell(`E${totalsRowIndex}`).numFmt = '$#,##0.00'; ws.getRow(totalsRowIndex).font = { bold: true };
+    ws.addRow([]);
+    const totalRow = ws.addRow(['', '', '', 'Grand Total', Number(liveTotal) || 0]);
+    totalRow.font = { bold: true }; totalRow.getCell(5).numFmt = '$#,##0.00';
+    totalRow.getCell(4).border = totalRow.getCell(5).border = { top: { style:'thick' } };
+    ws.addRow([]);
+    const ab = await wb.xlsx.writeBuffer();
+    const blob = new Blob([ab], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const fname = `invoice-${(company||'company').toLowerCase().replace(/[^a-z0-9]+/g,'-')}-${(jobNum||'job').toLowerCase().replace(/[^a-z0-9]+/g,'-')}.xlsx`;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = fname; a.click(); URL.revokeObjectURL(a.href);
   };
 
-  // When date changes: refetch that day's jobs
-  const onDateChange = async (date) => {
-    setSelectedDate(date);
-    await fetchJobsForDay(date, companyKey || '');
-  };
-
-  // Fetch plans
-  const fetchPlans = async () => {
+  const handleUpdateInvoice = async () => {
+    setSubmissionMessage(''); setSubmissionErrorMessage(''); setErrorMessage('');
+    if (!selectedEmail || !isValidEmail(selectedEmail)) { const msg = 'Enter a valid email address.'; setErrorMessage(msg); toast.error(msg); return; }
+    if (!billingJob) { const msg = 'No work order selected.'; setErrorMessage(msg); toast.error(msg); return; }
+    if (!billingJob?._invoice && !billingJob?.invoiceData) { toast.error('No invoice found to update.'); return; }
+    setIsSubmitting(true);
     try {
-      const res = await api.get('/plan/all');
-      const plansList = Array.isArray(res?.data) ? res.data : 
-                       Array.isArray(res?.data?.plans) ? res.data.plans :
-                       Array.isArray(res?.data?.data) ? res.data.data : [];
-      setPlans(plansList);
+      const payload = {
+        workOrderId: billingJob._id,
+        invoiceId: billingJob._invoice?.invoiceId || billingJob._invoice?._id,
+        mode: 'update',
+        manualAmount: Number(sheetTotal.toFixed(2)),
+        emailOverride: selectedEmail,
+        tbsInvoiceNumber: workOrderTbsInvoiceNumber,
+        invoiceData: {
+          invoiceDate, invoiceNumber, workRequestNumber1, workRequestNumber2,
+          dueDate: (dueDate && /^\d{4}-\d{2}-\d{2}$/.test(dueDate)) ? dueDate
+            : (billingJob?.invoiceData?.dueDate && /^\d{4}-\d{2}-\d{2}$/.test(billingJob.invoiceData.dueDate)) ? billingJob.invoiceData.dueDate
+            : new Date(new Date(invoiceDate).getTime() + 30*24*60*60*1000).toISOString().slice(0,10),
+          billToCompany: billToCompany === 'Other(Specify if new in message to add to this list)' ? customCompanyName : billToCompany,
+          billToAddress, workType, foreman, location,
+          sheetRows, sheetSubtotal, sheetTaxRate, sheetTaxDue, sheetOther, sheetTotal, crewsCount, otHours, tbsHours
+        }
+      };
+      const fd2 = new FormData();
+      fd2.append('payload', JSON.stringify(payload));
+      (attachedPdfs || []).forEach(f => fd2.append('attachments', f));
+      await api.post('/api/billing/update-invoice', fd2, { headers: { 'Content-Type': 'multipart/form-data' } });
+      setSubmissionMessage('Invoice updated and sent!');
+      toast.success('Invoice updated and sent successfully!');
+      setBillingOpen(false); setBillingJob(null);
     } catch (err) {
-      console.error('fetchPlans failed:', err);
-      setPlans([]);
-    }
+      const msg = err?.response?.data?.message || err?.response?.data || err?.message || 'Failed to update invoice.';
+      setSubmissionErrorMessage(msg); toast.error(msg);
+    } finally { setIsSubmitting(false); }
   };
 
-  // Fetch plans on component mount
-  useEffect(() => {
-    fetchPlans();
-  }, []);
-
-const handleUpdateInvoice = async () => {
-  console.log('[UI] Update & Resend clicked');
-  setSubmissionMessage('');
-  setSubmissionErrorMessage('');
-  setErrorMessage('');
-
-  if (!selectedEmail || !isValidEmail(selectedEmail)) {
-    const msg = 'Enter a valid email address.';
-    setErrorMessage(msg);
-    toast.error(msg);
-    return;
-  }
-  if (!billingJob) {
-    const msg = 'No work order selected.';
-    setErrorMessage(msg);
-    toast.error(msg);
-    return;
-  }
- if (!billingJob?._invoice && !billingJob?.invoiceData) {
-   toast.error('No invoice found to update.');
-   return;
- }
-  setIsSubmitting(true);
-  try {
-    const payload = {
-      workOrderId: billingJob._id,
-      invoiceId: billingJob._invoice?.invoiceId || billingJob._invoice?._id,
-      mode: 'update', // <-- make the intent explicit
-      manualAmount: Number(sheetTotal.toFixed(2)),
-      emailOverride: selectedEmail,
-      tbsInvoiceNumber: workOrderTbsInvoiceNumber,
-      invoiceData: {
-        invoiceDate,
-        invoiceNumber,
-        workRequestNumber1,
-        workRequestNumber2,
-           dueDate: (dueDate && /^\d{4}-\d{2}-\d{2}$/.test(dueDate))
-     ? dueDate
-     : (billingJob?.invoiceData?.dueDate && /^\d{4}-\d{2}-\d{2}$/.test(billingJob.invoiceData.dueDate))
-       ? billingJob.invoiceData.dueDate
-       : new Date(new Date(invoiceDate).getTime() + 30*24*60*60*1000).toISOString().slice(0,10),
-        billToCompany: billToCompany === "Other(Specify if new in message to add to this list)" ? customCompanyName : billToCompany,
-        billToAddress,
-        workType,
-        foreman,
-        location,
-        sheetRows: sheetRows,
-        sheetSubtotal,
-        sheetTaxRate,
-        sheetTaxDue,
-        sheetOther,
-        sheetTotal,
-        crewsCount,
-        otHours,
-        tbsHours
-      }
-    };
-   const fd2 = new FormData();
-   fd2.append('payload', JSON.stringify(payload));
-   // attach only if present; empty list is fine
-   (attachedPdfs || []).forEach(f => fd2.append('attachments', f));
-   await api.post('/api/billing/update-invoice', fd2, {
-     headers: { 'Content-Type': 'multipart/form-data' }
-   });
-
-    await fetchJobsForDay(selectedDate, companyKey || '');
-
-    setSubmissionMessage('Invoice updated and sent!');
-    toast.success('Invoice updated and sent successfully!');
-    setBillingOpen(false);
-    setBillingJob(null);
-  } catch (err) {
-  console.error('Update invoice error:', err?.response?.data || err);
-  const msg = err?.response?.data?.message || err?.response?.data || err?.message || 'Failed to update invoice.';
-    setSubmissionErrorMessage(msg);
-    toast.error(msg);
-  } finally {
-    setIsSubmitting(false);
-  }
-};
   const handleSendInvoice = async () => {
-  // reset any old messages
-  setSubmissionMessage('');
-  setSubmissionErrorMessage('');
-  setErrorMessage('');
+    setSubmissionMessage(''); setSubmissionErrorMessage(''); setErrorMessage('');
+    if (!readyToSend) { const msg = 'Please check "Yes, it is ready to send."'; setErrorMessage(msg); toast.error(msg); return; }
+    if (!selectedEmail || !isValidEmail(selectedEmail)) { const msg = 'Enter a valid email address.'; setErrorMessage(msg); toast.error(msg); return; }
+    if (!billingJob) { const msg = 'No work order selected.'; setErrorMessage(msg); toast.error(msg); return; }
+    setIsSubmitting(true);
+    try {
+      const payload = {
+        workOrderId: billingJob._id,
+        manualAmount: Number(sheetTotal.toFixed(2)),
+        emailOverride: selectedEmail,
+        tbsInvoiceNumber: workOrderTbsInvoiceNumber,
+        invoiceData: {
+          invoiceDate, invoiceNumber, workRequestNumber1, workRequestNumber2, dueDate,
+          billToCompany: billToCompany === 'Other(Specify if new in message to add to this list)' ? customCompanyName : billToCompany,
+          billToAddress, workType, foreman, location,
+          sheetRows, sheetSubtotal, sheetTaxRate, sheetTaxDue, sheetOther, sheetTotal,
+          crewsCount, otHours, tbsHours, otRate, otLaborTotal
+        }
+      };
+      const fd = new FormData();
+      fd.append('payload', JSON.stringify(payload));
+      attachedPdfs.forEach(f => fd.append('attachments', f));
+      await api.post('/api/billing/bill-workorder', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      setSubmissionMessage('Invoice sent!');
+      toast.success('Invoice sent with PDF attachment.');
+      setBillingOpen(false); setBillingJob(null); setReadyToSend(false); setWorkOrderTbsInvoiceNumber('');
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || 'Failed to send invoice.';
+      setSubmissionErrorMessage(msg); toast.error(msg);
+    } finally { setIsSubmitting(false); }
+  };
 
-  if (!readyToSend) {
-    const msg = 'Please check “Yes, it is ready to send.”';
-    setErrorMessage(msg);
-    toast.error(msg);
-    return;
-  }
-  if (!selectedEmail || !isValidEmail(selectedEmail)) {
-    const msg = 'Enter a valid email address.';
-    setErrorMessage(msg);
-    toast.error(msg);
-    return;
-  }
-  if (!billingJob) {
-    const msg = 'No work order selected.';
-    setErrorMessage(msg);
-    toast.error(msg);
-    return;
-  }
-
-  setIsSubmitting(true);
-  try {
-    const payload = {
-      workOrderId: billingJob._id,
-      manualAmount: Number(sheetTotal.toFixed(2)),
-      emailOverride: selectedEmail,
-      tbsInvoiceNumber: workOrderTbsInvoiceNumber,
-      invoiceData: {
-        invoiceDate,
-        invoiceNumber,
-        workRequestNumber1,
-        workRequestNumber2,
-        dueDate,
-        billToCompany: billToCompany === "Other(Specify if new in message to add to this list)" ? customCompanyName : billToCompany,
-        billToAddress,
-        workType,
-        foreman,
-        location,
-        sheetRows: sheetRows,
-        sheetSubtotal,
-        sheetTaxRate,
-        sheetTaxDue,
-        sheetOther,
-        sheetTotal,
-        crewsCount,        // << add
-        otHours,           // << add
-        tbsHours,
-        otRate,                 // <— add
-        otLaborTotal              // << add (you already compute this with start/end time)
-      }
-    };
-    const fd = new FormData();
- fd.append('payload', JSON.stringify(payload));          // your existing JSON
- attachedPdfs.forEach(f => fd.append('attachments', f)); // multiple allowed
- await api.post('/api/billing/bill-workorder', fd, {
-   headers: { 'Content-Type': 'multipart/form-data' }
- });
-
-    // Refetch server data to get updated billed status (no more localStorage)
-    await fetchJobsForDay(selectedDate);
-
-    setSubmissionMessage('Invoice sent!');
-    toast.success('Invoice sent with PDF attachment.');
-    // close the modal & reset controls
-    setBillingOpen(false);
-    setBillingJob(null);
-    setReadyToSend(false);
-    setWorkOrderTbsInvoiceNumber('');
-  } catch (err) {
-    const msg =
-      err?.response?.data?.message ||
-      err?.message ||
-      'Failed to send invoice.';
-    setSubmissionErrorMessage(msg);
-    toast.error(msg);
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-
-  // Fetch all invoices for spreadsheet
   const [allInvoices, setAllInvoices] = useState([]);
   const [invoicePage, setInvoicePage] = useState(0);
   const [markingPaidId, setMarkingPaidId] = useState(null);
   const [invFilter, setInvFilter] = useState({ search: '', month: '', status: '' });
   const INVOICES_PER_PAGE = 50;
-  
+
   useEffect(() => {
     const fetchAllInvoices = async () => {
       try {
         const res = await api.get('/api/billing/all-invoices');
         setAllInvoices(res.data || []);
-      } catch (err) {
-        console.error('Failed to fetch all invoices:', err);
-      }
+      } catch (err) { console.error('Failed to fetch all invoices:', err); }
     };
     fetchAllInvoices();
   }, []);
@@ -2337,9 +1150,7 @@ const handleUpdateInvoice = async () => {
       setAllInvoices(res.data || []);
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to mark paid');
-    } finally {
-      setMarkingPaidId(null);
-    }
+    } finally { setMarkingPaidId(null); }
   };
 
   return (
@@ -2348,27 +1159,20 @@ const handleUpdateInvoice = async () => {
       <div className="invoice-page container">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <h1>Invoices</h1>
-          <button 
-            className="btn"
-            onClick={() => fetchJobsForDay(selectedDate, companyKey || '')}
-            style={{ fontSize: '12px', padding: '6px 12px' }}
-            title="Refresh to sync payment status across all devices"
-          >
-            🔄 Refresh
-          </button>
         </div>
-        
+
         {/* Company Profiles — Send Invoice */}
         <CompanyProfilesSection />
 
-        {/* Invoice Spreadsheet */}
+        {/* All Invoices */}
         <div style={{ marginBottom: '30px', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
           <h2 style={{ marginBottom: '15px' }}>All Invoices</h2>
+
           {/* Filter bar */}
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16, padding: 12, background: '#f0f0f0', borderRadius: 8, border: '1px solid #dee2e6' }}>
             <input
               type="text"
-              placeholder="Search invoice #, company, date..."
+              placeholder="Search invoice #, company, date…"
               value={invFilter.search}
               onChange={e => { setInvFilter(f => ({ ...f, search: e.target.value })); setInvoicePage(0); }}
               style={{ flex: 1, minWidth: 180, padding: '6px 10px', borderRadius: 6, border: '1px solid #ccc' }}
@@ -2427,28 +1231,12 @@ const handleUpdateInvoice = async () => {
                       <td style={{ padding: '10px', textAlign: 'right', border: '1px solid #ddd' }}>${(inv.principal || 0).toFixed(2)}</td>
                       <td style={{ padding: '10px', textAlign: 'center', border: '1px solid #ddd' }}>
                         {inv.status === 'PAID' ? (
-                          <span style={{ 
-                            padding: '4px 12px', 
-                            borderRadius: '4px', 
-                            backgroundColor: '#28a745',
-                            color: 'white',
-                            fontWeight: 'bold'
-                          }}>
-                            Yes
-                          </span>
+                          <span style={{ padding: '4px 12px', borderRadius: '4px', backgroundColor: '#28a745', color: 'white', fontWeight: 'bold' }}>Yes</span>
                         ) : (
                           <button
                             onClick={() => handleQuickMarkPaid(inv._id)}
                             disabled={markingPaidId === inv._id}
-                            style={{
-                              padding: '4px 12px',
-                              borderRadius: '4px',
-                              backgroundColor: '#ffc107',
-                              color: 'black',
-                              fontWeight: 'bold',
-                              border: 'none',
-                              cursor: markingPaidId === inv._id ? 'wait' : 'pointer'
-                            }}
+                            style={{ padding: '4px 12px', borderRadius: '4px', backgroundColor: '#ffc107', color: 'black', fontWeight: 'bold', border: 'none', cursor: markingPaidId === inv._id ? 'wait' : 'pointer' }}
                           >
                             {markingPaidId === inv._id ? 'Marking...' : 'No - Mark Paid'}
                           </button>
@@ -2460,7 +1248,7 @@ const handleUpdateInvoice = async () => {
             </table>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '15px' }}>
-            <button 
+            <button
               onClick={() => setInvoicePage(p => Math.max(0, p - 1))}
               disabled={invoicePage === 0}
               style={{ padding: '8px 16px', backgroundColor: invoicePage === 0 ? '#ccc' : '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: invoicePage === 0 ? 'not-allowed' : 'pointer' }}
@@ -2468,1027 +1256,17 @@ const handleUpdateInvoice = async () => {
               ← Previous
             </button>
             <span>Page {invoicePage + 1} of {Math.ceil(filteredInvoices.length / INVOICES_PER_PAGE)} ({filteredInvoices.length} of {allInvoices.length} total)</span>
-            <button 
+            <button
               onClick={() => setInvoicePage(p => p + 1)}
               disabled={(invoicePage + 1) * INVOICES_PER_PAGE >= filteredInvoices.length}
-              style={{ padding: '8px 16px', backgroundColor: (invoicePage + 1) * INVOICES_PER_PAGE >= allInvoices.length ? '#ccc' : '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: (invoicePage + 1) * INVOICES_PER_PAGE >= allInvoices.length ? 'not-allowed' : 'pointer' }}
+              style={{ padding: '8px 16px', backgroundColor: (invoicePage + 1) * INVOICES_PER_PAGE >= filteredInvoices.length ? '#ccc' : '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: (invoicePage + 1) * INVOICES_PER_PAGE >= filteredInvoices.length ? 'not-allowed' : 'pointer' }}
             >
               Next →
             </button>
           </div>
         </div>
-        {/* Jobs Calendar – shows ALL jobs until a selection is made, then filters */}
-        <div className="admin-job-calendar" style={{ marginTop: 20 }}>
-          <h2>
-            {companyKey ? `${companyKey} work orders` : 'All completed work orders'} — calendar
-          </h2>
-          <DatePicker
-            selected={selectedDate}
-            onChange={onDateChange}
-            onMonthChange={onMonthChange}
-            calendarClassName="admin-date-picker"
-            dateFormat="MMMM d, yyyy"
-            inline
-            formatWeekDay={(nameOfDay) => {
-              const map = { Su:'Sunday', Mo:'Monday', Tu:'Tuesday', We:'Wednesday', Th:'Thursday', Fr:'Friday', Sa:'Saturday' };
-              return map[nameOfDay] || nameOfDay;
-            }}
-            dayClassName={(date) => {
-              const dateStr = date.toISOString().split('T')[0];
-              const hasJobs = monthlyJobs[dateStr]?.length > 0;
-              return hasJobs ? 'has-jobs' : '';
-            }}
-            renderDayContents={(day, date) => {
-              const dateStr = date.toISOString().split('T')[0];
-              const jobsOnDate = monthlyJobs[dateStr] || [];
-              const jobCount = jobsOnDate.length;
-              return (
-                <div className="calendar-day-kiss">
-                  <div className="day-number">{day}</div>
-                  {jobCount > 0 && <div className="job-count">Jobs: {jobCount}</div>}
-                </div>
-              );
-            }}
-          />
 
-          {/* Jobs list for the selected day */}
-          <div className="job-main-info-list">
-            <h2>Please select a work order that hasn't been billed.</h2>
-            <h3>
-              Work Orders on {selectedDate?.toLocaleDateString()}
-            </h3>
-<div className="job-info-list">
-  {jobsForDay.map((workOrder) => (
-    <div key={workOrder._id} className="job-card">
-      <h4 className="job-company">{workOrder.basic?.client || 'Unknown Client'}</h4>
-
-      <p className="updated-label">
-        ✅ Completed on {new Date(workOrder.createdAt).toLocaleDateString()} at {new Date(workOrder.createdAt).toLocaleTimeString()}
-      </p>
-
-      <p><strong>Coordinator:</strong> {workOrder.basic?.coordinator}</p>
-      <p><strong>Project:</strong> {workOrder.basic?.project}</p>
-      <p><strong>Time:</strong> {workOrder.basic?.startTime ? formatTime(workOrder.basic.startTime) : ''} - {workOrder.basic?.endTime ? formatTime(workOrder.basic.endTime) : ''}</p>
-      <p><strong>Address:</strong> {workOrder.basic?.address}, {workOrder.basic?.city}, {workOrder.basic?.state} {workOrder.basic?.zip}</p>
-      {workOrder.basic?.rating && <p><strong>Rating:</strong> {workOrder.basic.rating}</p>}
-      {workOrder.basic?.notice24 && <p><strong>24hr Notice:</strong> {workOrder.basic.notice24}</p>}
-      {workOrder.basic?.callBack && <p><strong>Call Back:</strong> {workOrder.basic.callBack}</p>}
-      {workOrder.basic?.notes && <p><strong>Additional Notes:</strong> {workOrder.basic.notes}</p>}
-      <p><strong>Foreman:</strong> {workOrder.basic?.foremanName}</p>
-      <p><strong>Flaggers:</strong> {[workOrder.tbs?.flagger1, workOrder.tbs?.flagger2, workOrder.tbs?.flagger3, workOrder.tbs?.flagger4, workOrder.tbs?.flagger5].filter(Boolean).join(', ')}</p>
-      {workOrder.tbs?.trucks?.length > 0 && <p><strong>Trucks:</strong> {workOrder.tbs.trucks.join(', ')}</p>}
-      
-      <div style={{marginTop: '10px'}}>
-        <strong>Equipment Summary:</strong>
-        <table style={{width: '100%', borderCollapse: 'collapse', marginTop: '5px', fontSize: '12px'}}>
-          <thead>
-            <tr style={{backgroundColor: '#f2f2f2'}}>
-              <th style={{border: '1px solid #ddd', padding: '4px'}}>Item</th>
-              <th style={{border: '1px solid #ddd', padding: '4px'}}>Started</th>
-              <th style={{border: '1px solid #ddd', padding: '4px'}}>Ended</th>
-            </tr>
-          </thead>
-          <tbody>
-            {['hardHats','vests','walkies','arrowBoards','cones','barrels','signStands','signs'].map(key => {
-              const morning = workOrder.tbs?.morning || {};
-              return (
-                <tr key={key}>
-                  <td style={{border: '1px solid #ddd', padding: '4px'}}>{formatEquipmentName(key)}</td>
-                  <td style={{border: '1px solid #ddd', padding: '4px'}}>{morning[key]?.start ?? ''}</td>
-                  <td style={{border: '1px solid #ddd', padding: '4px'}}>{morning[key]?.end ?? ''}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
       </div>
-      
-      <div style={{marginTop: '10px'}}>
-        <strong>Jobsite Checklist:</strong>
-        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px', marginTop: '5px', fontSize: '12px'}}>
-          <div>✓ Visibility: {workOrder.tbs?.jobsite?.visibility ? 'Yes' : 'No'}</div>
-          <div>✓ Communication: {workOrder.tbs?.jobsite?.communication ? 'Yes' : 'No'}</div>
-          <div>✓ Site Foreman: {workOrder.tbs?.jobsite?.siteForeman ? 'Yes' : 'No'}</div>
-          <div>✓ Signs/Stands: {workOrder.tbs?.jobsite?.signsAndStands ? 'Yes' : 'No'}</div>
-          <div>✓ Cones/Taper: {workOrder.tbs?.jobsite?.conesAndTaper ? 'Yes' : 'No'}</div>
-          <div>✓ Equipment Left: {workOrder.tbs?.jobsite?.equipmentLeft ? 'Yes' : 'No'}</div>
-        </div>
-      </div>
-      
-      {workOrder.tbs?.jobsite?.equipmentLeft && workOrder.tbs?.jobsite?.equipmentLeftReason && (
-        <p><strong>Equipment Left Reason:</strong> {workOrder.tbs.jobsite.equipmentLeftReason}</p>
-      )}
-      
-      {workOrder.foremanSignature && (
-        <div style={{textAlign: 'center', margin: '10px 0'}}>
-          <strong>Foreman Signature:</strong>
-          <div style={{marginTop: '5px'}}>
-            <img 
-              src={`data:image/png;base64,${workOrder.foremanSignature}`} 
-              alt="Foreman Signature" 
-              style={{maxHeight: '60px', border: '1px solid #ddd', padding: '5px', backgroundColor: '#fff'}}
-            />
-          </div>
-        </div>
-      )}
-      
-      <p><strong>Completed:</strong> {new Date(workOrder.createdAt).toLocaleDateString()} at {new Date(workOrder.createdAt).toLocaleTimeString()}</p>
-
-      {/* Bill Job controls belong INSIDE the map/card */}
-{(() => {
-const forcePaidForGaPower = isGaPowerOnly(workOrder.basic?.client);
-const inv = workOrder._invoice || null;
-
-// Canonical from Invoice doc when present
-const serverHasInvoice   = !!inv;
-const serverIsBilled     = inv ? ['SENT','PARTIALLY_PAID','PAID'].includes(inv.status) : false;
-const serverIsPaid       = inv ? inv.status === 'PAID' || !!workOrder.paid : !!workOrder.paid;
-
-// Back-compat fallback if no invoice row found (older data)
-const legacyIsBilled =
-  Boolean(workOrder.billed) ||
-  Boolean(workOrder.invoiceId) ||
-  Number(workOrder.invoiceTotal) > 0 ||
-  Number(workOrder.billedAmount) > 0 ||
-  Number(workOrder?.invoiceData?.sheetTotal) > 0;
-
- // If GA Power-only, treat as both billed and paid (client never pays you directly)
- const isPaid   = serverHasInvoice ? serverIsPaid : (Boolean(workOrder.paid) || forcePaidForGaPower);
- const isBilled = serverHasInvoice ? serverIsBilled : (legacyIsBilled || forcePaidForGaPower);
-// Amounts (prefer server)
-const effectiveBilledAmount = Number(
-  (inv?.principal) ??
-  workOrder.billedAmount ??
-  workOrder.invoiceTotal ??
-  workOrder.invoicePrincipal ??
-  workOrder?.invoiceData?.sheetTotal ??
-  0
-);
-
-const effectiveCurrentAmount = Number(
-  workOrder.currentAmount ?? effectiveBilledAmount
-);
-
-const isExpanded = billingJob?._id === workOrder._id;
-
-  if (!isBilled && workOrder.basic?.client !== 'Georgia Power') {
-    return (
-      <div>
-        <button className="btn" onClick={() => {
-          if (isExpanded) {
-            setBillingJob(null);
-            setBillingOpen(false);
-            setIsUpdateMode(false);
-            setWorkOrderTbsInvoiceNumber('');
-          } else {
-            setBillingJob(workOrder);
-            setIsUpdateMode(false);
-            if (savedInvoices[workOrder._id]) {
-              loadSavedInvoice(workOrder._id);
-            } else {
-              setSelectedEmail(workOrder.basic?.email || '');
-              setBillToCompany('');
-              setBillToAddress('');
-              setWorkType('');
-              setForeman(workOrder.basic?.foremanName || '');
-              setLocation([workOrder.basic?.address, workOrder.basic?.city, workOrder.basic?.state, workOrder.basic?.zip].filter(Boolean).join(', '));
-              setInvoiceDate(new Date().toISOString().slice(0,10));
-              setNet30Auto(true);
-              setInvoiceNumber('');
-              setWorkRequestNumber1('');
-              setWorkRequestNumber2('');
-              setSheetRows(VERTEX42_STARTER_ROWS);
-              setSheetTaxRate(0);
-              setSheetOther(0);
-            }
-            const dueDateCalc = new Date();
-            dueDateCalc.setDate(dueDateCalc.getDate() + 30);
-            setDueDate(dueDateCalc.toISOString().slice(0,10));
-            setSel({ flagDay: '', laneClosure: 'NONE', intersections: 0, arrowBoardsQty: 0, messageBoardsQty: 0, afterHours: false, afterHoursSigns: 0, afterHoursCones: 0, nightWeekend: false, roadblock: false, extraWorker: false, miles: 0 });
-            setManualOverride(false);
-            setManualAmount('');
-            setQuote(null);
-            const saved = savedInvoices[workOrder._id];
-            setCrewsCount(saved?.crewsCount ?? '');
-            setOtHours(saved?.otHours ?? '');
-          }
-        }}>
-          {isExpanded ? 'Close Billing' : 'Bill Job'}
-        </button>
-        {/* Shared billing/edit panel: shows for Bill Job OR Update Invoice */}
-
-
-        {isExpanded && (
-          <div style={{ marginTop: '15px', padding: '15px', border: '2px solid #007bff', borderRadius: '8px', backgroundColor: '#f8f9fa' }}>
-            <div style={{ marginBottom: 16, fontWeight: 'bold', fontSize: '16px' }}>ATTACH INVOICE PDF (Required)</div>
-            <div style={{ padding: '15px', border: '2px dashed #007bff', borderRadius: '8px', backgroundColor: '#f0f8ff', marginBottom: '15px' }}>
-              <div style={{ color: '#007bff', fontSize: '14px', marginBottom: '10px', fontWeight: 'bold' }}>📎 Upload your invoice PDF(s) - these will be sent to the client</div>
-              <input 
-                type="file" 
-                accept="application/pdf" 
-                multiple 
-                onChange={(e) => {
-                  const newFiles = Array.from(e.target.files || []);
-                  const allFiles = [...(attachedPdfs || []), ...newFiles];
-                  handlePdfAttachment(allFiles, setAttachedPdfs, setDetectingTotal, setDetectError, setDetectedTotal, setSheetRows, toast);
-                  e.target.value = ''; // Reset input to allow re-selecting same files
-                }} 
-                style={{ marginBottom: '10px' }} 
-              />
-              {detectingTotal && <div style={{ color: '#007bff', fontSize: '14px' }}>🔍 Detecting total from PDF...</div>}
-              {detectedTotal && <div style={{ color: '#28a745', fontSize: '16px', fontWeight: 'bold' }}>✅ Auto-detected total: ${detectedTotal.toFixed(2)}</div>}
-              {detectError && <div style={{ color: '#dc3545', fontSize: '14px' }}>❌ {detectError}</div>}
-              {attachedPdfs.length > 0 && (
-                <div style={{ marginTop: '10px' }}>
-                  <strong>Attached files ({attachedPdfs.length}):</strong>
-                  <ul style={{ margin: '5px 0', paddingLeft: '20px' }}>
-                    {attachedPdfs.map((file, idx) => (
-                      <li key={idx}>
-                        {file.name} ({(file.size / 1024).toFixed(1)} KB)
-                        <button onClick={() => {
-                          const newFiles = attachedPdfs.filter((_, i) => i !== idx);
-                          handlePdfAttachment(newFiles, setAttachedPdfs, setDetectingTotal, setDetectError, setDetectedTotal, setSheetRows, toast);
-                        }} style={{ marginLeft: '8px', fontSize: '12px', padding: '2px 6px', color: '#dc3545', background: 'none', border: '1px solid #dc3545', borderRadius: '3px', cursor: 'pointer' }}>Remove</button>
-                      </li>
-                    ))}
-                  </ul>
-                  <div style={{ fontSize: '14px', color: '#007bff', marginTop: '5px' }}>💡 These PDFs will be attached to the email instead of generating new ones</div>
-                </div>
-              )}
-            </div>
-            
-            <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#e3f2fd', borderRadius: '8px', border: '2px solid #007bff' }}>
-              <label style={{ display: 'block', marginBottom: 8, fontSize: '18px', fontWeight: 'bold', color: '#007bff' }}>TBS Invoice Number</label>
-              <input type="text" value={workOrderTbsInvoiceNumber} onChange={(e) => setWorkOrderTbsInvoiceNumber(e.target.value)} placeholder="Enter TBS invoice number" style={{ width: '100%', padding: 10, fontSize: '16px', fontWeight: 'bold', border: '2px solid #007bff' }} />
-            </div>
-            
-            <div style={{ display:'grid', gridTemplateColumns:'auto auto', gap:12, alignItems:'end', marginBottom: '15px' }}>
-              <label style={{ display:'grid', gap:6 }}>
-                <span>Invoice Date</span>
-                <input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} />
-              </label>
-              <label style={{ display:'grid', gap:6 }}>
-                <span>Due Date {net30Auto ? '(Net 30 auto)' : ''}</span>
-                <input type="date" value={dueDate} onChange={(e) => { setDueDate(e.target.value); setNet30Auto(false); }} disabled={net30Auto} />
-              </label>
-            </div>
-            
-            <div style={{ marginBottom: '15px' }}>
-              <label>Bill To Company</label>
-              <select value={billToCompany} onChange={(e) => setBillToCompany(e.target.value)} style={{ width: '100%', padding: 6, marginBottom: 8 }}>
-                <option value="">Select company…</option>
-                {companyList.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-              {billToCompany === 'Other(Specify if new in message to add to this list)' && (
-                <input type="text" placeholder="Enter custom company name" value={customCompanyName} onChange={(e) => setCustomCompanyName(e.target.value)} style={{ width: '100%', padding: 6, marginBottom: 8 }} />
-              )}
-              <label style={{ display: 'block', marginTop: 8 }}>Billing Address</label>
-              <input type="text" value={billToAddress} onChange={(e) => setBillToAddress(e.target.value)} placeholder="Street, City, State ZIP" style={{ width: '100%', padding: 6 }} />
-              <label style={{ display: 'block', marginTop: 8 }}>Send Invoice To (Emails - separate with commas)</label>
-              <textarea value={selectedEmail} onChange={(e) => setSelectedEmail(e.target.value)} placeholder="email1@company.com, email2@company.com" style={{ width: '100%', padding: 6, minHeight: '60px', resize: 'vertical' }} />
-            </div>
-            
-            <div style={{ padding: 12, border: '1px solid #e5e7eb', borderRadius: 8, background: '#f9fafb', marginBottom: 12 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Subtotal</span><b>${sheetSubtotal.toFixed(2)}</b></div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Tax ({Number(sheetTaxRate || 0)}%)</span><b>${sheetTaxDue.toFixed(2)}</b></div>
-              {Number(sheetOther || 0) !== 0 && <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Other</span><b>${Number(sheetOther).toFixed(2)}</b></div>}
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, paddingTop: 8, borderTop: '2px solid #e5e7eb', fontWeight: 700 }}><span>Total</span><span>${sheetTotal.toFixed(2)}</span></div>
-            </div>
-            
-            <div style={{ marginBottom: 12, padding: 12, border: '1px solid #f59e0b', background: '#fffbeb', borderRadius: 8 }}>
-              <h4 style={{ margin: 0, marginBottom: 6 }}>⚠️ Please review before sending</h4>
-              <p style={{ margin: 0, marginBottom: 8 }}>Double-check line items, totals, billing address, and recipient email. <b>No cancelations after the invoice is sent.</b></p>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <input type="checkbox" checked={readyToSend} onChange={(e) => setReadyToSend(e.target.checked)} />
-                Yes, it is ready to send.
-              </label>
-            </div>
-            
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {/* Show Update & Resend if in update mode, otherwise Send Invoice */}
-              {isUpdateMode ? (
-  <button
-    className="btn btn--primary"
-    onClick={handleUpdateInvoice}
-    disabled={isSubmitting || !selectedEmail.trim() || Number(sheetTotal) <= 0}
-  >
-    {isSubmitting ? 'Updating…' : `Update & Resend ($${sheetTotal.toFixed(2)})`}
-  </button>
-) : (
-  <button
-    className="btn btn--primary"
-    onClick={handleSendInvoice}
-    disabled={isSubmitting || !readyToSend || !selectedEmail.trim() || Number(sheetTotal) <= 0 || !attachedPdfs.length}
-  >
-    {isSubmitting ? 'Sending…' : `Send Invoice ($${sheetTotal.toFixed(2)})`}
-  </button>
-)}
-
-              <button className="btn" onClick={saveInvoiceData} disabled={isSubmitting}>Save Draft</button>
-            </div>
-            
-            {errorMessage && <div style={{ color: '#b91c1c', marginTop: 8 }}>{errorMessage}</div>}
-            {submissionMessage && <div style={{ color: '#166534', marginTop: 8 }}>{submissionMessage}</div>}
-            {submissionErrorMessage && <div style={{ color: '#b91c1c', marginTop: 8 }}>{submissionErrorMessage}</div>}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  if (isBilled && isPaid) {
-    return <span className="pill" style={{ color: '#fff', backgroundColor: '#28a745' }}>Paid</span>;
-  }
-  if (isBilled) {
-    const isPartial = (effectiveCurrentAmount ?? 0) < (effectiveBilledAmount ?? 0);
-    return (
-      <>
-        <PaymentForm workOrder={workOrder} onPaymentComplete={() => fetchJobsForDay(selectedDate, companyKey || '')} onLocalPaid={markLocallyPaid} />
-        <button
-          className="btn"
-          style={{ fontSize: '12px', padding: '4px 8px', marginLeft: '8px', backgroundColor: '#17365D', color: '#fff' }}
-          onClick={async () => {
-            setBillingJob(workOrder);
-            setBillingOpen(true);
-            setIsUpdateMode(true);
-            
-            // Fetch the actual Invoice document from the database
-            try {
-              const invoiceId = workOrder._invoice?.invoiceId || workOrder._invoice?._id || workOrder.invoiceId;
-              if (invoiceId) {
-                const { data } = await api.get(`/api/billing/invoice/${invoiceId}`);
-                const invoiceData = data.invoiceData;
-                if (invoiceData) {
-                  setInvoiceDate(invoiceData.invoiceDate || new Date().toISOString().slice(0,10));
-                  setInvoiceNumber(invoiceData.invoiceNumber || '');
-                  setWorkRequestNumber1(invoiceData.workRequestNumber1 || '');
-                  setWorkRequestNumber2(invoiceData.workRequestNumber2 || '');
-                  setDueDate(invoiceData.dueDate || data.dueDate?.split('T')[0] || '');
-                  setBillToCompany(invoiceData.billToCompany || '');
-                  setBillToAddress(invoiceData.billToAddress || '');
-                  setWorkType(invoiceData.workType || '');
-                  setForeman(invoiceData.foreman || '');
-                  setLocation(invoiceData.location || '');
-                  setSheetRows(invoiceData.sheetRows || VERTEX42_STARTER_ROWS);
-                  setSheetTaxRate(invoiceData.sheetTaxRate || 0);
-                  setSheetOther(invoiceData.sheetOther || 0);
-                  setSelectedEmail(invoiceData.selectedEmail || workOrder.basic?.email || '');
-                  setCrewsCount(invoiceData.crewsCount || '');
-                  setOtHours(invoiceData.otHours || '');
-                }
-              }
-            } catch (err) {
-              console.error('Failed to fetch invoice data:', err);
-              // Fallback to workOrder data
-              const invoiceData = workOrder.invoiceData;
-              if (invoiceData) {
-                setDueDate(invoiceData.dueDate || '');
-                setSheetRows(invoiceData.sheetRows || VERTEX42_STARTER_ROWS);
-                setSelectedEmail(invoiceData.selectedEmail || workOrder.basic?.email || '');
-              }
-            }
-            setReadyToSend(true);
-            setNet30Auto(false); // Disable auto due date calculation for updates
-          }}
-        >
-          Update Invoice
-        </button>
-        {billingJob?._id === workOrder._id && billingOpen && (() => {
-  const hasInvoiceId = Boolean(
-    workOrder?._invoice?.invoiceId ||
-    workOrder?._invoice?._id ||
-    workOrder?.invoiceId
-  );
-
-  return (
-    <div style={{ marginTop: '15px', padding: '15px', border: '2px solid #007bff', borderRadius: '8px', backgroundColor: '#f8f9fa' }}>
-    {/* === ATTACH INVOICE PDF === */}
-    <div style={{ marginBottom: 16, fontWeight: 'bold', fontSize: '16px' }}>ATTACH INVOICE PDF (Required)</div>
-    <div style={{ padding: '15px', border: '2px dashed #007bff', borderRadius: '8px', backgroundColor: '#f0f8ff', marginBottom: '15px' }}>
-      <div style={{ color: '#007bff', fontSize: '14px', marginBottom: '10px', fontWeight: 'bold' }}>📎 Upload your invoice PDF(s) - these will be sent to the client</div>
-      <input
-        type="file"
-        accept="application/pdf"
-        multiple
-        onChange={(e) => {
-          const newFiles = Array.from(e.target.files || []);
-          const allFiles = [...(attachedPdfs || []), ...newFiles];
-          handlePdfAttachment(allFiles, setAttachedPdfs, setDetectingTotal, setDetectError, setDetectedTotal, setSheetRows, toast);
-          e.target.value = '';
-        }}
-        style={{ marginBottom: '10px' }}
-      />
-      {detectingTotal && <div style={{ color: '#007bff', fontSize: '14px' }}>🔍 Detecting total from PDF...</div>}
-      {detectedTotal && <div style={{ color: '#28a745', fontSize: '16px', fontWeight: 'bold' }}>✅ Auto-detected total: ${detectedTotal.toFixed(2)}</div>}
-      {detectError && <div style={{ color: '#dc3545', fontSize: '14px' }}>❌ {detectError}</div>}
-      {attachedPdfs.length > 0 && (
-        <div style={{ marginTop: '10px' }}>
-          <strong>Attached files ({attachedPdfs.length}):</strong>
-          <ul style={{ margin: '5px 0', paddingLeft: '20px' }}>
-            {attachedPdfs.map((file, idx) => (
-              <li key={idx}>
-                {file.name} ({(file.size / 1024).toFixed(1)} KB)
-                <button
-                  onClick={() => {
-                    const newFiles = attachedPdfs.filter((_, i) => i !== idx);
-                    handlePdfAttachment(newFiles, setAttachedPdfs, setDetectingTotal, setDetectError, setDetectedTotal, setSheetRows, toast);
-                  }}
-                  style={{ marginLeft: '8px', fontSize: '12px', padding: '2px 6px', color: '#dc3545', background: 'none', border: '1px solid #dc3545', borderRadius: '3px', cursor: 'pointer' }}
-                >
-                  Remove
-                </button>
-              </li>
-            ))}
-          </ul>
-          <div style={{ fontSize: '14px', color: '#007bff', marginTop: '5px' }}>💡 These PDFs will be attached to the email instead of generating new ones</div>
-        </div>
-      )}
-    </div>
-
-    {/* === TBS INVOICE NUMBER (PRIMARY) === */}
-    <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#e3f2fd', borderRadius: '8px', border: '2px solid #007bff' }}>
-      <label style={{ display: 'block', marginBottom: 8, fontSize: '18px', fontWeight: 'bold', color: '#007bff' }}>TBS Invoice Number</label>
-      <input type="text" value={workOrderTbsInvoiceNumber} onChange={(e) => setWorkOrderTbsInvoiceNumber(e.target.value)} placeholder="Enter TBS invoice number" style={{ width: '100%', padding: 10, fontSize: '16px', fontWeight: 'bold', border: '2px solid #007bff' }} />
-    </div>
-
-    {/* === DATES === */}
-    <div style={{ display:'grid', gridTemplateColumns:'auto auto', gap:12, alignItems:'end', marginBottom: '15px' }}>
-      <label style={{ display:'grid', gap:6 }}>
-        <span>Invoice Date</span>
-        <input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} />
-      </label>
-      <label style={{ display:'grid', gap:6 }}>
-        <span>Due Date {net30Auto ? '(Net 30 auto)' : ''}</span>
-        <input type="date" value={dueDate} onChange={(e) => { setDueDate(e.target.value); setNet30Auto(false); }} disabled={net30Auto} />
-      </label>
-    </div>
-
-    {/* === BILL TO === */}
-    <div style={{ marginBottom: '15px' }}>
-      <label>Bill To Company</label>
-      <select value={billToCompany} onChange={(e) => setBillToCompany(e.target.value)} style={{ width: '100%', padding: 6, marginBottom: 8 }}>
-        <option value="">Select company…</option>
-        {companyList.map(c => <option key={c} value={c}>{c}</option>)}
-      </select>
-      {billToCompany === 'Other(Specify if new in message to add to this list)' && (
-        <input type="text" placeholder="Enter custom company name" value={customCompanyName} onChange={(e) => setCustomCompanyName(e.target.value)} style={{ width: '100%', padding: 6, marginBottom: 8 }} />
-      )}
-
-      <label style={{ display: 'block', marginTop: 8 }}>Billing Address</label>
-      <input type="text" value={billToAddress} onChange={(e) => setBillToAddress(e.target.value)} placeholder="Street, City, State ZIP" style={{ width: '100%', padding: 6 }} />
-
-      <label style={{ display: 'block', marginTop: 8 }}>Send Invoice To (Emails - separate with commas)</label>
-      <textarea value={selectedEmail} onChange={(e) => setSelectedEmail(e.target.value)} placeholder="email1@company.com, email2@company.com" style={{ width: '100%', padding: 6, minHeight: '60px', resize: 'vertical' }} />
-    </div>
-
-    {/* === TOTALS SUMMARY === */}
-    <div style={{ padding: 12, border: '1px solid #e5e7eb', borderRadius: 8, background: '#f9fafb', marginBottom: 12 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Subtotal</span><b>${sheetSubtotal.toFixed(2)}</b></div>
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Tax ({Number(sheetTaxRate || 0)}%)</span><b>${sheetTaxDue.toFixed(2)}</b></div>
-      {Number(sheetOther || 0) !== 0 && <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Other</span><b>${Number(sheetOther).toFixed(2)}</b></div>}
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, paddingTop: 8, borderTop: '2px solid #e5e7eb', fontWeight: 700 }}><span>Total</span><span>${sheetTotal.toFixed(2)}</span></div>
-    </div>
-
-    {/* === CONFIRM + ACTIONS === */}
-    <div style={{ marginBottom: 12, padding: 12, border: '1px solid #f59e0b', background: '#fffbeb', borderRadius: 8 }}>
-      <h4 style={{ margin: 0, marginBottom: 6 }}>⚠️ Please review before sending</h4>
-      <p style={{ margin: 0, marginBottom: 8 }}>
-        Double-check line items, totals, billing address, and recipient email. <b>No cancelations after the invoice is sent.</b>
-      </p>
-      <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <input type="checkbox" checked={readyToSend} onChange={(e) => setReadyToSend(e.target.checked)} />
-        Yes, it is ready to send.
-      </label>
-    </div>
-
-    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-      {/* If it’s already billed, show Update; if not, show Send */}
-{hasInvoiceId && (
-  <div className="button-group">
-    <button
-      className="btn btn--primary"
-      onClick={handleUpdateInvoice}
-      disabled={
-        isSubmitting ||
-        !selectedEmail ||
-        !selectedEmail.split(',').map(e => e.trim()).filter(e => e).every(email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) ||
-        Number(sheetTotal) <= 0 ||
-        !attachedPdfs.length
-      }
-    >
-      {isSubmitting ? (
-        <span className="spinner-button">
-          <span className="spinner" /> Updating…
-        </span>
-      ) : (
-        `Update & Resend ($${sheetTotal.toFixed(2)})`
-      )}
-    </button>
-
-    <button className="btn" onClick={saveInvoiceData} disabled={isSubmitting}>
-      Save Draft
-    </button>
-
-    <button
-      className="btn"
-      onClick={() => {
-        setBillingOpen(false);
-        setBillingJob(null);
-      }}
-    >
-      Cancel
-    </button>
-  </div>
-)}
-
-    </div>
-
-    {errorMessage && <div style={{ color: '#b91c1c', marginTop: 8 }}>{errorMessage}</div>}
-    {submissionMessage && <div style={{ color: '#166534', marginTop: 8 }}>{submissionMessage}</div>}
-    {submissionErrorMessage && <div style={{ color: '#b91c1c', marginTop: 8 }}>{submissionErrorMessage}</div>}
-  </div>
-  );
-})()}
-        {/* PDF Receipt Download Button */}
-        {(workOrder.paid || workOrder.lastPaymentAmount) && (
-          <button
-            className="btn"
-            style={{
-              backgroundColor: '#28a745',
-              color: 'white',
-              fontSize: '12px',
-              padding: '4px 8px',
-              marginLeft: '8px',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
-            onClick={() => {
-              const apiUrl = import.meta.env.VITE_API_URL || 'https://tbs-server.onrender.com';
-              window.open(`${apiUrl}/api/billing/receipt/${workOrder._id}/pdf`, '_blank');
-            }}
-            title="Download payment receipt PDF"
-          >
-            📄 Receipt PDF
-          </button>
-        )}
-      </>
-    );
-  }
-
-  return null;
-})()}
-
-      {savedInvoices[workOrder._id] && (
-        <span className="pill" style={{backgroundColor: '#28a745', marginLeft: '8px'}}>
-          Saved ({new Date(savedInvoices[workOrder._id].savedAt).toLocaleDateString()})
-        </span>
-      )}
-    </div>
-  ))}
-
-  {jobsForDay.length === 0 && <p>No jobs found for this date.</p>}
-</div>
-
-          </div>
-        </div>
-      </div>
-<div className="admin-plans">
-  <h2 className="admin-plans-title">Traffic Control Plans</h2>
-
-  <div className="plan-list">
-    {plans.length > 0 ? (() => {
-      const unbilledPlans = plans.filter(plan => {
-        const status = planInvoiceStatus?.[plan._id] || { billed: false, paid: false };
-        return !status.billed;
-      });
-      
-      const startIndex = planCurrentPage * PLANS_PER_PAGE;
-      const endIndex = startIndex + PLANS_PER_PAGE;
-      const currentPlans = unbilledPlans.slice(startIndex, endIndex);
-      const totalPages = Math.ceil(unbilledPlans.length / PLANS_PER_PAGE);
-      
-      return (
-        <>
-          {unbilledPlans.length > PLANS_PER_PAGE && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', padding: '10px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
-              <button 
-                onClick={() => setPlanCurrentPage(prev => Math.max(0, prev - 1))}
-                disabled={planCurrentPage === 0}
-                style={{ padding: '8px 12px', backgroundColor: planCurrentPage === 0 ? '#ccc' : '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: planCurrentPage === 0 ? 'not-allowed' : 'pointer' }}
-              >
-                ← Previous
-              </button>
-              <span>Page {planCurrentPage + 1} of {totalPages} ({unbilledPlans.length} plans need billing)</span>
-              <button 
-                onClick={() => setPlanCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
-                disabled={planCurrentPage >= totalPages - 1}
-                style={{ padding: '8px 12px', backgroundColor: planCurrentPage >= totalPages - 1 ? '#ccc' : '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: planCurrentPage >= totalPages - 1 ? 'not-allowed' : 'pointer' }}
-              >
-                Next →
-              </button>
-            </div>
-          )}
-          {currentPlans.map((plan, index) => {
-            const isExpanded = planJob?._id === plan._id;
-            const status = planInvoiceStatus?.[plan._id] || { billed: false, paid: false };
-      return (
-        <div key={plan._id || index} className="plan-card">
-          <h4 className="job-company">{plan.company}</h4>
-          <p><strong>Coordinator:</strong> {plan.name}</p>
-          <p><strong>Email:</strong> {plan.email}</p>
-          {plan.phone && <p><strong>Phone:</strong> <a href={`tel:${plan.phone}`}>{plan.phone}</a></p>}
-          <p><strong>Project/Task Number:</strong> {plan.project}</p>
-          <p><strong>Address:</strong> {plan.address}, {plan.city}, {plan.state} {plan.zip}</p>
-          {plan.message && <p><strong>Message:</strong> {plan.message}</p>}
-
-          {plan.structure && (
-            <button
-              className="pdf-link"
-              onClick={() => {
-                setSelectedPlanIndex(index);
-                setPreviewPlan(`/plans/${plan.structure}`);
-              }}
-            >
-              View Traffic Control Plan Structure
-            </button>
-          )}
-
-          {/* Actions */}
-          <div className="plan-actions">
-            {!status.billed && (
-              <button
-                className="btn btn--primary"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setPlanJob(plan);
-                  setIsUpdateMode(false);
-                  setPlanBillingOpen(true);
-                  setPlanAttachedPdfs([]);
-                  setPlanDetectedTotal(null);
-                  setPlanDetectError('');
-                  setPlanPhases(1);
-                  setPlanRate(0);
-                  setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
-                  setPlanTbsInvoiceNumber('');
-                }}
-              >
-                Bill Plan
-              </button>
-            )}
-            {status.billed && !status.paid && (
-              <>
-                <button
-                  className="btn btn--secondary"
-                  style={{ backgroundColor: '#17365D', color: '#fff' }}
-                  onClick={async (e) => {
-                    e.stopPropagation();
-                    setPlanJob(plan);
-                    setIsUpdateMode(true);
-                    setPlanBillingOpen(true);
-                    setPlanAttachedPdfs([]);
-                    setPlanDetectedTotal(null);
-                    setPlanDetectError('');
-                    
-                    try {
-                      const statusRes = await api.get(`/api/billing/plan-invoice-status?planIds=${plan._id}`);
-                      const planStatus = statusRes.data[plan._id];
-                      if (planStatus?.invoiceData) {
-                        setPlanPhases(Number(planStatus.invoiceData.planPhases || 1));
-                        setPlanRate(Number(planStatus.invoiceData.planRate || 0));
-                        setPlanEmail(planStatus.invoiceData.selectedEmail || plan.email || '');
-                        setPlanDetectedTotal(planStatus.invoiceData.sheetTotal || null);
-                      }
-                    } catch (err) {
-                      console.error('Failed to load previous invoice data:', err);
-                      setPlanPhases(1);
-                      setPlanRate(0);
-                      setPlanEmail(COMPANY_TO_EMAIL[plan.company] || plan.email || '');
-                    }
-                  }}
-                >
-                  Update Plan
-                </button>
-                <button
-                  className="btn btn--success"
-                  style={{backgroundColor: '#28a745'}}
-                  onClick={(e) => {
-  e.stopPropagation();
-  setSelectedPlanId(plan._id);            // <- important
-  setPlanPaymentEmail(status.invoiceData?.selectedEmail || plan.email || '');
-  const due = status.computedTotalDue || status.principal || 0;
-  setPlanPaymentAmount(String(due));
-  setPlanMarkPaidOpen(true);
-}}
-                >
-                  Mark Paid
-                </button>
-              </>
-            )}
-            {status.billed && status.paid && (
-              <span style={{backgroundColor: '#28a745', color: '#fff', fontSize: '1.4rem'}} className="badge badge--success">Paid</span>
-            )}
-          </div>
-
-          {/* Inline billing panel — only for the selected plan */}
-          {isExpanded && (
-            <div style={{ marginTop: 15, padding: 15, border: '2px solid #007bff', borderRadius: 8, backgroundColor: '#f8f9fa' }}>
-              <div style={{ marginBottom: 16, fontWeight: 'bold', fontSize: 16 }}>
-                {isUpdateMode ? 'Update Traffic Control Plan Invoice' : 'Bill Traffic Control Plan'}
-              </div>
-
-              {/* Show previous invoice info if updating */}
-              {isUpdateMode && status.invoiceData && (
-                <div style={{ marginBottom: 16, padding: 12, backgroundColor: '#e3f2fd', borderRadius: 8 }}>
-                  <strong>Previous Invoice:</strong> ${status.invoiceData.sheetTotal?.toFixed(2) || '0.00'} 
-                  (sent to {status.invoiceData.selectedEmail})
-                </div>
-              )}
-              
-              {/* Invoice Date & Due Date */}
-              <div style={{ display:'grid', gridTemplateColumns:'auto auto', gap:12, alignItems:'end', marginBottom: '15px' }}>
-                <label style={{ display:'grid', gap:6 }}>
-                  <span>Invoice Date</span>
-                  <input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} />
-                </label>
-                <label style={{ display:'grid', gap:6 }}>
-                  <span>Due Date (Net 30 auto)</span>
-                  <input type="date" value={dueDate} onChange={(e) => { setDueDate(e.target.value); setNet30Auto(false); }} disabled={net30Auto} />
-                </label>
-              </div>
-              
-              {/* Bill To Company & Address */}
-              <div style={{ marginBottom: '15px' }}>
-                <label>Bill To Company</label>
-                <select value={billToCompany} onChange={(e) => setBillToCompany(e.target.value)} style={{ width: '100%', padding: 6, marginBottom: 8 }}>
-                  <option value="">Select company…</option>
-                  {companyList.map(c => <option key={c} value={c}>{c}</option>)}
-                  <option value="__NEW__">+ Add New Company</option>
-                </select>
-                {billToCompany === '__NEW__' && (
-                  <>
-                    <input 
-                      type="text" 
-                      placeholder="Enter new company name" 
-                      value={customCompanyName} 
-                      onChange={(e) => setCustomCompanyName(e.target.value)} 
-                      style={{ width: '100%', padding: 6, marginBottom: 8 }} 
-                      required
-                    />
-                    <label style={{ display: 'block', marginBottom: 4 }}>Billing Address *</label>
-                    <input 
-                      type="text" 
-                      value={billToAddress} 
-                      onChange={(e) => setBillToAddress(e.target.value)} 
-                      placeholder="Street, City, State ZIP" 
-                      style={{ width: '100%', padding: 6 }} 
-                      required
-                    />
-                  </>
-                )}
-                {billToCompany && billToCompany !== '__NEW__' && (
-                  <>
-                    <label style={{ display: 'block', marginTop: 8, marginBottom: 4 }}>Billing Address</label>
-                    <input 
-                      type="text" 
-                      value={billToAddress} 
-                      onChange={(e) => setBillToAddress(e.target.value)} 
-                      placeholder="Street, City, State ZIP" 
-                      style={{ width: '100%', padding: 6 }} 
-                    />
-                  </>
-                )}
-              </div>
-              
-              <div className="form-row">
-                <label>Send Invoice To (Email):</label>
-                <input
-                  type="email"
-                  value={planEmail}
-                  onChange={e => setPlanEmail(e.target.value)}
-                  placeholder="Enter email address"
-                  style={{ width: '100%', padding: 6 }}
-                />
-              </div>
-              
-              <div className="form-row">
-                <label>TBS Invoice Number:</label>
-                <input
-                  type="text"
-                  value={planTbsInvoiceNumber}
-                  onChange={e => setPlanTbsInvoiceNumber(e.target.value)}
-                  placeholder="Enter TBS invoice number"
-                  style={{ width: '100%', padding: 6 }}
-                />
-              </div>
-              
-              {/* Subtotal & Total Summary */}
-              <div style={{ padding: 12, border: '1px solid #e5e7eb', borderRadius: 8, background: '#f9fafb', marginBottom: 12 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Subtotal</span><b>${planDetectedTotal?.toFixed(2) || (planPhases * planRate).toFixed(2)}</b></div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, paddingTop: 8, borderTop: '2px solid #e5e7eb', fontWeight: 700 }}><span>Total</span><span>${planDetectedTotal?.toFixed(2) || (planPhases * planRate).toFixed(2)}</span></div>
-              </div>
-
-              <div className="form-row">
-                <label>Attach Invoice PDFs: *</label>
-                <input
-                  type="file"
-                  accept="application/pdf"
-                  multiple
-                  onChange={e => handlePdfAttachment(
-                    e.target.files,
-                    setPlanAttachedPdfs,
-                    setPlanDetectingTotal,
-                    setPlanDetectError,
-                    setPlanDetectedTotal,
-                    () => {}, // no sheetRows for plans
-                    toast
-                  )}
-                />
-                {planDetectingTotal && <div style={{ color: '#007bff', fontSize: 14 }}>🔍 Detecting total from PDF…</div>}
-                {planDetectedTotal && <div style={{ color: '#28a745', fontSize: 16, fontWeight: 'bold' }}>✅ Auto-detected total: ${planDetectedTotal.toFixed(2)}</div>}
-                {planDetectError && <div style={{ color: '#dc3545', fontSize: 14 }}>❌ {planDetectError}</div>}
-
-                {planAttachedPdfs.length > 0 && (
-                  <div style={{ marginTop: 10 }}>
-                    <strong>Attached files ({planAttachedPdfs.length}):</strong>
-                    <ul style={{ margin: '5px 0', paddingLeft: 20 }}>
-                      {planAttachedPdfs.map((file, idx) => (
-                        <li key={idx}>
-                          {file.name} ({(file.size / 1024).toFixed(1)} KB)
-                          <button
-                            onClick={() => {
-                              const next = planAttachedPdfs.filter((_, i) => i !== idx);
-                              handlePdfAttachment(next, setPlanAttachedPdfs, setPlanDetectingTotal, setPlanDetectError, setPlanDetectedTotal, () => {}, toast);
-                            }}
-                            style={{ marginLeft: 8, fontSize: 12, padding: '2px 6px', color: '#dc3545', background: 'none', border: '1px solid #dc3545', borderRadius: 3, cursor: 'pointer' }}
-                          >
-                            Remove
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                    <div style={{ fontSize: 14, color: '#007bff', marginTop: 5 }}>
-                      💡 These PDFs will be attached to the email; adding more will include them too.
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
-                {isUpdateMode ? (
-                  <button
-                    className="btn btn--primary"
-                    onClick={handleUpdatePlan}
-                    disabled={isSubmitting || !planEmail || !planAttachedPdfs.length}
-                  >
-                    {isSubmitting ? 'Updating...' : 'Update Plan'}
-                  </button>
-                ) : (
-                  <button
-                    className="btn btn--primary"
-                    onClick={handleBillPlan}
-                    disabled={isSubmitting || !planEmail || !planAttachedPdfs.length}
-                  >
-                    {isSubmitting ? 'Sending...' : 'Bill Plan'}
-                  </button>
-                )}
-                <button
-                  className="btn"
-                  onClick={() => {
-                    setPlanBillingOpen(false);
-                    setPlanJob(null);
-                    setPlanTbsInvoiceNumber('');
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
-          {planMarkPaidOpen && selectedPlanId === plan._id && (
-  <div className="modal-overlay" onClick={() => setPlanMarkPaidOpen(false)}>
-    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-      <h3>Mark Plan as Paid — {selectedPlan.company}</h3>
-
-      <div style={{ marginBottom: '15px' }}>
-        <label>Payment Method:</label>
-        <select
-          value={planPaymentMethod}
-          onChange={(e) => setPlanPaymentMethod(e.target.value)}
-          style={{ width: '100%', padding: '6px', marginTop: '5px' }}
-        >
-          <option value="card">Card</option>
-          <option value="check">Check</option>
-        </select>
-      </div>
-
-      {planPaymentMethod === 'card' && (
-        <>
-          <div style={{ marginBottom: '15px' }}>
-            <label>Card Type:</label>
-            <select
-              value={planCardType}
-              onChange={(e) => setPlanCardType(e.target.value)}
-              style={{ width: '100%', padding: '6px', marginTop: '5px' }}
-            >
-              <option value="">Select card type</option>
-              <option value="Visa">Visa</option>
-              <option value="MasterCard">MasterCard</option>
-              <option value="American Express">American Express</option>
-              <option value="Discover">Discover</option>
-            </select>
-          </div>
-          <div style={{ marginBottom: '15px' }}>
-            <label>Last 4 Digits:</label>
-            <input
-              type="text"
-              maxLength="4"
-              value={planCardLast4}
-              onChange={(e) => setPlanCardLast4(e.target.value.replace(/\D/g, ''))}
-              style={{ width: '100%', padding: '6px', marginTop: '5px' }}
-              placeholder="1234"
-            />
-          </div>
-        </>
-      )}
-
-      {planPaymentMethod === 'check' && (
-        <div style={{ marginBottom: '15px' }}>
-          <label>Check Number:</label>
-          <input
-            type="text"
-            value={planCheckNumber}
-            onChange={(e) => setPlanCheckNumber(e.target.value)}
-            style={{ width: '100%', padding: '6px', marginTop: '5px' }}
-            placeholder="Enter check number"
-          />
-        </div>
-      )}
-
-      <div style={{ marginBottom: '15px' }}>
-        <label>Payment Amount:</label>
-        <input
-          type="number"
-          step="0.01"
-          min="0"
-          value={planPaymentAmount}
-          onChange={(e) => setPlanPaymentAmount(e.target.value)}
-          style={{ width: '100%', padding: '6px', marginTop: '5px' }}
-        />
-      </div>
-
-      <div style={{ marginBottom: '15px' }}>
-        <label>Receipt Email:</label>
-        <input
-          type="email"
-          value={planPaymentEmail}
-          onChange={(e) => setPlanPaymentEmail(e.target.value)}
-          style={{ width: '100%', padding: '6px', marginTop: '5px' }}
-        />
-      </div>
-
-      <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-        <button
-          className="btn"
-          onClick={() => {
-            setPlanMarkPaidOpen(false);
-            setSelectedPlanId(null);
-            setPlanPaymentAmount('');
-            setPlanPaymentEmail('');
-            setPlanCardType('');
-            setPlanCardLast4('');
-            setPlanCheckNumber('');
-          }}
-          disabled={isSubmitting}
-        >
-          Cancel
-        </button>
-        <button
-          className="btn btn--primary"
-          onClick={handlePlanMarkPaid}
-          disabled={isSubmitting || !planPaymentAmount || !planPaymentEmail}
-        >
-          {isSubmitting ? 'Recording...' : 'Mark Paid'}
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-        </div>
-      );
-    })}
-        </>
-      );
-    })() : <p>No plans found.</p>}
- 
-  </div>
-  
-</div>
-
-        {/* Plan Mark Paid Modal */}
-        
-        
-      {/* Footer unchanged */}
       <Footer />
     </div>
   );
