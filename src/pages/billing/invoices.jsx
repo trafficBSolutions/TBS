@@ -1280,40 +1280,74 @@ const Invoice = () => {
           </div>
 
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: 'white' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: 'white', fontSize: 12, minWidth: 1400 }}>
               <thead>
                 <tr style={{ backgroundColor: '#17365D', color: 'white' }}>
-                  <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #ddd' }}>Invoice Number</th>
-                  <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #ddd' }}>Company</th>
-                  <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #ddd' }}>Date</th>
-                  <th style={{ padding: '12px', textAlign: 'right', border: '1px solid #ddd' }}>Amount</th>
-                  <th style={{ padding: '12px', textAlign: 'center', border: '1px solid #ddd' }}>Paid?</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>DATE BILLED</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>DUE DATE</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>INV #</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>AMOUNT</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>BILLED TO</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>STREET #</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>STREET NAME</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>CITY</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>STATE</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>WORK ORDER</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>AMOUNT RECEIVED</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>DATE OF DEPOSIT</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>CK # or EFT</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>CHECK or EFT DATE</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>OFFICER &amp;/OR AB</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>AB, Signs, Lights, Cones, ConPl</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>MILEAGE</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>EXTRA</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredInvoices
                   .slice(invoicePage * INVOICES_PER_PAGE, (invoicePage + 1) * INVOICES_PER_PAGE)
-                  .map((inv, idx) => (
-                    <tr key={inv._id || idx} style={{ borderBottom: '1px solid #ddd' }}>
-                      <td style={{ padding: '10px', border: '1px solid #ddd' }}>{inv.invoiceNumber || 'N/A'}</td>
-                      <td style={{ padding: '10px', border: '1px solid #ddd' }}>{inv.billedTo?.name || 'N/A'}</td>
-                      <td style={{ padding: '10px', border: '1px solid #ddd' }}>{new Date(inv.sentAt || inv.createdAt).toLocaleDateString()}</td>
-                      <td style={{ padding: '10px', textAlign: 'right', border: '1px solid #ddd' }}>${(inv.principal || 0).toFixed(2)}</td>
-                      <td style={{ padding: '10px', textAlign: 'center', border: '1px solid #ddd' }}>
-                        {inv.status === 'PAID' ? (
-                          <span style={{ padding: '4px 12px', borderRadius: '4px', backgroundColor: '#28a745', color: 'white', fontWeight: 'bold' }}>Yes</span>
-                        ) : (
-                          <button
-                            onClick={() => handleQuickMarkPaid(inv._id)}
-                            disabled={markingPaidId === inv._id}
-                            style={{ padding: '4px 12px', borderRadius: '4px', backgroundColor: '#ffc107', color: 'black', fontWeight: 'bold', border: 'none', cursor: markingPaidId === inv._id ? 'wait' : 'pointer' }}
-                          >
-                            {markingPaidId === inv._id ? 'Marking...' : 'No - Mark Paid'}
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                  .map((inv, idx) => {
+                    const addr = inv.billedTo?.address || '';
+                    const streetNum = addr.match(/^(\d+)/)?.[1] || '';
+                    const streetName = addr.replace(/^\d+\s*/, '').split(',')[0] || '';
+                    const city = inv.billedTo?.city || addr.split(',')[1]?.trim() || '';
+                    const state = inv.billedTo?.state || addr.split(',')[2]?.trim() || '';
+                    const isPaid = inv.status === 'PAID';
+                    return (
+                      <tr key={inv._id || idx} style={{ borderBottom: '1px solid #ddd', backgroundColor: idx % 2 === 0 ? '#fff' : '#f8f9fa' }}>
+                        <td style={{ padding: '7px 6px', border: '1px solid #ddd', whiteSpace: 'nowrap' }}>{new Date(inv.sentAt || inv.createdAt).toLocaleDateString()}</td>
+                        <td style={{ padding: '7px 6px', border: '1px solid #ddd', whiteSpace: 'nowrap' }}>{inv.invoiceData?.dueDate ? new Date(inv.invoiceData.dueDate).toLocaleDateString() : ''}</td>
+                        <td style={{ padding: '7px 6px', border: '1px solid #ddd', whiteSpace: 'nowrap', fontWeight: 600 }}>{inv.invoiceNumber || '—'}</td>
+                        <td style={{ padding: '7px 6px', border: '1px solid #ddd', whiteSpace: 'nowrap', textAlign: 'right' }}>${(inv.principal || 0).toFixed(2)}</td>
+                        <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>{inv.billedTo?.name || '—'}</td>
+                        <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>{streetNum}</td>
+                        <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>{streetName}</td>
+                        <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>{city}</td>
+                        <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>{state}</td>
+                        <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>{inv.invoiceData?.workRequestNumber1 || inv.invoiceData?.workRequestNumber2 || '—'}</td>
+                        <td style={{ padding: '7px 6px', border: '1px solid #ddd', textAlign: 'right' }}>
+                          {isPaid ? (
+                            <span style={{ color: '#28a745', fontWeight: 700 }}>${(inv.amountReceived || inv.principal || 0).toFixed(2)}</span>
+                          ) : (
+                            <button
+                              onClick={() => handleQuickMarkPaid(inv._id)}
+                              disabled={markingPaidId === inv._id}
+                              style={{ padding: '3px 8px', borderRadius: 4, backgroundColor: '#ffc107', color: '#000', fontWeight: 700, border: 'none', cursor: markingPaidId === inv._id ? 'wait' : 'pointer', fontSize: 11 }}
+                            >
+                              {markingPaidId === inv._id ? '…' : 'Mark Paid'}
+                            </button>
+                          )}
+                        </td>
+                        <td style={{ padding: '7px 6px', border: '1px solid #ddd', whiteSpace: 'nowrap' }}>{inv.depositDate ? new Date(inv.depositDate).toLocaleDateString() : ''}</td>
+                        <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>{inv.checkOrEft || ''}</td>
+                        <td style={{ padding: '7px 6px', border: '1px solid #ddd', whiteSpace: 'nowrap' }}>{inv.checkOrEftDate ? new Date(inv.checkOrEftDate).toLocaleDateString() : ''}</td>
+                        <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>{inv.invoiceData?.foreman || ''}</td>
+                        <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>{inv.invoiceData?.workType || ''}</td>
+                        <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>{inv.invoiceData?.miles || ''}</td>
+                        <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>{inv.invoiceData?.extra || ''}</td>
+                      </tr>
+                    );
+                  })}
               </tbody>
             </table>
           </div>
