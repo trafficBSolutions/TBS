@@ -2290,6 +2290,7 @@ const handleUpdateInvoice = async () => {
   const [allInvoices, setAllInvoices] = useState([]);
   const [invoicePage, setInvoicePage] = useState(0);
   const [markingPaidId, setMarkingPaidId] = useState(null);
+  const [invFilter, setInvFilter] = useState({ search: '', month: '', status: '' });
   const INVOICES_PER_PAGE = 50;
   
   useEffect(() => {
@@ -2303,6 +2304,28 @@ const handleUpdateInvoice = async () => {
     };
     fetchAllInvoices();
   }, []);
+
+  const filteredInvoices = useMemo(() => {
+    const s = invFilter.search.toLowerCase();
+    return allInvoices
+      .filter(inv => {
+        if (invFilter.status === 'paid' && inv.status !== 'PAID') return false;
+        if (invFilter.status === 'unpaid' && inv.status === 'PAID') return false;
+        if (invFilter.month) {
+          const d = new Date(inv.sentAt || inv.createdAt);
+          if (isNaN(d)) return false;
+          if (d.toLocaleString('default', { month: 'short' }) !== invFilter.month) return false;
+        }
+        if (s) {
+          const num = (inv.invoiceNumber || '').toLowerCase();
+          const co  = (inv.billedTo?.name || '').toLowerCase();
+          const dt  = new Date(inv.sentAt || inv.createdAt).toLocaleDateString().toLowerCase();
+          if (!num.includes(s) && !co.includes(s) && !dt.includes(s)) return false;
+        }
+        return true;
+      })
+      .sort((a, b) => parseInt(a.invoiceNumber || '0') - parseInt(b.invoiceNumber || '0'));
+  }, [allInvoices, invFilter]);
 
   const handleQuickMarkPaid = async (invoiceId) => {
     if (!confirm('Mark this invoice as paid?')) return;
@@ -2341,6 +2364,47 @@ const handleUpdateInvoice = async () => {
         {/* Invoice Spreadsheet */}
         <div style={{ marginBottom: '30px', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
           <h2 style={{ marginBottom: '15px' }}>All Invoices</h2>
+          {/* Filter bar */}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16, padding: 12, background: '#f0f0f0', borderRadius: 8, border: '1px solid #dee2e6' }}>
+            <input
+              type="text"
+              placeholder="Search invoice #, company, date..."
+              value={invFilter.search}
+              onChange={e => { setInvFilter(f => ({ ...f, search: e.target.value })); setInvoicePage(0); }}
+              style={{ flex: 1, minWidth: 180, padding: '6px 10px', borderRadius: 6, border: '1px solid #ccc' }}
+            />
+            <select
+              value={invFilter.month}
+              onChange={e => { setInvFilter(f => ({ ...f, month: e.target.value })); setInvoicePage(0); }}
+              style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #ccc' }}
+            >
+              <option value="">All Months</option>
+              {['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map(m => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+            <select
+              value={invFilter.status}
+              onChange={e => { setInvFilter(f => ({ ...f, status: e.target.value })); setInvoicePage(0); }}
+              style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #ccc' }}
+            >
+              <option value="">All Status</option>
+              <option value="paid">Paid</option>
+              <option value="unpaid">Unpaid</option>
+            </select>
+            {(invFilter.search || invFilter.month || invFilter.status) && (
+              <button
+                onClick={() => { setInvFilter({ search: '', month: '', status: '' }); setInvoicePage(0); }}
+                style={{ padding: '6px 12px', background: '#888', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12 }}
+              >
+                Clear
+              </button>
+            )}
+            <span style={{ alignSelf: 'center', fontSize: 13, color: '#555' }}>
+              {filteredInvoices.length} of {allInvoices.length}
+            </span>
+          </div>
+
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: 'white' }}>
               <thead>
@@ -2353,12 +2417,7 @@ const handleUpdateInvoice = async () => {
                 </tr>
               </thead>
               <tbody>
-                {allInvoices
-                  .sort((a, b) => {
-                    const numA = parseInt(a.invoiceNumber || '0');
-                    const numB = parseInt(b.invoiceNumber || '0');
-                    return numA - numB;
-                  })
+                {filteredInvoices
                   .slice(invoicePage * INVOICES_PER_PAGE, (invoicePage + 1) * INVOICES_PER_PAGE)
                   .map((inv, idx) => (
                     <tr key={inv._id || idx} style={{ borderBottom: '1px solid #ddd' }}>
@@ -2408,10 +2467,10 @@ const handleUpdateInvoice = async () => {
             >
               ← Previous
             </button>
-            <span>Page {invoicePage + 1} of {Math.ceil(allInvoices.length / INVOICES_PER_PAGE)} ({allInvoices.length} total)</span>
+            <span>Page {invoicePage + 1} of {Math.ceil(filteredInvoices.length / INVOICES_PER_PAGE)} ({filteredInvoices.length} of {allInvoices.length} total)</span>
             <button 
               onClick={() => setInvoicePage(p => p + 1)}
-              disabled={(invoicePage + 1) * INVOICES_PER_PAGE >= allInvoices.length}
+              disabled={(invoicePage + 1) * INVOICES_PER_PAGE >= filteredInvoices.length}
               style={{ padding: '8px 16px', backgroundColor: (invoicePage + 1) * INVOICES_PER_PAGE >= allInvoices.length ? '#ccc' : '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: (invoicePage + 1) * INVOICES_PER_PAGE >= allInvoices.length ? 'not-allowed' : 'pointer' }}
             >
               Next →
