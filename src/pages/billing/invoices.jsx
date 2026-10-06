@@ -800,6 +800,259 @@ const handlePdfAttachment = async (
   }
 };
 
+const LEAH_EMAIL = 'tbsellen@gmail.com';
+
+function CompanyProfilesSection() {
+  const [selectedCompany, setSelectedCompany] = useState('');
+  const [profiles, setProfiles] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('companyProfiles') || '{}'); }
+    catch { return {}; }
+  });
+  const [invoicePdf, setInvoicePdf] = useState(null);
+  const [workOrderPdf, setWorkOrderPdf] = useState(null);
+  const [payStatus, setPayStatus] = useState('unpaid');
+  const [payMethod, setPayMethod] = useState('card');
+  const [cardNumber, setCardNumber] = useState('');
+  const [checkNumber, setCheckNumber] = useState('');
+  const [remitFile, setRemitFile] = useState(null);
+  const [sending, setSending] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+
+  const profile = profiles[selectedCompany] || { history: [] };
+  const companyEmail = COMPANY_TO_EMAIL[selectedCompany] || '';
+
+  const saveProfile = (updated) => {
+    const next = { ...profiles, [selectedCompany]: updated };
+    setProfiles(next);
+    localStorage.setItem('companyProfiles', JSON.stringify(next));
+  };
+
+  const handleSend = async () => {
+    if (!selectedCompany) return toast.error('Select a company first.');
+    if (!invoicePdf && !workOrderPdf) return toast.error('Attach at least one PDF.');
+    if (!companyEmail) return toast.error('No email on file for this company. Add one to COMPANY_TO_EMAIL.');
+
+    setSending(true);
+    try {
+      const fd = new FormData();
+      fd.append('from', LEAH_EMAIL);
+      fd.append('to', companyEmail);
+      fd.append('company', selectedCompany);
+      fd.append('payStatus', payStatus);
+      if (payStatus === 'paid') {
+        fd.append('payMethod', payMethod);
+        if (payMethod === 'card') fd.append('cardNumber', cardNumber);
+        if (payMethod === 'check') fd.append('checkNumber', checkNumber);
+        if (remitFile) fd.append('remit', remitFile);
+      }
+      if (invoicePdf) fd.append('invoicePdf', invoicePdf);
+      if (workOrderPdf) fd.append('workOrderPdf', workOrderPdf);
+
+      await api.post('/api/billing/send-company-invoice', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      const entry = {
+        sentAt: new Date().toISOString(),
+        invoicePdfName: invoicePdf?.name || null,
+        workOrderPdfName: workOrderPdf?.name || null,
+        payStatus,
+        payMethod: payStatus === 'paid' ? payMethod : null,
+        cardNumber: payStatus === 'paid' && payMethod === 'card' ? cardNumber : null,
+        checkNumber: payStatus === 'paid' && payMethod === 'check' ? checkNumber : null,
+        remitName: remitFile?.name || null,
+        sentTo: companyEmail,
+      };
+      saveProfile({ ...profile, history: [entry, ...(profile.history || [])] });
+
+      toast.success(`Invoice sent to ${companyEmail} from ${LEAH_EMAIL}!`);
+      setInvoicePdf(null);
+      setWorkOrderPdf(null);
+      setRemitFile(null);
+      setCardNumber('');
+      setCheckNumber('');
+      setPayStatus('unpaid');
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to send invoice.');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div style={{ marginBottom: 30, padding: 20, backgroundColor: '#f8f9fa', borderRadius: 8, border: '1px solid #dee2e6' }}>
+      <h2 style={{ marginBottom: 16 }}>Company Profiles — Send Invoice</h2>
+
+      {/* Company selector */}
+      <div style={{ marginBottom: 16 }}>
+        <label style={{ fontWeight: 'bold', display: 'block', marginBottom: 6 }}>Select Company</label>
+        <select
+          value={selectedCompany}
+          onChange={e => { setSelectedCompany(e.target.value); setShowHistory(false); }}
+          style={{ width: '100%', padding: 8, fontSize: 14, borderRadius: 4, border: '1px solid #ced4da' }}
+        >
+          <option value="">— Choose a company —</option>
+          {companyList.filter(c => !c.startsWith('Other')).map(c => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+      </div>
+
+      {selectedCompany && (
+        <>
+          {/* Company info */}
+          <div style={{ marginBottom: 16, padding: 12, backgroundColor: '#e3f2fd', borderRadius: 6 }}>
+            <div><strong>Billing Address:</strong> {BILLING_ADDRESSES[selectedCompany] || 'Not on file'}</div>
+            <div><strong>Send To:</strong> {companyEmail || <span style={{ color: '#dc3545' }}>No email on file</span>}</div>
+            <div><strong>Sender:</strong> {LEAH_EMAIL}</div>
+          </div>
+
+          {/* PDF uploads */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+            <div>
+              <label style={{ fontWeight: 'bold', display: 'block', marginBottom: 6 }}>Invoice PDF</label>
+              <input type="file" accept="application/pdf"
+                onChange={e => setInvoicePdf(e.target.files[0] || null)}
+              />
+              {invoicePdf && <div style={{ fontSize: 12, color: '#28a745', marginTop: 4 }}>✅ {invoicePdf.name}</div>}
+            </div>
+            <div>
+              <label style={{ fontWeight: 'bold', display: 'block', marginBottom: 6 }}>Work Order PDF</label>
+              <input type="file" accept="application/pdf"
+                onChange={e => setWorkOrderPdf(e.target.files[0] || null)}
+              />
+              {workOrderPdf && <div style={{ fontSize: 12, color: '#28a745', marginTop: 4 }}>✅ {workOrderPdf.name}</div>}
+            </div>
+          </div>
+
+          {/* Payment status */}
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ fontWeight: 'bold', display: 'block', marginBottom: 6 }}>Payment Status</label>
+            <select
+              value={payStatus}
+              onChange={e => setPayStatus(e.target.value)}
+              style={{ padding: 8, fontSize: 14, borderRadius: 4, border: '1px solid #ced4da', minWidth: 160 }}
+            >
+              <option value="unpaid">Unpaid</option>
+              <option value="paid">Paid</option>
+            </select>
+          </div>
+
+          {payStatus === 'paid' && (
+            <div style={{ marginBottom: 16, padding: 12, border: '1px solid #ced4da', borderRadius: 6, backgroundColor: '#fff' }}>
+              <label style={{ fontWeight: 'bold', display: 'block', marginBottom: 8 }}>Payment Method</label>
+              <select
+                value={payMethod}
+                onChange={e => setPayMethod(e.target.value)}
+                style={{ padding: 8, fontSize: 14, borderRadius: 4, border: '1px solid #ced4da', marginBottom: 12, minWidth: 160 }}
+              >
+                <option value="card">Card</option>
+                <option value="check">Check</option>
+                <option value="remit">Upload Remit</option>
+              </select>
+
+              {payMethod === 'card' && (
+                <div>
+                  <label style={{ display: 'block', marginBottom: 4 }}>Card Number</label>
+                  <input
+                    type="text"
+                    placeholder="Enter card number"
+                    value={cardNumber}
+                    onChange={e => setCardNumber(e.target.value)}
+                    style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #ced4da' }}
+                  />
+                </div>
+              )}
+
+              {payMethod === 'check' && (
+                <div>
+                  <label style={{ display: 'block', marginBottom: 4 }}>Check Number</label>
+                  <input
+                    type="text"
+                    placeholder="Enter check number"
+                    value={checkNumber}
+                    onChange={e => setCheckNumber(e.target.value)}
+                    style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #ced4da' }}
+                  />
+                </div>
+              )}
+
+              {payMethod === 'remit' && (
+                <div>
+                  <label style={{ display: 'block', marginBottom: 4 }}>Upload Remit</label>
+                  <input type="file" accept="application/pdf,image/*"
+                    onChange={e => setRemitFile(e.target.files[0] || null)}
+                  />
+                  {remitFile && <div style={{ fontSize: 12, color: '#28a745', marginTop: 4 }}>✅ {remitFile.name}</div>}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Send button */}
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16 }}>
+            <button
+              className="btn btn--primary"
+              onClick={handleSend}
+              disabled={sending || (!invoicePdf && !workOrderPdf)}
+            >
+              {sending ? 'Sending…' : `📧 Send via ${LEAH_EMAIL}`}
+            </button>
+            {profile.history?.length > 0 && (
+              <button
+                className="btn"
+                onClick={() => setShowHistory(h => !h)}
+                style={{ fontSize: 13 }}
+              >
+                {showHistory ? 'Hide History' : `View History (${profile.history.length})`}
+              </button>
+            )}
+          </div>
+
+          {/* Send history */}
+          {showHistory && profile.history?.length > 0 && (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#17365D', color: 'white' }}>
+                    <th style={{ padding: '8px 10px', textAlign: 'left' }}>Sent At</th>
+                    <th style={{ padding: '8px 10px', textAlign: 'left' }}>Invoice PDF</th>
+                    <th style={{ padding: '8px 10px', textAlign: 'left' }}>Work Order PDF</th>
+                    <th style={{ padding: '8px 10px', textAlign: 'left' }}>Status</th>
+                    <th style={{ padding: '8px 10px', textAlign: 'left' }}>Payment</th>
+                    <th style={{ padding: '8px 10px', textAlign: 'left' }}>Sent To</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {profile.history.map((h, i) => (
+                    <tr key={i} style={{ borderBottom: '1px solid #dee2e6', backgroundColor: i % 2 === 0 ? '#fff' : '#f8f9fa' }}>
+                      <td style={{ padding: '8px 10px' }}>{new Date(h.sentAt).toLocaleString()}</td>
+                      <td style={{ padding: '8px 10px' }}>{h.invoicePdfName || '—'}</td>
+                      <td style={{ padding: '8px 10px' }}>{h.workOrderPdfName || '—'}</td>
+                      <td style={{ padding: '8px 10px' }}>
+                        <span style={{ padding: '2px 8px', borderRadius: 4, backgroundColor: h.payStatus === 'paid' ? '#28a745' : '#ffc107', color: h.payStatus === 'paid' ? '#fff' : '#000', fontWeight: 'bold' }}>
+                          {h.payStatus === 'paid' ? 'Paid' : 'Unpaid'}
+                        </span>
+                      </td>
+                      <td style={{ padding: '8px 10px' }}>
+                        {h.payMethod === 'card' && h.cardNumber ? `Card: ${h.cardNumber}` :
+                         h.payMethod === 'check' && h.checkNumber ? `Check: ${h.checkNumber}` :
+                         h.payMethod === 'remit' ? `Remit: ${h.remitName || 'uploaded'}` :
+                         h.payMethod || '—'}
+                      </td>
+                      <td style={{ padding: '8px 10px' }}>{h.sentTo}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 const Invoice = () => {
   // Companies (string[]) shown in the dropdown
   const [companyKey, setCompanyKey] = useState(''); // '' = All Companies
@@ -2082,6 +2335,9 @@ const handleUpdateInvoice = async () => {
           </button>
         </div>
         
+        {/* Company Profiles — Send Invoice */}
+        <CompanyProfilesSection />
+
         {/* Invoice Spreadsheet */}
         <div style={{ marginBottom: '30px', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
           <h2 style={{ marginBottom: '15px' }}>All Invoices</h2>
