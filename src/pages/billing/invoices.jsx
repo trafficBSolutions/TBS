@@ -555,7 +555,18 @@ const handlePdfAttachment = async (files, setAttachedPdfs, setDetectingTotal, se
 
 const LEAH_EMAIL = 'trafficandbarriersolutions.ap@gmail.com';
 
-const blankInvRow = () => ({ id: crypto.randomUUID(), description: '', officerAb: '', abSignsLights: '', mileage: '', extra: '', amount: 0 });
+const DEFAULT_INV_COLS = [
+  { key: 'description', label: 'DESCRIPTION', minWidth: 160 },
+  { key: 'officerAb', label: 'OFFICER &/OR AB', minWidth: 120 },
+  { key: 'abSignsLights', label: 'AB, Signs, Lights, Cones, ConPl', minWidth: 160 },
+  { key: 'mileage', label: 'MILEAGE', minWidth: 90 },
+  { key: 'extra', label: 'EXTRA', minWidth: 90 },
+];
+const blankInvRow = (cols) => {
+  const row = { id: crypto.randomUUID(), amount: 0 };
+  (cols || DEFAULT_INV_COLS).forEach(c => { row[c.key] = ''; });
+  return row;
+};
 
 function CompanyProfilesSection() {
   const [selectedCompany, setSelectedCompany] = useState('');
@@ -578,17 +589,26 @@ function CompanyProfilesSection() {
   const [remitFile, setRemitFile] = useState(null);
   const [sending, setSending] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [savedPdfs, setSavedPdfs] = useState([]);
+  const [loadingPdfs, setLoadingPdfs] = useState(false);
   const [invNumber, setInvNumber] = useState('');
   const [invStreetNum, setInvStreetNum] = useState('');
   const [invStreetName, setInvStreetName] = useState('');
   const [invCity, setInvCity] = useState('');
   const [invState, setInvState] = useState('');
   const [invZip, setInvZip] = useState('');
-  const [invRows, setInvRows] = useState([blankInvRow()]);
+  const [invCols, setInvCols] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('invCols') || 'null') || DEFAULT_INV_COLS; }
+    catch { return DEFAULT_INV_COLS; }
+  });
+  const [editingCols, setEditingCols] = useState(false);
+  const saveInvCols = (cols) => { setInvCols(cols); localStorage.setItem('invCols', JSON.stringify(cols)); };
+  const [invRows, setInvRows] = useState([blankInvRow(invCols)]);
   const invTotal = useMemo(() => invRows.reduce((s, r) => s + (Number(r.amount) || 0), 0), [invRows]);
   const updateInvRow = (id, patch) => setInvRows(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r));
-  const addInvRow = () => setInvRows(prev => [...prev, blankInvRow()]);
+  const addInvRow = () => setInvRows(prev => [...prev, blankInvRow(invCols)]);
   const removeInvRow = (id) => setInvRows(prev => prev.filter(r => r.id !== id));
+  const [additionalEmails, setAdditionalEmails] = useState(['']);
 
   const allCompanies = [
     ...companyList.filter(c => !c.startsWith('Other')),
@@ -641,6 +661,15 @@ function CompanyProfilesSection() {
   const companyEmail = getEmail(selectedCompany);
 
   useEffect(() => {
+    if (!selectedCompany) { setSavedPdfs([]); return; }
+    setLoadingPdfs(true);
+    api.get(`/api/billing/company-invoices/${encodeURIComponent(selectedCompany)}`)
+      .then(res => setSavedPdfs(res.data || []))
+      .catch(() => setSavedPdfs([]))
+      .finally(() => setLoadingPdfs(false));
+  }, [selectedCompany]);
+
+  useEffect(() => {
     if (!selectedCompany) return;
     const parsed = parseAddress(getAddress(selectedCompany));
     setInvStreetNum(parsed.streetNum || '');
@@ -666,6 +695,8 @@ function CompanyProfilesSection() {
       fd.append('from', LEAH_EMAIL);
       fd.append('to', companyEmail);
       fd.append('company', selectedCompany);
+      fd.append('invoiceNumber', invNumber);
+      fd.append('additionalEmails', JSON.stringify(additionalEmails.filter(e => e.trim())));
       fd.append('payStatus', payStatus);
       if (payStatus === 'paid') {
         fd.append('payMethod', payMethod);
@@ -687,8 +718,10 @@ function CompanyProfilesSection() {
       };
       saveProfile({ ...profile, history: [entry, ...(profile.history || [])] });
       toast.success(`Invoice sent to ${companyEmail} from ${LEAH_EMAIL}!`);
+      setSavedPdfs(prev => [{ sentAt: new Date().toISOString(), invoiceNumber: invNumber, sentTo: companyEmail, additionalEmails: additionalEmails.filter(e => e.trim()), payStatus, payMethod, invoicePdfName: invoicePdf?.name || null, workOrderPdfName: workOrderPdf?.name || null, remitName: remitFile?.name || null }, ...prev]);
       setInvoicePdf(null); setWorkOrderPdf(null); setRemitFile(null);
       setCardNumber(''); setCheckNumber(''); setPayStatus('unpaid');
+      setAdditionalEmails(['']);
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to send invoice.');
     } finally {
@@ -795,17 +828,45 @@ function CompanyProfilesSection() {
           <div style={{ marginBottom: 16 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
               <label style={{ fontWeight: 'bold' }}>Line Items</label>
-              <button type="button" className="btn" style={{ fontSize: 12, padding: '4px 10px' }} onClick={addInvRow}>+ Add Line</button>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button type="button" className="btn" style={{ fontSize: 12, padding: '4px 10px' }} onClick={() => setEditingCols(v => !v)}>{editingCols ? 'Done Editing Columns' : '✏️ Edit Columns'}</button>
+                <button type="button" className="btn" style={{ fontSize: 12, padding: '4px 10px' }} onClick={addInvRow}>+ Add Line</button>
+              </div>
             </div>
+
+            {editingCols && (
+              <div style={{ marginBottom: 10, padding: 12, border: '1px dashed #aaa', borderRadius: 6, backgroundColor: '#fffbe6' }}>
+                <div style={{ fontWeight: 'bold', marginBottom: 8, fontSize: 13 }}>Edit Column Headers</div>
+                {invCols.map((col, ci) => (
+                  <div key={col.key} style={{ display: 'flex', gap: 6, marginBottom: 6, alignItems: 'center' }}>
+                    <input
+                      value={col.label}
+                      onChange={e => { const next = invCols.map((c, i) => i === ci ? { ...c, label: e.target.value } : c); saveInvCols(next); }}
+                      style={{ flex: 1, padding: '4px 8px', borderRadius: 4, border: '1px solid #ccc', fontSize: 13 }}
+                    />
+                    <button type="button" onClick={() => { const next = invCols.filter((_, i) => i !== ci); saveInvCols(next); setInvRows(prev => prev.map(r => { const nr = { ...r }; delete nr[col.key]; return nr; })); }}
+                      style={{ background: 'none', border: 'none', color: '#dc3545', cursor: 'pointer', fontSize: 16, fontWeight: 'bold' }} title="Remove column">✕</button>
+                  </div>
+                ))}
+                <button type="button" className="btn" style={{ fontSize: 12, padding: '4px 10px', marginTop: 4 }}
+                  onClick={() => {
+                    const key = `col_${Date.now()}`;
+                    const next = [...invCols, { key, label: 'NEW COLUMN', minWidth: 100 }];
+                    saveInvCols(next);
+                    setInvRows(prev => prev.map(r => ({ ...r, [key]: '' })));
+                  }}>+ Add Column</button>
+                <button type="button" onClick={() => { saveInvCols(DEFAULT_INV_COLS); setInvRows([blankInvRow(DEFAULT_INV_COLS)]); }}
+                  style={{ marginLeft: 8, fontSize: 12, padding: '4px 10px', background: 'none', border: '1px solid #888', borderRadius: 4, cursor: 'pointer', color: '#555' }}>Reset to Default</button>
+              </div>
+            )}
+
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
                   <tr style={{ backgroundColor: '#17365D', color: 'white' }}>
-                    <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5', minWidth: 160 }}>DESCRIPTION</th>
-                    <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5', minWidth: 120 }}>OFFICER &amp;/OR AB</th>
-                    <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5', minWidth: 160 }}>AB, Signs, Lights, Cones, ConPl</th>
-                    <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5', minWidth: 90 }}>MILEAGE</th>
-                    <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5', minWidth: 90 }}>EXTRA</th>
+                    {invCols.map(col => (
+                      <th key={col.key} style={{ padding: '7px 8px', border: '1px solid #4a6fa5', minWidth: col.minWidth || 100 }}>{col.label}</th>
+                    ))}
                     <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5', minWidth: 100 }}>AMOUNT</th>
                     <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5', width: 36 }}></th>
                   </tr>
@@ -813,21 +874,11 @@ function CompanyProfilesSection() {
                 <tbody>
                   {invRows.map(r => (
                     <tr key={r.id}>
-                      <td style={{ padding: 4, border: '1px solid #ddd' }}>
-                        <input value={r.description} onChange={e => updateInvRow(r.id, { description: e.target.value })} placeholder="Service description" style={{ width: '100%', padding: '4px 6px', border: '1px solid #ccc', borderRadius: 3 }} />
-                      </td>
-                      <td style={{ padding: 4, border: '1px solid #ddd' }}>
-                        <input value={r.officerAb} onChange={e => updateInvRow(r.id, { officerAb: e.target.value })} style={{ width: '100%', padding: '4px 6px', border: '1px solid #ccc', borderRadius: 3 }} />
-                      </td>
-                      <td style={{ padding: 4, border: '1px solid #ddd' }}>
-                        <input value={r.abSignsLights} onChange={e => updateInvRow(r.id, { abSignsLights: e.target.value })} style={{ width: '100%', padding: '4px 6px', border: '1px solid #ccc', borderRadius: 3 }} />
-                      </td>
-                      <td style={{ padding: 4, border: '1px solid #ddd' }}>
-                        <input value={r.mileage} onChange={e => updateInvRow(r.id, { mileage: e.target.value })} style={{ width: '100%', padding: '4px 6px', border: '1px solid #ccc', borderRadius: 3 }} />
-                      </td>
-                      <td style={{ padding: 4, border: '1px solid #ddd' }}>
-                        <input value={r.extra} onChange={e => updateInvRow(r.id, { extra: e.target.value })} style={{ width: '100%', padding: '4px 6px', border: '1px solid #ccc', borderRadius: 3 }} />
-                      </td>
+                      {invCols.map(col => (
+                        <td key={col.key} style={{ padding: 4, border: '1px solid #ddd' }}>
+                          <input value={r[col.key] ?? ''} onChange={e => updateInvRow(r.id, { [col.key]: e.target.value })} style={{ width: '100%', padding: '4px 6px', border: '1px solid #ccc', borderRadius: 3 }} />
+                        </td>
+                      ))}
                       <td style={{ padding: 4, border: '1px solid #ddd' }}>
                         <input type="number" step="0.01" min="0" value={r.amount} onChange={e => updateInvRow(r.id, { amount: Number(e.target.value) })} style={{ width: '100%', padding: '4px 6px', border: '1px solid #ccc', borderRadius: 3, textAlign: 'right' }} />
                       </td>
@@ -839,7 +890,7 @@ function CompanyProfilesSection() {
                 </tbody>
                 <tfoot>
                   <tr style={{ backgroundColor: '#f0f0f0', fontWeight: 'bold' }}>
-                    <td colSpan={5} style={{ padding: '7px 8px', border: '1px solid #ddd', textAlign: 'right' }}>TOTAL</td>
+                    <td colSpan={invCols.length} style={{ padding: '7px 8px', border: '1px solid #ddd', textAlign: 'right' }}>TOTAL</td>
                     <td style={{ padding: '7px 8px', border: '1px solid #ddd', textAlign: 'right' }}>${invTotal.toFixed(2)}</td>
                     <td style={{ border: '1px solid #ddd' }}></td>
                   </tr>
@@ -887,6 +938,83 @@ function CompanyProfilesSection() {
               )}
             </div>
           )}
+          {/* Additional Emails */}
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ fontWeight: 'bold', display: 'block', marginBottom: 6 }}>Send To (Emails)</label>
+            <div style={{ marginBottom: 6, fontSize: 13, color: '#555' }}>Primary: <strong>{companyEmail || <span style={{ color: '#dc3545' }}>No email on file</span>}</strong></div>
+            {additionalEmails.map((em, idx) => (
+              <div key={idx} style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
+                <input type="email" placeholder="Additional email" value={em}
+                  onChange={e => { const n = [...additionalEmails]; n[idx] = e.target.value; setAdditionalEmails(n); }}
+                  style={{ flex: 1, padding: '6px 8px', borderRadius: 4, border: '1px solid #ced4da', fontSize: 13 }} />
+                <button type="button" onClick={() => setAdditionalEmails(additionalEmails.filter((_, i) => i !== idx))}
+                  style={{ background: 'none', border: 'none', color: '#dc3545', cursor: 'pointer', fontSize: 16, fontWeight: 'bold' }}>✕</button>
+              </div>
+            ))}
+            <button type="button" className="btn" style={{ fontSize: 12, padding: '4px 10px' }}
+              onClick={() => setAdditionalEmails(prev => [...prev, ''])}>+ Add Email</button>
+          </div>
+
+          {/* Saved PDFs */}
+          {selectedCompany && (
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <label style={{ fontWeight: 'bold', fontSize: 14 }}>📁 Saved Invoices &amp; Work Orders</label>
+                {loadingPdfs && <span style={{ fontSize: 12, color: '#888' }}>Loading…</span>}
+              </div>
+              {savedPdfs.length === 0 && !loadingPdfs ? (
+                <div style={{ fontSize: 13, color: '#888', fontStyle: 'italic' }}>No history yet for this company.</div>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                    <thead>
+                      <tr style={{ backgroundColor: '#17365D', color: 'white' }}>
+                        <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5' }}>Sent At</th>
+                        <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5' }}>Inv #</th>
+                        <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5' }}>Status</th>
+                        <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5' }}>Invoice PDF</th>
+                        <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5' }}>Work Order PDF</th>
+                        <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5' }}>Remit</th>
+                        <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5' }}>Sent To</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {savedPdfs.map((rec, i) => (
+                        <tr key={rec._id || i} style={{ backgroundColor: i % 2 === 0 ? '#fff' : '#f8f9fa', borderBottom: '1px solid #dee2e6' }}>
+                          <td style={{ padding: '7px 8px', border: '1px solid #ddd', whiteSpace: 'nowrap' }}>{new Date(rec.sentAt).toLocaleString()}</td>
+                          <td style={{ padding: '7px 8px', border: '1px solid #ddd' }}>{rec.invoiceNumber || '—'}</td>
+                          <td style={{ padding: '7px 8px', border: '1px solid #ddd' }}>
+                            <span style={{ padding: '2px 8px', borderRadius: 4, backgroundColor: rec.payStatus === 'paid' ? '#28a745' : '#ffc107', color: rec.payStatus === 'paid' ? '#fff' : '#000', fontWeight: 'bold', fontSize: 11 }}>
+                              {rec.payStatus === 'paid' ? 'Paid' : 'Unpaid'}
+                            </span>
+                          </td>
+                          <td style={{ padding: '7px 8px', border: '1px solid #ddd', fontSize: 12 }}>
+                            {rec._id && rec.invoicePdfName
+                              ? <a href={`${import.meta.env.VITE_API_URL || ''}/api/billing/company-invoice-pdf/${rec._id}/invoice`} target="_blank" rel="noreferrer" style={{ color: '#007bff' }}>📄 {rec.invoicePdfName}</a>
+                              : rec.invoicePdfName || '—'}
+                          </td>
+                          <td style={{ padding: '7px 8px', border: '1px solid #ddd', fontSize: 12 }}>
+                            {rec._id && rec.workOrderPdfName
+                              ? <a href={`${import.meta.env.VITE_API_URL || ''}/api/billing/company-invoice-pdf/${rec._id}/workorder`} target="_blank" rel="noreferrer" style={{ color: '#007bff' }}>📄 {rec.workOrderPdfName}</a>
+                              : rec.workOrderPdfName || '—'}
+                          </td>
+                          <td style={{ padding: '7px 8px', border: '1px solid #ddd', fontSize: 12 }}>
+                            {rec._id && rec.remitName
+                              ? <a href={`${import.meta.env.VITE_API_URL || ''}/api/billing/company-invoice-pdf/${rec._id}/remit`} target="_blank" rel="noreferrer" style={{ color: '#007bff' }}>📄 {rec.remitName}</a>
+                              : rec.remitName || '—'}
+                          </td>
+                          <td style={{ padding: '7px 8px', border: '1px solid #ddd', fontSize: 12 }}>
+                            {rec.sentTo}{rec.additionalEmails?.length ? `, ${rec.additionalEmails.join(', ')}` : ''}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16 }}>
             <button className="btn btn--primary" onClick={handleSend} disabled={sending || (!invoicePdf && !workOrderPdf)}>
               {sending ? 'Sending…' : `📧 Send via ${LEAH_EMAIL}`}
