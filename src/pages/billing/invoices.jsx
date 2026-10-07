@@ -1510,7 +1510,7 @@ const Invoice = () => {
     _id: inv._id, invoiceNumber: inv.invoiceNumber || '', payStatus: inv.payStatus || 'unpaid',
     payMethod: inv.payMethod || '', sentTo: inv.sentTo || '',
     invoicePdfName: inv.invoicePdfName, workOrderPdfName: inv.workOrderPdfName, remitName: inv.remitName,
-    newInvoicePdf: null, newWorkOrderPdf: null, newRemit: null,
+    newInvoicePdf: null, newWorkOrderPdf: null, newRemit: null, resend: false,
   });
 
   const handleSaveEdit = async () => {
@@ -1522,6 +1522,7 @@ const Invoice = () => {
       fd.append('payStatus', editingInv.payStatus);
       fd.append('payMethod', editingInv.payMethod);
       fd.append('sentTo', editingInv.sentTo);
+      fd.append('resend', editingInv.resend ? 'true' : 'false');
       if (editingInv.newInvoicePdf) fd.append('invoicePdf', editingInv.newInvoicePdf);
       if (editingInv.newWorkOrderPdf) fd.append('workOrderPdf', editingInv.newWorkOrderPdf);
       if (editingInv.newRemit) fd.append('remit', editingInv.newRemit);
@@ -1654,10 +1655,18 @@ const Invoice = () => {
                     {editingInv.newRemit && <div style={{ fontSize: 11, color: '#007bff', marginTop: 2 }}>New: {editingInv.newRemit.name}</div>}
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <button className="btn btn--primary" onClick={handleSaveEdit} disabled={savingEdit} style={{ fontSize: 13 }}>
                     {savingEdit ? 'Saving…' : '💾 Save Changes'}
                   </button>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, cursor: 'pointer',
+                    padding: '5px 10px', borderRadius: 4, border: '1px solid #17a2b8',
+                    backgroundColor: editingInv.resend ? '#e0f7fa' : '#fff', color: '#17a2b8', fontWeight: 'bold' }}>
+                    <input type="checkbox" checked={editingInv.resend}
+                      onChange={e => setEditingInv(p => ({ ...p, resend: e.target.checked }))}
+                      style={{ accentColor: '#17a2b8' }} />
+                    📧 Resend to {editingInv.sentTo || 'recipient'}
+                  </label>
                   <button className="btn" onClick={() => setEditingInv(null)} style={{ fontSize: 13 }}>Cancel</button>
                 </div>
               </div>
