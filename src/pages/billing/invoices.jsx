@@ -707,6 +707,7 @@ function CompanyProfilesSection() {
       fd.append('company', selectedCompany);
       fd.append('invoiceNumber', invNumber);
       fd.append('additionalEmails', JSON.stringify(additionalEmails.filter(e => e.trim())));
+      fd.append('lineItems', JSON.stringify(invRows.filter(r => r.amount || Object.values(r).some(v => v && v !== r.id && v !== 0))));
       fd.append('payStatus', payStatus);
       if (payStatus === 'paid') {
         fd.append('payMethod', payMethod);
@@ -1471,8 +1472,9 @@ const Invoice = () => {
   const [invoicePage, setInvoicePage] = useState(0);
   const [markingPaidId, setMarkingPaidId] = useState(null);
   const [invFilter, setInvFilter] = useState({ search: '', month: '', status: '' });
-  const [editingInv, setEditingInv] = useState(null); // { _id, invoiceNumber, payStatus, payMethod, sentTo, newInvoicePdf, newWorkOrderPdf, newRemit }
+  const [editingInv, setEditingInv] = useState(null);
   const [savingEdit, setSavingEdit] = useState(false);
+  const [expandedInv, setExpandedInv] = useState(null);
   const INVOICES_PER_PAGE = 50;
 
   const fetchAllInvoices = async () => {
@@ -1690,6 +1692,7 @@ const Invoice = () => {
                 {filteredInvoices
                   .slice(invoicePage * INVOICES_PER_PAGE, (invoicePage + 1) * INVOICES_PER_PAGE)
                   .map((inv, idx) => (
+                    <>
                     <tr key={inv._id || idx} style={{ borderBottom: '1px solid #ddd', backgroundColor: editingInv?._id === inv._id ? '#e8f4ff' : idx % 2 === 0 ? '#fff' : '#f8f9fa' }}>
                       <td style={{ padding: '7px 6px', border: '1px solid #ddd', whiteSpace: 'nowrap' }}>{new Date(inv.sentAt).toLocaleDateString()}</td>
                       <td style={{ padding: '7px 6px', border: '1px solid #ddd', fontWeight: 600 }}>{inv.invoiceNumber || '—'}</td>
@@ -1726,17 +1729,58 @@ const Invoice = () => {
                           ? <a href={`${import.meta.env.VITE_API_URL}/api/billing/company-invoice-pdf/${inv._id}/remit`} target="_blank" rel="noreferrer" style={{ color: '#007bff' }}>📄 {inv.remitName}</a>
                           : inv.remitName || '—'}
                       </td>
-                      <td style={{ padding: '7px 6px', border: '1px solid #ddd', textAlign: 'center' }}>
+                      <td style={{ padding: '7px 6px', border: '1px solid #ddd', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                        {inv.lineItems?.length > 0 && (
+                          <button onClick={() => setExpandedInv(expandedInv === inv._id ? null : inv._id)}
+                            style={{ background: 'none', border: '1px solid #6c757d', color: '#6c757d', borderRadius: 4, padding: '2px 6px', cursor: 'pointer', fontSize: 11, marginRight: 4 }}>
+                            {expandedInv === inv._id ? '▲' : '▼'}
+                          </button>
+                        )}
                         <button onClick={() => editingInv?._id === inv._id ? setEditingInv(null) : openEdit(inv)}
                           style={{ background: 'none', border: '1px solid #007bff', color: '#007bff', borderRadius: 4, padding: '2px 8px', cursor: 'pointer', fontSize: 11 }}>
                           {editingInv?._id === inv._id ? 'Cancel' : '✏️'}
                         </button>
                       </td>
                     </tr>
+                    {expandedInv === inv._id && inv.lineItems?.length > 0 && (
+                      <tr key={`${inv._id}-lines`}>
+                        <td colSpan={10} style={{ padding: '0 12px 12px 12px', backgroundColor: '#f0f7ff', border: '1px solid #ddd' }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, marginTop: 8 }}>
+                            <thead>
+                              <tr style={{ backgroundColor: '#17365D', color: 'white' }}>
+                                {Object.keys(inv.lineItems[0]).filter(k => k !== 'amount').map(k => (
+                                  <th key={k} style={{ padding: '5px 8px', border: '1px solid #4a6fa5', textTransform: 'uppercase', fontSize: 11 }}>{k}</th>
+                                ))}
+                                <th style={{ padding: '5px 8px', border: '1px solid #4a6fa5', fontSize: 11 }}>AMOUNT</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {inv.lineItems.map((li, li_idx) => (
+                                <tr key={li_idx} style={{ backgroundColor: li_idx % 2 === 0 ? '#fff' : '#e8f4ff' }}>
+                                  {Object.keys(inv.lineItems[0]).filter(k => k !== 'amount').map(k => (
+                                    <td key={k} style={{ padding: '5px 8px', border: '1px solid #ddd' }}>{li[k] || '—'}</td>
+                                  ))}
+                                  <td style={{ padding: '5px 8px', border: '1px solid #ddd', textAlign: 'right', fontWeight: 600 }}>${Number(li.amount || 0).toFixed(2)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                            <tfoot>
+                              <tr style={{ backgroundColor: '#e3f2fd', fontWeight: 'bold' }}>
+                                <td colSpan={Object.keys(inv.lineItems[0]).filter(k => k !== 'amount').length} style={{ padding: '5px 8px', border: '1px solid #ddd', textAlign: 'right' }}>TOTAL</td>
+                                <td style={{ padding: '5px 8px', border: '1px solid #ddd', textAlign: 'right' }}>${inv.lineItems.reduce((s, r) => s + Number(r.amount || 0), 0).toFixed(2)}</td>
+                              </tr>
+                              
+                            </tfoot>
+                          </table>
+                        </td>
+                      </tr>
+                    )}
+</>
                   ))}
               </tbody>
             </table>
           </div>
+                  
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '15px' }}>
             <button
               onClick={() => setInvoicePage(p => Math.max(0, p - 1))}
