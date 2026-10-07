@@ -578,6 +578,12 @@ function CompanyProfilesSection() {
     try { return JSON.parse(localStorage.getItem('customCompanies') || '[]'); }
     catch { return []; }
   });
+  const [emailOverrides, setEmailOverrides] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('companyEmailOverrides') || '{}'); }
+    catch { return {}; }
+  });
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [emailDraft, setEmailDraft] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [newCo, setNewCo] = useState({ name: '', address: '', email: '' });
   const [invoicePdf, setInvoicePdf] = useState(null);
@@ -616,8 +622,14 @@ function CompanyProfilesSection() {
   ];
 
   const getEmail = (name) => {
+    if (emailOverrides[name]) return emailOverrides[name];
     const custom = customCompanies.find(c => c.name === name);
     return custom?.email || COMPANY_TO_EMAIL[name] || '';
+  };
+  const saveEmailOverride = (name, email) => {
+    const next = { ...emailOverrides, [name]: email.trim() };
+    setEmailOverrides(next);
+    localStorage.setItem('companyEmailOverrides', JSON.stringify(next));
   };
   const getAddress = (name) => {
     const custom = customCompanies.find(c => c.name === name);
@@ -735,7 +747,7 @@ function CompanyProfilesSection() {
       <div style={{ marginBottom: 16 }}>
         <label style={{ fontWeight: 'bold', display: 'block', marginBottom: 6 }}>Select Company</label>
         <div style={{ display: 'flex', gap: 8 }}>
-          <select value={selectedCompany} onChange={e => { setSelectedCompany(e.target.value); setShowHistory(false); setShowAddForm(false); }}
+          <select value={selectedCompany} onChange={e => { setSelectedCompany(e.target.value); setShowHistory(false); setShowAddForm(false); setEditingEmail(false); }}
             style={{ flex: 1, padding: 8, fontSize: 14, borderRadius: 4, border: '1px solid #ced4da' }}>
             <option value="">— Choose a company —</option>
             {allCompanies.map(c => <option key={c} value={c}>{c}</option>)}
@@ -780,8 +792,37 @@ function CompanyProfilesSection() {
         <>
           <div style={{ marginBottom: 16, padding: 12, backgroundColor: '#e3f2fd', borderRadius: 6 }}>
             <div><strong>Billing Address:</strong> {getAddress(selectedCompany) || 'Not on file'}</div>
-            <div><strong>Send To:</strong> {companyEmail || <span style={{ color: '#dc3545' }}>No email on file</span>}</div>
-            <div><strong>Sender:</strong> {LEAH_EMAIL}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
+              <strong>Send To:</strong>
+              {editingEmail ? (
+                <>
+                  <input
+                    type="email"
+                    value={emailDraft}
+                    onChange={e => setEmailDraft(e.target.value)}
+                    style={{ padding: '4px 8px', borderRadius: 4, border: '1px solid #90caf9', fontSize: 13, minWidth: 220 }}
+                    autoFocus
+                  />
+                  <button className="btn btn--primary" style={{ fontSize: 12, padding: '3px 10px' }}
+                    onClick={() => { saveEmailOverride(selectedCompany, emailDraft); setEditingEmail(false); toast.success('Email saved!'); }}>
+                    Save
+                  </button>
+                  <button className="btn" style={{ fontSize: 12, padding: '3px 10px' }}
+                    onClick={() => setEditingEmail(false)}>Cancel</button>
+                </>
+              ) : (
+                <>
+                  <span style={{ color: companyEmail ? '#000' : '#dc3545' }}>
+                    {companyEmail || 'No email on file'}
+                  </span>
+                  <button className="btn" style={{ fontSize: 11, padding: '2px 8px' }}
+                    onClick={() => { setEmailDraft(companyEmail); setEditingEmail(true); }}>
+                    ✏️ Edit
+                  </button>
+                </>
+              )}
+            </div>
+            <div style={{ marginTop: 4 }}><strong>Sender:</strong> {LEAH_EMAIL}</div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
             <div>
