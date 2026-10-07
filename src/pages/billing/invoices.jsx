@@ -1472,17 +1472,26 @@ const Invoice = () => {
   const [invoicePage, setInvoicePage] = useState(0);
   const [markingPaidId, setMarkingPaidId] = useState(null);
   const [payingInv, setPayingInv] = useState(null); // { id, method }
-  const [viewingPdf, setViewingPdf] = useState(null); // { blobUrl, name, loading }
+  const [viewingPdf, setViewingPdf] = useState(null); // { pages: canvas data URLs[], name, loading }
   const viewingPdfRef = useRef(null);
 
   const loadPdfBlob = async (apiUrl, name) => {
-    setViewingPdf({ blobUrl: null, name, loading: true });
-    if (viewingPdfRef.current) URL.revokeObjectURL(viewingPdfRef.current);
+    setViewingPdf({ pages: [], name, loading: true });
     try {
-      const res = await api.get(apiUrl.replace(/.*\/api\//, '/api/'), { responseType: 'blob' });
-      const blobUrl = URL.createObjectURL(res.data);
-      viewingPdfRef.current = blobUrl;
-      setViewingPdf({ blobUrl, name, loading: false });
+      const res = await api.get(apiUrl.replace(/.*\/api\//, '/api/'), { responseType: 'arraybuffer' });
+      const pdf = await pdfjsLib.getDocument({ data: res.data }).promise;
+      const pages = [];
+      for (let p = 1; p <= pdf.numPages; p++) {
+        const page = await pdf.getPage(p);
+        const viewport = page.getViewport({ scale: 1.5 });
+        const canvas = document.createElement('canvas');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+        pages.push(canvas.toDataURL());
+      }
+      viewingPdfRef.current = name;
+      setViewingPdf({ pages, name, loading: false, raw: res.data });
     } catch {
       setViewingPdf(null);
       toast.error('Failed to load PDF');
@@ -1490,7 +1499,7 @@ const Invoice = () => {
   };
 
   const closePdfViewer = () => {
-    if (viewingPdfRef.current) { URL.revokeObjectURL(viewingPdfRef.current); viewingPdfRef.current = null; }
+    viewingPdfRef.current = null;
     setViewingPdf(null);
   };
   const [invFilter, setInvFilter] = useState({ search: '', month: '', status: '' });
@@ -1835,24 +1844,25 @@ const Invoice = () => {
             <div style={{ marginTop: 20, border: '2px solid #007bff', borderRadius: 8, overflow: 'hidden' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 14px', backgroundColor: '#17365D', color: '#fff' }}>
                 <span style={{ fontSize: 13, fontWeight: 'bold' }}>📄 {viewingPdf.name}</span>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  {viewingPdf.blobUrl && (
-                    <a href={viewingPdf.blobUrl} download={viewingPdf.name}
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  {viewingPdf.raw && (
+                    <a href={URL.createObjectURL(new Blob([viewingPdf.raw], { type: 'application/pdf' }))} download={viewingPdf.name}
                       style={{ fontSize: 12, color: '#90caf9', textDecoration: 'underline' }}>⬇ Download</a>
                   )}
                   <button onClick={closePdfViewer}
                     style={{ background: 'none', border: '1px solid #fff', color: '#fff', borderRadius: 4, padding: '2px 10px', cursor: 'pointer', fontSize: 12 }}>✕ Close</button>
                 </div>
               </div>
-              {viewingPdf.loading ? (
-                <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f8f9fa', fontSize: 14, color: '#555' }}>Loading PDF…</div>
-              ) : (
-                <iframe
-                  src={viewingPdf.blobUrl}
-                  title={viewingPdf.name}
-                  style={{ width: '100%', height: 780, border: 'none', display: 'block' }}
-                />
-              )}
+              <div style={{ backgroundColor: '#525659', padding: '16px', maxHeight: 820, overflowY: 'auto' }}>
+                {viewingPdf.loading ? (
+                  <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14 }}>Loading PDF…</div>
+                ) : (
+                  viewingPdf.pages.map((src, i) => (
+                    <img key={i} src={src} alt={`Page ${i + 1}`}
+                      style={{ display: 'block', margin: '0 auto 12px', maxWidth: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.5)' }} />
+                  ))
+                )}
+              </div>
             </div>
           )}
 
