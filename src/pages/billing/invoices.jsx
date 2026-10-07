@@ -1030,17 +1030,17 @@ function CompanyProfilesSection() {
                           </td>
                           <td style={{ padding: '7px 8px', border: '1px solid #ddd', fontSize: 12 }}>
                             {rec._id && rec.invoicePdfName
-                              ? <a href={`${import.meta.env.VITE_API_URL || ''}/api/billing/company-invoice-pdf/${rec._id}/invoice`} target="_blank" rel="noreferrer" style={{ color: '#007bff' }}>📄 {rec.invoicePdfName}</a>
+                              ? <a href={`${import.meta.env.VITE_API_URL}/api/billing/company-invoice-pdf/${rec._id}/invoice`} target="_blank" rel="noreferrer" style={{ color: '#007bff' }}>📄 {rec.invoicePdfName}</a>
                               : rec.invoicePdfName || '—'}
                           </td>
                           <td style={{ padding: '7px 8px', border: '1px solid #ddd', fontSize: 12 }}>
                             {rec._id && rec.workOrderPdfName
-                              ? <a href={`${import.meta.env.VITE_API_URL || ''}/api/billing/company-invoice-pdf/${rec._id}/workorder`} target="_blank" rel="noreferrer" style={{ color: '#007bff' }}>📄 {rec.workOrderPdfName}</a>
+                              ? <a href={`${import.meta.env.VITE_API_URL}/api/billing/company-invoice-pdf/${rec._id}/workorder`} target="_blank" rel="noreferrer" style={{ color: '#007bff' }}>📄 {rec.workOrderPdfName}</a>
                               : rec.workOrderPdfName || '—'}
                           </td>
                           <td style={{ padding: '7px 8px', border: '1px solid #ddd', fontSize: 12 }}>
                             {rec._id && rec.remitName
-                              ? <a href={`${import.meta.env.VITE_API_URL || ''}/api/billing/company-invoice-pdf/${rec._id}/remit`} target="_blank" rel="noreferrer" style={{ color: '#007bff' }}>📄 {rec.remitName}</a>
+                              ? <a href={`${import.meta.env.VITE_API_URL}/api/billing/company-invoice-pdf/${rec._id}/remit`} target="_blank" rel="noreferrer" style={{ color: '#007bff' }}>📄 {rec.remitName}</a>
                               : rec.remitName || '—'}
                           </td>
                           <td style={{ padding: '7px 8px', border: '1px solid #ddd', fontSize: 12 }}>
@@ -1473,46 +1473,44 @@ const Invoice = () => {
   const [invFilter, setInvFilter] = useState({ search: '', month: '', status: '' });
   const INVOICES_PER_PAGE = 50;
 
-  useEffect(() => {
-    const fetchAllInvoices = async () => {
-      try {
-        const res = await api.get('/api/billing/all-invoices');
-        setAllInvoices(res.data || []);
-      } catch (err) { console.error('Failed to fetch all invoices:', err); }
-    };
-    fetchAllInvoices();
-  }, []);
+  const fetchAllInvoices = async () => {
+    try {
+      const res = await api.get('/api/billing/company-invoices-all');
+      setAllInvoices(res.data || []);
+    } catch (err) { console.error('Failed to fetch all invoices:', err); }
+  };
+
+  useEffect(() => { fetchAllInvoices(); }, []);
 
   const filteredInvoices = useMemo(() => {
     const s = invFilter.search.toLowerCase();
     return allInvoices
       .filter(inv => {
-        if (invFilter.status === 'paid' && inv.status !== 'PAID') return false;
-        if (invFilter.status === 'unpaid' && inv.status === 'PAID') return false;
+        if (invFilter.status === 'paid' && inv.payStatus !== 'paid') return false;
+        if (invFilter.status === 'unpaid' && inv.payStatus !== 'unpaid') return false;
         if (invFilter.month) {
-          const d = new Date(inv.sentAt || inv.createdAt);
+          const d = new Date(inv.sentAt);
           if (isNaN(d)) return false;
           if (d.toLocaleString('default', { month: 'short' }) !== invFilter.month) return false;
         }
         if (s) {
           const num = (inv.invoiceNumber || '').toLowerCase();
-          const co  = (inv.billedTo?.name || '').toLowerCase();
-          const dt  = new Date(inv.sentAt || inv.createdAt).toLocaleDateString().toLowerCase();
+          const co  = (inv.company || '').toLowerCase();
+          const dt  = new Date(inv.sentAt).toLocaleDateString().toLowerCase();
           if (!num.includes(s) && !co.includes(s) && !dt.includes(s)) return false;
         }
         return true;
       })
-      .sort((a, b) => parseInt(a.invoiceNumber || '0') - parseInt(b.invoiceNumber || '0'));
+      .sort((a, b) => new Date(b.sentAt) - new Date(a.sentAt));
   }, [allInvoices, invFilter]);
 
-  const handleQuickMarkPaid = async (invoiceId) => {
+  const handleQuickMarkPaid = async (id) => {
     if (!confirm('Mark this invoice as paid?')) return;
-    setMarkingPaidId(invoiceId);
+    setMarkingPaidId(id);
     try {
-      await api.post('/api/billing/quick-mark-paid', { invoiceId });
-      toast.success('Invoice marked as paid!');
-      const res = await api.get('/api/billing/all-invoices');
-      setAllInvoices(res.data || []);
+      await api.patch(`/api/billing/company-invoice-pay/${id}`);
+      toast.success('Marked as paid!');
+      await fetchAllInvoices();
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to mark paid');
     } finally { setMarkingPaidId(null); }
@@ -1575,74 +1573,62 @@ const Invoice = () => {
           </div>
 
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: 'white', fontSize: 12, minWidth: 1400 }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: 'white', fontSize: 12, minWidth: 900 }}>
               <thead>
                 <tr style={{ backgroundColor: '#17365D', color: 'white' }}>
-                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>DATE BILLED</th>
-                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>DUE DATE</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>DATE SENT</th>
                   <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>INV #</th>
-                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>AMOUNT</th>
-                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>BILLED TO</th>
-                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>STREET #</th>
-                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>STREET NAME</th>
-                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>CITY</th>
-                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>STATE</th>
-                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>WORK ORDER</th>
-                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>AMOUNT RECEIVED</th>
-                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>DATE OF DEPOSIT</th>
-                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>CK # or EFT</th>
-                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>CHECK or EFT DATE</th>
-                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>OFFICER &amp;/OR AB</th>
-                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>AB, Signs, Lights, Cones, ConPl</th>
-                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>MILEAGE</th>
-                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>EXTRA</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>COMPANY</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>SENT TO</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>STATUS</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>PAY METHOD</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>INVOICE PDF</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>WORK ORDER PDF</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>REMIT</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredInvoices
                   .slice(invoicePage * INVOICES_PER_PAGE, (invoicePage + 1) * INVOICES_PER_PAGE)
-                  .map((inv, idx) => {
-                    const addr = inv.billedTo?.address || '';
-                    const streetNum = addr.match(/^(\d+)/)?.[1] || '';
-                    const streetName = addr.replace(/^\d+\s*/, '').split(',')[0] || '';
-                    const city = inv.billedTo?.city || addr.split(',')[1]?.trim() || '';
-                    const state = inv.billedTo?.state || addr.split(',')[2]?.trim() || '';
-                    const isPaid = inv.status === 'PAID';
-                    return (
-                      <tr key={inv._id || idx} style={{ borderBottom: '1px solid #ddd', backgroundColor: idx % 2 === 0 ? '#fff' : '#f8f9fa' }}>
-                        <td style={{ padding: '7px 6px', border: '1px solid #ddd', whiteSpace: 'nowrap' }}>{new Date(inv.sentAt || inv.createdAt).toLocaleDateString()}</td>
-                        <td style={{ padding: '7px 6px', border: '1px solid #ddd', whiteSpace: 'nowrap' }}>{inv.invoiceData?.dueDate ? new Date(inv.invoiceData.dueDate).toLocaleDateString() : ''}</td>
-                        <td style={{ padding: '7px 6px', border: '1px solid #ddd', whiteSpace: 'nowrap', fontWeight: 600 }}>{inv.invoiceNumber || '—'}</td>
-                        <td style={{ padding: '7px 6px', border: '1px solid #ddd', whiteSpace: 'nowrap', textAlign: 'right' }}>${(inv.principal || 0).toFixed(2)}</td>
-                        <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>{inv.billedTo?.name || '—'}</td>
-                        <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>{streetNum}</td>
-                        <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>{streetName}</td>
-                        <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>{city}</td>
-                        <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>{state}</td>
-                        <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>{inv.invoiceData?.workRequestNumber1 || inv.invoiceData?.workRequestNumber2 || '—'}</td>
-                        <td style={{ padding: '7px 6px', border: '1px solid #ddd', textAlign: 'right' }}>
-                          {isPaid ? (
-                            <span style={{ color: '#28a745', fontWeight: 700 }}>${(inv.amountReceived || inv.principal || 0).toFixed(2)}</span>
-                          ) : (
-                            <button
-                              onClick={() => handleQuickMarkPaid(inv._id)}
-                              disabled={markingPaidId === inv._id}
-                              style={{ padding: '3px 8px', borderRadius: 4, backgroundColor: '#ffc107', color: '#000', fontWeight: 700, border: 'none', cursor: markingPaidId === inv._id ? 'wait' : 'pointer', fontSize: 11 }}
-                            >
-                              {markingPaidId === inv._id ? '…' : 'Mark Paid'}
-                            </button>
-                          )}
-                        </td>
-                        <td style={{ padding: '7px 6px', border: '1px solid #ddd', whiteSpace: 'nowrap' }}>{inv.depositDate ? new Date(inv.depositDate).toLocaleDateString() : ''}</td>
-                        <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>{inv.checkOrEft || ''}</td>
-                        <td style={{ padding: '7px 6px', border: '1px solid #ddd', whiteSpace: 'nowrap' }}>{inv.checkOrEftDate ? new Date(inv.checkOrEftDate).toLocaleDateString() : ''}</td>
-                        <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>{inv.invoiceData?.foreman || ''}</td>
-                        <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>{inv.invoiceData?.workType || ''}</td>
-                        <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>{inv.invoiceData?.miles || ''}</td>
-                        <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>{inv.invoiceData?.extra || ''}</td>
-                      </tr>
-                    );
-                  })}
+                  .map((inv, idx) => (
+                    <tr key={inv._id || idx} style={{ borderBottom: '1px solid #ddd', backgroundColor: idx % 2 === 0 ? '#fff' : '#f8f9fa' }}>
+                      <td style={{ padding: '7px 6px', border: '1px solid #ddd', whiteSpace: 'nowrap' }}>{new Date(inv.sentAt).toLocaleDateString()}</td>
+                      <td style={{ padding: '7px 6px', border: '1px solid #ddd', fontWeight: 600 }}>{inv.invoiceNumber || '—'}</td>
+                      <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>{inv.company || '—'}</td>
+                      <td style={{ padding: '7px 6px', border: '1px solid #ddd', fontSize: 11 }}>
+                        {inv.sentTo}{inv.additionalEmails?.length ? `, ${inv.additionalEmails.join(', ')}` : ''}
+                      </td>
+                      <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>
+                        {inv.payStatus === 'paid' ? (
+                          <span style={{ padding: '2px 8px', borderRadius: 4, backgroundColor: '#28a745', color: '#fff', fontWeight: 'bold', fontSize: 11 }}>Paid</span>
+                        ) : (
+                          <button
+                            onClick={() => handleQuickMarkPaid(inv._id)}
+                            disabled={markingPaidId === inv._id}
+                            style={{ padding: '3px 8px', borderRadius: 4, backgroundColor: '#ffc107', color: '#000', fontWeight: 700, border: 'none', cursor: markingPaidId === inv._id ? 'wait' : 'pointer', fontSize: 11 }}
+                          >
+                            {markingPaidId === inv._id ? '…' : 'Mark Paid'}
+                          </button>
+                        )}
+                      </td>
+                      <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>{inv.payMethod || '—'}</td>
+                      <td style={{ padding: '7px 6px', border: '1px solid #ddd', fontSize: 11 }}>
+                        {inv._id && inv.invoicePdfName
+                          ? <a href={`${import.meta.env.VITE_API_URL}/api/billing/company-invoice-pdf/${inv._id}/invoice`} target="_blank" rel="noreferrer" style={{ color: '#007bff' }}>📄 {inv.invoicePdfName}</a>
+                          : inv.invoicePdfName || '—'}
+                      </td>
+                      <td style={{ padding: '7px 6px', border: '1px solid #ddd', fontSize: 11 }}>
+                        {inv._id && inv.workOrderPdfName
+                          ? <a href={`${import.meta.env.VITE_API_URL}/api/billing/company-invoice-pdf/${inv._id}/workorder`} target="_blank" rel="noreferrer" style={{ color: '#007bff' }}>📄 {inv.workOrderPdfName}</a>
+                          : inv.workOrderPdfName || '—'}
+                      </td>
+                      <td style={{ padding: '7px 6px', border: '1px solid #ddd', fontSize: 11 }}>
+                        {inv._id && inv.remitName
+                          ? <a href={`${import.meta.env.VITE_API_URL}/api/billing/company-invoice-pdf/${inv._id}/remit`} target="_blank" rel="noreferrer" style={{ color: '#007bff' }}>📄 {inv.remitName}</a>
+                          : inv.remitName || '—'}
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
