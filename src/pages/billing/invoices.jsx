@@ -1471,6 +1471,7 @@ const Invoice = () => {
   const [allInvoices, setAllInvoices] = useState([]);
   const [invoicePage, setInvoicePage] = useState(0);
   const [markingPaidId, setMarkingPaidId] = useState(null);
+  const [payingInv, setPayingInv] = useState(null); // { id, method }
   const [invFilter, setInvFilter] = useState({ search: '', month: '', status: '' });
   const [editingInv, setEditingInv] = useState(null);
   const [savingEdit, setSavingEdit] = useState(false);
@@ -1537,12 +1538,12 @@ const Invoice = () => {
     } finally { setSavingEdit(false); }
   };
 
-  const handleQuickMarkPaid = async (id) => {
-    if (!confirm('Mark this invoice as paid?')) return;
+  const handleQuickMarkPaid = async (id, method) => {
     setMarkingPaidId(id);
     try {
-      await api.patch(`/api/billing/company-invoice-pay/${id}`);
+      await api.patch(`/api/billing/company-invoice-pay/${id}`, { payMethod: method });
       toast.success('Marked as paid!');
+      setPayingInv(null);
       await fetchAllInvoices();
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to mark paid');
@@ -1703,13 +1704,38 @@ const Invoice = () => {
                       <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>
                         {inv.payStatus === 'paid' ? (
                           <span style={{ padding: '2px 8px', borderRadius: 4, backgroundColor: '#28a745', color: '#fff', fontWeight: 'bold', fontSize: 11 }}>Paid</span>
+                        ) : payingInv?.id === inv._id ? (
+                          <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'nowrap' }}>
+                            <select
+                              value={payingInv.method}
+                              onChange={e => setPayingInv(p => ({ ...p, method: e.target.value }))}
+                              style={{ fontSize: 11, padding: '2px 4px', borderRadius: 4, border: '1px solid #ced4da' }}
+                            >
+                              <option value="check">Check</option>
+                              <option value="card">Card</option>
+                              <option value="remit">Remit</option>
+                              <option value="ach">ACH</option>
+                              <option value="cash">Cash</option>
+                            </select>
+                            <button
+                              onClick={() => handleQuickMarkPaid(inv._id, payingInv.method)}
+                              disabled={markingPaidId === inv._id}
+                              style={{ padding: '2px 6px', borderRadius: 4, backgroundColor: '#28a745', color: '#fff', fontWeight: 700, border: 'none', cursor: 'pointer', fontSize: 11 }}
+                            >
+                              {markingPaidId === inv._id ? '…' : '✓'}
+                            </button>
+                            <button
+                              onClick={() => setPayingInv(null)}
+                              style={{ padding: '2px 6px', borderRadius: 4, backgroundColor: '#6c757d', color: '#fff', border: 'none', cursor: 'pointer', fontSize: 11 }}
+                            >✕</button>
+                          </div>
                         ) : (
                           <button
-                            onClick={() => handleQuickMarkPaid(inv._id)}
+                            onClick={() => setPayingInv({ id: inv._id, method: 'check' })}
                             disabled={markingPaidId === inv._id}
-                            style={{ padding: '3px 8px', borderRadius: 4, backgroundColor: '#ffc107', color: '#000', fontWeight: 700, border: 'none', cursor: markingPaidId === inv._id ? 'wait' : 'pointer', fontSize: 11 }}
+                            style={{ padding: '3px 8px', borderRadius: 4, backgroundColor: '#ffc107', color: '#000', fontWeight: 700, border: 'none', cursor: 'pointer', fontSize: 11 }}
                           >
-                            {markingPaidId === inv._id ? '…' : 'Mark Paid'}
+                            Mark Paid
                           </button>
                         )}
                       </td>
