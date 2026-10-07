@@ -661,12 +661,11 @@ function CompanyProfilesSection() {
     setShowAddForm(false);
     setSelectedCompany(name);
     toast.success(`"${name}" added!`);
-    const parsed = parseAddress(entry.address);
-    setInvStreetNum(parsed.streetNum || '');
-    setInvStreetName(parsed.streetName || '');
-    setInvCity(parsed.city || '');
-    setInvState(parsed.state || '');
-    setInvZip(parsed.zip || '');
+    setInvStreetNum('');
+    setInvStreetName('');
+    setInvCity('');
+    setInvState('');
+    setInvZip('');
   };
 
   const profile = profiles[selectedCompany] || { history: [] };
@@ -683,12 +682,11 @@ function CompanyProfilesSection() {
 
   useEffect(() => {
     if (!selectedCompany) return;
-    const parsed = parseAddress(getAddress(selectedCompany));
-    setInvStreetNum(parsed.streetNum || '');
-    setInvStreetName(parsed.streetName || '');
-    setInvCity(parsed.city || '');
-    setInvState(parsed.state || '');
-    setInvZip(parsed.zip || '');
+    setInvStreetNum('');
+    setInvStreetName('');
+    setInvCity('');
+    setInvState('');
+    setInvZip('');
   }, [selectedCompany]);
 
   const saveProfile = (updated) => {
@@ -838,6 +836,7 @@ function CompanyProfilesSection() {
           </div>
 
           {/* Invoice Header Fields */}
+          <div style={{ marginBottom: 4, fontWeight: 'bold', fontSize: 13, color: '#444' }}>Job Site Address</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12, marginBottom: 16 }}>
             <div>
               <label style={{ fontWeight: 'bold', display: 'block', marginBottom: 4, fontSize: 13 }}>Invoice #</label>
