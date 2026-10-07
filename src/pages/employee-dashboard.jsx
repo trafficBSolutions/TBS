@@ -570,6 +570,18 @@ const EmployeeDashboard = () => {
                       {d.decision && <div style={{background:'#fff',border:'1px solid #ddd',borderRadius:'4px',padding:'10px',marginTop:'10px',whiteSpace:'pre-wrap'}}><strong>Decision:</strong> {d.decision}</div>}
                     </div>
 
+                    {/* Attachments / Photos */}
+                    {(d.attachments || []).filter(a => a.dataUrl).length > 0 && (
+                      <div style={{background:'#f8f9fa',padding:'12px',borderRadius:'8px',borderLeft:'4px solid #d32f2f',marginBottom:'14px'}}>
+                        <h4 style={{color:'#d32f2f',marginBottom:'8px',fontSize:'0.85rem',textTransform:'uppercase',borderBottom:'1px solid #ddd',paddingBottom:'4px'}}>Incident Photos</h4>
+                        <div style={{display:'flex',flexWrap:'wrap',gap:'8px'}}>
+                          {d.attachments.filter(a => a.dataUrl).map((att, i) => (
+                            <img key={i} src={att.dataUrl} alt={att.filename} style={{maxWidth:'100%',maxHeight:'220px',borderRadius:'6px',border:'1px solid #ddd',objectFit:'contain'}} />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Employee Statement Section */}
                     <div style={{background:'#f8f9fa',padding:'12px',borderRadius:'8px',borderLeft:'4px solid #d32f2f',marginBottom:'14px'}}>
                       <h4 style={{color:'#d32f2f',marginBottom:'8px',fontSize:'0.85rem',textTransform:'uppercase',borderBottom:'1px solid #ddd',paddingBottom:'4px'}}>Employee Statement</h4>
