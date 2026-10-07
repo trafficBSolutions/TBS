@@ -1471,6 +1471,8 @@ const Invoice = () => {
   const [invoicePage, setInvoicePage] = useState(0);
   const [markingPaidId, setMarkingPaidId] = useState(null);
   const [invFilter, setInvFilter] = useState({ search: '', month: '', status: '' });
+  const [editingInv, setEditingInv] = useState(null); // { _id, invoiceNumber, payStatus, payMethod, sentTo, newInvoicePdf, newWorkOrderPdf, newRemit }
+  const [savingEdit, setSavingEdit] = useState(false);
   const INVOICES_PER_PAGE = 50;
 
   const fetchAllInvoices = async () => {
@@ -1503,6 +1505,34 @@ const Invoice = () => {
       })
       .sort((a, b) => new Date(b.sentAt) - new Date(a.sentAt));
   }, [allInvoices, invFilter]);
+
+  const openEdit = (inv) => setEditingInv({
+    _id: inv._id, invoiceNumber: inv.invoiceNumber || '', payStatus: inv.payStatus || 'unpaid',
+    payMethod: inv.payMethod || '', sentTo: inv.sentTo || '',
+    invoicePdfName: inv.invoicePdfName, workOrderPdfName: inv.workOrderPdfName, remitName: inv.remitName,
+    newInvoicePdf: null, newWorkOrderPdf: null, newRemit: null,
+  });
+
+  const handleSaveEdit = async () => {
+    if (!editingInv) return;
+    setSavingEdit(true);
+    try {
+      const fd = new FormData();
+      fd.append('invoiceNumber', editingInv.invoiceNumber);
+      fd.append('payStatus', editingInv.payStatus);
+      fd.append('payMethod', editingInv.payMethod);
+      fd.append('sentTo', editingInv.sentTo);
+      if (editingInv.newInvoicePdf) fd.append('invoicePdf', editingInv.newInvoicePdf);
+      if (editingInv.newWorkOrderPdf) fd.append('workOrderPdf', editingInv.newWorkOrderPdf);
+      if (editingInv.newRemit) fd.append('remit', editingInv.newRemit);
+      await api.patch(`/api/billing/company-invoice/${editingInv._id}`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      toast.success('Invoice updated!');
+      setEditingInv(null);
+      await fetchAllInvoices();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to save changes');
+    } finally { setSavingEdit(false); }
+  };
 
   const handleQuickMarkPaid = async (id) => {
     if (!confirm('Mark this invoice as paid?')) return;
@@ -1573,6 +1603,65 @@ const Invoice = () => {
           </div>
 
           <div style={{ overflowX: 'auto' }}>
+            {editingInv && (
+              <div style={{ marginBottom: 16, padding: 16, border: '2px solid #007bff', borderRadius: 8, backgroundColor: '#f0f7ff' }}>
+                <div style={{ fontWeight: 'bold', marginBottom: 12, fontSize: 14 }}>✏️ Edit Invoice</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10, marginBottom: 12 }}>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 'bold', display: 'block', marginBottom: 3 }}>Invoice #</label>
+                    <input value={editingInv.invoiceNumber} onChange={e => setEditingInv(p => ({ ...p, invoiceNumber: e.target.value }))}
+                      style={{ width: '100%', padding: '5px 8px', borderRadius: 4, border: '1px solid #ced4da', fontSize: 13 }} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 'bold', display: 'block', marginBottom: 3 }}>Pay Status</label>
+                    <select value={editingInv.payStatus} onChange={e => setEditingInv(p => ({ ...p, payStatus: e.target.value }))}
+                      style={{ width: '100%', padding: '5px 8px', borderRadius: 4, border: '1px solid #ced4da', fontSize: 13 }}>
+                      <option value="unpaid">Unpaid</option>
+                      <option value="paid">Paid</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 'bold', display: 'block', marginBottom: 3 }}>Pay Method</label>
+                    <input value={editingInv.payMethod} onChange={e => setEditingInv(p => ({ ...p, payMethod: e.target.value }))}
+                      placeholder="card / check / remit" style={{ width: '100%', padding: '5px 8px', borderRadius: 4, border: '1px solid #ced4da', fontSize: 13 }} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 'bold', display: 'block', marginBottom: 3 }}>Sent To (email)</label>
+                    <input value={editingInv.sentTo} onChange={e => setEditingInv(p => ({ ...p, sentTo: e.target.value }))}
+                      style={{ width: '100%', padding: '5px 8px', borderRadius: 4, border: '1px solid #ced4da', fontSize: 13 }} />
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 10, marginBottom: 14 }}>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 'bold', display: 'block', marginBottom: 3 }}>
+                      Invoice PDF {editingInv.invoicePdfName && !editingInv.newInvoicePdf && <span style={{ color: '#28a745' }}>✅ {editingInv.invoicePdfName}</span>}
+                    </label>
+                    <input type="file" accept="application/pdf" onChange={e => setEditingInv(p => ({ ...p, newInvoicePdf: e.target.files[0] || null }))} />
+                    {editingInv.newInvoicePdf && <div style={{ fontSize: 11, color: '#007bff', marginTop: 2 }}>New: {editingInv.newInvoicePdf.name}</div>}
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 'bold', display: 'block', marginBottom: 3 }}>
+                      Work Order PDF {editingInv.workOrderPdfName && !editingInv.newWorkOrderPdf && <span style={{ color: '#28a745' }}>✅ {editingInv.workOrderPdfName}</span>}
+                    </label>
+                    <input type="file" accept="application/pdf" onChange={e => setEditingInv(p => ({ ...p, newWorkOrderPdf: e.target.files[0] || null }))} />
+                    {editingInv.newWorkOrderPdf && <div style={{ fontSize: 11, color: '#007bff', marginTop: 2 }}>New: {editingInv.newWorkOrderPdf.name}</div>}
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 'bold', display: 'block', marginBottom: 3 }}>
+                      Remit {editingInv.remitName && !editingInv.newRemit && <span style={{ color: '#28a745' }}>✅ {editingInv.remitName}</span>}
+                    </label>
+                    <input type="file" accept="application/pdf,image/*" onChange={e => setEditingInv(p => ({ ...p, newRemit: e.target.files[0] || null }))} />
+                    {editingInv.newRemit && <div style={{ fontSize: 11, color: '#007bff', marginTop: 2 }}>New: {editingInv.newRemit.name}</div>}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button className="btn btn--primary" onClick={handleSaveEdit} disabled={savingEdit} style={{ fontSize: 13 }}>
+                    {savingEdit ? 'Saving…' : '💾 Save Changes'}
+                  </button>
+                  <button className="btn" onClick={() => setEditingInv(null)} style={{ fontSize: 13 }}>Cancel</button>
+                </div>
+              </div>
+            )}
             <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: 'white', fontSize: 12, minWidth: 900 }}>
               <thead>
                 <tr style={{ backgroundColor: '#17365D', color: 'white' }}>
@@ -1585,13 +1674,14 @@ const Invoice = () => {
                   <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>INVOICE PDF</th>
                   <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>WORK ORDER PDF</th>
                   <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>REMIT</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}></th>
                 </tr>
               </thead>
               <tbody>
                 {filteredInvoices
                   .slice(invoicePage * INVOICES_PER_PAGE, (invoicePage + 1) * INVOICES_PER_PAGE)
                   .map((inv, idx) => (
-                    <tr key={inv._id || idx} style={{ borderBottom: '1px solid #ddd', backgroundColor: idx % 2 === 0 ? '#fff' : '#f8f9fa' }}>
+                    <tr key={inv._id || idx} style={{ borderBottom: '1px solid #ddd', backgroundColor: editingInv?._id === inv._id ? '#e8f4ff' : idx % 2 === 0 ? '#fff' : '#f8f9fa' }}>
                       <td style={{ padding: '7px 6px', border: '1px solid #ddd', whiteSpace: 'nowrap' }}>{new Date(inv.sentAt).toLocaleDateString()}</td>
                       <td style={{ padding: '7px 6px', border: '1px solid #ddd', fontWeight: 600 }}>{inv.invoiceNumber || '—'}</td>
                       <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>{inv.company || '—'}</td>
@@ -1626,6 +1716,12 @@ const Invoice = () => {
                         {inv._id && inv.remitName
                           ? <a href={`${import.meta.env.VITE_API_URL}/api/billing/company-invoice-pdf/${inv._id}/remit`} target="_blank" rel="noreferrer" style={{ color: '#007bff' }}>📄 {inv.remitName}</a>
                           : inv.remitName || '—'}
+                      </td>
+                      <td style={{ padding: '7px 6px', border: '1px solid #ddd', textAlign: 'center' }}>
+                        <button onClick={() => editingInv?._id === inv._id ? setEditingInv(null) : openEdit(inv)}
+                          style={{ background: 'none', border: '1px solid #007bff', color: '#007bff', borderRadius: 4, padding: '2px 8px', cursor: 'pointer', fontSize: 11 }}>
+                          {editingInv?._id === inv._id ? 'Cancel' : '✏️'}
+                        </button>
                       </td>
                     </tr>
                   ))}
