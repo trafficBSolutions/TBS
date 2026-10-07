@@ -1472,7 +1472,27 @@ const Invoice = () => {
   const [invoicePage, setInvoicePage] = useState(0);
   const [markingPaidId, setMarkingPaidId] = useState(null);
   const [payingInv, setPayingInv] = useState(null); // { id, method }
-  const [viewingPdf, setViewingPdf] = useState(null); // { url, name }
+  const [viewingPdf, setViewingPdf] = useState(null); // { blobUrl, name, loading }
+  const viewingPdfRef = useRef(null);
+
+  const loadPdfBlob = async (apiUrl, name) => {
+    setViewingPdf({ blobUrl: null, name, loading: true });
+    if (viewingPdfRef.current) URL.revokeObjectURL(viewingPdfRef.current);
+    try {
+      const res = await api.get(apiUrl.replace(/.*\/api\//, '/api/'), { responseType: 'blob' });
+      const blobUrl = URL.createObjectURL(res.data);
+      viewingPdfRef.current = blobUrl;
+      setViewingPdf({ blobUrl, name, loading: false });
+    } catch {
+      setViewingPdf(null);
+      toast.error('Failed to load PDF');
+    }
+  };
+
+  const closePdfViewer = () => {
+    if (viewingPdfRef.current) { URL.revokeObjectURL(viewingPdfRef.current); viewingPdfRef.current = null; }
+    setViewingPdf(null);
+  };
   const [invFilter, setInvFilter] = useState({ search: '', month: '', status: '' });
   const [editingInv, setEditingInv] = useState(null);
   const [savingEdit, setSavingEdit] = useState(false);
@@ -1743,19 +1763,19 @@ const Invoice = () => {
                       <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>{inv.payMethod || '—'}</td>
                       <td style={{ padding: '7px 6px', border: '1px solid #ddd', fontSize: 11 }}>
                         {inv._id && inv.invoicePdfName
-                          ? <button onClick={() => setViewingPdf({ url: `${import.meta.env.VITE_API_URL}/api/billing/company-invoice-pdf/${inv._id}/invoice`, name: inv.invoicePdfName })}
+                          ? <button onClick={() => loadPdfBlob(`${import.meta.env.VITE_API_URL}/api/billing/company-invoice-pdf/${inv._id}/invoice`, inv.invoicePdfName)}
                               style={{ background: 'none', border: 'none', color: '#007bff', cursor: 'pointer', fontSize: 11, padding: 0, textDecoration: 'underline' }}>📄 {inv.invoicePdfName}</button>
                           : inv.invoicePdfName || '—'}
                       </td>
                       <td style={{ padding: '7px 6px', border: '1px solid #ddd', fontSize: 11 }}>
                         {inv._id && inv.workOrderPdfName
-                          ? <button onClick={() => setViewingPdf({ url: `${import.meta.env.VITE_API_URL}/api/billing/company-invoice-pdf/${inv._id}/workorder`, name: inv.workOrderPdfName })}
+                          ? <button onClick={() => loadPdfBlob(`${import.meta.env.VITE_API_URL}/api/billing/company-invoice-pdf/${inv._id}/workorder`, inv.workOrderPdfName)}
                               style={{ background: 'none', border: 'none', color: '#007bff', cursor: 'pointer', fontSize: 11, padding: 0, textDecoration: 'underline' }}>📄 {inv.workOrderPdfName}</button>
                           : inv.workOrderPdfName || '—'}
                       </td>
                       <td style={{ padding: '7px 6px', border: '1px solid #ddd', fontSize: 11 }}>
                         {inv._id && inv.remitName
-                          ? <button onClick={() => setViewingPdf({ url: `${import.meta.env.VITE_API_URL}/api/billing/company-invoice-pdf/${inv._id}/remit`, name: inv.remitName })}
+                          ? <button onClick={() => loadPdfBlob(`${import.meta.env.VITE_API_URL}/api/billing/company-invoice-pdf/${inv._id}/remit`, inv.remitName)}
                               style={{ background: 'none', border: 'none', color: '#007bff', cursor: 'pointer', fontSize: 11, padding: 0, textDecoration: 'underline' }}>📄 {inv.remitName}</button>
                           : inv.remitName || '—'}
                       </td>
@@ -1816,17 +1836,23 @@ const Invoice = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 14px', backgroundColor: '#17365D', color: '#fff' }}>
                 <span style={{ fontSize: 13, fontWeight: 'bold' }}>📄 {viewingPdf.name}</span>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <a href={viewingPdf.url} target="_blank" rel="noreferrer"
-                    style={{ fontSize: 12, color: '#90caf9', textDecoration: 'underline' }}>Open in new tab</a>
-                  <button onClick={() => setViewingPdf(null)}
+                  {viewingPdf.blobUrl && (
+                    <a href={viewingPdf.blobUrl} download={viewingPdf.name}
+                      style={{ fontSize: 12, color: '#90caf9', textDecoration: 'underline' }}>⬇ Download</a>
+                  )}
+                  <button onClick={closePdfViewer}
                     style={{ background: 'none', border: '1px solid #fff', color: '#fff', borderRadius: 4, padding: '2px 10px', cursor: 'pointer', fontSize: 12 }}>✕ Close</button>
                 </div>
               </div>
-              <iframe
-                src={viewingPdf.url}
-                title={viewingPdf.name}
-                style={{ width: '100%', height: 780, border: 'none', display: 'block' }}
-              />
+              {viewingPdf.loading ? (
+                <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f8f9fa', fontSize: 14, color: '#555' }}>Loading PDF…</div>
+              ) : (
+                <iframe
+                  src={viewingPdf.blobUrl}
+                  title={viewingPdf.name}
+                  style={{ width: '100%', height: 780, border: 'none', display: 'block' }}
+                />
+              )}
             </div>
           )}
 
