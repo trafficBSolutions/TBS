@@ -997,64 +997,7 @@ function CompanyProfilesSection() {
           </div>
 
           {/* Saved PDFs */}
-          {selectedCompany && (
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <label style={{ fontWeight: 'bold', fontSize: 14 }}>📁 Saved Invoices &amp; Work Orders</label>
-                {loadingPdfs && <span style={{ fontSize: 12, color: '#888' }}>Loading…</span>}
-              </div>
-              {savedPdfs.length === 0 && !loadingPdfs ? (
-                <div style={{ fontSize: 13, color: '#888', fontStyle: 'italic' }}>No history yet for this company.</div>
-              ) : (
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                    <thead>
-                      <tr style={{ backgroundColor: '#17365D', color: 'white' }}>
-                        <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5' }}>Sent At</th>
-                        <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5' }}>Inv #</th>
-                        <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5' }}>Status</th>
-                        <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5' }}>Invoice PDF</th>
-                        <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5' }}>Work Order PDF</th>
-                        <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5' }}>Remit</th>
-                        <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5' }}>Sent To</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {savedPdfs.map((rec, i) => (
-                        <tr key={rec._id || i} style={{ backgroundColor: i % 2 === 0 ? '#fff' : '#f8f9fa', borderBottom: '1px solid #dee2e6' }}>
-                          <td style={{ padding: '7px 8px', border: '1px solid #ddd', whiteSpace: 'nowrap' }}>{new Date(rec.sentAt).toLocaleString()}</td>
-                          <td style={{ padding: '7px 8px', border: '1px solid #ddd' }}>{rec.invoiceNumber || '—'}</td>
-                          <td style={{ padding: '7px 8px', border: '1px solid #ddd' }}>
-                            <span style={{ padding: '2px 8px', borderRadius: 4, backgroundColor: rec.payStatus === 'paid' ? '#28a745' : '#ffc107', color: rec.payStatus === 'paid' ? '#fff' : '#000', fontWeight: 'bold', fontSize: 11 }}>
-                              {rec.payStatus === 'paid' ? 'Paid' : 'Unpaid'}
-                            </span>
-                          </td>
-                          <td style={{ padding: '7px 8px', border: '1px solid #ddd', fontSize: 12 }}>
-                            {rec._id && rec.invoicePdfName
-                              ? <a href={`${import.meta.env.VITE_API_URL}/api/billing/company-invoice-pdf/${rec._id}/invoice`} target="_blank" rel="noreferrer" style={{ color: '#007bff' }}>📄 {rec.invoicePdfName}</a>
-                              : rec.invoicePdfName || '—'}
-                          </td>
-                          <td style={{ padding: '7px 8px', border: '1px solid #ddd', fontSize: 12 }}>
-                            {rec._id && rec.workOrderPdfName
-                              ? <a href={`${import.meta.env.VITE_API_URL}/api/billing/company-invoice-pdf/${rec._id}/workorder`} target="_blank" rel="noreferrer" style={{ color: '#007bff' }}>📄 {rec.workOrderPdfName}</a>
-                              : rec.workOrderPdfName || '—'}
-                          </td>
-                          <td style={{ padding: '7px 8px', border: '1px solid #ddd', fontSize: 12 }}>
-                            {rec._id && rec.remitName
-                              ? <a href={`${import.meta.env.VITE_API_URL}/api/billing/company-invoice-pdf/${rec._id}/remit`} target="_blank" rel="noreferrer" style={{ color: '#007bff' }}>📄 {rec.remitName}</a>
-                              : rec.remitName || '—'}
-                          </td>
-                          <td style={{ padding: '7px 8px', border: '1px solid #ddd', fontSize: 12 }}>
-                            {rec.sentTo}{rec.additionalEmails?.length ? `, ${rec.additionalEmails.join(', ')}` : ''}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          )}
+          
 
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16 }}>
             <button className="btn btn--primary" onClick={handleSend} disabled={sending || (!invoicePdf && !workOrderPdf)}>
