@@ -15,12 +15,20 @@ import * as pdfjsLib from 'pdfjs-dist/build/pdf';
 import pdfjsWorker from 'pdfjs-dist/build/pdf.worker?url';
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 const companyList = [
- "Atlanta Gas Light",
+  "Atlanta Gas Light",
+  "Badger",
+  "Bartow Paving",
+  "Benton-Georgia LLC",
+  "BlueRidge EMC",
   "Broadband Technical Resources",
   "Broadband of Indiana",
   "Carmichael Development LLC",
+  "City of Calhoun",
+  "CR Coating",
+  "CSTE",
   "Desoto",
   "Fairway Electric",
+  "FAITH ELECTRIC LLC",
   "Georgia Power",
   "Global Infrastructure",
   "HD Excavations & Utilities",
@@ -30,12 +38,16 @@ const companyList = [
   "J and A Grading",
   "Linetec Services",
   "Magnum Paving",
+  "Northwest Grading Inc",
   "Perman Construction",
   "Pike Electric",
+  "SEC",
   "Service Electric",
+  "SOUTHEAST UTILITIES OF GA",
   "Source One",
   "The Surface Masters",
   "Tindall",
+  "Tri-State Utility Construction",
   "Wilson Boys Enterprises",
   "Other(Specify if new in message to add to this list)"
 ]
