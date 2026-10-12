@@ -1474,6 +1474,8 @@ const Invoice = () => {
   const [payingInv, setPayingInv] = useState(null); // { id, method }
   const [viewingPdf, setViewingPdf] = useState(null); // { pages: canvas data URLs[], name, loading }
   const viewingPdfRef = useRef(null);
+  const [importingHistory, setImportingHistory] = useState(false);
+  const [importJson, setImportJson] = useState('');
 
   const loadPdfBlob = async (apiUrl, name) => {
     setViewingPdf({ pages: [], name, loading: true });
@@ -1502,7 +1504,7 @@ const Invoice = () => {
     viewingPdfRef.current = null;
     setViewingPdf(null);
   };
-  const [invFilter, setInvFilter] = useState({ search: '', month: '', status: '' });
+  const [invFilter, setInvFilter] = useState({ search: '', month: '', status: '', company: '' });
   const [editingInv, setEditingInv] = useState(null);
   const [savingEdit, setSavingEdit] = useState(false);
   const [expandedInv, setExpandedInv] = useState(null);
@@ -1521,6 +1523,7 @@ const Invoice = () => {
     const s = invFilter.search.toLowerCase();
     return allInvoices
       .filter(inv => {
+        if (invFilter.company && inv.company !== invFilter.company) return false;
         if (invFilter.status === 'paid' && inv.payStatus !== 'paid') return false;
         if (invFilter.status === 'unpaid' && inv.payStatus !== 'unpaid') return false;
         if (invFilter.month) {
@@ -1595,8 +1598,55 @@ const Invoice = () => {
         <div style={{ marginBottom: '30px', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
           <h2 style={{ marginBottom: '15px' }}>All Invoices</h2>
 
+          {/* Historical Import */}
+          <details style={{ marginBottom: 16 }}>
+            <summary style={{ cursor: 'pointer', fontWeight: 'bold', fontSize: 13, color: '#555', padding: '6px 0' }}>📥 Import Historical Records</summary>
+            <div style={{ marginTop: 10, padding: 14, border: '1px dashed #aaa', borderRadius: 6, backgroundColor: '#fffbe6' }}>
+              <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+                Paste a JSON array of records. Each record should have: <code>company, invoiceNumber, dateBilled, dueDate, amount, streetNum, streetName, city, state, workOrder, amountReceived, dateOfDeposit, ckOrEft, checkOrEftDate, officerOrAb, abSignsLightsCones, mileage, extra</code>
+              </div>
+              <textarea
+                value={importJson}
+                onChange={e => setImportJson(e.target.value)}
+                placeholder='[{"company":"Atlanta Gas Light","invoiceNumber":"TBS-001","dateBilled":"2024-01-15","amount":1200,...}]'
+                style={{ width: '100%', height: 120, padding: 8, fontFamily: 'monospace', fontSize: 12, borderRadius: 4, border: '1px solid #ccc', boxSizing: 'border-box' }}
+              />
+              <button
+                className="btn btn--primary"
+                style={{ marginTop: 8, fontSize: 13 }}
+                disabled={importingHistory || !importJson.trim()}
+                onClick={async () => {
+                  let records;
+                  try { records = JSON.parse(importJson); } catch { toast.error('Invalid JSON'); return; }
+                  if (!Array.isArray(records)) { toast.error('Must be a JSON array'); return; }
+                  setImportingHistory(true);
+                  try {
+                    const res = await api.post('/api/billing/company-invoices-import', { records });
+                    toast.success(`Imported ${res.data.inserted} records!`);
+                    setImportJson('');
+                    await fetchAllInvoices();
+                  } catch (err) {
+                    toast.error(err?.response?.data?.message || 'Import failed');
+                  } finally { setImportingHistory(false); }
+                }}
+              >
+                {importingHistory ? 'Importing…' : `Import ${(() => { try { const a = JSON.parse(importJson); return Array.isArray(a) ? a.length : 0; } catch { return 0; } })()} Records`}
+              </button>
+            </div>
+          </details>
+
           {/* Filter bar */}
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16, padding: 12, background: '#f0f0f0', borderRadius: 8, border: '1px solid #dee2e6' }}>
+            <select
+              value={invFilter.company}
+              onChange={e => { setInvFilter(f => ({ ...f, company: e.target.value })); setInvoicePage(0); }}
+              style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #ccc', minWidth: 180 }}
+            >
+              <option value="">All Companies</option>
+              {[...new Set(allInvoices.map(i => i.company).filter(Boolean))].sort().map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
             <input
               type="text"
               placeholder="Search invoice #, company, date…"
@@ -1623,9 +1673,9 @@ const Invoice = () => {
               <option value="paid">Paid</option>
               <option value="unpaid">Unpaid</option>
             </select>
-            {(invFilter.search || invFilter.month || invFilter.status) && (
+            {(invFilter.search || invFilter.month || invFilter.status || invFilter.company) && (
               <button
-                onClick={() => { setInvFilter({ search: '', month: '', status: '' }); setInvoicePage(0); }}
+                onClick={() => { setInvFilter({ search: '', month: '', status: '', company: '' }); setInvoicePage(0); }}
                 style={{ padding: '6px 12px', background: '#888', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12 }}
               >
                 Clear
@@ -1704,15 +1754,19 @@ const Invoice = () => {
                 </div>
               </div>
             )}
-            <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: 'white', fontSize: 12, minWidth: 900 }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: 'white', fontSize: 12, minWidth: 1200 }}>
               <thead>
                 <tr style={{ backgroundColor: '#17365D', color: 'white' }}>
-                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>DATE SENT</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>DATE BILLED</th>
                   <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>INV #</th>
                   <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>COMPANY</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>AMOUNT</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>WORK ORDER</th>
                   <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>SENT TO</th>
                   <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>STATUS</th>
                   <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>PAY METHOD</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>AMT RECEIVED</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>DEPOSIT DATE</th>
                   <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>INVOICE PDF</th>
                   <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>WORK ORDER PDF</th>
                   <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>REMIT</th>
@@ -1725,9 +1779,13 @@ const Invoice = () => {
                   .map((inv, idx) => (
                     <>
                     <tr key={inv._id || idx} style={{ borderBottom: '1px solid #ddd', backgroundColor: editingInv?._id === inv._id ? '#e8f4ff' : idx % 2 === 0 ? '#fff' : '#f8f9fa' }}>
-                      <td style={{ padding: '7px 6px', border: '1px solid #ddd', whiteSpace: 'nowrap' }}>{new Date(inv.sentAt).toLocaleDateString()}</td>
+                      <td style={{ padding: '7px 6px', border: '1px solid #ddd', whiteSpace: 'nowrap' }}>{new Date(inv.dateBilled || inv.sentAt).toLocaleDateString()}</td>
                       <td style={{ padding: '7px 6px', border: '1px solid #ddd', fontWeight: 600 }}>{inv.invoiceNumber || '—'}</td>
                       <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>{inv.company || '—'}</td>
+                      <td style={{ padding: '7px 6px', border: '1px solid #ddd', textAlign: 'right' }}>
+                        {inv.amount != null ? fmtUSD(inv.amount) : inv.lineItems?.length ? fmtUSD(inv.lineItems.reduce((s,r)=>s+Number(r.amount||0),0)) : '—'}
+                      </td>
+                      <td style={{ padding: '7px 6px', border: '1px solid #ddd', fontSize: 11 }}>{inv.workOrder || '—'}</td>
                       <td style={{ padding: '7px 6px', border: '1px solid #ddd', fontSize: 11 }}>
                         {inv.sentTo}{inv.additionalEmails?.length ? `, ${inv.additionalEmails.join(', ')}` : ''}
                       </td>
@@ -1770,6 +1828,12 @@ const Invoice = () => {
                         )}
                       </td>
                       <td style={{ padding: '7px 6px', border: '1px solid #ddd' }}>{inv.payMethod || '—'}</td>
+                      <td style={{ padding: '7px 6px', border: '1px solid #ddd', textAlign: 'right' }}>
+                        {inv.amountReceived != null ? fmtUSD(inv.amountReceived) : '—'}
+                      </td>
+                      <td style={{ padding: '7px 6px', border: '1px solid #ddd', whiteSpace: 'nowrap', fontSize: 11 }}>
+                        {inv.dateOfDeposit ? new Date(inv.dateOfDeposit).toLocaleDateString() : '—'}
+                      </td>
                       <td style={{ padding: '7px 6px', border: '1px solid #ddd', fontSize: 11 }}>
                         {inv._id && inv.invoicePdfName
                           ? <button onClick={() => loadPdfBlob(`${import.meta.env.VITE_API_URL}/api/billing/company-invoice-pdf/${inv._id}/invoice`, inv.invoicePdfName)}
@@ -1803,7 +1867,7 @@ const Invoice = () => {
                     </tr>
                     {expandedInv === inv._id && inv.lineItems?.length > 0 && (
                       <tr key={`${inv._id}-lines`}>
-                        <td colSpan={10} style={{ padding: '0 12px 12px 12px', backgroundColor: '#f0f7ff', border: '1px solid #ddd' }}>
+                        <td colSpan={14} style={{ padding: '0 12px 12px 12px', backgroundColor: '#f0f7ff', border: '1px solid #ddd' }}>
                           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, marginTop: 8 }}>
                             <thead>
                               <tr style={{ backgroundColor: '#17365D', color: 'white' }}>
