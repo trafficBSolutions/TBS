@@ -1803,6 +1803,18 @@ selected={
                 <p><strong>TC:</strong> {wo.tcStartTime} → {wo.tcEndTime}{wo.tcTrucks?.length ? ` | Trucks: ${wo.tcTrucks.join(', ')}` : ''}</p>
               )}
               {wo.notes && <p><strong>Notes:</strong> {wo.notes}</p>}
+              {wo.foremanSignature && (
+                <div style={{marginTop:'8px'}}>
+                  <strong style={{fontSize:'13px'}}>Foreman Signature:</strong>
+                  <div style={{marginTop:'4px'}}><img src={`data:image/png;base64,${wo.foremanSignature}`} alt="Foreman Signature" style={{maxHeight:'60px',border:'1px solid #ddd',borderRadius:'4px',background:'#fff',padding:'4px'}} /></div>
+                </div>
+              )}
+              {wo.tbsForemanSignature && (
+                <div style={{marginTop:'8px'}}>
+                  <strong style={{fontSize:'13px'}}>TBS Foreman Signature:</strong>
+                  <div style={{marginTop:'4px'}}><img src={`data:image/png;base64,${wo.tbsForemanSignature}`} alt="TBS Foreman Signature" style={{maxHeight:'60px',border:'1px solid #ddd',borderRadius:'4px',background:'#fff',padding:'4px'}} /></div>
+                </div>
+              )}
               <p style={{fontSize:'0.8rem',color:'#888'}}>Submitted: {new Date(wo.createdAt).toLocaleString()}</p>
               <div style={{display:'flex',gap:'8px',marginTop:'8px',alignItems:'center'}}>
                 <button
