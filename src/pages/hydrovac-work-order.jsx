@@ -33,7 +33,9 @@ export default function HydrovacWorkOrder() {
   const [woEmployeeList, setWoEmployeeList] = useState([]);
 
   const sigRef = useRef(null);
+  const tbsSigRef = useRef(null);
   const [foremanSig, setForemanSig] = useState('');
+  const [tbsForemanSig, setTbsForemanSig] = useState('');
 
   const [form, setForm] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -148,6 +150,20 @@ export default function HydrovacWorkOrder() {
     } catch { /* no-op */ }
   };
 
+  const handleTbsSigEnd = () => {
+    const pad = tbsSigRef.current;
+    if (!pad || (typeof pad.isEmpty === 'function' && pad.isEmpty())) {
+      setTbsForemanSig('');
+      return;
+    }
+    try {
+      const dataUrl = typeof pad.getTrimmedCanvas === 'function'
+        ? pad.getTrimmedCanvas().toDataURL('image/png')
+        : pad.getCanvas().toDataURL('image/png');
+      setTbsForemanSig(dataUrl.split(',')[1]);
+    } catch { /* no-op */ }
+  };
+
   const validate = () => {
     const errs = {};
     if (!form.date) errs.date = 'Date is required';
@@ -182,7 +198,7 @@ export default function HydrovacWorkOrder() {
 
     setIsSubmitting(true);
     try {
-      const payload = { ...form, foremanSignature: foremanSig };
+      const payload = { ...form, foremanSignature: foremanSig, tbsForemanSignature: tbsForemanSig };
       await api.post('/hydrovac-work-order', payload);
 
       if (fromKiosk) {
@@ -210,7 +226,9 @@ export default function HydrovacWorkOrder() {
         notes: '',
       });
       setForemanSig('');
+      setTbsForemanSig('');
       sigRef.current?.clear();
+      tbsSigRef.current?.clear();
       setErrors({});
     } catch (err) {
       setSubmissionErrorMessage(err.response?.data?.error || 'Something went wrong. Please try again.');
@@ -487,6 +505,31 @@ export default function HydrovacWorkOrder() {
                 <div className="sig-preview">
                   <span>Captured:</span>
                   <img alt="Signature preview" src={`data:image/png;base64,${foremanSig}`} />
+                </div>
+              )}
+            </div>
+
+            {/* TBS Foreman Signature */}
+            <div className="signature" style={{ marginTop: '20px' }}>
+              <h4 className="signature-h4">TBS Foreman Signature</h4>
+              <p className="sign-here">TBS foreman signs to verify this work order.</p>
+              <div className="sig-canvas-wrap">
+                <SignatureCanvas
+                  ref={tbsSigRef}
+                  penColor="#000"
+                  onEnd={handleTbsSigEnd}
+                  canvasProps={{ className: 'sig-canvas', width: 600, height: 200, 'aria-label': 'TBS Foreman signature' }}
+                />
+                <div className="sig-actions">
+                  <button type="button" className="btn sig-clear" onClick={() => { tbsSigRef.current?.clear(); setTbsForemanSig(''); }}>
+                    Clear Signature
+                  </button>
+                </div>
+              </div>
+              {tbsForemanSig && (
+                <div className="sig-preview">
+                  <span>Captured:</span>
+                  <img alt="TBS Signature preview" src={`data:image/png;base64,${tbsForemanSig}`} />
                 </div>
               )}
             </div>
