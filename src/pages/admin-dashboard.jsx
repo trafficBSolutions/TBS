@@ -1886,6 +1886,12 @@ selected={
   </div>
 
   <div className="tool-card">
+    <h3>🚛 Hydrovac Work Order</h3>
+    <p>Submit a hydrovac work order</p>
+    <button className="btn workorder-btn" onClick={() => navigate('/hydrovac-work-order')}>Open Hydrovac Work Order</button>
+  </div>
+
+  <div className="tool-card">
     <h3>🚧 TCP Designer</h3>
     <p>Design Traffic Control Plans</p>
     <button className="btn workorder-btn" onClick={() => navigate('/admin-dashboard/tcp-designer')}>Open Designer</button>
