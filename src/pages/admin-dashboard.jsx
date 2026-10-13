@@ -10,7 +10,6 @@ import Footer from '../components/Footer'
 import { EditTCWorkOrderModal, EditShopWorkOrderModal, AdminNotesDisplay, HoursFlag, canEditWorkOrders } from '../components/EditWorkOrderModal';
 import PrintCostCalculator from '../components/PrintCostCalculator';
 import { PrintCostTotal } from '../components/PrintCostCalculator';
-import TimeClockSection from '../components/admin/TimeClockSection';
 const formatTime = (timeStr) => {
   if (!timeStr) return '';
   const [hours, minutes] = timeStr.split(':');
@@ -61,7 +60,6 @@ const [editingShopInvoice, setEditingShopInvoice] = useState(null);
 const [editShopInv, setEditShopInv] = useState({ payMethod: '', cardType: '', cardLast4: '', checkNumber: '', notes: '', taxExemptNumber: '' });
 const [invFilter, setInvFilter] = useState({ search: '', month: '', status: '' });
 const [printCostInvoice, setPrintCostInvoice] = useState(null);
-const [invoicePageIndex, setInvoicePageIndex] = useState(0);
 const [printCostLogDate, setPrintCostLogDate] = useState(new Date());
 const [printCostLogs, setPrintCostLogs] = useState([]);
 const [printCostLogMonthly, setPrintCostLogMonthly] = useState({});
@@ -75,9 +73,6 @@ const [jobs, setJobs] = useState([]);
 const [calendarViewDate, setCalendarViewDate] = useState(new Date());
 const [isAdmin, setIsAdmin] = useState(false);
 const [jobRegionFilter, setJobRegionFilter] = useState(''); // '', 'north', 'south', 'tn'
-const [woRegionFilter, setWoRegionFilter] = useState(
-  JSON.parse(localStorage.getItem('adminUser') || '{}').email === 'davissmithtbs@gmail.com' ? 'south' : ''
-);
 const [woSelectedDate, setWoSelectedDate] = useState(null);
 const [woMonthly, setWoMonthly] = useState({});
 const [woList, setWoList] = useState([]);
@@ -111,16 +106,6 @@ const [allowedForEmpPassword, setAllowedForEmpPassword] = useState(false);
 const [bollardDate, setBollardDate] = useState(new Date());
 const [bollardList, setBollardList] = useState([]);
 const [bollardMonthly, setBollardMonthly] = useState({});
-const [hydrovacDate, setHydrovacDate] = useState(new Date());
-const [hydrovacList, setHydrovacList] = useState([]);
-const [hydrovacMonthly, setHydrovacMonthly] = useState({});
-const [hydrovacWoDate, setHydrovacWoDate] = useState(new Date());
-const [hydrovacWoList, setHydrovacWoList] = useState([]);
-const [hydrovacWoMonthly, setHydrovacWoMonthly] = useState({});
-const [editingHydrovacWo, setEditingHydrovacWo] = useState(null);
-const [editHydrovacWo, setEditHydrovacWo] = useState({});
-const [hydrovacWoSaving, setHydrovacWoSaving] = useState(false);
-const [hydrovacWoSaveMsg, setHydrovacWoSaveMsg] = useState('');
 const [allowedForSignShop, setAllowedForSignShop] = useState(false);
 const [signShopDate, setSignShopDate] = useState(new Date());
 const [signShopList, setSignShopList] = useState([]);
@@ -137,7 +122,13 @@ const [shopWoDate, setShopWoDate] = useState(new Date());
 const [shopWoList, setShopWoList] = useState([]);
 const [shopWoMonthly, setShopWoMonthly] = useState({});
 const [allowedForShopWo, setAllowedForShopWo] = useState(false);
-const [allowedForPayroll, setAllowedForPayroll] = useState(false);
+const [hydrovacWoDate, setHydrovacWoDate] = useState(new Date());
+const [hydrovacWoList, setHydrovacWoList] = useState([]);
+const [hydrovacWoMonthly, setHydrovacWoMonthly] = useState({});
+const [editingHydrovacWo, setEditingHydrovacWo] = useState(null);
+const [editHydrovacWo, setEditHydrovacWo] = useState({});
+const [hydrovacWoSaving, setHydrovacWoSaving] = useState(false);
+const [hydrovacWoSaveMsg, setHydrovacWoSaveMsg] = useState('');
 const [leaveRequests, setLeaveRequests] = useState([]);
 const [pendingShopWos, setPendingShopWos] = useState([]);
 const [clockedInList, setClockedInList] = useState([]);
@@ -176,57 +167,12 @@ const [addLineOut, setAddLineOut] = useState('');
 const [addLinePurpose, setAddLinePurpose] = useState('');
 const [addLineMsg, setAddLineMsg] = useState('');
 
-// Safety Meetings
-const [safetyMeetingDate, setSafetyMeetingDate] = useState(new Date());
-const [safetyMeetingList, setSafetyMeetingList] = useState([]);
-const [safetyMeetingMonthly, setSafetyMeetingMonthly] = useState({});
-const [safetyMeetingForm, setSafetyMeetingForm] = useState({
-  jobsite: '', meetingLeader: '', toolboxTopic: '', topicNotes: '',
-  topics: { trafficControl: false, ppe: false, flagging: false, workZoneSetup: false, vehicleSafety: false, heatColdStress: false, firstAidEmergency: false, hazardCommunication: false, slipsTripsFalls: false, liftingErgonomics: false, incidentReporting: false, other: false, otherText: '' },
-  hazards: [], attendees: [], notes: '', followUpRequired: false, followUpDate: ''
-});
-const [safetyMeetingMsg, setSafetyMeetingMsg] = useState('');
-const [safetyMeetingSubmitting, setSafetyMeetingSubmitting] = useState(false);
-const [showSafetyForm, setShowSafetyForm] = useState(false);
-
-// Job Inspections
-const [jobInspectionDate, setJobInspectionDate] = useState(new Date());
-const [jobInspectionList, setJobInspectionList] = useState([]);
-const [jobInspectionMonthly, setJobInspectionMonthly] = useState({});
-const [jobInspectionForm, setJobInspectionForm] = useState({
-  jobsite: '', inspector: '', foreman: '', result: 'Pass', stopWorkReason: '',
-  followUpRequired: false, followUpDate: '', inspectorSignature: '', foremanSignature: '',
-  items: [
-    { label: 'Traffic-control plan on site and current', status: 'NA', correctiveAction: '' },
-    { label: 'TCP authorization / permit posted', status: 'NA', correctiveAction: '' },
-    { label: 'Warning signs present and properly spaced', status: 'NA', correctiveAction: '' },
-    { label: 'Tapers set to correct length', status: 'NA', correctiveAction: '' },
-    { label: 'Channelizing devices upright and spaced correctly', status: 'NA', correctiveAction: '' },
-    { label: 'Arrow board / PCM operating and positioned', status: 'NA', correctiveAction: '' },
-    { label: 'Flagger(s) in correct position with proper equipment', status: 'NA', correctiveAction: '' },
-    { label: 'Flagger communications working', status: 'NA', correctiveAction: '' },
-    { label: 'All workers wearing required PPE (vest, hard hat, safety glasses)', status: 'NA', correctiveAction: '' },
-    { label: 'Workers staying within protected work zone', status: 'NA', correctiveAction: '' },
-    { label: 'Vehicles and equipment have backup alarms and lights', status: 'NA', correctiveAction: '' },
-    { label: 'Trailer / equipment secured and not blocking sight lines', status: 'NA', correctiveAction: '' },
-    { label: 'Weather / environmental hazards assessed', status: 'NA', correctiveAction: '' },
-    { label: 'No slip, trip, or fall hazards in work area', status: 'NA', correctiveAction: '' },
-    { label: 'First-aid kit accessible on site', status: 'NA', correctiveAction: '' },
-    { label: 'Emergency contact numbers posted or available', status: 'NA', correctiveAction: '' },
-    { label: 'Work area clean; debris and materials controlled', status: 'NA', correctiveAction: '' },
-    { label: 'End-of-day closeout: devices stored, signs removed or covered', status: 'NA', correctiveAction: '' }
-  ]
-});
-const [jobInspectionMsg, setJobInspectionMsg] = useState('');
-const [jobInspectionSubmitting, setJobInspectionSubmitting] = useState(false);
-const [showInspectionForm, setShowInspectionForm] = useState(false);
-
 // Admins who can edit/add/delete hours
-const canEditHoursEmails = new Set(['tbsolutions9@gmail.com', 'tbsolutions4@gmail.com', 'tbsolutions1999@gmail.com', 'tbsolutions1995@gmail.com', 'materialworx2@gmail.com', 'davissmithtbs@gmail.com']);
+const canEditHoursEmails = new Set(['tbsolutions9@gmail.com', 'tbsolutions4@gmail.com', 'tbsolutions1999@gmail.com', 'tbsolutions1995@gmail.com', 'materialworx2@gmail.com']);
 const canEditHours = canEditHoursEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email);
 
 const [pinEmployees, setPinEmployees] = useState([]);
-const [clockLocation, setClockLocation] = useState(JSON.parse(localStorage.getItem('adminUser') || '{}').email === 'davissmithtbs@gmail.com' ? 'South GA' : 'North GA');
+const [clockLocation, setClockLocation] = useState('North GA');
 const [pinMsg, setPinMsg] = useState('');
 const [showPinManager, setShowPinManager] = useState(false);
 const [newEmpFirst, setNewEmpFirst] = useState('');
@@ -239,27 +185,6 @@ const [changePinId, setChangePinId] = useState(null);
 const [changePinValue, setChangePinValue] = useState('');
 const [adminPunchPurpose, setAdminPunchPurpose] = useState('');
 const [manualPurpose, setManualPurpose] = useState('');
-const [purposeFilter, setPurposeFilter] = useState('All');
-const [pdfLoadingEmp, setPdfLoadingEmp] = useState(null);
-  const [pdfMsg, setPdfMsg] = useState('');
-const refreshForLocation = async (loc) => {
-  axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {});
-  axios.get('/timeclock/employees?location=' + encodeURIComponent(loc)).then(r => setPinEmployees(r.data.employees)).catch(() => {});
-  const now = new Date();
-  const sat = new Date(now); sat.setDate(now.getDate() - ((now.getDay() + 1) % 7));
-  const satStr = `${sat.getFullYear()}-${String(sat.getMonth()+1).padStart(2,'0')}-${String(sat.getDate()).padStart(2,'0')}`;
-  const fri = new Date(sat); fri.setDate(sat.getDate() + 6);
-  const friStr = `${fri.getFullYear()}-${String(fri.getMonth()+1).padStart(2,'0')}-${String(fri.getDate()).padStart(2,'0')}`;
-  setTimeWorkedWeekStart(satStr);
-  try { const res = await axios.get(`/timeclock/time-worked?location=${encodeURIComponent(loc)}&startDate=${satStr}&endDate=${friStr}`); setTimeWorked(res.data); } catch(e) {}
-};
-
-const refreshTimeWorked = async () => {
-  const start = new Date(timeWorkedWeekStart + 'T00:00:00');
-  const end = new Date(start); end.setDate(start.getDate() + 6);
-  const endStr = `${end.getFullYear()}-${String(end.getMonth()+1).padStart(2,'0')}-${String(end.getDate()).padStart(2,'0')}`;
-  try { const res = await axios.get(`/timeclock/time-worked?location=${encodeURIComponent(clockLocation)}&startDate=${timeWorkedWeekStart}&endDate=${endStr}`); setTimeWorked(res.data); } catch(e) {}
-};
 
 
 
@@ -273,8 +198,7 @@ const salaryAdminEmails = new Set([
   'tbsolutions1999@gmail.com',
   'tbsolutions77@gmail.com',
   'tbsolutions14@gmail.com',
-  'materialworx2@gmail.com',
-  'davissmithtbs@gmail.com'
+  'materialworx2@gmail.com'
 ]);
 
 // Admins who get a personal time clock widget (clock in/out only, no admin view)
@@ -562,6 +486,25 @@ const fetchShopWoForDay = async (date) => {
   }
 };
 
+const fetchMonthlyHydrovacWo = async (date) => {
+  try {
+    const month = date.getMonth() + 1, year = date.getFullYear();
+    const res = await axios.get(`/hydrovac-work-orders?month=${month}&year=${year}`);
+    const grouped = {};
+    (res.data || []).forEach(wo => { (grouped[wo.date] ||= []).push(wo); });
+    setHydrovacWoMonthly(grouped);
+  } catch (e) { setHydrovacWoMonthly({}); }
+};
+
+const fetchHydrovacWoForDay = async (date) => {
+  if (!date) return;
+  try {
+    const dateStr = date.toISOString().split('T')[0];
+    const res = await axios.get(`/hydrovac-work-orders?date=${dateStr}`);
+    setHydrovacWoList(res.data || []);
+  } catch (e) { setHydrovacWoList([]); }
+};
+
 const fetchLeaveRequests = async () => {
   try {
     const res = await axios.get('/leave-requests/pending');
@@ -621,124 +564,6 @@ const handleLeaveDeny = async (id) => {
     fetchLeaveRequests();
   } catch (e) {
     alert(e.response?.data?.error || 'Failed to deny');
-  }
-};
-
-const fetchMonthlyHydrovacWo = async (date) => {
-  try {
-    const month = date.getMonth() + 1, year = date.getFullYear();
-    const res = await axios.get(`/hydrovac-work-orders?month=${month}&year=${year}`);
-    const grouped = {};
-    (res.data || []).forEach(wo => { (grouped[wo.date] ||= []).push(wo); });
-    setHydrovacWoMonthly(grouped);
-  } catch (e) {
-    setHydrovacWoMonthly({});
-  }
-};
-
-const fetchHydrovacWoForDay = async (date) => {
-  if (!date) return;
-  try {
-    const dateStr = date.toISOString().split('T')[0];
-    const res = await axios.get(`/hydrovac-work-orders?date=${dateStr}`);
-    setHydrovacWoList(res.data || []);
-  } catch (e) {
-    setHydrovacWoList([]);
-  }
-};
-
-const fetchMonthlySafetyMeetings = async (date) => {
-  try {
-    const res = await axios.get(`/safety-meetings/month?month=${date.getMonth()+1}&year=${date.getFullYear()}`);
-    setSafetyMeetingMonthly(res.data || {});
-  } catch (e) { setSafetyMeetingMonthly({}); }
-};
-
-const fetchSafetyMeetingsForDay = async (date) => {
-  if (!date) return;
-  try {
-    const res = await axios.get(`/safety-meetings?date=${date.toISOString().split('T')[0]}`);
-    setSafetyMeetingList(res.data || []);
-  } catch (e) { setSafetyMeetingList([]); }
-};
-
-const fetchMonthlyJobInspections = async (date) => {
-  try {
-    const res = await axios.get(`/job-inspections/month?month=${date.getMonth()+1}&year=${date.getFullYear()}`);
-    setJobInspectionMonthly(res.data || {});
-  } catch (e) { setJobInspectionMonthly({}); }
-};
-
-const fetchJobInspectionsForDay = async (date) => {
-  if (!date) return;
-  try {
-    const res = await axios.get(`/job-inspections?date=${date.toISOString().split('T')[0]}`);
-    setJobInspectionList(res.data || []);
-  } catch (e) { setJobInspectionList([]); }
-};
-
-const submitSafetyMeeting = async () => {
-  if (!safetyMeetingForm.jobsite || !safetyMeetingForm.meetingLeader || !safetyMeetingForm.toolboxTopic) {
-    setSafetyMeetingMsg('Jobsite, meeting leader, and toolbox topic are required.');
-    return;
-  }
-  setSafetyMeetingSubmitting(true);
-  try {
-    await axios.post('/safety-meetings', { ...safetyMeetingForm, meetingDate: safetyMeetingDate });
-    setSafetyMeetingMsg('✅ Safety meeting submitted!');
-    setShowSafetyForm(false);
-    fetchSafetyMeetingsForDay(safetyMeetingDate);
-    fetchMonthlySafetyMeetings(safetyMeetingDate);
-    setSafetyMeetingForm(f => ({ ...f, jobsite: '', meetingLeader: '', toolboxTopic: '', topicNotes: '', notes: '', hazards: [], attendees: [] }));
-    setTimeout(() => setSafetyMeetingMsg(''), 5000);
-  } catch (e) {
-    setSafetyMeetingMsg(e.response?.data?.error || 'Failed to submit.');
-  } finally { setSafetyMeetingSubmitting(false); }
-};
-
-const submitJobInspection = async () => {
-  if (!jobInspectionForm.jobsite || !jobInspectionForm.inspector) {
-    setJobInspectionMsg('Jobsite and inspector are required.');
-    return;
-  }
-  setJobInspectionSubmitting(true);
-  try {
-    await axios.post('/job-inspections', { ...jobInspectionForm, inspectionDate: jobInspectionDate });
-    setJobInspectionMsg('✅ Inspection submitted!');
-    setShowInspectionForm(false);
-    fetchJobInspectionsForDay(jobInspectionDate);
-    fetchMonthlyJobInspections(jobInspectionDate);
-    setJobInspectionForm(f => ({ ...f, jobsite: '', inspector: '', foreman: '', result: 'Pass', stopWorkReason: '', items: f.items.map(i => ({ ...i, status: 'NA', correctiveAction: '' })) }));
-    setTimeout(() => setJobInspectionMsg(''), 5000);
-  } catch (e) {
-    setJobInspectionMsg(e.response?.data?.error || 'Failed to submit.');
-  } finally { setJobInspectionSubmitting(false); }
-};
-
-const fetchMonthlyHydrovac = async (date) => {
-  try {
-    const month = date.getMonth() + 1;
-    const year = date.getFullYear();
-    const res = await axios.get(`/hydrovac/month?month=${month}&year=${year}`);
-    const grouped = {};
-    (res.data || []).forEach(h => {
-      const dateStr = new Date(h.createdAt).toISOString().split('T')[0];
-      (grouped[dateStr] ||= []).push(h);
-    });
-    setHydrovacMonthly(grouped);
-  } catch (e) {
-    setHydrovacMonthly({});
-  }
-};
-
-const fetchHydrovacForDay = async (date) => {
-  if (!date) return;
-  try {
-    const dateStr = date.toISOString().split('T')[0];
-    const res = await axios.get(`/hydrovac/day?date=${dateStr}`);
-    setHydrovacList(res.data || []);
-  } catch (e) {
-    setHydrovacList([]);
   }
 };
 
@@ -946,13 +771,6 @@ useEffect(() => {
       'tbsolutions1999@gmail.com'
     ]);
     setAllowedForPrintCosts(printCostEmails.has(user.email));
-
-    const payrollEmails = new Set([
-      'tbsolutions9@gmail.com',
-      'tbsolutions1995@gmail.com',
-      'materialworx2@gmail.com'
-    ]);
-    setAllowedForPayroll(payrollEmails.has(user.email));
   }
 }, []);
 const fetchComplaintsForDay = async (date) => {
@@ -1043,12 +861,11 @@ const fetchMonthlyWorkOrders = async (date) => {
 };
 
 
-const fetchWorkOrdersForDay = async (date, region) => {
+const fetchWorkOrdersForDay = async (date) => {
   if (!date) return;
   try {
     const dateStr = date.toISOString().split('T')[0];
-    const regionParam = region ? `&region=${region}` : '';
-    const res = await axios.get(`/work-orders?date=${dateStr}${regionParam}`);
+    const res = await axios.get(`/work-orders?date=${dateStr}`);
     setWoList(res.data);
   } catch (e) {
     console.error('Failed to fetch daily work orders:', e);
@@ -1059,7 +876,7 @@ useEffect(() => {
     const d = new Date();
     setWoSelectedDate(d);
     fetchMonthlyWorkOrders(d);
-    fetchWorkOrdersForDay(d, woRegionFilter);
+    fetchWorkOrdersForDay(d);
     setComplaintsDate(d);
     fetchMonthlyComplaints(d);
     fetchComplaintsForDay(d);
@@ -1071,9 +888,9 @@ useEffect(() => {
 useEffect(() => {
   if (woSelectedDate) {
     fetchMonthlyWorkOrders(woSelectedDate);
-    fetchWorkOrdersForDay(woSelectedDate, woRegionFilter);
+    fetchWorkOrdersForDay(woSelectedDate);
   }
-}, [woSelectedDate, woRegionFilter]);
+}, [woSelectedDate]);
 useEffect(() => {
   if (complaintsDate) {
     fetchMonthlyComplaints(complaintsDate);
@@ -1096,11 +913,11 @@ useEffect(() => {
 }, [bollardDate]);
 
 useEffect(() => {
-  if (hydrovacDate) {
-    fetchMonthlyHydrovac(hydrovacDate);
-    fetchHydrovacForDay(hydrovacDate);
+  if (signShopDate && allowedForSignShop) {
+    fetchMonthlySignShop(signShopDate);
+    fetchSignShopForDay(signShopDate);
   }
-}, [hydrovacDate]);
+}, [signShopDate, allowedForSignShop]);
 
 useEffect(() => {
   if (hydrovacWoDate) {
@@ -1110,26 +927,11 @@ useEffect(() => {
 }, [hydrovacWoDate]);
 
 useEffect(() => {
-  if (signShopDate && allowedForSignShop) {
-    fetchMonthlySignShop(signShopDate);
-    fetchSignShopForDay(signShopDate);
-  }
-}, [signShopDate, allowedForSignShop]);
-
-useEffect(() => {
   if (shopWoDate && allowedForShopWo) {
     fetchMonthlyShopWo(shopWoDate);
     fetchShopWoForDay(shopWoDate);
   }
 }, [shopWoDate, allowedForShopWo]);
-
-useEffect(() => {
-  if (safetyMeetingDate) { fetchMonthlySafetyMeetings(safetyMeetingDate); fetchSafetyMeetingsForDay(safetyMeetingDate); }
-}, [safetyMeetingDate]);
-
-useEffect(() => {
-  if (jobInspectionDate) { fetchMonthlyJobInspections(jobInspectionDate); fetchJobInspectionsForDay(jobInspectionDate); }
-}, [jobInspectionDate]);
 // Update the fetchMonthlyJobs function to focus only on active jobs
 const fetchMonthlyJobs = async (date, region) => {
   try {
@@ -1266,18 +1068,17 @@ useEffect(() => {
         <button className={`btn ${viewMode === 'quotes' ? 'active' : ''}`} onClick={() => setViewMode('quotes')}>Material WorX</button>
       )}
       <button className={`btn ${viewMode === 'bollards' ? 'active' : ''}`} onClick={() => setViewMode('bollards')}>Bollards/Wheels</button>
-      <button className={`btn ${viewMode === 'hydrovac' ? 'active' : ''}`} onClick={() => setViewMode('hydrovac')}>Hydrovac</button>
-      <button className={`btn ${viewMode === 'hydrovacwo' ? 'active' : ''}`} onClick={() => { setViewMode('hydrovacwo'); fetchMonthlyHydrovacWo(hydrovacWoDate); fetchHydrovacWoForDay(hydrovacWoDate); }}>🚛 Hydrovac WOs</button>
       {allowedForSignShop && (
         <button className={`btn ${viewMode === 'signshop' ? 'active' : ''}`} onClick={() => setViewMode('signshop')}>Sign Shop</button>
+        
       )}
       {allowedForShopWo && (
         <button className={`btn ${viewMode === 'shopwo' ? 'active' : ''}`} onClick={() => setViewMode('shopwo')}>Shop Work Orders</button>
+      
       )}
+      <button className={`btn ${viewMode === 'hydrovacwo' ? 'active' : ''}`} onClick={() => { setViewMode('hydrovacwo'); fetchMonthlyHydrovacWo(hydrovacWoDate); fetchHydrovacWoForDay(hydrovacWoDate); }}>🚛 Hydrovac WOs</button>
       <button className={`btn ${viewMode === 'complaints' ? 'active' : ''}`} onClick={() => setViewMode('complaints')}>Complaints</button>
       <button className={`btn ${viewMode === 'tasks' ? 'active' : ''}`} onClick={() => setViewMode('tasks')}>Tasks</button>
-      <button className={`btn ${viewMode === 'safetymeeting' ? 'active' : ''}`} onClick={() => { setViewMode('safetymeeting'); fetchMonthlySafetyMeetings(safetyMeetingDate); fetchSafetyMeetingsForDay(safetyMeetingDate); }}>🦺 Safety Meetings</button>
-      <button className={`btn ${viewMode === 'jobinspection' ? 'active' : ''}`} onClick={() => { setViewMode('jobinspection'); fetchMonthlyJobInspections(jobInspectionDate); fetchJobInspectionsForDay(jobInspectionDate); }}>🔍 Job Inspections</button>
       {salaryAdminEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email) && (
         <button className={`btn ${viewMode === 'timeclock' ? 'active' : ''}`} onClick={async () => {
           setViewMode('timeclock');
@@ -1312,12 +1113,9 @@ selected={
     : viewMode === 'discipline' ? disciplineDate
     : viewMode === 'quotes' ? quotesDate
     : viewMode === 'bollards' ? bollardDate
-    : viewMode === 'hydrovac' ? hydrovacDate
-    : viewMode === 'hydrovacwo' ? hydrovacWoDate
     : viewMode === 'signshop' ? signShopDate
     : viewMode === 'shopwo' ? shopWoDate
-    : viewMode === 'safetymeeting' ? safetyMeetingDate
-    : viewMode === 'jobinspection' ? jobInspectionDate
+    : viewMode === 'hydrovacwo' ? hydrovacWoDate
     : taskDate
 }
   onChange={(date) => {
@@ -1327,12 +1125,9 @@ selected={
   else if (viewMode === 'discipline') setDisciplineDate(date);
   else if (viewMode === 'quotes') setQuotesDate(date);
   else if (viewMode === 'bollards') setBollardDate(date);
-  else if (viewMode === 'hydrovac') setHydrovacDate(date);
-  else if (viewMode === 'hydrovacwo') setHydrovacWoDate(date);
   else if (viewMode === 'signshop') setSignShopDate(date);
   else if (viewMode === 'shopwo') setShopWoDate(date);
-  else if (viewMode === 'safetymeeting') setSafetyMeetingDate(date);
-  else if (viewMode === 'jobinspection') setJobInspectionDate(date);
+  else if (viewMode === 'hydrovacwo') setHydrovacWoDate(date);
   else setTaskDate(date);
 }}
   onMonthChange={(date) => {
@@ -1343,12 +1138,9 @@ selected={
   else if (viewMode === 'discipline') fetchMonthlyDiscipline(date);
   else if (viewMode === 'quotes') fetchMonthlyQuotes(date);
   else if (viewMode === 'bollards') fetchMonthlyBollards(date);
-  else if (viewMode === 'hydrovac') fetchMonthlyHydrovac(date);
-  else if (viewMode === 'hydrovacwo') fetchMonthlyHydrovacWo(date);
   else if (viewMode === 'signshop') fetchMonthlySignShop(date);
   else if (viewMode === 'shopwo') fetchMonthlyShopWo(date);
-  else if (viewMode === 'safetymeeting') fetchMonthlySafetyMeetings(date);
-  else if (viewMode === 'jobinspection') fetchMonthlyJobInspections(date);
+  else if (viewMode === 'hydrovacwo') fetchMonthlyHydrovacWo(date);
   else fetchTasks();
 }}
   calendarClassName="admin-date-picker"
@@ -1375,12 +1167,9 @@ selected={
   : viewMode === 'discipline' ? disciplineMonthly
   : viewMode === 'quotes' ? quotesMonthly
   : viewMode === 'bollards' ? bollardMonthly
-  : viewMode === 'hydrovac' ? hydrovacMonthly
-  : viewMode === 'hydrovacwo' ? hydrovacWoMonthly
   : viewMode === 'signshop' ? signShopMonthly
   : viewMode === 'shopwo' ? shopWoMonthly
-  : viewMode === 'safetymeeting' ? safetyMeetingMonthly
-  : viewMode === 'jobinspection' ? jobInspectionMonthly
+  : viewMode === 'hydrovacwo' ? hydrovacWoMonthly
   : tasks;
     const hasItems = dataSource[dateStr] && dataSource[dateStr].length > 0;
     return hasItems ? 'has-jobs' : '';
@@ -1403,18 +1192,12 @@ selected={
       dataSource = quotesMonthly;
     } else if (viewMode === 'bollards') {
       dataSource = bollardMonthly;
-    } else if (viewMode === 'hydrovac') {
-      dataSource = hydrovacMonthly;
-    } else if (viewMode === 'hydrovacwo') {
-      dataSource = hydrovacWoMonthly;
     } else if (viewMode === 'signshop') {
       dataSource = signShopMonthly;
     } else if (viewMode === 'shopwo') {
       dataSource = shopWoMonthly;
-    } else if (viewMode === 'safetymeeting') {
-      dataSource = safetyMeetingMonthly;
-    } else if (viewMode === 'jobinspection') {
-      dataSource = jobInspectionMonthly;
+    } else if (viewMode === 'hydrovacwo') {
+      dataSource = hydrovacWoMonthly;
     }
     
     const itemsOnDate = dataSource?.[dateStr];
@@ -1431,12 +1214,9 @@ selected={
             : viewMode === 'discipline' ? 'Discipline'
             : viewMode === 'quotes' ? 'Quotes'
             : viewMode === 'bollards' ? 'Bollard Quotes'
-            : viewMode === 'hydrovac' ? 'Hydrovac Requests'
-            : viewMode === 'hydrovacwo' ? 'Hydrovac WOs'
             : viewMode === 'signshop' ? 'Sign Jobs'
             : viewMode === 'shopwo' ? 'Shop WOs'
-            : viewMode === 'safetymeeting' ? 'Safety Meetings'
-            : viewMode === 'jobinspection' ? 'Inspections'
+            : viewMode === 'hydrovacwo' ? 'Hydrovac WOs'
             : 'Tasks'}{viewMode !== 'traffic' ? ` ${itemCount}` : ''}
           </div>
         )}
@@ -1547,11 +1327,6 @@ selected={
   {viewMode === 'workorders' && (
     <>
     <h3>Work Orders on {woSelectedDate?.toLocaleDateString()}</h3>
-    <div style={{display:'flex',gap:'8px',marginBottom:'1rem',flexWrap:'wrap'}}>
-      <button className={`btn ${woRegionFilter === '' ? 'active' : ''}`} onClick={() => setWoRegionFilter('')}>All Work Orders</button>
-      <button className={`btn ${woRegionFilter === 'north' ? 'active' : ''}`} style={{background: woRegionFilter === 'north' ? '#1e88e5' : ''}} onClick={() => setWoRegionFilter('north')}>🟦 North GA</button>
-      <button className={`btn ${woRegionFilter === 'south' ? 'active' : ''}`} style={{background: woRegionFilter === 'south' ? '#e65100' : ''}} onClick={() => setWoRegionFilter('south')}>🟧 South GA</button>
-    </div>
     {woSelectedDate && tasks[woSelectedDate.toISOString().split('T')[0]] && (
       <div className="selected-date-tasks">
         <h4>📋 Tasks for {woSelectedDate.toLocaleDateString()}</h4>
@@ -1654,22 +1429,6 @@ selected={
           <p><strong>Completed:</strong> {new Date(wo.createdAt).toLocaleDateString()} at {new Date(wo.createdAt).toLocaleTimeString()}</p>
           <HoursFlag startTime={wo.basic?.startTime} endTime={wo.basic?.endTime} hoursFlag={wo.hoursFlag} />
           <AdminNotesDisplay adminNotes={wo.adminNotes} adminNotesBy={wo.adminNotesBy} adminCorrections={wo.adminCorrections} />
-          {wo.basic?.region && (
-            <p style={{margin:'4px 0'}}><span style={{display:'inline-block',padding:'2px 8px',borderRadius:'4px',fontSize:'0.75rem',fontWeight:'bold',background: wo.basic.region === 'south' ? '#fff3e0' : wo.basic.region === 'tn' ? '#e8f5e9' : '#e3f2fd',color: wo.basic.region === 'south' ? '#e65100' : wo.basic.region === 'tn' ? '#2e7d32' : '#1565c0'}}>{wo.basic.region === 'south' ? '🟧 South GA' : wo.basic.region === 'tn' ? '🟩 TN' : '🟦 North GA'}</span></p>
-          )}
-          {wo.clockIns && wo.clockIns.length > 0 && (
-            <div style={{marginTop:'8px'}}>
-              <strong>TBS Employee Clock In Times:</strong>
-              <table style={{width:'100%',borderCollapse:'collapse',marginTop:'4px',fontSize:'12px'}}>
-                <thead><tr style={{backgroundColor:'#f2f2f2'}}><th style={{border:'1px solid #ddd',padding:'4px'}}>Employee</th><th style={{border:'1px solid #ddd',padding:'4px'}}>Clock In</th></tr></thead>
-                <tbody>
-                  {wo.clockIns.map((c, i) => (
-                    <tr key={i}><td style={{border:'1px solid #ddd',padding:'4px'}}>{c.name}</td><td style={{border:'1px solid #ddd',padding:'4px'}}>{c.clockIn}</td></tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
           {canEditWorkOrders() && (
             <button style={{marginTop:'8px',padding:'6px 14px',fontSize:'12px',background:'#2196F3',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer',fontWeight:'bold'}} onClick={() => setEditingTCWorkOrder(wo)}>✏️ Edit Work Order</button>
           )}
@@ -1930,127 +1689,6 @@ selected={
     </div>
   </>
 )}
-{viewMode === 'hydrovac' && (
-  <>
-    <h3>Hydrovac Service Requests on {hydrovacDate?.toLocaleDateString()}</h3>
-    <div className="job-info-list">
-      {hydrovacList.map((h, i) => (
-        <div key={h._id || i} className="job-card">
-          <h4 className="job-company">{h.first} {h.last} — {h.company}</h4>
-          <p><strong>Email:</strong> {h.email}</p>
-          <p><strong>Phone:</strong> <a href={`tel:${h.phone}`}>{h.phone}</a></p>
-          <p><strong>Address:</strong> {h.address}, {h.city}, {h.state} {h.zip}</p>
-          <p><strong>Service Type:</strong> {h.serviceType}</p>
-          <p><strong>Preferred Date:</strong> {h.preferredDate}</p>
-          <p><strong>Message:</strong> {h.message}</p>
-          <p><strong>Submitted:</strong> {new Date(h.createdAt).toLocaleString()}</p>
-        </div>
-      ))}
-      {hydrovacList.length === 0 && <p>No hydrovac requests on this day.</p>}
-    </div>
-  </>
-)}
-{viewMode === 'hydrovacwo' && (
-  <>
-    <h3>🚛 Hydrovac Work Orders on {hydrovacWoDate?.toLocaleDateString()}</h3>
-    <div className="job-info-list">
-      {hydrovacWoList.map((wo) => (
-        <div key={wo._id} className="job-card">
-          {editingHydrovacWo?._id === wo._id ? (
-            <div>
-              <h4 style={{marginBottom:'10px'}}>✏️ Editing Work Order</h4>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',fontSize:'13px'}}>
-                <label>Date:<input type="date" value={editHydrovacWo.date || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, date: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
-                <label>Coordinator:<input type="text" value={editHydrovacWo.coordinator || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, coordinator: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
-                <label>CDL Driver:<input type="text" value={editHydrovacWo.cdlDriver || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, cdlDriver: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
-                <label>Second Worker:<input type="text" value={editHydrovacWo.secondWorker || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, secondWorker: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
-                <label>Engine Hours Start:<input type="number" value={editHydrovacWo.engineHoursStart || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, engineHoursStart: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
-                <label>Engine Hours End:<input type="number" value={editHydrovacWo.engineHoursEnd || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, engineHoursEnd: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
-                <label>Mileage Start:<input type="number" value={editHydrovacWo.mileageStart || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, mileageStart: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
-                <label>Mileage End:<input type="number" value={editHydrovacWo.mileageEnd || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, mileageEnd: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
-                <label>Times Dumped:<input type="number" value={editHydrovacWo.timesDumped ?? ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, timesDumped: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
-                <label>Utilities Found:<input type="number" value={editHydrovacWo.utilitiesFound ?? ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, utilitiesFound: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
-                <label>Arrival at Locate:<input type="text" value={editHydrovacWo.arrivalAtLocate || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, arrivalAtLocate: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
-                <label>Back at Shop:<input type="text" value={editHydrovacWo.arrivalBackAtShop || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, arrivalBackAtShop: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
-                <label>Truck Cleaned Out:
-                  <select value={editHydrovacWo.truckCleanedOut || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, truckCleanedOut: e.target.value})} style={{width:'100%',padding:'4px'}}>
-                    <option value="Yes">Yes</option>
-                    <option value="No">No</option>
-                  </select>
-                </label>
-                <label>Filter Cleaned:
-                  <select value={editHydrovacWo.filterCleaned || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, filterCleaned: e.target.value})} style={{width:'100%',padding:'4px'}}>
-                    <option value="Yes">Yes</option>
-                    <option value="No">No</option>
-                  </select>
-                </label>
-                <label>Water Refill:
-                  <select value={editHydrovacWo.waterRefill || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, waterRefill: e.target.value})} style={{width:'100%',padding:'4px'}}>
-                    <option value="Yes">Yes</option>
-                    <option value="No">No</option>
-                  </select>
-                </label>
-                <label style={{display:'flex',alignItems:'center',gap:'6px'}}>
-                  <input type="checkbox" checked={!!editHydrovacWo.greasePointsChecked} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, greasePointsChecked: e.target.checked})} /> Grease Points Checked
-                </label>
-              </div>
-              <label style={{display:'block',marginTop:'8px',fontSize:'13px'}}>Notes:
-                <textarea rows={3} value={editHydrovacWo.notes || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, notes: e.target.value})} style={{width:'100%',padding:'4px'}} />
-              </label>
-              <div style={{display:'flex',gap:'8px',marginTop:'10px',alignItems:'center'}}>
-                <button className="btn" style={{background:'#4CAF50',color:'#fff',padding:'6px 14px',fontSize:'12px'}} disabled={hydrovacWoSaving} onClick={async () => {
-                  setHydrovacWoSaving(true);
-                  setHydrovacWoSaveMsg('');
-                  try {
-                    await axios.put(`/hydrovac-work-order/${wo._id}`, editHydrovacWo);
-                    setHydrovacWoSaveMsg('✅ Saved & email sent!');
-                    setEditingHydrovacWo(null);
-                    fetchHydrovacWoForDay(hydrovacWoDate);
-                    fetchMonthlyHydrovacWo(hydrovacWoDate);
-                    setTimeout(() => setHydrovacWoSaveMsg(''), 4000);
-                  } catch (e) {
-                    setHydrovacWoSaveMsg('❌ ' + (e.response?.data?.error || 'Failed to save'));
-                  } finally { setHydrovacWoSaving(false); }
-                }}>{hydrovacWoSaving ? 'Saving...' : 'Save & Email PDF'}</button>
-                <button className="btn" style={{background:'#888',color:'#fff',padding:'6px 14px',fontSize:'12px'}} onClick={() => { setEditingHydrovacWo(null); setHydrovacWoSaveMsg(''); }}>Cancel</button>
-                {hydrovacWoSaveMsg && <span style={{fontSize:'12px',fontWeight:'bold',color: hydrovacWoSaveMsg.startsWith('✅') ? '#4CAF50' : '#f44336'}}>{hydrovacWoSaveMsg}</span>}
-              </div>
-            </div>
-          ) : (
-            <>
-              <h4 className="job-company">{wo.cdlDriver} & {wo.secondWorker}</h4>
-              <p><strong>Date:</strong> {wo.date}</p>
-              <p><strong>Coordinator:</strong> {wo.coordinator}</p>
-              <p><strong>Engine Hours:</strong> {wo.engineHoursStart} → {wo.engineHoursEnd} ({(wo.engineHoursEnd - wo.engineHoursStart).toFixed(1)} hrs)</p>
-              <p><strong>Mileage:</strong> {wo.mileageStart} → {wo.mileageEnd} ({wo.mileageEnd - wo.mileageStart} mi)</p>
-              <p><strong>Extension Pipe:</strong> {wo.extensionPipeLength} ft</p>
-              <p><strong>Times Dumped:</strong> {wo.timesDumped}</p>
-              <p><strong>Utilities Found:</strong> {wo.utilitiesFound}</p>
-              <p><strong>Arrival at Locate:</strong> {wo.arrivalAtLocate}</p>
-              <p><strong>Back at Shop:</strong> {wo.arrivalBackAtShop}</p>
-              <p><strong>Grease Points:</strong> {wo.greasePointsChecked ? 'Yes' : 'No'}</p>
-              <p><strong>Truck Cleaned:</strong> {wo.truckCleanedOut} | <strong>Filter:</strong> {wo.filterCleaned} | <strong>Water Refill:</strong> {wo.waterRefill}</p>
-              {wo.trafficControlUsed && (
-                <p><strong>TC:</strong> {wo.tcStartTime} – {wo.tcEndTime}{wo.tcTrucks?.length ? ` | Trucks: ${wo.tcTrucks.join(', ')}` : ''}</p>
-              )}
-              {wo.notes && <p><strong>Notes:</strong> {wo.notes}</p>}
-              <p style={{fontSize:'0.8rem',color:'#888'}}>Submitted: {new Date(wo.createdAt).toLocaleString()}</p>
-              <div style={{display:'flex',gap:'8px',marginTop:'8px'}}>
-                <a href={`/hydrovac-work-order/${wo._id}/pdf?t=${Date.now()}`} target="_blank" rel="noreferrer"
-                  style={{padding:'6px 14px',fontSize:'12px',background:'#e53935',color:'#fff',borderRadius:'6px',textDecoration:'none',fontWeight:'bold'}}>
-                  📄 PDF
-                </a>
-                <button style={{padding:'6px 14px',fontSize:'12px',background:'#2196F3',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer',fontWeight:'bold'}}
-                  onClick={() => { setEditingHydrovacWo(wo); setEditHydrovacWo({...wo}); }}>✏️ Edit</button>
-              </div>
-            </>
-          )}
-        </div>
-      ))}
-      {hydrovacWoList.length === 0 && <p>No hydrovac work orders on this day.</p>}
-    </div>
-  </>
-)}
 {viewMode === 'shopwo' && (
   <>
     <h3>Shop Work Orders on {shopWoDate?.toLocaleDateString()}</h3>
@@ -2082,6 +1720,113 @@ selected={
         </div>
       ))}
       {shopWoList.length === 0 && <p>No shop work orders on this day.</p>}
+    </div>
+  </>
+)}
+{viewMode === 'hydrovacwo' && (
+  <>
+    <h3>🚛 Hydrovac Work Orders on {hydrovacWoDate?.toLocaleDateString()}</h3>
+    <div className="job-info-list">
+      {hydrovacWoList.map((wo) => (
+        <div key={wo._id} className="job-card">
+          {editingHydrovacWo?._id === wo._id ? (
+            <div>
+              <h4 style={{marginBottom:'10px'}}>✏️ Editing Work Order</h4>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',fontSize:'13px'}}>
+                <label>Date:<input type="date" value={editHydrovacWo.date || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, date: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                <label>Coordinator:<input type="text" value={editHydrovacWo.coordinator || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, coordinator: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                <label>CDL Driver:<input type="text" value={editHydrovacWo.cdlDriver || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, cdlDriver: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                <label>Second Worker:<input type="text" value={editHydrovacWo.secondWorker || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, secondWorker: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                <label>Engine Hours Start:<input type="number" value={editHydrovacWo.engineHoursStart || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, engineHoursStart: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                <label>Engine Hours End:<input type="number" value={editHydrovacWo.engineHoursEnd || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, engineHoursEnd: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                <label>Mileage Start:<input type="number" value={editHydrovacWo.mileageStart || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, mileageStart: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                <label>Mileage End:<input type="number" value={editHydrovacWo.mileageEnd || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, mileageEnd: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                <label>Times Dumped:<input type="number" value={editHydrovacWo.timesDumped ?? ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, timesDumped: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                <label>Utilities Found:<input type="number" value={editHydrovacWo.utilitiesFound ?? ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, utilitiesFound: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                <label>Arrival at Locate:<input type="text" value={editHydrovacWo.arrivalAtLocate || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, arrivalAtLocate: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                <label>Back at Shop:<input type="text" value={editHydrovacWo.arrivalBackAtShop || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, arrivalBackAtShop: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
+                <label>Truck Cleaned Out:
+                  <select value={editHydrovacWo.truckCleanedOut || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, truckCleanedOut: e.target.value})} style={{width:'100%',padding:'4px'}}>
+                    <option value="Yes">Yes</option><option value="No">No</option>
+                  </select>
+                </label>
+                <label>Filter Cleaned:
+                  <select value={editHydrovacWo.filterCleaned || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, filterCleaned: e.target.value})} style={{width:'100%',padding:'4px'}}>
+                    <option value="Yes">Yes</option><option value="No">No</option>
+                  </select>
+                </label>
+                <label>Water Refill:
+                  <select value={editHydrovacWo.waterRefill || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, waterRefill: e.target.value})} style={{width:'100%',padding:'4px'}}>
+                    <option value="Yes">Yes</option><option value="No">No</option>
+                  </select>
+                </label>
+                <label style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                  <input type="checkbox" checked={!!editHydrovacWo.greasePointsChecked} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, greasePointsChecked: e.target.checked})} /> Grease Points Checked
+                </label>
+              </div>
+              <label style={{display:'block',marginTop:'8px',fontSize:'13px'}}>Notes:
+                <textarea rows={3} value={editHydrovacWo.notes || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, notes: e.target.value})} style={{width:'100%',padding:'4px'}} />
+              </label>
+              <div style={{display:'flex',gap:'8px',marginTop:'10px',alignItems:'center'}}>
+                <button className="btn" style={{background:'#4CAF50',color:'#fff',padding:'6px 14px',fontSize:'12px'}} disabled={hydrovacWoSaving} onClick={async () => {
+                  setHydrovacWoSaving(true); setHydrovacWoSaveMsg('');
+                  try {
+                    await axios.put(`/hydrovac-work-order/${wo._id}`, editHydrovacWo);
+                    setHydrovacWoSaveMsg('✅ Saved & email sent!');
+                    setEditingHydrovacWo(null);
+                    fetchHydrovacWoForDay(hydrovacWoDate);
+                    fetchMonthlyHydrovacWo(hydrovacWoDate);
+                    setTimeout(() => setHydrovacWoSaveMsg(''), 4000);
+                  } catch (e) {
+                    setHydrovacWoSaveMsg('❌ ' + (e.response?.data?.error || 'Failed to save'));
+                  } finally { setHydrovacWoSaving(false); }
+                }}>{hydrovacWoSaving ? 'Saving...' : 'Save & Email PDF'}</button>
+                <button className="btn" style={{background:'#888',color:'#fff',padding:'6px 14px',fontSize:'12px'}} onClick={() => { setEditingHydrovacWo(null); setHydrovacWoSaveMsg(''); }}>Cancel</button>
+                {hydrovacWoSaveMsg && <span style={{fontSize:'12px',fontWeight:'bold',color: hydrovacWoSaveMsg.startsWith('✅') ? '#4CAF50' : '#f44336'}}>{hydrovacWoSaveMsg}</span>}
+              </div>
+            </div>
+          ) : (
+            <>
+              <h4 className="job-company">{wo.cdlDriver} & {wo.secondWorker}</h4>
+              <p><strong>Date:</strong> {wo.date}</p>
+              <p><strong>Coordinator:</strong> {wo.coordinator}</p>
+              <p><strong>Engine Hours:</strong> {wo.engineHoursStart} → {wo.engineHoursEnd} ({(wo.engineHoursEnd - wo.engineHoursStart).toFixed(1)} hrs)</p>
+              <p><strong>Mileage:</strong> {wo.mileageStart} → {wo.mileageEnd} ({wo.mileageEnd - wo.mileageStart} mi)</p>
+              <p><strong>Extension Pipe:</strong> {wo.extensionPipeLength} ft</p>
+              <p><strong>Times Dumped:</strong> {wo.timesDumped}</p>
+              <p><strong>Utilities Found:</strong> {wo.utilitiesFound}</p>
+              <p><strong>Arrival at Locate:</strong> {wo.arrivalAtLocate}</p>
+              <p><strong>Back at Shop:</strong> {wo.arrivalBackAtShop}</p>
+              <p><strong>Grease Points:</strong> {wo.greasePointsChecked ? 'Yes' : 'No'}</p>
+              <p><strong>Truck Cleaned:</strong> {wo.truckCleanedOut} | <strong>Filter:</strong> {wo.filterCleaned} | <strong>Water Refill:</strong> {wo.waterRefill}</p>
+              {wo.trafficControlUsed && (
+                <p><strong>TC:</strong> {wo.tcStartTime} → {wo.tcEndTime}{wo.tcTrucks?.length ? ` | Trucks: ${wo.tcTrucks.join(', ')}` : ''}</p>
+              )}
+              {wo.notes && <p><strong>Notes:</strong> {wo.notes}</p>}
+              <p style={{fontSize:'0.8rem',color:'#888'}}>Submitted: {new Date(wo.createdAt).toLocaleString()}</p>
+              <div style={{display:'flex',gap:'8px',marginTop:'8px',alignItems:'center'}}>
+                <button
+                  style={{padding:'6px 14px',fontSize:'12px',background:'#e53935',color:'#fff',borderRadius:'6px',border:'none',cursor:'pointer',fontWeight:'bold'}}
+                  disabled={selectedPdfId === wo._id}
+                  onClick={async () => {
+                    setSelectedPdfId(wo._id);
+                    try {
+                      const res = await axios.post(`/hydrovac-work-order/${wo._id}/pdf-cloudinary`);
+                      window.open(res.data.url, '_blank');
+                    } catch (e) {
+                      alert('Failed to generate PDF. Please try again.');
+                    } finally { setSelectedPdfId(null); }
+                  }}>
+                  {selectedPdfId === wo._id ? '⏳ Generating...' : '📄 PDF'}
+                </button>
+                <button style={{padding:'6px 14px',fontSize:'12px',background:'#2196F3',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer',fontWeight:'bold'}}
+                  onClick={() => { setEditingHydrovacWo(wo); setEditHydrovacWo({...wo}); }}>✏️ Edit</button>
+              </div>
+            </>
+          )}
+        </div>
+      ))}
+      {hydrovacWoList.length === 0 && <p>No hydrovac work orders on this day.</p>}
     </div>
   </>
 )}
@@ -2117,174 +1862,6 @@ selected={
     </div>
   </>
 )}
-
-{viewMode === 'safetymeeting' && (
-  <>
-    <h3>🦺 Safety Meetings on {safetyMeetingDate?.toLocaleDateString()}</h3>
-    {safetyMeetingMsg && <p style={{color: safetyMeetingMsg.includes('✅') ? '#4CAF50' : '#f44336', fontWeight:'bold'}}>{safetyMeetingMsg}</p>}
-    <button className="btn" style={{marginBottom:'1rem'}} onClick={() => setShowSafetyForm(f => !f)}>
-      {showSafetyForm ? 'Cancel' : '+ New Safety Meeting'}
-    </button>
-    {showSafetyForm && (
-      <div className="job-card" style={{background:'#f0f8ff',border:'2px dashed #1e3a8a',marginBottom:'1rem'}}>
-        <h4 style={{marginBottom:'0.75rem',color:'#1e3a8a'}}>New Safety Meeting</h4>
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginBottom:'8px'}}>
-          <label style={{fontSize:'12px'}}>Jobsite *<input value={safetyMeetingForm.jobsite} onChange={e => setSafetyMeetingForm(f => ({...f, jobsite: e.target.value}))} style={{width:'100%',padding:'4px'}} /></label>
-          <label style={{fontSize:'12px'}}>Meeting Leader *<input value={safetyMeetingForm.meetingLeader} onChange={e => setSafetyMeetingForm(f => ({...f, meetingLeader: e.target.value}))} style={{width:'100%',padding:'4px'}} /></label>
-          <label style={{fontSize:'12px',gridColumn:'1/-1'}}>Toolbox Talk Topic *<input value={safetyMeetingForm.toolboxTopic} onChange={e => setSafetyMeetingForm(f => ({...f, toolboxTopic: e.target.value}))} style={{width:'100%',padding:'4px'}} /></label>
-          <label style={{fontSize:'12px',gridColumn:'1/-1'}}>Topic Notes<textarea rows={2} value={safetyMeetingForm.topicNotes} onChange={e => setSafetyMeetingForm(f => ({...f, topicNotes: e.target.value}))} style={{width:'100%',padding:'4px'}} /></label>
-        </div>
-        <div style={{marginBottom:'8px'}}>
-          <strong style={{fontSize:'12px'}}>Safety Topics Covered:</strong>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'4px',marginTop:'4px'}}>
-            {[['trafficControl','Traffic Control'],['ppe','PPE'],['flagging','Flagging'],['workZoneSetup','Work Zone Setup'],['vehicleSafety','Vehicle Safety'],['heatColdStress','Heat/Cold Stress'],['firstAidEmergency','First Aid & Emergency'],['hazardCommunication','Hazard Communication'],['slipsTripsFalls','Slips, Trips & Falls'],['liftingErgonomics','Lifting & Ergonomics'],['incidentReporting','Incident Reporting'],['other','Other']].map(([key, label]) => (
-              <label key={key} style={{fontSize:'11px',display:'flex',alignItems:'center',gap:'4px'}}>
-                <input type="checkbox" checked={safetyMeetingForm.topics[key]} onChange={e => setSafetyMeetingForm(f => ({...f, topics: {...f.topics, [key]: e.target.checked}}))} />{label}
-              </label>
-            ))}
-          </div>
-          {safetyMeetingForm.topics.other && (
-            <input placeholder="Other topic..." value={safetyMeetingForm.topics.otherText} onChange={e => setSafetyMeetingForm(f => ({...f, topics: {...f.topics, otherText: e.target.value}}))} style={{width:'100%',padding:'4px',marginTop:'4px',fontSize:'12px'}} />
-          )}
-        </div>
-        <div style={{marginBottom:'8px'}}>
-          <strong style={{fontSize:'12px'}}>Attendees (up to 12):</strong>
-          {safetyMeetingForm.attendees.map((a, i) => (
-            <div key={i} style={{display:'flex',gap:'4px',marginTop:'4px',alignItems:'center'}}>
-              <span style={{fontSize:'11px',flex:1}}>{i+1}. {a.name}</span>
-              <button style={{padding:'1px 6px',fontSize:'10px',background:'#f44336',color:'#fff',border:'none',borderRadius:'3px',cursor:'pointer'}} onClick={() => setSafetyMeetingForm(f => ({...f, attendees: f.attendees.filter((_,j) => j !== i)}))}>✕</button>
-            </div>
-          ))}
-          {safetyMeetingForm.attendees.length < 12 && (
-            <div style={{display:'flex',gap:'4px',marginTop:'4px'}}>
-              <input id="sm-attendee" placeholder="Employee name" style={{flex:1,padding:'4px',fontSize:'12px'}} onKeyDown={e => { if (e.key === 'Enter' && e.target.value.trim()) { setSafetyMeetingForm(f => ({...f, attendees: [...f.attendees, {name: e.target.value.trim()}]})); e.target.value = ''; }}} />
-              <button className="btn" style={{padding:'4px 10px',fontSize:'11px'}} onClick={() => { const el = document.getElementById('sm-attendee'); if (el?.value.trim()) { setSafetyMeetingForm(f => ({...f, attendees: [...f.attendees, {name: el.value.trim()}]})); el.value = ''; }}}>+ Add</button>
-            </div>
-          )}
-        </div>
-        <div style={{marginBottom:'8px'}}>
-          <strong style={{fontSize:'12px'}}>Hazards:</strong>
-          {safetyMeetingForm.hazards.map((h, i) => (
-            <div key={i} style={{display:'flex',gap:'4px',marginTop:'4px',alignItems:'center'}}>
-              <span style={{fontSize:'11px',flex:1}}>{h.description}</span>
-              <button style={{padding:'1px 6px',fontSize:'10px',background:'#f44336',color:'#fff',border:'none',borderRadius:'3px',cursor:'pointer'}} onClick={() => setSafetyMeetingForm(f => ({...f, hazards: f.hazards.filter((_,j) => j !== i)}))}>✕</button>
-            </div>
-          ))}
-          <div style={{display:'flex',gap:'4px',marginTop:'4px'}}>
-            <input id="sm-hazard" placeholder="Hazard description" style={{flex:1,padding:'4px',fontSize:'12px'}} />
-            <button className="btn" style={{padding:'4px 10px',fontSize:'11px'}} onClick={() => { const el = document.getElementById('sm-hazard'); if (el?.value.trim()) { setSafetyMeetingForm(f => ({...f, hazards: [...f.hazards, {description: el.value.trim()}]})); el.value = ''; }}}>+ Add</button>
-          </div>
-        </div>
-        <label style={{fontSize:'12px',display:'flex',alignItems:'center',gap:'6px',marginBottom:'8px'}}>
-          <input type="checkbox" checked={safetyMeetingForm.followUpRequired} onChange={e => setSafetyMeetingForm(f => ({...f, followUpRequired: e.target.checked}))} /> Follow-up required
-          {safetyMeetingForm.followUpRequired && <input type="date" value={safetyMeetingForm.followUpDate} onChange={e => setSafetyMeetingForm(f => ({...f, followUpDate: e.target.value}))} style={{padding:'3px',fontSize:'12px'}} />}
-        </label>
-        <label style={{fontSize:'12px',display:'block',marginBottom:'8px'}}>Notes<textarea rows={2} value={safetyMeetingForm.notes} onChange={e => setSafetyMeetingForm(f => ({...f, notes: e.target.value}))} style={{width:'100%',padding:'4px'}} /></label>
-        <button className="btn" style={{background:'#1e3a8a',color:'#fff',padding:'8px 20px'}} disabled={safetyMeetingSubmitting} onClick={submitSafetyMeeting}>
-          {safetyMeetingSubmitting ? 'Submitting...' : 'Submit Safety Meeting'}
-        </button>
-      </div>
-    )}
-    <div className="job-info-list">
-      {safetyMeetingList.map((m) => (
-        <div key={m._id} className="job-card">
-          <h4 className="job-company">{m.jobsite}</h4>
-          <p><strong>Date:</strong> {new Date(m.meetingDate).toLocaleDateString()}</p>
-          <p><strong>Leader:</strong> {m.meetingLeader}</p>
-          <p><strong>Topic:</strong> {m.toolboxTopic}</p>
-          <p><strong>Attendees:</strong> {m.attendees?.length || 0}</p>
-          <p><strong>Hazards:</strong> {m.hazards?.length || 0}</p>
-          {m.followUpRequired && <p style={{color:'#e65100',fontWeight:'bold'}}>⚠️ Follow-up: {m.followUpDate ? new Date(m.followUpDate).toLocaleDateString() : 'TBD'}</p>}
-          <a href={`/safety-meetings/${m._id}/pdf`} target="_blank" rel="noreferrer" style={{display:'inline-block',marginTop:'8px',padding:'6px 14px',fontSize:'12px',background:'#c0392b',color:'#fff',borderRadius:'6px',textDecoration:'none',fontWeight:'bold'}}>📄 PDF</a>
-        </div>
-      ))}
-      {safetyMeetingList.length === 0 && <p>No safety meetings on this day.</p>}
-    </div>
-  </>
-)}
-
-{viewMode === 'jobinspection' && (
-  <>
-    <h3>🔍 Daily Inspections on {jobInspectionDate?.toLocaleDateString()}</h3>
-    {jobInspectionMsg && <p style={{color: jobInspectionMsg.includes('✅') ? '#4CAF50' : '#f44336', fontWeight:'bold'}}>{jobInspectionMsg}</p>}
-    <button className="btn" style={{marginBottom:'1rem'}} onClick={() => setShowInspectionForm(f => !f)}>
-      {showInspectionForm ? 'Cancel' : '+ New Inspection'}
-    </button>
-    {showInspectionForm && (
-      <div className="job-card" style={{background:'#f0f8ff',border:'2px dashed #1e3a8a',marginBottom:'1rem'}}>
-        <h4 style={{marginBottom:'0.75rem',color:'#1e3a8a'}}>New Daily Inspection</h4>
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginBottom:'8px'}}>
-          <label style={{fontSize:'12px'}}>Jobsite *<input value={jobInspectionForm.jobsite} onChange={e => setJobInspectionForm(f => ({...f, jobsite: e.target.value}))} style={{width:'100%',padding:'4px'}} /></label>
-          <label style={{fontSize:'12px'}}>Inspector *<input value={jobInspectionForm.inspector} onChange={e => setJobInspectionForm(f => ({...f, inspector: e.target.value}))} style={{width:'100%',padding:'4px'}} /></label>
-          <label style={{fontSize:'12px'}}>Foreman<input value={jobInspectionForm.foreman} onChange={e => setJobInspectionForm(f => ({...f, foreman: e.target.value}))} style={{width:'100%',padding:'4px'}} /></label>
-          <label style={{fontSize:'12px'}}>Overall Result *
-            <select value={jobInspectionForm.result} onChange={e => setJobInspectionForm(f => ({...f, result: e.target.value}))} style={{width:'100%',padding:'4px'}}>
-              <option value="Pass">✅ Pass</option>
-              <option value="Fail">❌ Fail</option>
-              <option value="WorkStopped">⛔ Work Stopped</option>
-            </select>
-          </label>
-          {jobInspectionForm.result === 'WorkStopped' && (
-            <label style={{fontSize:'12px',gridColumn:'1/-1'}}>Stop-Work Reason<input value={jobInspectionForm.stopWorkReason} onChange={e => setJobInspectionForm(f => ({...f, stopWorkReason: e.target.value}))} style={{width:'100%',padding:'4px'}} /></label>
-          )}
-        </div>
-        <div style={{marginBottom:'8px'}}>
-          <strong style={{fontSize:'12px'}}>Inspection Items:</strong>
-          <table style={{width:'100%',borderCollapse:'collapse',marginTop:'6px',fontSize:'11px'}}>
-            <thead><tr style={{background:'#e9ecef'}}><th style={{border:'1px solid #ccc',padding:'4px',textAlign:'left'}}>Item</th><th style={{border:'1px solid #ccc',padding:'4px',width:'110px'}}>Status</th><th style={{border:'1px solid #ccc',padding:'4px'}}>Corrective Action</th></tr></thead>
-            <tbody>
-              {jobInspectionForm.items.map((item, i) => (
-                <tr key={i} style={{background: i%2===0?'#fff':'#f9f9f9'}}>
-                  <td style={{border:'1px solid #ddd',padding:'4px'}}>{i+1}. {item.label}</td>
-                  <td style={{border:'1px solid #ddd',padding:'4px'}}>
-                    <select value={item.status} onChange={e => setJobInspectionForm(f => ({...f, items: f.items.map((it,j) => j===i ? {...it, status: e.target.value} : it)}))} style={{width:'100%',padding:'2px',fontSize:'11px',color: item.status==='OK'?'#2e7d32':item.status==='Deficiency'?'#c0392b':'#888',fontWeight:'bold'}}>
-                      <option value="OK">✓ OK</option>
-                      <option value="Deficiency">✗ Deficiency</option>
-                      <option value="NA">N/A</option>
-                    </select>
-                  </td>
-                  <td style={{border:'1px solid #ddd',padding:'4px'}}>
-                    {item.status === 'Deficiency' && <input value={item.correctiveAction} onChange={e => setJobInspectionForm(f => ({...f, items: f.items.map((it,j) => j===i ? {...it, correctiveAction: e.target.value} : it)}))} placeholder="Corrective action..." style={{width:'100%',padding:'2px',fontSize:'11px'}} />}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <label style={{fontSize:'12px',display:'flex',alignItems:'center',gap:'6px',marginBottom:'8px'}}>
-          <input type="checkbox" checked={jobInspectionForm.followUpRequired} onChange={e => setJobInspectionForm(f => ({...f, followUpRequired: e.target.checked}))} /> Follow-up required
-          {jobInspectionForm.followUpRequired && <input type="date" value={jobInspectionForm.followUpDate} onChange={e => setJobInspectionForm(f => ({...f, followUpDate: e.target.value}))} style={{padding:'3px',fontSize:'12px'}} />}
-        </label>
-        <button className="btn" style={{background:'#1e3a8a',color:'#fff',padding:'8px 20px'}} disabled={jobInspectionSubmitting} onClick={submitJobInspection}>
-          {jobInspectionSubmitting ? 'Submitting...' : 'Submit Inspection'}
-        </button>
-      </div>
-    )}
-    <div className="job-info-list">
-      {jobInspectionList.map((insp) => {
-        const deficiencies = (insp.items || []).filter(i => i.status === 'Deficiency');
-        const resultColor = insp.result === 'Pass' ? '#2e7d32' : insp.result === 'WorkStopped' ? '#c0392b' : '#e65100';
-        return (
-          <div key={insp._id} className="job-card">
-            <h4 className="job-company">{insp.jobsite}</h4>
-            <p><strong>Date:</strong> {new Date(insp.inspectionDate).toLocaleDateString()}</p>
-            <p><strong>Inspector:</strong> {insp.inspector}{insp.foreman ? ` | Foreman: ${insp.foreman}` : ''}</p>
-            <p><strong>Result:</strong> <span style={{color:resultColor,fontWeight:'bold'}}>{insp.result === 'WorkStopped' ? '⛔ Work Stopped' : insp.result === 'Pass' ? '✅ Pass' : '❌ Fail'}</span></p>
-            {deficiencies.length > 0 && (
-              <div style={{marginTop:'6px'}}>
-                <strong style={{fontSize:'12px',color:'#c0392b'}}>Deficiencies ({deficiencies.length}):</strong>
-                {deficiencies.map((d, i) => <p key={i} style={{fontSize:'11px',margin:'2px 0 0 8px'}}>• {d.label}{d.correctiveAction ? ` — ${d.correctiveAction}` : ''}</p>)}
-              </div>
-            )}
-            {insp.followUpRequired && <p style={{color:'#e65100',fontWeight:'bold',marginTop:'4px'}}>⚠️ Follow-up: {insp.followUpDate ? new Date(insp.followUpDate).toLocaleDateString() : 'TBD'}</p>}
-            <a href={`/job-inspections/${insp._id}/pdf`} target="_blank" rel="noreferrer" style={{display:'inline-block',marginTop:'8px',padding:'6px 14px',fontSize:'12px',background:'#c0392b',color:'#fff',borderRadius:'6px',textDecoration:'none',fontWeight:'bold'}}>📄 PDF</a>
-          </div>
-        );
-      })}
-      {jobInspectionList.length === 0 && <p>No inspections on this day.</p>}
-    </div>
-  </>
-)}
 </div>
 </div>
 </div>
@@ -2303,25 +1880,10 @@ selected={
   </div>
 
   <div className="tool-card">
-    <h3>🚛 Hydrovac Work Order</h3>
-    <p>Submit a hydrovac daily work order</p>
-    <button className="btn workorder-btn" onClick={() => navigate('/hydrovac-work-order')}>Open Hydrovac WO</button>
-  </div>
-
-  <div className="tool-card">
     <h3>🏗️ Shop Work Order</h3>
     <p>Submit a shop work order for approval</p>
     <button className="btn workorder-btn" onClick={() => navigate('/admin-dashboard/shop-work-order')}>Open Shop Work Order</button>
   </div>
-
-  {allowedForShopWo && (
-  <div className="tool-card">
-    <h3>📋 Shop WO Log</h3>
-    <p>View, approve, and manage shop work orders</p>
-    {pendingShopWos.length > 0 && <p style={{color:'#ff9800',fontWeight:'bold',margin:'4px 0'}}>⏳ {pendingShopWos.length} pending</p>}
-    <button className="btn workorder-btn" onClick={() => navigate('/admin-dashboard/shop-work-order-log')}>Open Log</button>
-  </div>
-  )}
 
   <div className="tool-card">
     <h3>🚧 TCP Designer</h3>
@@ -2423,495 +1985,423 @@ selected={
         try { const res = await axios.get(`/timeclock/time-worked?location=${encodeURIComponent(clockLocation)}&startDate=${satStr}&endDate=${friStr}`); setTimeWorked(res.data); } catch(e) {}
         }}>Open Time Clock</button>
       {viewMode === 'timeclock' && (
- <>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.5rem'}}>
-        <h3 style={{margin:0}}>⏰ Employee Time Clock</h3>
-        <div style={{display:'flex',gap:'0.5rem'}}>
-          <button className="btn" onClick={() => { axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {}); refreshTimeWorked(); }}>🔄 Refresh</button>
-          <button className="btn" style={{background:'#888',color:'#fff'}} onClick={() => setViewMode('traffic')}>✖ Close</button>
-        </div>
+  <>
+    {/* Header */}
+    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.5rem'}}>
+      <h3 style={{margin:0}}>⏰ Employee Time Clock</h3>
+      <div style={{display:'flex',gap:'0.5rem'}}>
+        <button className="btn" onClick={() => axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {})}>🔄 Refresh</button>
+        <button className="btn" style={{background:'#888',color:'#fff'}} onClick={() => setViewMode('traffic')}>✖ Close</button>
       </div>
+    </div>
 
-      {/* Location Toggle */}
-      <div style={{display:'flex',gap:'0.5rem',justifyContent:'center',marginBottom:'1.5rem'}}>
-        <button
-          onClick={() => { setClockLocation('North GA'); refreshForLocation('North GA'); }}
-          style={{padding:'0.6rem 1.5rem',borderRadius:'8px',border:'2px solid',borderColor: clockLocation === 'North GA' ? '#1565c0' : '#ccc',background: clockLocation === 'North GA' ? '#1565c0' : '#fff',color: clockLocation === 'North GA' ? '#fff' : '#333',fontWeight:'bold',cursor:'pointer',fontSize:'1rem'}}
-        >📍 North GA Time Clock</button>
-        <button
-          onClick={() => { setClockLocation('South GA'); refreshForLocation('South GA'); }}
-          style={{padding:'0.6rem 1.5rem',borderRadius:'8px',border:'2px solid',borderColor: clockLocation === 'South GA' ? '#e65100' : '#ccc',background: clockLocation === 'South GA' ? '#e65100' : '#fff',color: clockLocation === 'South GA' ? '#fff' : '#333',fontWeight:'bold',cursor:'pointer',fontSize:'1rem'}}
-        >📍 South GA Time Clock</button>
-      </div>
+    {/* Location Toggle */}
+    <div style={{display:'flex',gap:'0.5rem',justifyContent:'center',marginBottom:'1.5rem'}}>
+      <button onClick={() => { setClockLocation('North GA'); axios.get('/timeclock/employees?location=North%20GA').then(r => { setPinEmployees(r.data.employees); }).catch(() => {}); }} style={{padding:'0.6rem 1.5rem',borderRadius:'8px',border:'2px solid',borderColor: clockLocation === 'North GA' ? '#1565c0' : '#ccc',background: clockLocation === 'North GA' ? '#1565c0' : '#fff',color: clockLocation === 'North GA' ? '#fff' : '#333',fontWeight:'bold',cursor:'pointer',fontSize:'1rem'}}>📍 North GA Time Clock</button>
+      <button onClick={() => { setClockLocation('South GA'); axios.get('/timeclock/employees?location=South%20GA').then(r => { setPinEmployees(r.data.employees); }).catch(() => {}); }} style={{padding:'0.6rem 1.5rem',borderRadius:'8px',border:'2px solid',borderColor: clockLocation === 'South GA' ? '#e65100' : '#ccc',background: clockLocation === 'South GA' ? '#e65100' : '#fff',color: clockLocation === 'South GA' ? '#fff' : '#333',fontWeight:'bold',cursor:'pointer',fontSize:'1rem'}}>📍 South GA Time Clock</button>
+    </div>
 
-      {/* Currently Clocked In */}
-      <div style={{background:'#f0fdf4',border:'1px solid #86efac',borderRadius:'10px',padding:'1rem',marginBottom:'1.5rem'}}>
-        <h4 style={{color:'#166534',margin:'0 0 0.75rem'}}>🟢 Currently Clocked In ({clockedInList.length})</h4>
-        {clockedInList.length === 0 && <p style={{color:'#666',margin:0}}>No employees currently clocked in.</p>}
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(250px, 1fr))',gap:'0.75rem'}}>
-          {clockedInList.map((entry) => (
-            <div key={entry._id} style={{background:'#fff',borderRadius:'8px',padding:'0.75rem',border:'1px solid #ddd'}}>
-              <strong style={{fontSize:'1.05rem'}}>{entry.employeeName}</strong>
-              <p style={{margin:'4px 0',fontSize:'0.95rem',color:'#555'}}>In: {new Date(entry.clockIn).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})} • {Math.round((Date.now() - new Date(entry.clockIn)) / 60000)} min</p>
-              {entry.purpose && <span style={{background:'#e3f2fd',color:'#1565c0',padding:'3px 10px',borderRadius:'4px',fontSize:'0.9rem',fontWeight:'bold'}}>{entry.purpose}</span>}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Add Hours */}
-      {canEditHours && (
-      <div style={{background:'#f0f8ff',border:'1px solid #90caf9',borderRadius:'10px',padding:'1rem',marginBottom:'1.5rem'}}>
-        <h4 style={{margin:'0 0 0.5rem',color:'#1565c0'}}>➕ Add Hours (Forgotten Clock-In)</h4>
-        <p style={{fontSize:'0.9rem',color:'#666',margin:'0 0 0.5rem'}}>Add punch lines for employees who forgot to clock in/out</p>
-        <div style={{display:'flex',flexDirection:'column',gap:'0.4rem'}}>
-          <select value={addLineEmp || ''} onChange={(e) => setAddLineEmp(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}}>
-            <option value="">Select Employee...</option>
-            {pinEmployees.map(emp => <option key={emp._id} value={emp._id}>{emp.name}</option>)}
-          </select>
-          <input type="date" value={addLineDate} onChange={(e) => setAddLineDate(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}} />
-          <select value={addLinePurpose} onChange={(e) => setAddLinePurpose(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}}>
-            <option value="">-- Job Purpose --</option>
-            <option value="2 Man Crew">2 Man Crew</option>
-                    <option value="3 Man Crew">3 Man Crew</option>
-                    <option value="4 Man Crew">4 Man Crew</option>
-                    <option value="Arrow Board/Message Board Job">Arrow Board/Message Board Job</option>
-                    <option value="Emergency Job">Emergency Job</option>
-                    <option value="Weekend Work">Weekend Work</option>
-                    <option value="Shop Work">Shop Work</option>
-                    <option value="Standby">Standby</option>
-                    <option value="Drive Time">Drive Time</option>
-                    <option value="Hydrovac">Hydrovac</option>
-
-          </select>
-          <div style={{display:'flex',gap:'0.4rem',alignItems:'center'}}>
-            <label style={{fontSize:'0.8rem'}}>In:</label>
-            <input type="time" value={addLineIn} onChange={(e) => setAddLineIn(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',flex:1}} />
-            <label style={{fontSize:'0.8rem'}}>Out:</label>
-            <input type="time" value={addLineOut} onChange={(e) => setAddLineOut(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',flex:1}} />
-            <button className="btn" style={{padding:'6px 14px',fontSize:'12px'}} onClick={async () => {
-              if (!addLineEmp || !addLineDate || !addLineIn || !addLineOut) { setAddLineMsg('All fields required'); return; }
-              try {
-                const res = await axios.post('/timeclock/add-punch', { employeeId: addLineEmp, date: addLineDate, clockIn: addLineIn, clockOut: addLineOut, purpose: addLinePurpose, tzOffset: new Date().getTimezoneOffset() });
-                setAddLineMsg(res.data.message);
-                setAddLineIn(''); setAddLineOut('');
-                await refreshTimeWorked();
-                setTimeout(() => setAddLineMsg(''), 5000);
-              } catch (e) { setAddLineMsg(e.response?.data?.message || 'Error'); }
-            }}>+ Add Line</button>
+    {/* Currently Clocked In */}
+    <div style={{background:'#f0fdf4',border:'1px solid #86efac',borderRadius:'10px',padding:'1rem',marginBottom:'1.5rem'}}>
+      <h4 style={{color:'#166534',margin:'0 0 0.75rem'}}>🟢 Currently Clocked In ({clockedInList.length})</h4>
+      {clockedInList.length === 0 && <p style={{color:'#666',margin:0}}>No employees currently clocked in.</p>}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(250px, 1fr))',gap:'0.75rem'}}>
+        {clockedInList.map((entry) => (
+          <div key={entry._id} style={{background:'#fff',borderRadius:'8px',padding:'0.75rem',border:'1px solid #ddd'}}>
+            <strong style={{fontSize:'1.05rem'}}>{entry.employeeName}</strong>
+            <p style={{margin:'4px 0',fontSize:'0.95rem',color:'#555'}}>In: {new Date(entry.clockIn).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})} • {Math.round((Date.now() - new Date(entry.clockIn)) / 60000)} min</p>
+            {entry.purpose && <span style={{background:'#e3f2fd',color:'#1565c0',padding:'3px 10px',borderRadius:'4px',fontSize:'0.9rem',fontWeight:'bold'}}>{entry.purpose}</span>}
           </div>
-          {addLineMsg && <p style={{color: addLineMsg.includes('Added') ? '#4CAF50' : '#ff6b6b', fontWeight:'bold', fontSize:'0.85rem',margin:0}}>{addLineMsg}</p>}
-        </div>
+        ))}
       </div>
-      )}
+    </div>
 
-      {/* Time Worked Summary */}
-      <div style={{background:'#f8f9fa',border:'1px solid #dee2e6',borderRadius:'10px',padding:'1rem',marginBottom:'1.5rem'}}>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'0.5rem',marginBottom:'0.75rem'}}>
-          <h4 style={{margin:0,color:'#1e3a8a'}}>📊 Weekly Time Summary</h4>
-          <div style={{display:'flex',alignItems:'center',gap:'0.5rem'}}>
-            <label style={{fontSize:'0.85rem',fontWeight:'bold',color:'#555'}}>View by Purpose:</label>
-            <select value={purposeFilter} onChange={e => setPurposeFilter(e.target.value)} style={{padding:'4px 8px',borderRadius:'6px',border:'1px solid #ccc',fontSize:'0.85rem'}}>
-              <option value="All">All Hours</option>
-              <option value="2 Man Crew">2 Man Crew</option>
-                    <option value="3 Man Crew">3 Man Crew</option>
-                    <option value="4 Man Crew">4 Man Crew</option>
-                    <option value="Arrow Board/Message Board Job">Arrow Board/Message Board Job</option>
-                    <option value="Emergency Job">Emergency Job</option>
-                    <option value="Weekend Work">Weekend Work</option>
-                    <option value="Shop Work">Shop Work</option>
-                    <option value="Standby">Standby</option>
-                    <option value="Drive Time">Drive Time</option>
-                    <option value="Hydrovac">Hydrovac</option>
-            </select>
-          </div>
-        </div>
-        {pdfMsg && <p style={{color: pdfMsg.includes('emailed') || pdfMsg.includes('sent') ? '#4CAF50' : '#ff6b6b', fontWeight:'bold', fontSize:'0.85rem', margin:'0 0 0.5rem'}}>{pdfMsg}</p>}
-        {editPunchMsg && <p style={{color: editPunchMsg === 'Saved' ? '#4CAF50' : '#ff6b6b', fontWeight:'bold', fontSize:'0.85rem', margin:'0 0 0.5rem'}}>{editPunchMsg}</p>}
-        {(() => {
-          const weekStart = new Date(timeWorkedWeekStart + 'T00:00:00');
-          const weekEnd = new Date(weekStart);
-          weekEnd.setDate(weekStart.getDate() + 6);
-          return (
-            <div style={{display:'flex',gap:'0.5rem',alignItems:'center',flexWrap:'wrap',marginBottom:'1rem'}}>
-              <button className="btn" style={{padding:'6px 12px'}} onClick={async () => {
-                const prev = new Date(timeWorkedWeekStart + 'T00:00:00');
-                prev.setDate(prev.getDate() - 7);
-                const newStart = `${prev.getFullYear()}-${String(prev.getMonth()+1).padStart(2,'0')}-${String(prev.getDate()).padStart(2,'0')}`;
-                setTimeWorkedWeekStart(newStart);
-                const end = new Date(prev); end.setDate(prev.getDate() + 6);
-                const endStr = `${end.getFullYear()}-${String(end.getMonth()+1).padStart(2,'0')}-${String(end.getDate()).padStart(2,'0')}`;
-                try { const res = await axios.get(`/timeclock/time-worked?startDate=${newStart}&endDate=${endStr}&location=${encodeURIComponent(clockLocation)}`); setTimeWorked(res.data); } catch(e) {}
-              }}>◀ Prev Week</button>
-              <span style={{fontWeight:'bold',fontSize:'1.1rem'}}>
-                {weekStart.toLocaleDateString('en-US',{month:'short',day:'numeric'})} – {weekEnd.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
-              </span>
-              <button className="btn" style={{padding:'6px 12px'}} onClick={async () => {
-                const next = new Date(timeWorkedWeekStart + 'T00:00:00');
-                next.setDate(next.getDate() + 7);
-                const newStart = `${next.getFullYear()}-${String(next.getMonth()+1).padStart(2,'0')}-${String(next.getDate()).padStart(2,'0')}`;
-                setTimeWorkedWeekStart(newStart);
-                const end = new Date(next); end.setDate(next.getDate() + 6);
-                const endStr = `${end.getFullYear()}-${String(end.getMonth()+1).padStart(2,'0')}-${String(end.getDate()).padStart(2,'0')}`;
-                try { const res = await axios.get(`/timeclock/time-worked?startDate=${newStart}&endDate=${endStr}&location=${encodeURIComponent(clockLocation)}`); setTimeWorked(res.data); } catch(e) {}
-              }}>Next Week ▶</button>
-            </div>
-          );
-        })()}
-        {timeWorked.length > 0 && (
-          <div className="job-info-list">
-            {timeWorked.map((emp, i) => {
-              const sun = new Date(timeWorkedWeekStart + 'T00:00:00');
-              let weekTotalMin = 0;
-              // Build purpose totals across the whole week
-              const purposeTotals = {};
-              for (let d = 0; d < 7; d++) {
-                const dt = new Date(sun); dt.setDate(sun.getDate() + d);
-                const key = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
-                if (emp.days[key] && emp.days[key].minutes) weekTotalMin += emp.days[key].minutes;
-                if (emp.days[key] && emp.days[key].records) {
-                  emp.days[key].records.forEach(r => {
-                    if (r.purpose && r.minutes > 0) {
-                      purposeTotals[r.purpose] = (purposeTotals[r.purpose] || 0) + r.minutes;
-                    }
-                  });
-                }
-              }
-              // Filtered total for the selected purpose
-              const filteredMin = purposeFilter === 'All' ? weekTotalMin : (purposeTotals[purposeFilter] || 0);
-              return (
-                <details key={i} style={{marginBottom:'0.75rem',background:'#f8f9fa',borderRadius:'8px',padding:'14px',border:'1px solid #ddd'}}>
-                  <summary style={{cursor:'pointer',fontWeight:'bold',fontSize:'1.15rem',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'0.5rem'}}>
-                    <span>{emp.name} {emp.position && <span style={{fontWeight:'normal',fontSize:'0.9rem',color:'#1565c0',background:'#e3f2fd',padding:'2px 8px',borderRadius:'4px',marginLeft:'6px'}}>{emp.position}</span>} — {(filteredMin / 60).toFixed(2)} hrs{purposeFilter !== 'All' ? ` (${purposeFilter})` : ''}</span>
-                    {canEditHours && (
-                      <button
-                        style={{padding:'3px 10px',fontSize:'11px',background:'#1e3a8a',color:'#fff',border:'none',borderRadius:'5px',cursor:'pointer',flexShrink:0}}
-                        disabled={pdfLoadingEmp === emp.name}
-                        onClick={async (e) => {
-                          e.preventDefault();
-                          setPdfLoadingEmp(emp.name);
-                          setPdfMsg('');
-                          const weekEnd = new Date(sun); weekEnd.setDate(sun.getDate() + 6);
-                          const weekEndStr = `${weekEnd.getFullYear()}-${String(weekEnd.getMonth()+1).padStart(2,'0')}-${String(weekEnd.getDate()).padStart(2,'0')}`;
-                          try {
-                            const res = await axios.post('/timeclock/hours-pdf', {
-                              employeeName: emp.name,
-                              position: emp.position,
-                              weekStart: timeWorkedWeekStart,
-                              weekEnd: weekEndStr,
-                              days: emp.days,
-                              weekTotalMin,
-                              purposeTotals
-                            });
-                            setPdfMsg(res.data.message);
-                          } catch (err) {
-                            setPdfMsg(err.response?.data?.message || 'Error generating PDF');
-                          } finally {
-                            setPdfLoadingEmp(null);
-                            setTimeout(() => setPdfMsg(''), 6000);
-                          }
-                        }}
-                      >
-                        {pdfLoadingEmp === emp.name ? '⏳ Generating...' : '📄 Generate PDF & Email'}
-                      </button>
-                    )}
-                  </summary>
-                  <table style={{width:'100%',borderCollapse:'collapse',fontSize:'1rem',marginTop:'0.5rem'}}>
-                    <thead>
-                      <tr style={{background:'#e9ecef'}}>
-                        <th style={{border:'1px solid #ddd',padding:'8px',textAlign:'left'}}>Day</th>
-                        <th style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>In / Out</th>
-                        <th style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>Hours</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(() => {
-                        const days = [];
-                        for (let d = 0; d < 7; d++) {
-                          const dt = new Date(sun); dt.setDate(sun.getDate() + d);
-                          const key = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
-                          const dayName = dt.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
-                          const dayData = emp.days[key];
-                          // Filter records by purpose
-                          const filteredRecords = dayData && dayData.records
-                            ? (purposeFilter === 'All' ? dayData.records : dayData.records.filter(r => r.purpose === purposeFilter))
-                            : null;
-                          const filteredDayMin = filteredRecords ? filteredRecords.reduce((s, r) => s + (r.minutes || 0), 0) : 0;
-                          if (purposeFilter !== 'All' && !filteredRecords?.length) continue;
-                          days.push(
-                            <tr key={key} style={{background: dayData ? '#f0fff0' : 'transparent'}}>
-                              <td style={{border:'1px solid #ddd',padding:'8px',fontWeight:'bold'}}>
-                                {dayName}
-                                {dayData && dayData.records && dayData.records.length > 0 && (
-                                  <div style={{marginTop:'4px'}}>
-                                    {dayData.records.some(r => r.purpose === 'Shop Work' || r.purpose === 'Standby') && (
-                                      <button style={{padding:'2px 8px',fontSize:'10px',background:'#ff9800',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer',marginRight:'4px'}} onClick={() => {
-                                        setViewMode('shopwo');
-                                      }}>📋 Shop WO</button>
-                                    )}
-                                    {dayData.records.some(r => r.purpose && r.purpose !== 'Shop Work' && r.purpose !== 'Standby' && r.purpose !== 'Drive Time') && (
-                                      <button style={{padding:'2px 8px',fontSize:'10px',background:'#1565c0',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer'}} onClick={() => {
-                                        setViewMode('workorders');
-                                      }}>📋 Work Order</button>
-                                    )}
-                                  </div>
-                                )}
-                              </td>
-                              <td style={{border:'1px solid #ddd',padding:'8px',textAlign:'center',fontSize:'0.95rem'}}>
-                                {filteredRecords && filteredRecords.length > 0 ? filteredRecords.map((r, idx) => (
-                                  <div key={idx} style={{marginBottom: idx < dayData.records.length - 1 ? '6px' : 0}}>
-                                    {editingPunchId === r._id ? (
-                                      <div style={{display:'flex',gap:'4px',alignItems:'center',flexWrap:'wrap',justifyContent:'center'}}>
-                                        <input type="text" value={editPunchIn} onChange={(e) => setEditPunchIn(e.target.value)} placeholder="HH:MM" maxLength={5} style={{padding:'2px 4px',fontSize:'0.85rem',border:'1px solid #2196F3',borderRadius:'4px',width:'60px',textAlign:'center'}} />
-                                        <span>→</span>
-                                        <input type="text" value={editPunchOut} onChange={(e) => setEditPunchOut(e.target.value)} placeholder="HH:MM" maxLength={5} style={{padding:'2px 4px',fontSize:'0.85rem',border:'1px solid #2196F3',borderRadius:'4px',width:'60px',textAlign:'center'}} />
-                                        <button style={{padding:'2px 6px',fontSize:'11px',background:'#4CAF50',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer'}} onClick={async () => {
-                                          if (!editPunchIn || !editPunchOut) return;
-                                          try {
-                                            await axios.put(`/timeclock/edit-punch/${r._id}`, { clockIn: editPunchIn, clockOut: editPunchOut, tzOffset: new Date().getTimezoneOffset() });
-                                            setEditingPunchId(null); setEditPunchMsg('Saved');
-                                            await refreshTimeWorked();
-                                            setTimeout(() => setEditPunchMsg(''), 3000);
-                                          } catch (e) { setEditPunchMsg(e.response?.data?.message || 'Error'); }
-                                        }}>✓</button>
-                                        <button style={{padding:'2px 6px',fontSize:'11px',background:'#888',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer'}} onClick={() => setEditingPunchId(null)}>✗</button>
-                                      </div>
-                                    ) : (
-                                      <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'4px'}}>
-                                        <span>
-                                          {r.originalClockIn && r.editedByAdmin && (() => { const d2 = new Date(r.originalClockIn); return <span style={{textDecoration:'line-through',color:'#999',fontSize:'0.75rem',marginRight:'6px'}}>{`${String(d2.getHours()).padStart(2,'0')}:${String(d2.getMinutes()).padStart(2,'0')}`}</span>; })()}
-                                          {(() => { const d2 = new Date(r.clockIn); return `${String(d2.getHours()).padStart(2,'0')}:${String(d2.getMinutes()).padStart(2,'0')}`; })()}
-                                          {' → '}
-                                          {r.clockOut ? (
-                                            <>
-                                              {r.originalClockOut && r.editedByAdmin && (() => { const d2 = new Date(r.originalClockOut); return <span style={{textDecoration:'line-through',color:'#999',fontSize:'0.75rem',marginRight:'6px'}}>{`${String(d2.getHours()).padStart(2,'0')}:${String(d2.getMinutes()).padStart(2,'0')}`}</span>; })()}
-                                              {(() => { const d2 = new Date(r.clockOut); return `${String(d2.getHours()).padStart(2,'0')}:${String(d2.getMinutes()).padStart(2,'0')}`; })()}
-                                            </>
-                                          ) : <span style={{color:'#4CAF50',fontWeight:'bold'}}>Still In</span>}
-                                        </span>
-                                        {canEditHours && <button style={{padding:'1px 5px',fontSize:'10px',background:'#2196F3',color:'#fff',border:'none',borderRadius:'3px',cursor:'pointer',marginLeft:'4px'}} onClick={() => {
-                                          setEditingPunchId(r._id);
-                                          const inDate = new Date(r.clockIn);
-                                          const outDate = r.clockOut ? new Date(r.clockOut) : null;
-                                          setEditPunchIn(`${String(inDate.getHours()).padStart(2,'0')}:${String(inDate.getMinutes()).padStart(2,'0')}`);
-                                          setEditPunchOut(outDate ? `${String(outDate.getHours()).padStart(2,'0')}:${String(outDate.getMinutes()).padStart(2,'0')}` : '');
-                                        }}>✏</button>}
-                                        {canEditHours && <button style={{padding:'1px 5px',fontSize:'10px',background:'#f44336',color:'#fff',border:'none',borderRadius:'3px',cursor:'pointer'}} onClick={async () => {
-                                          if (!window.confirm(`Delete this punch for ${emp.name}? This cannot be undone.`)) return;
-                                          try {
-                                            await axios.delete(`/timeclock/delete-punch/${r._id}`);
-                                            await refreshTimeWorked();
-                                            setEditPunchMsg('Punch deleted');
-                                            setTimeout(() => setEditPunchMsg(''), 3000);
-                                          } catch (e) { setEditPunchMsg(e.response?.data?.message || 'Error deleting'); }
-                                        }}>🗑</button>}
-                                        {r.autoClockOut && <span style={{fontSize:'0.7rem',color:'#d32f2f',marginLeft:'3px'}}>⚠️ auto</span>}
-                                      </div>
-                                    )}
-                                    {r.purpose && <span style={{display:'block',marginTop:'2px',background:'#e3f2fd',color:'#1565c0',padding:'1px 6px',borderRadius:'3px',fontSize:'0.7rem',maxWidth:'fit-content',margin:'2px auto 0'}}>{r.purpose}{canEditHours && <button style={{marginLeft:'4px',padding:'0 3px',fontSize:'9px',background:'#1565c0',color:'#fff',border:'none',borderRadius:'2px',cursor:'pointer'}} onClick={async () => {
-                                      const purposes = ['2 Man Crew','3 Man Crew','Arrow Board/Message Board Job','Emergency Job','Weekend Work','Shop Work','Standby','Drive Time', 'Hydrovac'];
-                                      const newPurpose = prompt('Select new purpose:\n\n' + purposes.map((p,idx2) => `${idx2+1}. ${p}`).join('\n') + '\n\nEnter number or type purpose:', r.purpose);
-                                      if (newPurpose === null || newPurpose === r.purpose) return;
-                                      const parsed = parseInt(newPurpose);
-                                      const final = (!isNaN(parsed) && parsed >= 1 && parsed <= purposes.length) ? purposes[parsed - 1] : newPurpose.trim();
-                                      if (!final) return;
-                                      try {
-                                        await axios.put(`/timeclock/edit-purpose/${r._id}`, { purpose: final });
-                                        await refreshTimeWorked();
-                                      } catch (e) { alert(e.response?.data?.message || 'Error updating purpose'); }
-                                    }}>✏</button>}</span>}
-                                  </div>
-                                )) : '—'}
-                              </td>
-                              <td style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>
-                                {filteredRecords && filteredRecords.length > 0 ? filteredRecords.map((r, idx) => (
-                                  <div key={idx}>{r.clockOut ? `${(r.minutes / 60).toFixed(2)} hrs` : <span style={{color:'#4CAF50'}}>active</span>}</div>
-                                )) : '—'}
-                              </td>
-                            </tr>
-                          );
-                        }
-                        return days;
-                      })()}
-                      <tr style={{background:'#e3f2fd',fontWeight:'bold'}}>
-                        <td style={{border:'1px solid #ddd',padding:'8px'}} colSpan={2}>Week Total</td>
-                        <td style={{border:'1px solid #ddd',padding:'8px',textAlign:'center',fontSize:'1rem'}}>{(weekTotalMin / 60).toFixed(2)} hrs</td>
-                      </tr>
-                      {purposeFilter === 'All' && Object.keys(purposeTotals).length > 0 && Object.entries(purposeTotals).map(([p, mins]) => (
-                        <tr key={p} style={{background:'#f0f4ff'}}>
-                          <td style={{border:'1px solid #ddd',padding:'6px 8px',fontSize:'0.85rem',color:'#555',paddingLeft:'20px'}}>{p}</td>
-                          <td style={{border:'1px solid #ddd',padding:'6px 8px',fontSize:'0.85rem',color:'#1565c0',fontWeight:'bold'}} colSpan={2}>{(mins / 60).toFixed(2)} hrs</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </details>
-              );
-            })}
-          </div>
-        )}
-        {timeWorked.length === 0 && <p style={{color:'#888',fontSize:'0.85rem'}}>No hours data for this week.</p>}
-      </div>
-
-      {/* PIN Management */}
-      <div style={{background:'#f8f9fa',border:'1px solid #dee2e6',borderRadius:'10px',padding:'1rem'}}>
-        <h4 style={{margin:'0 0 0.75rem',color:'#1e3a8a'}}>🔑 PIN Management</h4>
-        <button className="btn" style={{marginBottom:'1rem'}} onClick={async () => {
-          setShowPinManager(!showPinManager);
-          if (!showPinManager) {
+    {/* Admin Actions: Add Hours for Forgotten Punches */}
+    {canEditHours && (
+    <div style={{background:'#f0f8ff',border:'1px solid #90caf9',borderRadius:'10px',padding:'1rem',marginBottom:'1.5rem'}}>
+      <h4 style={{margin:'0 0 0.5rem',color:'#1565c0'}}>➕ Add Hours (Forgotten Clock-In)</h4>
+      <p style={{fontSize:'0.9rem',color:'#666',margin:'0 0 0.5rem'}}>Add punch lines for employees who forgot to clock in/out</p>
+      <div style={{display:'flex',flexDirection:'column',gap:'0.4rem'}}>
+        <select value={addLineEmp || ''} onChange={(e) => setAddLineEmp(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}}>
+          <option value="">Select Employee...</option>
+          {pinEmployees.map(emp => <option key={emp._id} value={emp._id}>{emp.name}</option>)}
+        </select>
+        <input type="date" value={addLineDate} onChange={(e) => setAddLineDate(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}} />
+        <select value={addLinePurpose} onChange={(e) => setAddLinePurpose(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}}>
+          <option value="">-- Job Purpose --</option>
+          <option value="2 Man Crew">2 Man Crew</option>
+          <option value="Arrow Board/Message Board Job">Arrow Board/Message Board Job</option>
+          <option value="Emergency Job">Emergency Job</option>
+          <option value="Weekend Work">Weekend Work</option>
+          <option value="Shop Work">Shop Work</option>
+        </select>
+        <div style={{display:'flex',gap:'0.4rem',alignItems:'center'}}>
+          <label style={{fontSize:'0.8rem'}}>In:</label>
+          <input type="time" value={addLineIn} onChange={(e) => setAddLineIn(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',flex:1}} />
+          <label style={{fontSize:'0.8rem'}}>Out:</label>
+          <input type="time" value={addLineOut} onChange={(e) => setAddLineOut(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',flex:1}} />
+          <button className="btn" style={{padding:'6px 14px',fontSize:'12px'}} onClick={async () => {
+            if (!addLineEmp || !addLineDate || !addLineIn || !addLineOut) { setAddLineMsg('All fields required'); return; }
             try {
-              const res = await axios.get(`/timeclock/employees?location=${encodeURIComponent(clockLocation)}`);
-              setPinEmployees(res.data.employees);
-              const statusRes = await axios.get('/timeclock/status');
-              setClockedInList(statusRes.data);
-            } catch (e) { console.error(e); }
-          }
-        }}>
-          {showPinManager ? 'Hide PIN Manager' : 'Manage PINs'}
-        </button>
-        {pinMsg && <p style={{color: pinMsg.includes('removed') ? '#ff6b6b' : '#4CAF50', marginBottom:'0.5rem', fontWeight:'bold'}}>{pinMsg}</p>}
-        {showPinManager && (
-          <div className="job-info-list">
-            <div className="job-card" style={{background:'#f0f8ff',border:'2px dashed #2196F3'}}>
-              <h5 style={{marginBottom:'0.5rem'}}>➕ Add New Employee</h5>
-              <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap',alignItems:'center'}}>
-                <input type="text" placeholder="First Name" value={newEmpFirst} onChange={(e) => setNewEmpFirst(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',flex:'1',minWidth:'100px'}} />
-                <input type="text" placeholder="Last Name" value={newEmpLast} onChange={(e) => setNewEmpLast(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',flex:'1',minWidth:'100px'}} />
-                <select value={newEmpPosition} onChange={(e) => setNewEmpPosition(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',minWidth:'100px'}}>
-                  <option value="">Position...</option>
-                  <option value="Flagger">Flagger</option>
-                  <option value="Driver">Driver</option>
-                  <option value="Foreman">Foreman</option>
-                  <option value="Custodian">Custodian</option>
-                  <option value="Receptionist">Receptionist</option>
-                </select>
-                <select value={newEmpLocation} onChange={(e) => setNewEmpLocation(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',minWidth:'100px'}}>
-                  <option value="North GA">North GA</option>
-                  <option value="South GA">South GA</option>
-                </select>
-                <input type="text" placeholder="PIN (4+ digits)" value={newEmpPin} onChange={(e) => setNewEmpPin(e.target.value.replace(/\D/g, ''))} maxLength={6} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',width:'120px',textAlign:'center'}} />
-                <button className="btn" disabled={addEmpLoading} style={{padding:'6px 16px'}} onClick={async () => {
-                  if (!newEmpFirst.trim() || !newEmpLast.trim()) { setPinMsg('First and last name required'); return; }
-                  if (!newEmpPosition) { setPinMsg('Position is required'); return; }
-                  if (!newEmpPin || newEmpPin.length < 4) { setPinMsg('PIN must be at least 4 digits'); return; }
-                  setAddEmpLoading(true);
-                  try {
-                    const res = await axios.post('/timeclock/add-employee', { firstName: newEmpFirst, lastName: newEmpLast, position: newEmpPosition, pin: newEmpPin, location: newEmpLocation });
-                    setPinMsg(res.data.message);
-                    setPinEmployees(prev => [...prev, res.data.employee]);
-                    setNewEmpFirst(''); setNewEmpLast(''); setNewEmpPosition(''); setNewEmpPin('');
-                    setTimeout(() => setPinMsg(''), 8000);
-                  } catch (e) { setPinMsg(e.response?.data?.message || 'Error adding employee'); }
-                  finally { setAddEmpLoading(false); }
-                }}>
-                  {addEmpLoading ? '...' : 'Add Employee'}
-                </button>
-              </div>
-            </div>
-
-            <h5 style={{marginTop:'1rem',marginBottom:'0.5rem'}}>Employees - {clockLocation} ({pinEmployees.length})</h5>
-            {pinEmployees.map((emp) => (
-              <div key={emp._id} className="job-card" style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'0.5rem'}}>
-                <div>
-                  <strong>{emp.name}</strong>
-                  {emp.position && <span style={{marginLeft:'0.5rem',background:'#e3f2fd',color:'#1565c0',padding:'2px 8px',borderRadius:'4px',fontSize:'0.8rem'}}>{emp.position}</span>}
-                  <p style={{color:'#4CAF50',margin:'2px 0'}}>PIN: {emp.pin}</p>
-                  <p style={{margin:'2px 0',fontSize:'0.85rem',color: emp.points >= 3 ? '#f44336' : emp.points >= 2 ? '#ff9800' : '#666'}}>
-                    <strong>Points:</strong> {emp.points?.toFixed(2) || '0.00'} / 3.00
-                    {emp.points >= 3 && <span style={{marginLeft:'0.5rem',color:'#f44336',fontWeight:'bold'}}>⚠️ TERMINATION</span>}
-                  </p>
-                  {changePinId === emp._id ? (
-                    <div style={{display:'flex',gap:'0.4rem',alignItems:'center',marginTop:'4px'}}>
-                      <input type="text" placeholder="New PIN" value={changePinValue} onChange={(e) => setChangePinValue(e.target.value.replace(/\D/g, ''))} maxLength={6} style={{padding:'4px',width:'80px',textAlign:'center',borderRadius:'4px',border:'1px solid #ccc'}} />
-                      <button className="btn" style={{padding:'3px 10px',fontSize:'11px'}} onClick={async () => {
-                        if (!changePinValue || changePinValue.length < 4) { setPinMsg('PIN must be at least 4 digits'); return; }
-                        try {
-                          const res = await axios.put('/timeclock/update-pin', { employeeId: emp._id, pin: changePinValue });
-                          setPinMsg(res.data.message);
-                          setPinEmployees(prev => prev.map(e => e._id === emp._id ? { ...e, pin: changePinValue } : e));
-                          setChangePinId(null); setChangePinValue('');
-                          setTimeout(() => setPinMsg(''), 5000);
-                        } catch (e) { setPinMsg(e.response?.data?.message || 'Error'); }
-                      }}>Save</button>
-                      <button style={{padding:'3px 10px',fontSize:'11px',background:'#888',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer'}} onClick={() => { setChangePinId(null); setChangePinValue(''); }}>Cancel</button>
-                    </div>
-                  ) : (
-                    <button style={{padding:'2px 8px',fontSize:'11px',background:'#2196F3',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer',marginTop:'4px'}} onClick={() => { setChangePinId(emp._id); setChangePinValue(''); }}>
-                      🔑 Change PIN
-                    </button>
-                  )}
-                </div>
-                <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap',alignItems:'center'}}>
-                  {!clockedInList.some(c => c.employeeId === emp._id) && (
-                    <select value={adminPunchPurpose} onChange={(e) => setAdminPunchPurpose(e.target.value)} style={{padding:'4px',borderRadius:'4px',fontSize:'12px',border:'1px solid #ccc'}}>
-                      <option value="">-- Purpose --</option>
-                      <option value="2 Man Crew">2 Man Crew</option>
-                    <option value="3 Man Crew">3 Man Crew</option>
-                    <option value="4 Man Crew">4 Man Crew</option>
-                    <option value="Arrow Board/Message Board Job">Arrow Board/Message Board Job</option>
-                    <option value="Emergency Job">Emergency Job</option>
-                    <option value="Weekend Work">Weekend Work</option>
-                    <option value="Shop Work">Shop Work</option>
-                    <option value="Standby">Standby</option>
-                    <option value="Drive Time">Drive Time</option>
-                    <option value="Hydrovac">Hydrovac</option>
-                    </select>
-                  )}
-                  <button className="btn" style={{padding:'4px 14px',fontSize:'12px'}} onClick={async () => {
-                    const isClockedIn = clockedInList.some(c => c.employeeId === emp._id);
-                    if (!isClockedIn && !adminPunchPurpose) { setPinMsg('Select a purpose before clocking in'); setTimeout(() => setPinMsg(''), 3000); return; }
-                    try {
-                      const res = await axios.post('/timeclock/admin-punch', { employeeId: emp._id, purpose: isClockedIn ? undefined : adminPunchPurpose });
-                      setPinMsg(res.data.message);
-                      setAdminPunchPurpose('');
-                      axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {});
-                      setTimeout(() => setPinMsg(''), 5000);
-                    } catch (e) { setPinMsg(e.response?.data?.message || 'Error'); }
-                  }}>
-                    {clockedInList.some(c => c.employeeId === emp._id) ? '⏹ Clock Out' : '▶ Clock In'}
-                  </button>
-                  <select style={{padding:'4px',borderRadius:'4px',fontSize:'12px',border:'1px solid #ccc'}} defaultValue="" onChange={async (e) => {
-                    const pts = parseFloat(e.target.value);
-                    if (!pts) return;
-                    if (!window.confirm(`Add ${pts} point(s) to ${emp.name}? Current: ${emp.points?.toFixed(2) || '0.00'}`)) { e.target.value = ''; return; }
-                    try {
-                      const res = await axios.post('/timeclock/add-points', { employeeName: emp.name, points: pts });
-                      setPinMsg(res.data.message);
-                      setPinEmployees(prev => prev.map(x => x._id === emp._id ? { ...x, points: res.data.newTotal } : x));
-                      setTimeout(() => setPinMsg(''), 5000);
-                    } catch (err) { setPinMsg(err.response?.data?.message || 'Error'); }
-                    e.target.value = '';
-                  }}>
-                    <option value="">+ Add Points</option>
-                    <option value="0.25">+0.25</option>
-                    <option value="0.5">+0.50</option>
-                    <option value="0.75">+0.75</option>
-                    <option value="1">+1.00</option>
-                    <option value="1.5">+1.50</option>
-                    <option value="2">+2.00</option>
-                    <option value="3">+3.00</option>
-                  </select>
-                  <button style={{padding:'4px 14px',fontSize:'12px',background:'#ff9800',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer'}} onClick={() => navigate('/admin-dashboard/disciplinary-action')}>
-                    ⚠️ Write Up
-                  </button>
-                  <button style={{padding:'4px 14px',fontSize:'12px',background:'#f44336',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer'}} onClick={async () => {
-                    if (!window.confirm(`Terminate ${emp.name}? This will remove them from the time clock.`)) return;
-                    try {
-                      const res = await axios.delete(`/timeclock/remove-employee/${emp._id}`);
-                      setPinEmployees(prev => prev.filter(e => e._id !== emp._id));
-                      setPinMsg(res.data.message);
-                      setTimeout(() => setPinMsg(''), 5000);
-                    } catch (e) { setPinMsg(e.response?.data?.message || 'Error'); }
-                  }}>
-                    ❌ Remove Employee
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+              const res = await axios.post('/timeclock/add-punch', { employeeId: addLineEmp, date: addLineDate, clockIn: addLineIn, clockOut: addLineOut, purpose: addLinePurpose });
+              setAddLineMsg(res.data.message);
+              setAddLineIn(''); setAddLineOut('');
+              // Refresh hours
+              const weekEnd = new Date(new Date(timeWorkedWeekStart + 'T00:00:00')); weekEnd.setDate(weekEnd.getDate() + 6);
+              const endStr = `${weekEnd.getFullYear()}-${String(weekEnd.getMonth()+1).padStart(2,'0')}-${String(weekEnd.getDate()).padStart(2,'0')}`;
+              const r = await axios.get(`/timeclock/time-worked?location=${encodeURIComponent(clockLocation)}&startDate=${timeWorkedWeekStart}&endDate=${endStr}`); setTimeWorked(r.data);
+              setTimeout(() => setAddLineMsg(''), 5000);
+            } catch (e) { setAddLineMsg(e.response?.data?.message || 'Error'); }
+          }}>+ Add Line</button>
+        </div>
+        {addLineMsg && <p style={{color: addLineMsg.includes('Added') ? '#4CAF50' : '#ff6b6b', fontWeight:'bold', fontSize:'0.85rem',margin:0}}>{addLineMsg}</p>}
       </div>
-    </>
+    </div>
+    )}
+    {/* Time Worked Summary */}
+    <div style={{background:'#f8f9fa',border:'1px solid #dee2e6',borderRadius:'10px',padding:'1rem',marginBottom:'1.5rem'}}>
+    <h4 style={{margin:'0 0 0.75rem',color:'#1e3a8a'}}>📊 Weekly Time Summary</h4>
+    {editPunchMsg && <p style={{color: editPunchMsg === 'Saved' ? '#4CAF50' : '#ff6b6b', fontWeight:'bold', fontSize:'0.85rem', margin:'0 0 0.5rem'}}>{editPunchMsg}</p>}
+    {(() => {
+      const weekStart = new Date(timeWorkedWeekStart + 'T00:00:00');
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      const weekEndStr = `${weekEnd.getFullYear()}-${String(weekEnd.getMonth()+1).padStart(2,'0')}-${String(weekEnd.getDate()).padStart(2,'0')}`;
+      return (
+        <>
+          <div style={{display:'flex',gap:'0.5rem',alignItems:'center',flexWrap:'wrap',marginBottom:'1rem'}}>
+            <button className="btn" style={{padding:'6px 12px'}} onClick={async () => {
+              const prev = new Date(timeWorkedWeekStart + 'T00:00:00');
+              prev.setDate(prev.getDate() - 7);
+              const newStart = `${prev.getFullYear()}-${String(prev.getMonth()+1).padStart(2,'0')}-${String(prev.getDate()).padStart(2,'0')}`;
+              setTimeWorkedWeekStart(newStart);
+              const end = new Date(prev); end.setDate(prev.getDate() + 6);
+              const endStr = `${end.getFullYear()}-${String(end.getMonth()+1).padStart(2,'0')}-${String(end.getDate()).padStart(2,'0')}`;
+              try { const res = await axios.get(`/timeclock/time-worked?location=${encodeURIComponent(clockLocation)}&startDate=${newStart}&endDate=${endStr}`); setTimeWorked(res.data); } catch(e) {}
+            }}>◀ Prev Week</button>
+            <span style={{fontWeight:'bold',fontSize:'1.1rem'}}>
+              {weekStart.toLocaleDateString('en-US',{month:'short',day:'numeric'})} – {weekEnd.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
+            </span>
+            <button className="btn" style={{padding:'6px 12px'}} onClick={async () => {
+              const next = new Date(timeWorkedWeekStart + 'T00:00:00');
+              next.setDate(next.getDate() + 7);
+              const newStart = `${next.getFullYear()}-${String(next.getMonth()+1).padStart(2,'0')}-${String(next.getDate()).padStart(2,'0')}`;
+              setTimeWorkedWeekStart(newStart);
+              const end = new Date(next); end.setDate(next.getDate() + 6);
+              const endStr = `${end.getFullYear()}-${String(end.getMonth()+1).padStart(2,'0')}-${String(end.getDate()).padStart(2,'0')}`;
+              try { const res = await axios.get(`/timeclock/time-worked?location=${encodeURIComponent(clockLocation)}&startDate=${newStart}&endDate=${endStr}`); setTimeWorked(res.data); } catch(e) {}
+            }}>Next Week ▶</button>
+          </div>
+        </>
+      );
+    })()}
+    {timeWorked.length > 0 && (
+      <div className="job-info-list">
+        {timeWorked.map((emp, i) => {
+          // Calculate week total from days data only
+          const sun = new Date(timeWorkedWeekStart + 'T00:00:00');
+          let weekTotalMin = 0;
+          for (let d = 0; d < 7; d++) {
+            const dt = new Date(sun);
+            dt.setDate(sun.getDate() + d);
+            const key = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+            if (emp.days[key] && emp.days[key].minutes) weekTotalMin += emp.days[key].minutes;
+          }
+          return (
+          <details key={i} style={{marginBottom:'0.75rem',background:'#f8f9fa',borderRadius:'8px',padding:'14px',border:'1px solid #ddd'}}>
+            <summary style={{cursor:'pointer',fontWeight:'bold',fontSize:'1.15rem'}}>{emp.name} {emp.position && <span style={{fontWeight:'normal',fontSize:'0.9rem',color:'#1565c0',background:'#e3f2fd',padding:'2px 8px',borderRadius:'4px',marginLeft:'6px'}}>{emp.position}</span>} — {(weekTotalMin / 60).toFixed(2)} hrs ({weekTotalMin} min)</summary>
+            <table style={{width:'100%',borderCollapse:'collapse',fontSize:'1rem',marginTop:'0.5rem'}}>
+              <thead>
+                <tr style={{background:'#e9ecef'}}>
+                  <th style={{border:'1px solid #ddd',padding:'8px',textAlign:'left'}}>Day</th>
+                  <th style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>In / Out</th>
+                  <th style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>Hours</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(() => {
+                  const days = [];
+                  for (let d = 0; d < 7; d++) {
+                    const dt = new Date(sun);
+                    dt.setDate(sun.getDate() + d);
+                    const key = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+                    const dayName = dt.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+                    const dayData = emp.days[key];
+                    days.push(
+                      <tr key={key} style={{background: dayData ? '#f0fff0' : 'transparent'}}>
+                        <td style={{border:'1px solid #ddd',padding:'8px',fontWeight:'bold'}}>
+                          {dayName}
+                          {dayData && dayData.records && dayData.records.length > 0 && (
+                            <div style={{marginTop:'4px'}}>
+                              {dayData.records.some(r => r.purpose === 'Shop Work' || r.purpose === 'Standby') && (
+                                <button style={{padding:'2px 8px',fontSize:'10px',background:'#ff9800',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer',marginRight:'4px'}} onClick={() => {
+                                  const d = new Date(key + 'T00:00:00');
+                                  setViewMode('shopwo');
+                                  setShopWoDate(d);
+                                  fetchMonthlyShopWo(d);
+                                }}>📋 Shop WO</button>
+                              )}
+                              {dayData.records.some(r => r.purpose && r.purpose !== 'Shop Work' && r.purpose !== 'Standby') && (
+                                <button style={{padding:'2px 8px',fontSize:'10px',background:'#1565c0',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer'}} onClick={() => {
+                                  const d = new Date(key + 'T00:00:00');
+                                  setViewMode('workorders');
+                                  setWoSelectedDate(d);
+                                  fetchMonthlyWorkOrders(d);
+                                }}>📋 Work Order</button>
+                              )}
+                            </div>
+                          )}
+                        </td>
+                        <td style={{border:'1px solid #ddd',padding:'8px',textAlign:'center',fontSize:'0.95rem'}}>
+                          {dayData && dayData.records ? dayData.records.map((r, idx) => (
+                            <div key={idx} style={{marginBottom: idx < dayData.records.length - 1 ? '6px' : 0}}>
+                              {editingPunchId === r._id ? (
+                                <div style={{display:'flex',gap:'4px',alignItems:'center',flexWrap:'wrap',justifyContent:'center'}}>
+                                  <input type="text" value={editPunchIn} onChange={(e) => setEditPunchIn(e.target.value)} placeholder="HH:MM" maxLength={5} style={{padding:'2px 4px',fontSize:'0.85rem',border:'1px solid #2196F3',borderRadius:'4px',width:'60px',textAlign:'center'}} />
+                                  <span>→</span>
+                                  <input type="text" value={editPunchOut} onChange={(e) => setEditPunchOut(e.target.value)} placeholder="HH:MM" maxLength={5} style={{padding:'2px 4px',fontSize:'0.85rem',border:'1px solid #2196F3',borderRadius:'4px',width:'60px',textAlign:'center'}} />
+                                  <button style={{padding:'2px 6px',fontSize:'11px',background:'#4CAF50',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer'}} onClick={async () => {
+                                    if (!editPunchIn || !editPunchOut) return;
+                                    try {
+                                      await axios.put(`/timeclock/edit-punch/${r._id}`, { clockIn: editPunchIn, clockOut: editPunchOut, tzOffset: new Date().getTimezoneOffset() });
+                                      setEditingPunchId(null); setEditPunchMsg('Saved');
+                                      const weekEnd = new Date(new Date(timeWorkedWeekStart + 'T00:00:00')); weekEnd.setDate(weekEnd.getDate() + 6);
+                                      const endStr = `${weekEnd.getFullYear()}-${String(weekEnd.getMonth()+1).padStart(2,'0')}-${String(weekEnd.getDate()).padStart(2,'0')}`;
+                                      const res = await axios.get(`/timeclock/time-worked?location=${encodeURIComponent(clockLocation)}&startDate=${timeWorkedWeekStart}&endDate=${endStr}`); setTimeWorked(res.data);
+                                      setTimeout(() => setEditPunchMsg(''), 3000);
+                                    } catch (e) { setEditPunchMsg(e.response?.data?.message || 'Error'); }
+                                  }}>✓</button>
+                                  <button style={{padding:'2px 6px',fontSize:'11px',background:'#888',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer'}} onClick={() => setEditingPunchId(null)}>✗</button>
+                                </div>
+                              ) : (
+                                <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'4px'}}>
+                                  <span>
+                                    {r.originalClockIn && r.editedByAdmin && (() => { const d = new Date(r.originalClockIn); return <span style={{textDecoration:'line-through',color:'#999',fontSize:'0.75rem',marginRight:'6px'}}>{`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}</span>; })()}
+                                    {(() => { const d = new Date(r.clockIn); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; })()}
+                                    {' → '}
+                                    {r.clockOut ? (
+                                      <>
+                                        {r.originalClockOut && r.editedByAdmin && (() => { const d = new Date(r.originalClockOut); return <span style={{textDecoration:'line-through',color:'#999',fontSize:'0.75rem',marginRight:'6px'}}>{`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}</span>; })()}
+                                        {(() => { const d = new Date(r.clockOut); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; })()}
+                                      </>
+                                    ) : <span style={{color:'#4CAF50',fontWeight:'bold'}}>Still In</span>}
+                                  </span>
+                                  {canEditHours && <button style={{padding:'1px 5px',fontSize:'10px',background:'#2196F3',color:'#fff',border:'none',borderRadius:'3px',cursor:'pointer',marginLeft:'4px'}} onClick={() => {
+                                    setEditingPunchId(r._id);
+                                    const inDate = new Date(r.clockIn);
+                                    const outDate = r.clockOut ? new Date(r.clockOut) : null;
+                                    setEditPunchIn(`${String(inDate.getHours()).padStart(2,'0')}:${String(inDate.getMinutes()).padStart(2,'0')}`);
+                                    setEditPunchOut(outDate ? `${String(outDate.getHours()).padStart(2,'0')}:${String(outDate.getMinutes()).padStart(2,'0')}` : '');
+                                  }}>✏</button>}
+                                  {canEditHours && <button style={{padding:'1px 5px',fontSize:'10px',background:'#f44336',color:'#fff',border:'none',borderRadius:'3px',cursor:'pointer'}} onClick={async () => {
+                                    if (!window.confirm(`Delete this punch for ${emp.name}? This cannot be undone.`)) return;
+                                    try {
+                                      await axios.delete(`/timeclock/delete-punch/${r._id}`);
+                                      const weekEnd = new Date(new Date(timeWorkedWeekStart + 'T00:00:00')); weekEnd.setDate(weekEnd.getDate() + 6);
+                                      const endStr = `${weekEnd.getFullYear()}-${String(weekEnd.getMonth()+1).padStart(2,'0')}-${String(weekEnd.getDate()).padStart(2,'0')}`;
+                                      const res = await axios.get(`/timeclock/time-worked?location=${encodeURIComponent(clockLocation)}&startDate=${timeWorkedWeekStart}&endDate=${endStr}`); setTimeWorked(res.data);
+                                      setEditPunchMsg('Punch deleted');
+                                      setTimeout(() => setEditPunchMsg(''), 3000);
+                                    } catch (e) { setEditPunchMsg(e.response?.data?.message || 'Error deleting'); }
+                                  }}>🗑</button>}
+                                  {r.autoClockOut && <span style={{fontSize:'0.7rem',color:'#d32f2f',marginLeft:'3px'}}>⚠️ auto</span>}
+                                </div>
+                              )}
+                              {r.purpose && <span style={{display:'block',marginTop:'2px',background:'#e3f2fd',color:'#1565c0',padding:'1px 6px',borderRadius:'3px',fontSize:'0.7rem',maxWidth:'fit-content',margin:'2px auto 0'}}>{r.purpose}{canEditHours && <button style={{marginLeft:'4px',padding:'0 3px',fontSize:'9px',background:'#1565c0',color:'#fff',border:'none',borderRadius:'2px',cursor:'pointer'}} onClick={async () => {
+                                const purposes = ['2 Man Crew','3 Man Crew','4 Man Crew','Arrow Board/Message Board Job','Emergency Job','Weekend Work','Shop Work','Standby'];
+                                const newPurpose = prompt('Select new purpose:\n\n' + purposes.map((p,i) => `${i+1}. ${p}`).join('\n') + '\n\nEnter number or type purpose:', r.purpose);
+                                if (!newPurpose || newPurpose === r.purpose) return;
+                                const final = purposes[parseInt(newPurpose) - 1] || newPurpose;
+                                try {
+                                  await axios.put(`/timeclock/edit-purpose/${r._id}`, { purpose: final });
+                                  const weekEnd = new Date(new Date(timeWorkedWeekStart + 'T00:00:00')); weekEnd.setDate(weekEnd.getDate() + 6);
+                                  const endStr = `${weekEnd.getFullYear()}-${String(weekEnd.getMonth()+1).padStart(2,'0')}-${String(weekEnd.getDate()).padStart(2,'0')}`;
+                                  const res = await axios.get(`/timeclock/time-worked?location=${encodeURIComponent(clockLocation)}&startDate=${timeWorkedWeekStart}&endDate=${endStr}`); setTimeWorked(res.data);
+                                } catch (e) { alert(e.response?.data?.message || 'Error updating purpose'); }
+                              }}>✏</button>}</span>}
+                            </div>
+                          )) : '—'}
+                        </td>
+                        <td style={{border:'1px solid #ddd',padding:'8px',textAlign:'center'}}>
+                          {dayData && dayData.records ? dayData.records.map((r, idx) => (
+                            <div key={idx}>{r.clockOut ? `${(r.minutes / 60).toFixed(2)} hrs` : <span style={{color:'#4CAF50'}}>active</span>}</div>
+                          )) : '—'}
+                        </td>
+                      </tr>
+                    );
+                  }
+                  return days;
+                })()}
+                <tr style={{background:'#e3f2fd',fontWeight:'bold'}}>
+                  <td style={{border:'1px solid #ddd',padding:'8px'}} colSpan={2}>Week Total</td>
+                  <td style={{border:'1px solid #ddd',padding:'8px',textAlign:'center',fontSize:'1rem'}}>{(weekTotalMin / 60).toFixed(2)} hrs</td>
+                </tr>
+              </tbody>
+            </table>
+          </details>
+          );
+        })}
+      </div>
+    )}
+    {timeWorked.length === 0 && <p style={{color:'#888',fontSize:'0.85rem'}}>No hours data for this week.</p>}
+    </div>
+
+    {/* PIN Management */}
+    <div style={{background:'#f8f9fa',border:'1px solid #dee2e6',borderRadius:'10px',padding:'1rem'}}>
+    <h4 style={{margin:'0 0 0.75rem',color:'#1e3a8a'}}>🔑 PIN Management</h4>
+    <button className="btn" style={{marginBottom:'1rem'}} onClick={async () => {
+      setShowPinManager(!showPinManager);
+      if (!showPinManager) {
+        try {
+          const res = await axios.get('/timeclock/employees?location=' + encodeURIComponent(clockLocation));
+          setPinEmployees(res.data.employees);
+          const statusRes = await axios.get('/timeclock/status');
+          setClockedInList(statusRes.data);
+        } catch (e) { console.error(e); }
+      }
+    }}>
+      {showPinManager ? 'Hide PIN Manager' : 'Manage PINs'}
+    </button>
+    {pinMsg && <p style={{color: pinMsg.includes('removed') ? '#ff6b6b' : '#4CAF50', marginBottom:'0.5rem', fontWeight:'bold'}}>{pinMsg}</p>}
+    {showPinManager && (
+      <div className="job-info-list">
+        {/* Add New Employee */}
+        <div className="job-card" style={{background:'#f0f8ff',border:'2px dashed #2196F3'}}>
+          <h5 style={{marginBottom:'0.5rem'}}>➕ Add New Employee</h5>
+          <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap',alignItems:'center'}}>
+            <input type="text" placeholder="First Name" value={newEmpFirst} onChange={(e) => setNewEmpFirst(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',flex:'1',minWidth:'100px'}} />
+            <input type="text" placeholder="Last Name" value={newEmpLast} onChange={(e) => setNewEmpLast(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',flex:'1',minWidth:'100px'}} />
+            <select value={newEmpPosition} onChange={(e) => setNewEmpPosition(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',minWidth:'100px'}}>
+              <option value="">Position...</option>
+              <option value="Flagger">Flagger</option>
+              <option value="Driver">Driver</option>
+              <option value="Foreman">Foreman</option>
+              <option value="Custodian">Custodian</option>
+              <option value="Receptionist">Receptionist</option>
+            </select>
+            <select value={newEmpLocation} onChange={(e) => setNewEmpLocation(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',minWidth:'100px'}}>
+              <option value="North GA">North GA</option>
+              <option value="South GA">South GA</option>
+            </select>
+            <input type="text" placeholder="PIN (4+ digits)" value={newEmpPin} onChange={(e) => setNewEmpPin(e.target.value.replace(/\D/g, ''))} maxLength={6} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',width:'120px',textAlign:'center'}} />
+            <button className="btn" disabled={addEmpLoading} style={{padding:'6px 16px'}} onClick={async () => {
+              if (!newEmpFirst.trim() || !newEmpLast.trim()) { setPinMsg('First and last name required'); return; }
+              if (!newEmpPosition) { setPinMsg('Position is required'); return; }
+              if (!newEmpPin || newEmpPin.length < 4) { setPinMsg('PIN must be at least 4 digits'); return; }
+              setAddEmpLoading(true);
+              try {
+                const res = await axios.post('/timeclock/add-employee', { firstName: newEmpFirst, lastName: newEmpLast, position: newEmpPosition, pin: newEmpPin, location: newEmpLocation });
+                setPinMsg(res.data.message);
+                setPinEmployees(prev => [...prev, res.data.employee]);
+                setNewEmpFirst(''); setNewEmpLast(''); setNewEmpPosition(''); setNewEmpPin('');
+                setTimeout(() => setPinMsg(''), 8000);
+              } catch (e) { setPinMsg(e.response?.data?.message || 'Error adding employee'); }
+              finally { setAddEmpLoading(false); }
+            }}>
+              {addEmpLoading ? '...' : 'Add Employee'}
+            </button>
+          </div>
+        </div>
+
+        <h5 style={{marginTop:'1rem',marginBottom:'0.5rem'}}>Employees - {clockLocation} ({pinEmployees.length})</h5>
+        {pinEmployees.map((emp) => (
+          <div key={emp._id} className="job-card" style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'0.5rem'}}>
+            <div>
+              <strong>{emp.name}</strong>
+              {emp.position && <span style={{marginLeft:'0.5rem',background:'#e3f2fd',color:'#1565c0',padding:'2px 8px',borderRadius:'4px',fontSize:'0.8rem'}}>{emp.position}</span>}
+              <p style={{color:'#4CAF50',margin:'2px 0'}}>PIN: {emp.pin}</p>
+              <p style={{margin:'2px 0',fontSize:'0.85rem',color: emp.points >= 3 ? '#f44336' : emp.points >= 2 ? '#ff9800' : '#666'}}>
+                <strong>Points:</strong> {emp.points?.toFixed(2) || '0.00'} / 3.00
+                {emp.points >= 3 && <span style={{marginLeft:'0.5rem',color:'#f44336',fontWeight:'bold'}}>⚠️ TERMINATION</span>}
+              </p>
+              {changePinId === emp._id ? (
+                <div style={{display:'flex',gap:'0.4rem',alignItems:'center',marginTop:'4px'}}>
+                  <input type="text" placeholder="New PIN" value={changePinValue} onChange={(e) => setChangePinValue(e.target.value.replace(/\D/g, ''))} maxLength={6} style={{padding:'4px',width:'80px',textAlign:'center',borderRadius:'4px',border:'1px solid #ccc'}} />
+                  <button className="btn" style={{padding:'3px 10px',fontSize:'11px'}} onClick={async () => {
+                    if (!changePinValue || changePinValue.length < 4) { setPinMsg('PIN must be at least 4 digits'); return; }
+                    try {
+                      const res = await axios.put('/timeclock/update-pin', { employeeId: emp._id, pin: changePinValue });
+                      setPinMsg(res.data.message);
+                      setPinEmployees(prev => prev.map(e => e._id === emp._id ? { ...e, pin: changePinValue } : e));
+                      setChangePinId(null); setChangePinValue('');
+                      setTimeout(() => setPinMsg(''), 5000);
+                    } catch (e) { setPinMsg(e.response?.data?.message || 'Error'); }
+                  }}>Save</button>
+                  <button style={{padding:'3px 10px',fontSize:'11px',background:'#888',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer'}} onClick={() => { setChangePinId(null); setChangePinValue(''); }}>Cancel</button>
+                </div>
+              ) : (
+                <button style={{padding:'2px 8px',fontSize:'11px',background:'#2196F3',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer',marginTop:'4px'}} onClick={() => { setChangePinId(emp._id); setChangePinValue(''); }}>
+                  🔑 Change PIN
+                </button>
+              )}
+            </div>
+            <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap',alignItems:'center'}}>
+              {!clockedInList.some(c => c.employeeId === emp._id) && (
+                <select value={adminPunchPurpose} onChange={(e) => setAdminPunchPurpose(e.target.value)} style={{padding:'4px',borderRadius:'4px',fontSize:'12px',border:'1px solid #ccc'}}>
+                  <option value="">-- Purpose --</option>
+                  <option value="2 Man Crew">2 Man Crew</option>
+                  <option value="Arrow Board/Message Board Job">Arrow Board/Message Board Job</option>
+                  <option value="Emergency Job">Emergency Job</option>
+                  <option value="Weekend Work">Weekend Work</option>
+                  <option value="Shop Work">Shop Work</option>
+                </select>
+              )}
+              <button className="btn" style={{padding:'4px 14px',fontSize:'12px'}} onClick={async () => {
+                const isClockedIn = clockedInList.some(c => c.employeeId === emp._id);
+                if (!isClockedIn && !adminPunchPurpose) { setPinMsg('Select a purpose before clocking in'); setTimeout(() => setPinMsg(''), 3000); return; }
+                try {
+                  const res = await axios.post('/timeclock/admin-punch', { employeeId: emp._id, purpose: isClockedIn ? undefined : adminPunchPurpose });
+                  setPinMsg(res.data.message);
+                  setAdminPunchPurpose('');
+                  axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {});
+                  setTimeout(() => setPinMsg(''), 5000);
+                } catch (e) { setPinMsg(e.response?.data?.message || 'Error'); }
+              }}>
+                {clockedInList.some(c => c.employeeId === emp._id) ? '⏹ Clock Out' : '▶ Clock In'}
+              </button>
+              <select style={{padding:'4px',borderRadius:'4px',fontSize:'12px',border:'1px solid #ccc'}} defaultValue="" onChange={async (e) => {
+                const pts = parseFloat(e.target.value);
+                if (!pts) return;
+                if (!window.confirm(`Add ${pts} point(s) to ${emp.name}? Current: ${emp.points?.toFixed(2) || '0.00'}`)) { e.target.value = ''; return; }
+                try {
+                  const res = await axios.post('/timeclock/add-points', { employeeName: emp.name, points: pts });
+                  setPinMsg(res.data.message);
+                  setPinEmployees(prev => prev.map(x => x._id === emp._id ? { ...x, points: res.data.newTotal } : x));
+                  setTimeout(() => setPinMsg(''), 5000);
+                } catch (err) { setPinMsg(err.response?.data?.message || 'Error'); }
+                e.target.value = '';
+              }}>
+                <option value="">+ Add Points</option>
+                <option value="0.25">+0.25</option>
+                <option value="0.5">+0.50</option>
+                <option value="0.75">+0.75</option>
+                <option value="1">+1.00</option>
+                <option value="1.5">+1.50</option>
+                <option value="2">+2.00</option>
+                <option value="3">+3.00</option>
+              </select>
+              <button style={{padding:'4px 14px',fontSize:'12px',background:'#ff9800',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer'}} onClick={() => navigate('/admin-dashboard/disciplinary-action')}>
+                ⚠️ Write Up
+              </button>
+              <button style={{padding:'4px 14px',fontSize:'12px',background:'#f44336',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer'}} onClick={async () => {
+                if (!window.confirm(`Terminate ${emp.name}? This will remove them from the time clock.`)) return;
+                try {
+                  const res = await axios.delete(`/timeclock/remove-employee/${emp._id}`);
+                  setPinEmployees(prev => prev.filter(e => e._id !== emp._id));
+                  setPinMsg(res.data.message);
+                  setTimeout(() => setPinMsg(''), 5000);
+                } catch (e) { setPinMsg(e.response?.data?.message || 'Error'); }
+              }}>
+                ❌ Remove Employee
+              </button>
+            </div>
+          </div>
+        ))}
+
+      </div>
+    )}
+    </div>
+  </>
 )}
     </div>
   )}
@@ -3021,8 +2511,8 @@ selected={
       {showInvoiceStats && (
         <div style={{marginTop:'1rem'}}>
           <div style={{display:'flex',gap:'8px',flexWrap:'wrap',marginBottom:'1rem',padding:'10px',background:'#f8f9fa',borderRadius:'8px',border:'1px solid #dee2e6'}}>
-            <input type="text" placeholder="Search invoice #, customer, company..." value={invFilter.search} onChange={(e) => { setInvFilter({...invFilter, search: e.target.value}); setInvoicePageIndex(0); }} style={{padding:'6px 10px',borderRadius:'6px',border:'1px solid #ccc',flex:'1',minWidth:'180px'}} />
-            <select value={invFilter.month} onChange={(e) => { setInvFilter({...invFilter, month: e.target.value}); setInvoicePageIndex(0); }} style={{padding:'6px 10px',borderRadius:'6px',border:'1px solid #ccc'}}>
+            <input type="text" placeholder="Search invoice #, customer, company..." value={invFilter.search} onChange={(e) => setInvFilter({...invFilter, search: e.target.value})} style={{padding:'6px 10px',borderRadius:'6px',border:'1px solid #ccc',flex:'1',minWidth:'180px'}} />
+            <select value={invFilter.month} onChange={(e) => setInvFilter({...invFilter, month: e.target.value})} style={{padding:'6px 10px',borderRadius:'6px',border:'1px solid #ccc'}}>
               <option value="">All Months</option>
               <option value="Jan">January</option>
               <option value="Feb">February</option>
@@ -3037,13 +2527,13 @@ selected={
               <option value="Nov">November</option>
               <option value="Dec">December</option>
             </select>
-            <select value={invFilter.status} onChange={(e) => { setInvFilter({...invFilter, status: e.target.value}); setInvoicePageIndex(0); }} style={{padding:'6px 10px',borderRadius:'6px',border:'1px solid #ccc'}}>
+            <select value={invFilter.status} onChange={(e) => setInvFilter({...invFilter, status: e.target.value})} style={{padding:'6px 10px',borderRadius:'6px',border:'1px solid #ccc'}}>
               <option value="">All Status</option>
               <option value="paid">Paid</option>
               <option value="unpaid">Unpaid</option>
             </select>
             {(invFilter.search || invFilter.month || invFilter.status) && (
-              <button style={{padding:'6px 12px',background:'#888',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer',fontSize:'12px'}} onClick={() => { setInvFilter({search:'',month:'',status:''}); setInvoicePageIndex(0); }}>Clear Filters</button>
+              <button style={{padding:'6px 12px',background:'#888',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer',fontSize:'12px'}} onClick={() => setInvFilter({search:'',month:'',status:''})}>Clear Filters</button>
             )}
           </div>
           {(() => {
@@ -3061,37 +2551,16 @@ selected={
             });
             const grouped = {};
             filtered.forEach(q => { (grouped[q._month] ||= []).push(q); });
-            Object.keys(grouped).forEach(mo => {
-              grouped[mo].sort((a, b) => (b.invoiceNumber || '').localeCompare(a.invoiceNumber || '', undefined, { numeric: true }));
-            });
             const monthOrder = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-            const sortedMonths = Object.keys(grouped).sort((a,b) => monthOrder.indexOf(b) - monthOrder.indexOf(a));
+            const sortedMonths = Object.keys(grouped).sort((a,b) => monthOrder.indexOf(a) - monthOrder.indexOf(b));
             return (
               <>
                 <p style={{fontWeight:'bold',fontSize:'1.1rem',marginBottom:'0.5rem'}}>Showing {filtered.length} of {invoiceStats.total} invoices</p>
-                <div style={{background:'#e8f5e9',border:'1px solid #a5d6a7',borderRadius:'8px',padding:'12px',marginBottom:'1rem'}}>
-                  <h5 style={{margin:'0 0 8px',color:'#2e7d32'}}>📊 Sales Tax Collected Per Month</h5>
-                  <div style={{display:'flex',gap:'10px',flexWrap:'wrap'}}>
-                    {sortedMonths.map(mo => {
-                      const moTax = grouped[mo].filter(inv => inv.cardLast4 || inv.checkNumber).reduce((sum, inv) => sum + (inv.computed?.taxDue || 0), 0);
-                      return <div key={mo} style={{background:'#fff',borderRadius:'6px',padding:'6px 12px',border:'1px solid #c8e6c9',fontSize:'0.85rem'}}><strong>{mo}:</strong> ${moTax.toFixed(2)}</div>;
-                    })}
-                  </div>
-                  <p style={{margin:'8px 0 0',fontWeight:'bold',color:'#1b5e20'}}>Total Tax: ${filtered.filter(inv => inv.cardLast4 || inv.checkNumber).reduce((s, inv) => s + (inv.computed?.taxDue || 0), 0).toFixed(2)}</p>
-                </div>
-                {sortedMonths.map(month => {
-                  const monthInvoices = grouped[month];
-                  const paged = monthInvoices.slice(invoicePageIndex, invoicePageIndex + 2);
-                  return (
+                {sortedMonths.map(month => (
                   <div key={month} style={{marginBottom:'1.5rem'}}>
-                    <h4 style={{margin:'0.5rem 0',color:'#1e3a8a',borderBottom:'2px solid #1e3a8a',paddingBottom:'4px'}}>{month} — {monthInvoices.length} invoice{monthInvoices.length !== 1 ? 's' : ''}</h4>
-                    <div className="admin-applicant-controls" style={{marginBottom:'0.5rem'}}>
-                      <button className="btn" onClick={() => setInvoicePageIndex(prev => Math.max(prev - 2, 0))} disabled={invoicePageIndex === 0}>◀</button>
-                      <span style={{fontSize:'0.85rem',color:'#555'}}>Showing {invoicePageIndex + 1}–{Math.min(invoicePageIndex + 2, monthInvoices.length)} of {monthInvoices.length}</span>
-                      <button className="btn" onClick={() => setInvoicePageIndex(prev => Math.min(prev + 2, monthInvoices.length - 1))} disabled={invoicePageIndex + 2 >= monthInvoices.length}>▶</button>
-                    </div>
+                    <h4 style={{margin:'0.5rem 0',color:'#1e3a8a',borderBottom:'2px solid #1e3a8a',paddingBottom:'4px'}}>{month} — {grouped[month].length} invoice{grouped[month].length !== 1 ? 's' : ''}</h4>
                     <div className="job-info-list">
-                {paged.map((q, idx) => (
+                {grouped[month].map((q, idx) => (
                   <div key={q._id || idx} className="job-card">
                     {(!q.cardLast4 && !q.checkNumber) && (
                       <div style={{background:'#fff3cd',border:'1px solid #ffc107',borderRadius:'6px',padding:'10px',marginBottom:'10px'}}>
@@ -3220,7 +2689,7 @@ selected={
                         <label style={{fontSize:'12px',display:'block',marginTop:'8px'}}>Notes:
                           <textarea value={editShopInv.notes} onChange={(e) => setEditShopInv({...editShopInv, notes: e.target.value})} rows={2} style={{width:'100%',padding:'4px'}} />
                         </label>
-                        <div style={{display:'flex',gap:'8px',marginTop:'10px',flexWrap:'wrap'}}>
+                        <div style={{display:'flex',gap:'8px',marginTop:'10px'}}>
                           <button className="btn" style={{padding:'6px 14px',fontSize:'12px',background:'#4CAF50',color:'#fff'}} onClick={async () => {
                             try {
                               const rows = editShopInv.rows;
@@ -3240,27 +2709,6 @@ selected={
                               setInvoiceStats({ total: months.reduce((s, mo) => s + mo.count, 0), months });
                             } catch (e) { console.error('Failed to update invoice:', e); }
                           }}>Save</button>
-                          <button className="btn" style={{padding:'6px 14px',fontSize:'12px',background:'#1565c0',color:'#fff'}} onClick={async () => {
-                            try {
-                              const rows = editShopInv.rows;
-                              const subtotal = rows.reduce((s, r) => s + (r.qty || 0) * (r.unitPrice || 0), 0);
-                              const taxableAmt = editShopInv.isTaxExempt ? 0 : rows.reduce((s, r) => r.taxable !== false ? s + (r.qty || 0) * (r.unitPrice || 0) : s, 0);
-                              const taxDue = taxableAmt * 0.08;
-                              const ccFee = editShopInv.payMethod === 'Card' ? (subtotal + taxDue) * 0.03 : 0;
-                              const donationAmt = Number(editShopInv.donation) || 0;
-                              const total = (editShopInv.isTaxExempt ? subtotal + ccFee : subtotal + taxDue + ccFee) - donationAmt;
-                              const computed = { subtotal, taxDue, ccFee, total, donation: donationAmt };
-                              await axios.put(`/shop-invoices/${q._id}`, { ...editShopInv, computed, donation: donationAmt });
-                              await axios.post(`/shop-invoices/${q._id}/resend`);
-                              setEditingShopInvoice(null);
-                              const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-                              const cm = new Date().getMonth();
-                              const monthData = await Promise.all(monthNames.slice(0, cm + 1).map((_, i) => axios.get(`/shop-invoices/month?month=${i + 1}&year=2026`).then(r => r.data).catch(() => [])));
-                              const months = monthNames.map((mo, i) => ({ month: mo, count: i <= cm ? (monthData[i]?.length || 0) : 0, invoices: i <= cm ? (monthData[i] || []) : [] }));
-                              setInvoiceStats({ total: months.reduce((s, mo) => s + mo.count, 0), months });
-                              alert('Invoice updated and email resent!');
-                            } catch (e) { console.error('Failed to update & resend invoice:', e); alert('Saved but failed to resend email.'); }
-                          }}>💌 Save & Resend Email</button>
                           <button className="btn" style={{padding:'6px 14px',fontSize:'12px',background:'#888',color:'#fff'}} onClick={() => setEditingShopInvoice(null)}>Cancel</button>
                         </div>
                       </div>
@@ -3384,8 +2832,7 @@ selected={
                 ))}
               </div>
             </div>
-          );
-          })}
+          ))}
           {filtered.length === 0 && <p>No invoices match your filters.</p>}
               </>
             );
@@ -3501,7 +2948,6 @@ selected={
       <option value="Atlanta GA">Atlanta GA</option>
       <option value="Calhoun GA">Calhoun GA</option>
       <option value="Valdosta GA">Valdosta GA</option>
-      <option value="Tifton GA">Tifton GA</option>
     </select>
   </div>
   {applicants.filter(a => !applicantLocationFilter || a.location === applicantLocationFilter).length > 0 && (
@@ -3559,20 +3005,6 @@ selected={
 
       <h5>Additional Information</h5>
           <p><strong>Message:</strong> {app.message}</p>
-          {allowedForPayroll && app.payrollInfo && app.payrollInfo.paymentMethod && (
-            <div style={{marginTop:'0.75rem',padding:'0.75rem',background:'#fff8e1',border:'1px solid #ffe082',borderRadius:'8px'}}>
-              <h5 style={{margin:'0 0 0.5rem',color:'#e65100'}}>💰 Payroll Information</h5>
-              <p><strong>Payment Method:</strong> {app.payrollInfo.paymentMethod}</p>
-              {app.payrollInfo.paymentMethod === 'Direct Deposit' && (
-                <>
-                  <p><strong>Bank:</strong> {app.payrollInfo.bankName}</p>
-                  <p><strong>Account Type:</strong> {app.payrollInfo.accountType}</p>
-                  <p><strong>Routing #:</strong> {app.payrollInfo.routingNumber}</p>
-                  <p><strong>Account #:</strong> {app.payrollInfo.accountNumber}</p>
-                </>
-              )}
-            </div>
-          )}
           <div className="applicant-actions">
           {app.resume && (
             <button
@@ -3716,8 +3148,24 @@ selected={
 {allowedForShopWo && pendingShopWos.length > 0 && (
 <section className="admin-section" style={{marginTop:'2rem'}}>
   <h2 className="admin-plans-title">🛠️ Pending Shop Work Orders <span style={{color:'#ff9800'}}>({pendingShopWos.length})</span></h2>
-  <p style={{color:'#555',marginBottom:'0.75rem'}}>Review and approve/disapprove shop work orders in the log.</p>
-  <button className="btn workorder-btn" onClick={() => navigate('/admin-dashboard/shop-work-order-log')}>📋 Open Shop Work Order Log</button>
+  <div className="job-info-list">
+    {pendingShopWos.map((wo) => (
+      <div key={wo._id} className="job-card">
+        <h4 className="job-company">{wo.employeeNames}</h4>
+        <p><strong>Date:</strong> {wo.date}</p>
+        <p><strong>Time:</strong> {wo.inTime} - {wo.outTime}</p>
+        <p><strong>Location:</strong> {wo.location}</p>
+        <p><strong>Truck:</strong> {wo.truckNumber || 'N/A'}</p>
+        <p><strong>Supervisor:</strong> {wo.supervisor}</p>
+        <p><strong>Description:</strong> {wo.description}</p>
+        <p><strong>Submitted:</strong> {new Date(wo.createdAt).toLocaleString()}</p>
+        <div style={{display:'flex',gap:'8px',marginTop:'10px'}}>
+          <button className="btn" style={{background:'#4CAF50',color:'#fff'}} onClick={() => handleShopWoApprove(wo._id)}>✅ Approve</button>
+          <button className="btn" style={{background:'#f44336',color:'#fff'}} onClick={() => handleShopWoDisapprove(wo._id)}>❌ Disapprove</button>
+        </div>
+      </div>
+    ))}
+  </div>
 </section>
 )}
 
