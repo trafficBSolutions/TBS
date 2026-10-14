@@ -1557,6 +1557,8 @@ const Invoice = () => {
   const openEdit = (inv) => setEditingInv({
     _id: inv._id, invoiceNumber: inv.invoiceNumber || '', payStatus: inv.payStatus || 'unpaid',
     payMethod: inv.payMethod || '', sentTo: inv.sentTo || '',
+    amountReceived: inv.amountReceived != null ? inv.amountReceived : '',
+    dateOfDeposit: inv.dateOfDeposit ? new Date(inv.dateOfDeposit).toISOString().slice(0, 10) : '',
     invoicePdfName: inv.invoicePdfName, workOrderPdfName: inv.workOrderPdfName, remitName: inv.remitName,
     newInvoicePdf: null, newWorkOrderPdf: null, newRemit: null, resend: false,
   });
@@ -1570,6 +1572,8 @@ const Invoice = () => {
       fd.append('payStatus', editingInv.payStatus);
       fd.append('payMethod', editingInv.payMethod);
       fd.append('sentTo', editingInv.sentTo);
+      if (editingInv.amountReceived !== '') fd.append('amountReceived', editingInv.amountReceived);
+      if (editingInv.dateOfDeposit) fd.append('dateOfDeposit', editingInv.dateOfDeposit);
       fd.append('resend', editingInv.resend ? 'true' : 'false');
       if (editingInv.newInvoicePdf) fd.append('invoicePdf', editingInv.newInvoicePdf);
       if (editingInv.newWorkOrderPdf) fd.append('workOrderPdf', editingInv.newWorkOrderPdf);
@@ -1724,6 +1728,18 @@ const Invoice = () => {
                   <div>
                     <label style={{ fontSize: 12, fontWeight: 'bold', display: 'block', marginBottom: 3 }}>Sent To (email)</label>
                     <input value={editingInv.sentTo} onChange={e => setEditingInv(p => ({ ...p, sentTo: e.target.value }))}
+                      style={{ width: '100%', padding: '5px 8px', borderRadius: 4, border: '1px solid #ced4da', fontSize: 13 }} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 'bold', display: 'block', marginBottom: 3 }}>AMT RECEIVED</label>
+                    <input type="number" step="0.01" min="0" value={editingInv.amountReceived}
+                      onChange={e => setEditingInv(p => ({ ...p, amountReceived: e.target.value }))}
+                      placeholder="0.00" style={{ width: '100%', padding: '5px 8px', borderRadius: 4, border: '1px solid #ced4da', fontSize: 13 }} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 'bold', display: 'block', marginBottom: 3 }}>DEPOSIT DATE</label>
+                    <input type="date" value={editingInv.dateOfDeposit}
+                      onChange={e => setEditingInv(p => ({ ...p, dateOfDeposit: e.target.value }))}
                       style={{ width: '100%', padding: '5px 8px', borderRadius: 4, border: '1px solid #ced4da', fontSize: 13 }} />
                   </div>
                 </div>
