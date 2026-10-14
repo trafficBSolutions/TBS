@@ -6,6 +6,8 @@ const InvoiceStatsSection = ({ invoiceStats, setInvoiceStats }) => {
   const [invFilter, setInvFilter] = useState({ search: '', month: '', status: '' });
   const [editingShopInvoice, setEditingShopInvoice] = useState(null);
   const [editShopInv, setEditShopInv] = useState({ payMethod: '', cardType: '', cardLast4: '', checkNumber: '', notes: '', taxExemptNumber: '' });
+  const [sendEmailOnSave, setSendEmailOnSave] = useState(false);
+  const [emailSendMsg, setEmailSendMsg] = useState('');
 
   const handlePrintInvoice = (q) => {
     var pw = window.open('', '', 'width=800,height=600');
@@ -48,6 +50,7 @@ const InvoiceStatsSection = ({ invoiceStats, setInvoiceStats }) => {
   };
 
   const handleSaveInvoice = async (qId) => {
+    setEmailSendMsg('');
     try {
       const rows = editShopInv.rows;
       const subtotal = rows.reduce((s, r) => s + (r.qty || 0) * (r.unitPrice || 0), 0);
@@ -58,6 +61,16 @@ const InvoiceStatsSection = ({ invoiceStats, setInvoiceStats }) => {
       const total = (editShopInv.isTaxExempt ? subtotal + ccFee : subtotal + taxDue + ccFee) - donationAmt;
       const computed = { subtotal, taxDue, ccFee, total, donation: donationAmt };
       await axios.put(`/shop-invoices/${qId}`, { ...editShopInv, computed, donation: donationAmt });
+      if (sendEmailOnSave) {
+        try {
+          await axios.post(`/shop-invoices/${qId}/resend`);
+          setEmailSendMsg('✅ Invoice saved and email sent to customer.');
+        } catch (emailErr) {
+          setEmailSendMsg('⚠️ Invoice saved but email failed to send.');
+          console.error('Failed to resend invoice email:', emailErr);
+        }
+      }
+      setSendEmailOnSave(false);
       setEditingShopInvoice(null);
       const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
       const cm = new Date().getMonth();
@@ -246,14 +259,21 @@ const InvoiceStatsSection = ({ invoiceStats, setInvoiceStats }) => {
                               <label style={{fontSize:'12px',display:'block',marginTop:'8px'}}>Notes:
                                 <textarea value={editShopInv.notes} onChange={(e) => setEditShopInv({...editShopInv, notes: e.target.value})} rows={2} style={{width:'100%',padding:'4px'}} />
                               </label>
+                              <label style={{fontSize:'12px',display:'flex',alignItems:'center',gap:'6px',marginTop:'10px',padding:'8px',background:'#e8f5e9',border:'1px solid #a5d6a7',borderRadius:'6px',cursor:'pointer'}}>
+                                <input type="checkbox" checked={sendEmailOnSave} onChange={(e) => setSendEmailOnSave(e.target.checked)} />
+                                <span>📧 Send updated invoice to customer via email</span>
+                              </label>
+                              {emailSendMsg && <p style={{fontSize:'12px',marginTop:'6px',fontWeight:'bold'}}>{emailSendMsg}</p>}
                               <div style={{display:'flex',gap:'8px',marginTop:'10px'}}>
                                 <button className="btn" style={{padding:'6px 14px',fontSize:'12px',background:'#4CAF50',color:'#fff'}} onClick={() => handleSaveInvoice(q._id)}>Save</button>
-                                <button className="btn" style={{padding:'6px 14px',fontSize:'12px',background:'#888',color:'#fff'}} onClick={() => setEditingShopInvoice(null)}>Cancel</button>
+                                <button className="btn" style={{padding:'6px 14px',fontSize:'12px',background:'#888',color:'#fff'}} onClick={() => { setEditingShopInvoice(null); setSendEmailOnSave(false); setEmailSendMsg(''); }}>Cancel</button>
                               </div>
                             </div>
                           ) : (
                             <>
                               <button style={{marginTop:'8px',padding:'6px 14px',fontSize:'12px',background:'#2196F3',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer',fontWeight:'bold'}} onClick={() => {
+                                setSendEmailOnSave(false);
+                                setEmailSendMsg('');
                                 setEditingShopInvoice(q._id);
                                 setEditShopInv({
                                   invoiceNumber: q.invoiceNumber || '', date: q.date || '', company: q.company || '', customer: q.customer || '',
