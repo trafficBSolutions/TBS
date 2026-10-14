@@ -188,19 +188,16 @@ export default function PrintCostCalculator({ invoiceNumber, invoiceId, onClose,
 
 export function PrintCostTotal({ invoiceNumber, isLog }) {
   const [total, setTotal] = useState(null);
-  const [materials, setMaterials] = useState([]);
-  const [laminates, setLaminates] = useState([]);
-  const [inks, setInks] = useState([]);
+  const [lookups, setLookups] = useState({ materials: [], laminates: [], inks: [] });
 
   useEffect(() => {
     axios.get('/print-costs/lookups').then(function(r) {
-      setMaterials(r.data.materials);
-      setLaminates(r.data.laminates);
-      setInks(r.data.inks);
+      setLookups({ materials: r.data.materials, laminates: r.data.laminates, inks: r.data.inks });
     }).catch(function() {});
   }, []);
 
   useEffect(() => {
+    const { materials, laminates, inks } = lookups;
     if (!invoiceNumber || materials.length === 0) return;
     var endpoint = isLog ? '/print-cost-logs/' + invoiceNumber : '/print-costs/' + invoiceNumber;
     axios.get(endpoint).then(function(r) {
@@ -222,7 +219,7 @@ export function PrintCostTotal({ invoiceNumber, isLog }) {
       });
       setTotal(grand);
     }).catch(function() {});
-  }, [invoiceNumber, materials, laminates, inks, isLog]);
+  }, [invoiceNumber, lookups, isLog]);
 
   if (total === null) return null;
   return (
