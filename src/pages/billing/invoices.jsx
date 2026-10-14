@@ -1564,7 +1564,7 @@ const Invoice = () => {
   const openEdit = (inv) => setEditingInv({
     _id: inv._id, invoiceNumber: inv.invoiceNumber || '', payStatus: inv.payStatus || 'unpaid',
     payMethod: inv.payMethod || '', sentTo: inv.sentTo || '',
-    coordinator: inv.coordinator || '',
+    coordinator: inv.workOrder || '',
     amountReceived: inv.amountReceived != null ? inv.amountReceived : '',
     dateOfDeposit: inv.dateOfDeposit ? new Date(inv.dateOfDeposit).toISOString().slice(0, 10) : '',
     invoicePdfName: inv.invoicePdfName, workOrderPdfName: inv.workOrderPdfName, remitName: inv.remitName,
@@ -1827,7 +1827,7 @@ const Invoice = () => {
                       <td style={{ padding: '7px 6px', border: '1px solid #ddd', textAlign: 'right' }}>
                         {inv.amount != null ? fmtUSD(inv.amount) : inv.lineItems?.length ? fmtUSD(inv.lineItems.reduce((s,r)=>s+Number(r.amount||0),0)) : '—'}
                       </td>
-                      <td style={{ padding: '7px 6px', border: '1px solid #ddd', fontSize: 11 }}>{inv.coordinator || '—'}</td>
+                      <td style={{ padding: '7px 6px', border: '1px solid #ddd', fontSize: 11 }}>{inv.workOrder || '—'}</td>
                       <td style={{ padding: '7px 6px', border: '1px solid #ddd', fontSize: 11 }}>
                         {inv.sentTo}{inv.additionalEmails?.length ? `, ${inv.additionalEmails.join(', ')}` : ''}
                       </td>
