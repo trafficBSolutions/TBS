@@ -610,6 +610,7 @@ function CompanyProfilesSection() {
   const [savedPdfs, setSavedPdfs] = useState([]);
   const [loadingPdfs, setLoadingPdfs] = useState(false);
   const [invNumber, setInvNumber] = useState('');
+  const [invCoordinator, setInvCoordinator] = useState('');
   const [invStreetNum, setInvStreetNum] = useState('');
   const [invStreetName, setInvStreetName] = useState('');
   const [invCity, setInvCity] = useState('');
@@ -718,6 +719,7 @@ function CompanyProfilesSection() {
       fd.append('to', companyEmail);
       fd.append('company', selectedCompany);
       fd.append('invoiceNumber', invNumber);
+      fd.append('coordinator', invCoordinator);
       fd.append('additionalEmails', JSON.stringify(additionalEmails.filter(e => e.trim())));
       fd.append('lineItems', JSON.stringify(invRows.filter(r => r.amount || Object.values(r).some(v => v && v !== r.id && v !== 0))));
       fd.append('payStatus', payStatus);
@@ -744,6 +746,7 @@ function CompanyProfilesSection() {
       setSavedPdfs(prev => [{ sentAt: new Date().toISOString(), invoiceNumber: invNumber, sentTo: companyEmail, additionalEmails: additionalEmails.filter(e => e.trim()), payStatus, payMethod, invoicePdfName: invoicePdf?.name || null, workOrderPdfName: workOrderPdf?.name || null, remitName: remitFile?.name || null }, ...prev]);
       setInvoicePdf(null); setWorkOrderPdf(null); setRemitFile(null);
       setCardNumber(''); setCheckNumber(''); setPayStatus('unpaid');
+      setInvCoordinator('');
       setAdditionalEmails(['']);
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to send invoice.');
@@ -854,6 +857,10 @@ function CompanyProfilesSection() {
             <div>
               <label style={{ fontWeight: 'bold', display: 'block', marginBottom: 4, fontSize: 13 }}>Invoice #</label>
               <input value={invNumber} onChange={e => setInvNumber(e.target.value.toUpperCase())} placeholder="e.g., TBS-001" style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid #ced4da', fontSize: 13 }} />
+            </div>
+            <div>
+              <label style={{ fontWeight: 'bold', display: 'block', marginBottom: 4, fontSize: 13 }}>Coordinator</label>
+              <input value={invCoordinator} onChange={e => setInvCoordinator(e.target.value)} placeholder="Coordinator name" style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid #ced4da', fontSize: 13 }} />
             </div>
             <div>
               <label style={{ fontWeight: 'bold', display: 'block', marginBottom: 4, fontSize: 13 }}>Street #</label>
@@ -1557,6 +1564,7 @@ const Invoice = () => {
   const openEdit = (inv) => setEditingInv({
     _id: inv._id, invoiceNumber: inv.invoiceNumber || '', payStatus: inv.payStatus || 'unpaid',
     payMethod: inv.payMethod || '', sentTo: inv.sentTo || '',
+    coordinator: inv.coordinator || '',
     amountReceived: inv.amountReceived != null ? inv.amountReceived : '',
     dateOfDeposit: inv.dateOfDeposit ? new Date(inv.dateOfDeposit).toISOString().slice(0, 10) : '',
     invoicePdfName: inv.invoicePdfName, workOrderPdfName: inv.workOrderPdfName, remitName: inv.remitName,
@@ -1572,6 +1580,7 @@ const Invoice = () => {
       fd.append('payStatus', editingInv.payStatus);
       fd.append('payMethod', editingInv.payMethod);
       fd.append('sentTo', editingInv.sentTo);
+      fd.append('coordinator', editingInv.coordinator || '');
       if (editingInv.amountReceived !== '') fd.append('amountReceived', editingInv.amountReceived);
       if (editingInv.dateOfDeposit) fd.append('dateOfDeposit', editingInv.dateOfDeposit);
       fd.append('resend', editingInv.resend ? 'true' : 'false');
@@ -1731,6 +1740,11 @@ const Invoice = () => {
                       style={{ width: '100%', padding: '5px 8px', borderRadius: 4, border: '1px solid #ced4da', fontSize: 13 }} />
                   </div>
                   <div>
+                    <label style={{ fontSize: 12, fontWeight: 'bold', display: 'block', marginBottom: 3 }}>COORDINATOR</label>
+                    <input value={editingInv.coordinator} onChange={e => setEditingInv(p => ({ ...p, coordinator: e.target.value }))}
+                      placeholder="Coordinator name" style={{ width: '100%', padding: '5px 8px', borderRadius: 4, border: '1px solid #ced4da', fontSize: 13 }} />
+                  </div>
+                  <div>
                     <label style={{ fontSize: 12, fontWeight: 'bold', display: 'block', marginBottom: 3 }}>AMT RECEIVED</label>
                     <input type="number" step="0.01" min="0" value={editingInv.amountReceived}
                       onChange={e => setEditingInv(p => ({ ...p, amountReceived: e.target.value }))}
@@ -1789,7 +1803,7 @@ const Invoice = () => {
                   <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>INV #</th>
                   <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>COMPANY</th>
                   <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>AMOUNT</th>
-                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>WORK ORDER</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>COORDINATOR</th>
                   <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>SENT TO</th>
                   <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>STATUS</th>
                   <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>PAY METHOD</th>
@@ -1813,7 +1827,7 @@ const Invoice = () => {
                       <td style={{ padding: '7px 6px', border: '1px solid #ddd', textAlign: 'right' }}>
                         {inv.amount != null ? fmtUSD(inv.amount) : inv.lineItems?.length ? fmtUSD(inv.lineItems.reduce((s,r)=>s+Number(r.amount||0),0)) : '—'}
                       </td>
-                      <td style={{ padding: '7px 6px', border: '1px solid #ddd', fontSize: 11 }}>{inv.workOrder || '—'}</td>
+                      <td style={{ padding: '7px 6px', border: '1px solid #ddd', fontSize: 11 }}>{inv.coordinator || '—'}</td>
                       <td style={{ padding: '7px 6px', border: '1px solid #ddd', fontSize: 11 }}>
                         {inv.sentTo}{inv.additionalEmails?.length ? `, ${inv.additionalEmails.join(', ')}` : ''}
                       </td>
