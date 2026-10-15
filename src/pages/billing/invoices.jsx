@@ -1759,7 +1759,7 @@ const Invoice = () => {
   return (
     <div>
       <Header />
-      <div className="invoice-page container">
+      <div className="invoice-page">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <h1>Invoices</h1>
         </div>
@@ -1878,11 +1878,11 @@ const Invoice = () => {
             </span>
           </div>
 
-          <div style={{ overflowX: 'auto' }}>
+          <div className="inv-table-wrap">
             {editingInv && (
               <div style={{ marginBottom: 16, padding: 16, border: '2px solid #007bff', borderRadius: 8, backgroundColor: '#f0f7ff' }}>
                 <div style={{ fontWeight: 'bold', marginBottom: 12, fontSize: 14 }}>✏️ Edit Invoice</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10, marginBottom: 12 }}>
+                <div className="inv-edit-grid">
                   <div>
                     <label style={{ fontSize: 12, fontWeight: 'bold', display: 'block', marginBottom: 3 }}>Invoice #</label>
                     <input value={editingInv.invoiceNumber} onChange={e => setEditingInv(p => ({ ...p, invoiceNumber: e.target.value }))}
