@@ -2048,10 +2048,14 @@ selected={
         <select value={addLinePurpose} onChange={(e) => setAddLinePurpose(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}}>
           <option value="">-- Job Purpose --</option>
           <option value="2 Man Crew">2 Man Crew</option>
+          <option value="3 Man Crew">3 Man Crew</option>
+          <option value="4 Man Crew">4 Man Crew</option>
           <option value="Arrow Board/Message Board Job">Arrow Board/Message Board Job</option>
           <option value="Emergency Job">Emergency Job</option>
           <option value="Weekend Work">Weekend Work</option>
           <option value="Shop Work">Shop Work</option>
+          <option value="Hydrovac">Hydrovac</option>
+          <option value="standby">Standby</option>
         </select>
         <div style={{display:'flex',gap:'0.4rem',alignItems:'center'}}>
           <label style={{fontSize:'0.8rem'}}>In:</label>
