@@ -633,7 +633,7 @@ function CompanyProfilesSection() {
   const [showDrafts, setShowDrafts] = useState(false);
 
   useEffect(() => {
-    api.get('/api/drafts?type=companyInvoice').then(res => setDrafts(res.data || [])).catch(() => {});
+    api.get('/api/billing/drafts').then(res => setDrafts(res.data || [])).catch(() => {});
   }, []);
 
   const saveDraft = async () => {
@@ -643,7 +643,7 @@ function CompanyProfilesSection() {
       cardNumber, checkNumber, invNotes,
     };
     try {
-      const res = await api.post('/api/drafts', { type: 'companyInvoice', data });
+      const res = await api.post('/api/billing/drafts', { type: 'companyInvoice', data });
       setDrafts(prev => [res.data, ...prev]);
       toast.success('Draft saved!');
     } catch { toast.error('Failed to save draft.'); }
@@ -673,7 +673,7 @@ function CompanyProfilesSection() {
 
   const deleteDraft = async (id) => {
     try {
-      await api.delete(`/api/drafts/${id}`);
+      await api.delete(`/api/billing/drafts/${id}`);
       setDrafts(prev => prev.filter(d => d._id !== id));
     } catch { toast.error('Failed to delete draft.'); }
   };
