@@ -628,6 +628,55 @@ function CompanyProfilesSection() {
   const addInvRow = () => setInvRows(prev => [...prev, blankInvRow(invCols)]);
   const removeInvRow = (id) => setInvRows(prev => prev.filter(r => r.id !== id));
   const [additionalEmails, setAdditionalEmails] = useState(['']);
+  const [invNotes, setInvNotes] = useState('');
+  const [drafts, setDrafts] = useState([]);
+  const [showDrafts, setShowDrafts] = useState(false);
+
+  useEffect(() => {
+    api.get('/api/drafts?type=companyInvoice').then(res => setDrafts(res.data || [])).catch(() => {});
+  }, []);
+
+  const saveDraft = async () => {
+    const data = {
+      selectedCompany, invNumber, invCoordinator, invStreetNum, invStreetName,
+      invCity, invState, invZip, invRows, invCols, additionalEmails, payStatus, payMethod,
+      cardNumber, checkNumber, invNotes,
+    };
+    try {
+      const res = await api.post('/api/drafts', { type: 'companyInvoice', data });
+      setDrafts(prev => [res.data, ...prev]);
+      toast.success('Draft saved!');
+    } catch { toast.error('Failed to save draft.'); }
+  };
+
+  const loadDraft = (draft) => {
+    const d = draft.data;
+    setSelectedCompany(d.selectedCompany || '');
+    setInvNumber(d.invNumber || '');
+    setInvCoordinator(d.invCoordinator || '');
+    setInvStreetNum(d.invStreetNum || '');
+    setInvStreetName(d.invStreetName || '');
+    setInvCity(d.invCity || '');
+    setInvState(d.invState || '');
+    setInvZip(d.invZip || '');
+    if (d.invCols) { saveInvCols(d.invCols); }
+    setInvRows(d.invRows || [blankInvRow(d.invCols || invCols)]);
+    setAdditionalEmails(d.additionalEmails || ['']);
+    setPayStatus(d.payStatus || 'unpaid');
+    setPayMethod(d.payMethod || 'card');
+    setCardNumber(d.cardNumber || '');
+    setCheckNumber(d.checkNumber || '');
+    setInvNotes(d.invNotes || '');
+    setShowDrafts(false);
+    toast.success('Draft loaded!');
+  };
+
+  const deleteDraft = async (id) => {
+    try {
+      await api.delete(`/api/drafts/${id}`);
+      setDrafts(prev => prev.filter(d => d._id !== id));
+    } catch { toast.error('Failed to delete draft.'); }
+  };
 
   const allCompanies = [
     ...companyList.filter(c => !c.startsWith('Other')),
@@ -708,29 +757,59 @@ function CompanyProfilesSection() {
     localStorage.setItem('companyProfiles', JSON.stringify(next));
   };
 
-  const handleSend = async () => {
+  const buildFormData = () => {
+    const fd = new FormData();
+    fd.append('from', LEAH_EMAIL);
+    fd.append('to', companyEmail);
+    fd.append('company', selectedCompany);
+    fd.append('invoiceNumber', invNumber);
+    fd.append('coordinator', invCoordinator);
+    fd.append('notes', invNotes);
+    fd.append('additionalEmails', JSON.stringify(additionalEmails.filter(e => e.trim())));
+    fd.append('lineItems', JSON.stringify(invRows.filter(r => r.amount || Object.values(r).some(v => v && v !== r.id && v !== 0))));
+    fd.append('payStatus', payStatus);
+    if (payStatus === 'paid') {
+      fd.append('payMethod', payMethod);
+      if (payMethod === 'card') fd.append('cardNumber', cardNumber);
+      if (payMethod === 'check') fd.append('checkNumber', checkNumber);
+      if (remitFile) fd.append('remit', remitFile);
+    }
+    if (invoicePdf) fd.append('invoicePdf', invoicePdf);
+    if (workOrderPdf) fd.append('workOrderPdf', workOrderPdf);
+    return fd;
+  };
+
+  const resetForm = () => {
+    setInvoicePdf(null); setWorkOrderPdf(null); setRemitFile(null);
+    setCardNumber(''); setCheckNumber(''); setPayStatus('unpaid');
+    setInvCoordinator(''); setAdditionalEmails(['']); setInvNotes('');
+  };
+
+  const handleSaveToRecords = async () => {
     if (!selectedCompany) return toast.error('Select a company first.');
-    if (!invoicePdf && !workOrderPdf) return toast.error('Attach at least one PDF.');
-    if (!companyEmail) return toast.error('No email on file for this company.');
     setSending(true);
     try {
-      const fd = new FormData();
-      fd.append('from', LEAH_EMAIL);
-      fd.append('to', companyEmail);
-      fd.append('company', selectedCompany);
-      fd.append('invoiceNumber', invNumber);
-      fd.append('coordinator', invCoordinator);
-      fd.append('additionalEmails', JSON.stringify(additionalEmails.filter(e => e.trim())));
-      fd.append('lineItems', JSON.stringify(invRows.filter(r => r.amount || Object.values(r).some(v => v && v !== r.id && v !== 0))));
-      fd.append('payStatus', payStatus);
-      if (payStatus === 'paid') {
-        fd.append('payMethod', payMethod);
-        if (payMethod === 'card') fd.append('cardNumber', cardNumber);
-        if (payMethod === 'check') fd.append('checkNumber', checkNumber);
-        if (remitFile) fd.append('remit', remitFile);
-      }
-      if (invoicePdf) fd.append('invoicePdf', invoicePdf);
-      if (workOrderPdf) fd.append('workOrderPdf', workOrderPdf);
+      const fd = buildFormData();
+      fd.append('saveOnly', 'true');
+      await api.post('/api/billing/send-company-invoice', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      const entry = { sentAt: new Date().toISOString(), invoicePdfName: invoicePdf?.name || null, workOrderPdfName: workOrderPdf?.name || null, payStatus, payMethod: payStatus === 'paid' ? payMethod : null, remitName: remitFile?.name || null, sentTo: '(saved only)' };
+      saveProfile({ ...profile, history: [entry, ...(profile.history || [])] });
+      toast.success('Invoice saved to records!');
+      setSavedPdfs(prev => [{ sentAt: new Date().toISOString(), invoiceNumber: invNumber, sentTo: '(saved only)', additionalEmails: [], payStatus, payMethod, invoicePdfName: invoicePdf?.name || null, workOrderPdfName: workOrderPdf?.name || null, remitName: remitFile?.name || null }, ...prev]);
+      resetForm();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to save invoice.');
+    } finally { setSending(false); }
+  };
+
+  const handleSend = async (saveOnly = false) => {
+    if (!selectedCompany) return toast.error('Select a company first.');
+    if (!invoicePdf && !workOrderPdf) return toast.error('Attach at least one PDF.');
+    if (!saveOnly && !companyEmail) return toast.error('No email on file for this company.');
+    setSending(true);
+    try {
+      const fd = buildFormData();
+      if (saveOnly) fd.append('saveOnly', 'true');
       await api.post('/api/billing/send-company-invoice', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       const entry = {
         sentAt: new Date().toISOString(),
@@ -739,15 +818,16 @@ function CompanyProfilesSection() {
         payStatus, payMethod: payStatus === 'paid' ? payMethod : null,
         cardNumber: payStatus === 'paid' && payMethod === 'card' ? cardNumber : null,
         checkNumber: payStatus === 'paid' && payMethod === 'check' ? checkNumber : null,
-        remitName: remitFile?.name || null, sentTo: companyEmail,
+        remitName: remitFile?.name || null, sentTo: saveOnly ? '(saved only)' : companyEmail,
       };
       saveProfile({ ...profile, history: [entry, ...(profile.history || [])] });
-      toast.success(`Invoice sent to ${companyEmail} from ${LEAH_EMAIL}!`);
-      setSavedPdfs(prev => [{ sentAt: new Date().toISOString(), invoiceNumber: invNumber, sentTo: companyEmail, additionalEmails: additionalEmails.filter(e => e.trim()), payStatus, payMethod, invoicePdfName: invoicePdf?.name || null, workOrderPdfName: workOrderPdf?.name || null, remitName: remitFile?.name || null }, ...prev]);
-      setInvoicePdf(null); setWorkOrderPdf(null); setRemitFile(null);
-      setCardNumber(''); setCheckNumber(''); setPayStatus('unpaid');
-      setInvCoordinator('');
-      setAdditionalEmails(['']);
+      if (saveOnly) {
+        toast.success('Invoice saved to records!');
+      } else {
+        toast.success(`Invoice sent to ${companyEmail} from ${LEAH_EMAIL}!`);
+      }
+      setSavedPdfs(prev => [{ sentAt: new Date().toISOString(), invoiceNumber: invNumber, sentTo: saveOnly ? '(saved only)' : companyEmail, additionalEmails: additionalEmails.filter(e => e.trim()), payStatus, payMethod, invoicePdfName: invoicePdf?.name || null, workOrderPdfName: workOrderPdf?.name || null, remitName: remitFile?.name || null }, ...prev]);
+      resetForm();
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to send invoice.');
     } finally {
@@ -757,7 +837,37 @@ function CompanyProfilesSection() {
 
   return (
     <div style={{ marginBottom: 30, padding: 20, backgroundColor: '#f8f9fa', borderRadius: 8, border: '1px solid #dee2e6' }}>
-      <h2 style={{ marginBottom: 16 }}>Company Profiles — Send Invoice</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <h2 style={{ margin: 0 }}>Company Profiles — Send Invoice</h2>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn" onClick={saveDraft} style={{ fontSize: 13 }}>💾 Save Draft</button>
+          <button className="btn" onClick={() => setShowDrafts(v => !v)} style={{ fontSize: 13 }}>
+            📂 Drafts{drafts.length > 0 && <span style={{ background: 'red', color: '#fff', borderRadius: '50%', padding: '0 5px', fontSize: '11px', marginLeft: '4px' }}>{drafts.length}</span>}
+          </button>
+        </div>
+      </div>
+
+      {showDrafts && (
+        <div style={{ background: '#fff', border: '1px solid #ccc', borderRadius: 8, padding: 12, marginBottom: 12 }}>
+          <h3 style={{ margin: '0 0 8px' }}>Saved Drafts</h3>
+          {drafts.length === 0 ? <p style={{ color: '#888' }}>No saved drafts.</p> : (
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              {drafts.map(d => (
+                <li key={d._id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid #eee' }}>
+                  <span style={{ flex: 1, fontSize: 14 }}>
+                    <strong style={{ color: '#2980b9' }}>🧾 Invoice Draft</strong>
+                    {d.data.selectedCompany ? ` — ${d.data.selectedCompany}` : ''}
+                    {d.data.invNumber ? ` #${d.data.invNumber}` : ''}
+                    <span style={{ color: '#999', fontSize: 12, marginLeft: 8 }}>{new Date(d.createdAt).toLocaleString()}</span>
+                  </span>
+                  <button type="button" className="btn" style={{ padding: '4px 10px', fontSize: 12 }} onClick={() => loadDraft(d)}>Load</button>
+                  <button type="button" className="icon-btn" onClick={() => deleteDraft(d._id)}>✕</button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
       <div style={{ marginBottom: 16 }}>
         <label style={{ fontWeight: 'bold', display: 'block', marginBottom: 6 }}>Select Company</label>
         <div style={{ display: 'flex', gap: 8 }}>
@@ -998,6 +1108,18 @@ function CompanyProfilesSection() {
               )}
             </div>
           )}
+          {/* Notes */}
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ fontWeight: 'bold', display: 'block', marginBottom: 6 }}>Additional Notes</label>
+            <textarea
+              value={invNotes}
+              onChange={e => setInvNotes(e.target.value)}
+              placeholder="Any additional notes for this invoice..."
+              rows={3}
+              style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid #ced4da', fontSize: 13, boxSizing: 'border-box' }}
+            />
+          </div>
+
           {/* Additional Emails */}
           <div style={{ marginBottom: 16 }}>
             <label style={{ fontWeight: 'bold', display: 'block', marginBottom: 6 }}>Send To (Emails)</label>
@@ -1075,9 +1197,13 @@ function CompanyProfilesSection() {
             </div>
           )}
 
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16 }}>
-            <button className="btn btn--primary" onClick={handleSend} disabled={sending || (!invoicePdf && !workOrderPdf)}>
-              {sending ? 'Sending…' : `📧 Send via ${LEAH_EMAIL}`}
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
+            <button className="btn" onClick={() => handleSend(true)} disabled={sending || (!invoicePdf && !workOrderPdf)}
+              style={{ backgroundColor: '#6c757d', color: '#fff', border: 'none' }}>
+              {sending ? 'Saving…' : '💾 Save Invoice to Records'}
+            </button>
+            <button className="btn btn--primary" onClick={() => handleSend(false)} disabled={sending || (!invoicePdf && !workOrderPdf) || !companyEmail}>
+              {sending ? 'Sending…' : `📧 Save to Records and Email`}
             </button>
             {profile.history?.length > 0 && (
               <button className="btn" onClick={() => setShowHistory(h => !h)} style={{ fontSize: 13 }}>
@@ -1523,7 +1649,8 @@ const Invoice = () => {
     viewingPdfRef.current = null;
     setViewingPdf(null);
   };
-  const [invFilter, setInvFilter] = useState({ search: '', month: '', status: '', company: '' });
+  const [invFilter, setInvFilter] = useState({ search: '', month: '', status: '', company: '', dateFrom: '', dateTo: '' });
+  const [invSort, setInvSort] = useState({ field: 'invoiceNumber', dir: 'asc' });
   const [editingInv, setEditingInv] = useState(null);
   const [savingEdit, setSavingEdit] = useState(false);
   const [expandedInv, setExpandedInv] = useState(null);
@@ -1550,6 +1677,14 @@ const Invoice = () => {
           if (isNaN(d)) return false;
           if (d.toLocaleString('default', { month: 'short' }) !== invFilter.month) return false;
         }
+        if (invFilter.dateFrom) {
+          const d = new Date(inv.dateBilled || inv.sentAt);
+          if (isNaN(d) || d < new Date(invFilter.dateFrom)) return false;
+        }
+        if (invFilter.dateTo) {
+          const d = new Date(inv.dateBilled || inv.sentAt);
+          if (isNaN(d) || d > new Date(invFilter.dateTo + 'T23:59:59')) return false;
+        }
         if (s) {
           const num = (inv.invoiceNumber || '').toLowerCase();
           const co  = (inv.company || '').toLowerCase();
@@ -1558,8 +1693,19 @@ const Invoice = () => {
         }
         return true;
       })
-      .sort((a, b) => new Date(b.sentAt) - new Date(a.sentAt));
-  }, [allInvoices, invFilter]);
+      .sort((a, b) => {
+        if (invSort.field === 'invoiceNumber') {
+          const na = (a.invoiceNumber || '').replace(/\D/g, '');
+          const nb = (b.invoiceNumber || '').replace(/\D/g, '');
+          const diff = (parseInt(na) || 0) - (parseInt(nb) || 0);
+          const strDiff = diff !== 0 ? diff : (a.invoiceNumber || '').localeCompare(b.invoiceNumber || '');
+          return invSort.dir === 'asc' ? strDiff : -strDiff;
+        }
+        return invSort.dir === 'asc'
+          ? new Date(a.sentAt) - new Date(b.sentAt)
+          : new Date(b.sentAt) - new Date(a.sentAt);
+      });
+  }, [allInvoices, invFilter, invSort]);
 
   const openEdit = (inv) => setEditingInv({
     _id: inv._id, invoiceNumber: inv.invoiceNumber || '', payStatus: inv.payStatus || 'unpaid',
@@ -1569,6 +1715,7 @@ const Invoice = () => {
     dateOfDeposit: inv.dateOfDeposit ? new Date(inv.dateOfDeposit).toISOString().slice(0, 10) : '',
     invoicePdfName: inv.invoicePdfName, workOrderPdfName: inv.workOrderPdfName, remitName: inv.remitName,
     newInvoicePdf: null, newWorkOrderPdf: null, newRemit: null, resend: false,
+    notes: inv.notes || '',
   });
 
   const handleSaveEdit = async () => {
@@ -1581,6 +1728,7 @@ const Invoice = () => {
       fd.append('payMethod', editingInv.payMethod);
       fd.append('sentTo', editingInv.sentTo);
       fd.append('coordinator', editingInv.coordinator || '');
+      fd.append('notes', editingInv.notes || '');
       if (editingInv.amountReceived !== '') fd.append('amountReceived', editingInv.amountReceived);
       if (editingInv.dateOfDeposit) fd.append('dateOfDeposit', editingInv.dateOfDeposit);
       fd.append('resend', editingInv.resend ? 'true' : 'false');
@@ -1698,9 +1846,28 @@ const Invoice = () => {
               <option value="paid">Paid</option>
               <option value="unpaid">Unpaid</option>
             </select>
-            {(invFilter.search || invFilter.month || invFilter.status || invFilter.company) && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <span style={{ fontSize: 12, color: '#555', whiteSpace: 'nowrap' }}>Date Billed:</span>
+              <input type="date" value={invFilter.dateFrom}
+                onChange={e => { setInvFilter(f => ({ ...f, dateFrom: e.target.value })); setInvoicePage(0); }}
+                style={{ padding: '5px 8px', borderRadius: 6, border: '1px solid #ccc', fontSize: 12 }} />
+              <span style={{ fontSize: 12, color: '#555' }}>to</span>
+              <input type="date" value={invFilter.dateTo}
+                onChange={e => { setInvFilter(f => ({ ...f, dateTo: e.target.value })); setInvoicePage(0); }}
+                style={{ padding: '5px 8px', borderRadius: 6, border: '1px solid #ccc', fontSize: 12 }} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <span style={{ fontSize: 12, color: '#555', whiteSpace: 'nowrap' }}>Sort Inv #:</span>
               <button
-                onClick={() => { setInvFilter({ search: '', month: '', status: '', company: '' }); setInvoicePage(0); }}
+                onClick={() => setInvSort(s => ({ field: 'invoiceNumber', dir: s.field === 'invoiceNumber' && s.dir === 'asc' ? 'desc' : 'asc' }))}
+                style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid #007bff', background: invSort.field === 'invoiceNumber' ? '#007bff' : '#fff', color: invSort.field === 'invoiceNumber' ? '#fff' : '#007bff', cursor: 'pointer', fontSize: 12, fontWeight: 'bold' }}
+              >
+                {invSort.field === 'invoiceNumber' && invSort.dir === 'desc' ? 'N → 1' : '1 → N'}
+              </button>
+            </div>
+            {(invFilter.search || invFilter.month || invFilter.status || invFilter.company || invFilter.dateFrom || invFilter.dateTo) && (
+              <button
+                onClick={() => { setInvFilter({ search: '', month: '', status: '', company: '', dateFrom: '', dateTo: '' }); setInvoicePage(0); }}
                 style={{ padding: '6px 12px', background: '#888', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12 }}
               >
                 Clear
@@ -1779,6 +1946,16 @@ const Invoice = () => {
                     <input type="file" accept="application/pdf,image/*" onChange={e => setEditingInv(p => ({ ...p, newRemit: e.target.files[0] || null }))} />
                     {editingInv.newRemit && <div style={{ fontSize: 11, color: '#007bff', marginTop: 2 }}>New: {editingInv.newRemit.name}</div>}
                   </div>
+                </div>
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ fontSize: 12, fontWeight: 'bold', display: 'block', marginBottom: 3 }}>Additional Notes</label>
+                  <textarea
+                    value={editingInv.notes || ''}
+                    onChange={e => setEditingInv(p => ({ ...p, notes: e.target.value }))}
+                    placeholder="Any additional notes..."
+                    rows={3}
+                    style={{ width: '100%', padding: '5px 8px', borderRadius: 4, border: '1px solid #ced4da', fontSize: 13, boxSizing: 'border-box' }}
+                  />
                 </div>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <button className="btn btn--primary" onClick={handleSaveEdit} disabled={savingEdit} style={{ fontSize: 13 }}>
