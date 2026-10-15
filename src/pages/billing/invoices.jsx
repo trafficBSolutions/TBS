@@ -631,6 +631,8 @@ function CompanyProfilesSection() {
   const [invNotes, setInvNotes] = useState('');
   const [drafts, setDrafts] = useState([]);
   const [showDrafts, setShowDrafts] = useState(false);
+  const [savedPdfsPage, setSavedPdfsPage] = useState(0);
+  const SAVED_PDFS_PER_PAGE = 50;
 
   useEffect(() => {
     api.get('/api/billing/drafts').then(res => setDrafts(res.data || [])).catch(() => {});
@@ -736,6 +738,7 @@ function CompanyProfilesSection() {
   useEffect(() => {
     if (!selectedCompany) { setSavedPdfs([]); return; }
     setLoadingPdfs(true);
+    setSavedPdfsPage(0);
     api.get(`/api/billing/company-invoices/${encodeURIComponent(selectedCompany)}`)
       .then(res => setSavedPdfs(res.data || []))
       .catch(() => setSavedPdfs([]))
@@ -1142,57 +1145,81 @@ function CompanyProfilesSection() {
             <div style={{ marginBottom: 16 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <label style={{ fontWeight: 'bold', fontSize: 14 }}>📁 Saved Invoices &amp; Work Orders</label>
-                {loadingPdfs && <span style={{ fontSize: 12, color: '#888' }}>Loading…</span>}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {loadingPdfs && <span style={{ fontSize: 12, color: '#888' }}>Loading…</span>}
+                  {savedPdfs.length > 0 && <span style={{ fontSize: 12, color: '#555' }}>{savedPdfs.length} records</span>}
+                </div>
               </div>
               {savedPdfs.length === 0 && !loadingPdfs ? (
                 <div style={{ fontSize: 13, color: '#888', fontStyle: 'italic' }}>No history yet for this company.</div>
               ) : (
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                    <thead>
-                      <tr style={{ backgroundColor: '#17365D', color: 'white' }}>
-                        <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5' }}>Sent At</th>
-                        <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5' }}>Inv #</th>
-                        <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5' }}>Status</th>
-                        <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5' }}>Invoice PDF</th>
-                        <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5' }}>Work Order PDF</th>
-                        <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5' }}>Remit</th>
-                        <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5' }}>Sent To</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {savedPdfs.map((rec, i) => (
-                        <tr key={rec._id || i} style={{ backgroundColor: i % 2 === 0 ? '#fff' : '#f8f9fa', borderBottom: '1px solid #dee2e6' }}>
-                          <td style={{ padding: '7px 8px', border: '1px solid #ddd', whiteSpace: 'nowrap' }}>{new Date(rec.sentAt).toLocaleString()}</td>
-                          <td style={{ padding: '7px 8px', border: '1px solid #ddd' }}>{rec.invoiceNumber || '—'}</td>
-                          <td style={{ padding: '7px 8px', border: '1px solid #ddd' }}>
-                            <span style={{ padding: '2px 8px', borderRadius: 4, backgroundColor: rec.payStatus === 'paid' ? '#28a745' : '#ffc107', color: rec.payStatus === 'paid' ? '#fff' : '#000', fontWeight: 'bold', fontSize: 11 }}>
-                              {rec.payStatus === 'paid' ? 'Paid' : 'Unpaid'}
-                            </span>
-                          </td>
-                          <td style={{ padding: '7px 8px', border: '1px solid #ddd', fontSize: 12 }}>
-                            {rec._id && rec.invoicePdfName
-                              ? <a href={`${import.meta.env.VITE_API_URL}/api/billing/company-invoice-pdf/${rec._id}/invoice`} target="_blank" rel="noreferrer" style={{ color: '#007bff' }}>📄 {rec.invoicePdfName}</a>
-                              : rec.invoicePdfName || '—'}
-                          </td>
-                          <td style={{ padding: '7px 8px', border: '1px solid #ddd', fontSize: 12 }}>
-                            {rec._id && rec.workOrderPdfName
-                              ? <a href={`${import.meta.env.VITE_API_URL}/api/billing/company-invoice-pdf/${rec._id}/workorder`} target="_blank" rel="noreferrer" style={{ color: '#007bff' }}>📄 {rec.workOrderPdfName}</a>
-                              : rec.workOrderPdfName || '—'}
-                          </td>
-                          <td style={{ padding: '7px 8px', border: '1px solid #ddd', fontSize: 12 }}>
-                            {rec._id && rec.remitName
-                              ? <a href={`${import.meta.env.VITE_API_URL}/api/billing/company-invoice-pdf/${rec._id}/remit`} target="_blank" rel="noreferrer" style={{ color: '#007bff' }}>📄 {rec.remitName}</a>
-                              : rec.remitName || '—'}
-                          </td>
-                          <td style={{ padding: '7px 8px', border: '1px solid #ddd', fontSize: 12 }}>
-                            {rec.sentTo}{rec.additionalEmails?.length ? `, ${rec.additionalEmails.join(', ')}` : ''}
-                          </td>
+                <>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                      <thead>
+                        <tr style={{ backgroundColor: '#17365D', color: 'white' }}>
+                          <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5' }}>Sent At</th>
+                          <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5' }}>Inv #</th>
+                          <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5' }}>Status</th>
+                          <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5' }}>Invoice PDF</th>
+                          <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5' }}>Work Order PDF</th>
+                          <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5' }}>Remit</th>
+                          <th style={{ padding: '7px 8px', border: '1px solid #4a6fa5' }}>Sent To</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {savedPdfs
+                          .slice(savedPdfsPage * SAVED_PDFS_PER_PAGE, (savedPdfsPage + 1) * SAVED_PDFS_PER_PAGE)
+                          .map((rec, i) => (
+                          <tr key={rec._id || i} style={{ backgroundColor: i % 2 === 0 ? '#fff' : '#f8f9fa', borderBottom: '1px solid #dee2e6' }}>
+                            <td style={{ padding: '7px 8px', border: '1px solid #ddd', whiteSpace: 'nowrap' }}>{new Date(rec.sentAt).toLocaleString()}</td>
+                            <td style={{ padding: '7px 8px', border: '1px solid #ddd' }}>{rec.invoiceNumber || '—'}</td>
+                            <td style={{ padding: '7px 8px', border: '1px solid #ddd' }}>
+                              <span style={{ padding: '2px 8px', borderRadius: 4, backgroundColor: rec.payStatus === 'paid' ? '#28a745' : '#ffc107', color: rec.payStatus === 'paid' ? '#fff' : '#000', fontWeight: 'bold', fontSize: 11 }}>
+                                {rec.payStatus === 'paid' ? 'Paid' : 'Unpaid'}
+                              </span>
+                            </td>
+                            <td style={{ padding: '7px 8px', border: '1px solid #ddd', fontSize: 12 }}>
+                              {rec._id && rec.invoicePdfName
+                                ? <a href={`${import.meta.env.VITE_API_URL}/api/billing/company-invoice-pdf/${rec._id}/invoice`} target="_blank" rel="noreferrer" style={{ color: '#007bff' }}>📄 {rec.invoicePdfName}</a>
+                                : rec.invoicePdfName || '—'}
+                            </td>
+                            <td style={{ padding: '7px 8px', border: '1px solid #ddd', fontSize: 12 }}>
+                              {rec._id && rec.workOrderPdfName
+                                ? <a href={`${import.meta.env.VITE_API_URL}/api/billing/company-invoice-pdf/${rec._id}/workorder`} target="_blank" rel="noreferrer" style={{ color: '#007bff' }}>📄 {rec.workOrderPdfName}</a>
+                                : rec.workOrderPdfName || '—'}
+                            </td>
+                            <td style={{ padding: '7px 8px', border: '1px solid #ddd', fontSize: 12 }}>
+                              {rec._id && rec.remitName
+                                ? <a href={`${import.meta.env.VITE_API_URL}/api/billing/company-invoice-pdf/${rec._id}/remit`} target="_blank" rel="noreferrer" style={{ color: '#007bff' }}>📄 {rec.remitName}</a>
+                                : rec.remitName || '—'}
+                            </td>
+                            <td style={{ padding: '7px 8px', border: '1px solid #ddd', fontSize: 12 }}>
+                              {rec.sentTo}{rec.additionalEmails?.length ? `, ${rec.additionalEmails.join(', ')}` : ''}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {savedPdfs.length > SAVED_PDFS_PER_PAGE && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+                      <button
+                        onClick={() => setSavedPdfsPage(p => Math.max(0, p - 1))}
+                        disabled={savedPdfsPage === 0}
+                        style={{ padding: '5px 12px', backgroundColor: savedPdfsPage === 0 ? '#ccc' : '#007bff', color: '#fff', border: 'none', borderRadius: 4, cursor: savedPdfsPage === 0 ? 'not-allowed' : 'pointer', fontSize: 12 }}
+                      >← Previous</button>
+                      <span style={{ fontSize: 12, color: '#555' }}>
+                        Page {savedPdfsPage + 1} of {Math.ceil(savedPdfs.length / SAVED_PDFS_PER_PAGE)} ({savedPdfs.length} total)
+                      </span>
+                      <button
+                        onClick={() => setSavedPdfsPage(p => p + 1)}
+                        disabled={(savedPdfsPage + 1) * SAVED_PDFS_PER_PAGE >= savedPdfs.length}
+                        style={{ padding: '5px 12px', backgroundColor: (savedPdfsPage + 1) * SAVED_PDFS_PER_PAGE >= savedPdfs.length ? '#ccc' : '#007bff', color: '#fff', border: 'none', borderRadius: 4, cursor: (savedPdfsPage + 1) * SAVED_PDFS_PER_PAGE >= savedPdfs.length ? 'not-allowed' : 'pointer', fontSize: 12 }}
+                      >Next →</button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}
