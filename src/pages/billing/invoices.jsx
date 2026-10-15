@@ -1989,6 +1989,7 @@ const Invoice = () => {
                   <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>INVOICE PDF</th>
                   <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>WORK ORDER PDF</th>
                   <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>REMIT</th>
+                  <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>NOTES</th>
                   <th style={{ padding: '8px 6px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}></th>
                 </tr>
               </thead>
@@ -2071,6 +2072,9 @@ const Invoice = () => {
                               style={{ background: 'none', border: 'none', color: '#007bff', cursor: 'pointer', fontSize: 11, padding: 0, textDecoration: 'underline' }}>📄 {inv.remitName}</button>
                           : inv.remitName || '—'}
                       </td>
+                      <td style={{ padding: '7px 6px', border: '1px solid #ddd', fontSize: 11, maxWidth: 180 }}>
+                        {inv.notes ? <span title={inv.notes} style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inv.notes}</span> : '—'}
+                      </td>
                       <td style={{ padding: '7px 6px', border: '1px solid #ddd', textAlign: 'center', whiteSpace: 'nowrap' }}>
                         {inv.lineItems?.length > 0 && (
                           <button onClick={() => setExpandedInv(expandedInv === inv._id ? null : inv._id)}
@@ -2086,7 +2090,7 @@ const Invoice = () => {
                     </tr>
                     {expandedInv === inv._id && inv.lineItems?.length > 0 && (
                       <tr key={`${inv._id}-lines`}>
-                        <td colSpan={14} style={{ padding: '0 12px 12px 12px', backgroundColor: '#f0f7ff', border: '1px solid #ddd' }}>
+                        <td colSpan={15} style={{ padding: '0 12px 12px 12px', backgroundColor: '#f0f7ff', border: '1px solid #ddd' }}>
                           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, marginTop: 8 }}>
                             <thead>
                               <tr style={{ backgroundColor: '#17365D', color: 'white' }}>
