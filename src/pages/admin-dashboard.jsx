@@ -1829,11 +1829,14 @@ selected={
                       alert('Failed to generate PDF. Please try again.');
                     } finally { setSelectedPdfId(null); }
                   }}>
-                  {selectedPdfId === wo._id ? '⏳ Generating...' : '📄 PDF'}
+                  {selectedPdfId === wo._id ? 'Hide PDF' : 'View PDF'}
                 </button>
                 <button style={{padding:'6px 14px',fontSize:'12px',background:'#2196F3',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer',fontWeight:'bold'}}
-                  onClick={() => { setEditingHydrovacWo(wo); setEditHydrovacWo({...wo}); }}>✏️ Edit</button>
+                  onClick={() => { setEditingHydrovacWo(wo); setEditHydrovacWo({...wo}); }}>Edit</button>
               </div>
+              {selectedPdfId === wo._id && (
+                <iframe src={`/hydrovac-work-order/${wo._id}/pdf`} style={{width:'100%',height:'600px',marginTop:'12px',border:'1px solid #ddd',borderRadius:'6px'}} title="Hydrovac Work Order PDF" />
+              )}
             </>
           )}
         </div>
