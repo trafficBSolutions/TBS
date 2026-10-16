@@ -316,7 +316,7 @@ useEffect(() => {
     // Add this function after your state declarations
 const checkAllFieldsFilled = () => {
   const requiredFields = ['name', 'email', 'phone', 'jobDate',
-    'company', 'coordinator', 'time', 'project', 'flagger', 'address', 'city', 
+    'company', 'time', 'project', 'flagger', 'address', 'city', 
     'state', 'zip', 'terms'];
   
   // Check if all required fields are filled
@@ -375,19 +375,18 @@ const isCompanySelected = (formData.company || '').trim().length > 0;
 
     // Validation first
     const requiredFields = ['name', 'email', 'phone', 'jobDate',
-      'company', 'coordinator', 'time', 'project', 'flagger', 'address', 'city', 
+      'company', 'time', 'project', 'flagger', 'address', 'city', 
     'state', 'zip', 'terms'];
     const newErrors = {};
 
     requiredFields.forEach(field => {
       if (!formData[field]) {
         let fieldLabel = field.charAt(0).toUpperCase() + field.slice(1);
-        if (field === 'name') fieldLabel = 'Name';
+        if (field === 'name') fieldLabel = 'Coordinator Name';
         if (field === 'email') fieldLabel = 'Coordinator Email';
         if (field === 'phone') fieldLabel = 'Phone Number';
         if (field === 'jobDate') fieldLabel = 'Job Date';
         if (field === 'company') fieldLabel = 'Company Name';
-        if (field === 'coordinator') fieldLabel = 'Coordinator';
         if (field === 'time') fieldLabel = 'Time';
         if (field === 'project') fieldLabel = 'Project';
         if (field === 'flagger') fieldLabel = 'Flagger Count';
@@ -504,13 +503,13 @@ const isCompanySelected = (formData.company || '').trim().length > 0;
   <div className="first-name">
     <div className="name-control-input">
     <div className="first-name-control-container">
-<label className="first-control-label-name">Name *</label>
+<label className="first-control-label-name">Coordinator Name *</label>
 <input
 name="name"
 type="text"
 className="first-control-name-input"
 text="first-name--input"
-placeholder="Enter First & Last Name"
+placeholder="Enter Coordinator First & Last Name"
 value={formData.name}
 onChange={(e) => { 
   setFormData({ ...formData, name: e.target.value });
@@ -617,15 +616,6 @@ setTimeout(checkAllFieldsFilled, 0);
 }}
 />
 {errors.company && <div className="error-message">{errors.company}</div>}
-<label className="cord-label">Coordinator *</label>
-<input
-  className="project-name-input"
-  type="text"
-  placeholder="Coordinator First & Last Name"
-  value={coordinator}
-  onChange={handleCoordinatorChange}
-/>
-{errors.coordinator && <span className="error-message">{errors.coordinator}</span>}
                   <label className="phone">Coordinator Phone Number *</label>
                   <input
                     name="phone"
@@ -1112,16 +1102,16 @@ setTimeout(checkAllFieldsFilled, 0);
           onClick={() => {
             // Validate all required fields first
             const requiredFields = ['name', 'email', 'phone', 'jobDate',
-              'company', 'coordinator', 'time', 'project', 'flagger', 'address', 'city', 
+              'company', 'time', 'project', 'flagger', 'address', 'city', 
               'state', 'zip', 'terms'];
             const newErrors = {};
 
             requiredFields.forEach(field => {
               if (!formData[field]) {
                 let fieldLabel = field.charAt(0).toUpperCase() + field.slice(1);
+                if (field === 'name') fieldLabel = 'Coordinator Name';
                 if (field === 'jobDate') fieldLabel = 'Job Date';
                 if (field === 'company') fieldLabel = 'Company Name';
-                if (field === 'coordinator') fieldLabel = 'Coordinator';
                 if (field === 'phone') fieldLabel = 'Phone Number';
                 if (field === 'terms') fieldLabel = 'Terms & Conditions';
                 newErrors[field] = `${fieldLabel} is required!`;
