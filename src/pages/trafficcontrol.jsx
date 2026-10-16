@@ -95,6 +95,7 @@ useEffect(() => {
     coordinator: '',
     site: '',
     siteContact: '',
+    siteContactEmail: '',
     time: '',
     project: '',
     flagger: '',
@@ -228,6 +229,7 @@ useEffect(() => {
         coordinator: '',
         site: '',
         siteContact: '',
+        siteContactEmail: '',
         time: '',
         project: '',
         flagger: '',
@@ -654,6 +656,15 @@ setTimeout(checkAllFieldsFilled, 0);
                     placeholder="Enter On-Site Phone Number"
                     value={site} // Bind to phone state
                     onChange={handleSiteChange}
+                  />
+                <label className="phone">On-Site Contact Email</label>
+                  <input
+                    name="siteContactEmail"
+                    type="email"
+                    className="phone-box"
+                    placeholder="Enter On-Site Contact Email"
+                    value={formData.siteContactEmail}
+                    onChange={(e) => setFormData({ ...formData, siteContactEmail: e.target.value })}
                   />
 <label className="project-time">Time of Arrival *</label>
 <p className="time-label">What time do you want the TBS crew to arrive?</p>
@@ -1192,6 +1203,7 @@ setTimeout(checkAllFieldsFilled, 0);
                       coordinator: '',
                       site: '',
                       siteContact: '',
+                      siteContactEmail: '',
                       time: '',
                       project: '',
                       flagger: '',
@@ -1307,6 +1319,7 @@ setFormData({
   coordinator: '',
   site: '',
   siteContact: '',
+  siteContactEmail: '',
   time: '',
   project: '',
   flagger: '',
