@@ -64,9 +64,9 @@ const TrafficJobsView = ({ selectedDate, jobs = [], jobRegionFilter, setJobRegio
             )}
             {job.cancelled && <p className="cancelled-label">❌ Cancelled on {new Date(job.cancelledAt).toLocaleDateString()}</p>}
             {selectedDate && !job.cancelled && <p><strong>Traffic Control Job on</strong> {selectedDate.toLocaleDateString()}</p>}
-            <p><strong>Coordinator:</strong> {job.coordinator}</p>
+            <p><strong>Coordinator:</strong> {job.coordinator}{job.email && <> – <a href={`mailto:${job.email}`}>{job.email}</a></>}</p>
             {job.phone && <p><strong>Phone:</strong> <a href={`tel:${job.phone}`}>{job.phone}</a></p>}
-            <p><strong>On-Site Contact:</strong> {job.siteContact}</p>
+            <p><strong>On-Site Contact:</strong> {job.siteContact}{job.siteContactEmail && <> – <a href={`mailto:${job.siteContactEmail}`}>{job.siteContactEmail}</a></>}</p>
             <p><strong>On-Site Contact Phone Number:</strong> <a href={`tel:${job.site}`}>{job.site}</a></p>
             <p><strong>Time:</strong> {job.time}</p>
             <p><strong>Project/Task Number:</strong> {job.project}</p>
