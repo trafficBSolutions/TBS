@@ -568,7 +568,7 @@ setTimeout(checkAllFieldsFilled, 0);
 }}
 />
 {errors.company && <div className="error-message">{errors.company}</div>}
-<label className="first-control-label-name">Coordinator Name *</label>
+<label className="first-control-label-name">{isGASelected ? 'Coordinator Name *' : 'Name *'}</label>
 <input
 name="name"
 type="text"
