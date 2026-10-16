@@ -499,55 +499,7 @@ const isCompanySelected = (formData.company || '').trim().length > 0;
 <h3 className="control-fill-info">Fields marked with * are required.</h3>
 </div>
 <div className="job-actual">
-<div className="first-control-input">
-  <div className="first-name">
-    <div className="name-control-input">
-    <div className="first-name-control-container">
-<label className="first-control-label-name">Coordinator Name *</label>
-<input
-name="name"
-type="text"
-className="first-control-name-input"
-text="first-name--input"
-placeholder="Enter Coordinator First & Last Name"
-value={formData.name}
-onChange={(e) => { 
-  setFormData({ ...formData, name: e.target.value });
-if (e.target.value) {
-  setErrors((prevErrors) => ({ ...prevErrors, name: '' })); // Clear the error
-}
-setTimeout(checkAllFieldsFilled, 0);
-}}
-/>
-{errors.name && <div className="error-message">{errors.name}</div>}
-</div>
-    </div>
-  </div>
-  <div className="email">
-    <div className="email-control-input">
-    <div className="email-control-container">
-<label className="email-control-name">Coordinator Email *</label>
-      <p className="date-picker-note"><b>NOTE:</b> Make sure the coordinator email is correct. The job confirmation will be sent to this address.</p>
-<input
-name="email"
-type="text"
-className="email-control-box"
-text="email--input"
-placeholder="Enter Coordinator Email"
-value={formData.email}
-onChange={(e) => { 
-  setFormData({ ...formData, email: e.target.value });
-if (e.target.value) {
-  setErrors((prevErrors) => ({ ...prevErrors, email: '' })); // Clear the error
-}
-setTimeout(checkAllFieldsFilled, 0);
-}}
-/>
-{errors.email && <div className="error-message">{errors.email}</div>}
-</div>
-    </div>
-  </div>
-              </div>
+
 <div className="address-controler-container">
 <label className="address-controllabel">Job Information: </label>
 <div className="address-control-input">
@@ -616,6 +568,35 @@ setTimeout(checkAllFieldsFilled, 0);
 }}
 />
 {errors.company && <div className="error-message">{errors.company}</div>}
+<label className="first-control-label-name">Coordinator Name *</label>
+<input
+name="name"
+type="text"
+className="first-control-name-input"
+placeholder="Enter Coordinator First & Last Name"
+value={formData.name}
+onChange={(e) => {
+  setFormData({ ...formData, name: e.target.value });
+  if (e.target.value) setErrors((prevErrors) => ({ ...prevErrors, name: '' }));
+  setTimeout(checkAllFieldsFilled, 0);
+}}
+/>
+{errors.name && <div className="error-message">{errors.name}</div>}
+<label className="email-control-name">Coordinator Email *</label>
+<p className="date-picker-note"><b>NOTE:</b> Make sure the coordinator email is correct. The job confirmation will be sent to this address.</p>
+<input
+name="email"
+type="text"
+className="email-control-box"
+placeholder="Enter Coordinator Email"
+value={formData.email}
+onChange={(e) => {
+  setFormData({ ...formData, email: e.target.value });
+  if (e.target.value) setErrors((prevErrors) => ({ ...prevErrors, email: '' }));
+  setTimeout(checkAllFieldsFilled, 0);
+}}
+/>
+{errors.email && <div className="error-message">{errors.email}</div>}
                   <label className="phone">Coordinator Phone Number *</label>
                   <input
                     name="phone"
