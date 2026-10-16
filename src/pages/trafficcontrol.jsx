@@ -381,7 +381,7 @@ const isCompanySelected = (formData.company || '').trim().length > 0;
       if (!formData[field]) {
         let fieldLabel = field.charAt(0).toUpperCase() + field.slice(1);
         if (field === 'name') fieldLabel = 'Name';
-        if (field === 'email') fieldLabel = 'Email';
+        if (field === 'email') fieldLabel = 'Coordinator Email';
         if (field === 'phone') fieldLabel = 'Phone Number';
         if (field === 'jobDate') fieldLabel = 'Job Date';
         if (field === 'company') fieldLabel = 'Company Name';
@@ -525,14 +525,14 @@ setTimeout(checkAllFieldsFilled, 0);
   <div className="email">
     <div className="email-control-input">
     <div className="email-control-container">
-<label className="email-control-name">Email *</label>
-      <p className="date-picker-note"><b>NOTE:</b> Make sure your email address is correct. Otherwise, you will not receive an email nor a cancel link.</p>
+<label className="email-control-name">Coordinator Email *</label>
+      <p className="date-picker-note"><b>NOTE:</b> Make sure the coordinator email is correct. The job confirmation will be sent to this address.</p>
 <input
 name="email"
 type="text"
 className="email-control-box"
 text="email--input"
-placeholder="Enter Email"
+placeholder="Enter Coordinator Email"
 value={formData.email}
 onChange={(e) => { 
   setFormData({ ...formData, email: e.target.value });
