@@ -131,7 +131,9 @@ const [editHydrovacWo, setEditHydrovacWo] = useState({});
 const [hydrovacWoSaving, setHydrovacWoSaving] = useState(false);
 const [hydrovacWoSaveMsg, setHydrovacWoSaveMsg] = useState('');
 const [leaveRequests, setLeaveRequests] = useState([]);
+const [leavePage, setLeavePage] = useState(0);
 const [pendingShopWos, setPendingShopWos] = useState([]);
+const [shopWoPage, setShopWoPage] = useState(0);
 const [clockedInList, setClockedInList] = useState([]);
 const [clockHistory, setClockHistory] = useState([]);
 const [clockHistoryDate, setClockHistoryDate] = useState(new Date());
@@ -2814,52 +2816,78 @@ selected={
 <section className="admin-section" style={{marginTop:'2rem'}}>
   <h2 className="admin-plans-title">❌ Leave Requests {leaveRequests.length > 0 && <span style={{color:'#ff9800'}}>({leaveRequests.length} pending)</span>}</h2>
   {leaveRequests.length === 0 && <p style={{color:'#888',padding:'1rem'}}>No pending leave requests.</p>}
-  {leaveRequests.length > 0 && (
-    <div className="job-info-list">
-      {leaveRequests.map((lr) => (
-        <div key={lr._id} className="job-card">
-          <h4 className="job-company">{lr.employeeName}</h4>
-          <p><strong>Position:</strong> {lr.position}</p>
-          <p><strong>Supervisor:</strong> {lr.supervisor}</p>
-          <p><strong>Leave Type:</strong> {lr.leaveType}{lr.otherLeaveType ? ` - ${lr.otherLeaveType}` : ''}</p>
-          <p><strong>Dates:</strong> {lr.startDate} to {lr.endDate} ({lr.totalDays} days)</p>
-          <p><strong>Reason:</strong> {lr.reason}</p>
-          <p><strong>Submitted:</strong> {new Date(lr.createdAt).toLocaleString()}</p>
-          <div style={{display:'flex',gap:'8px',marginTop:'10px'}}>
-            <button className="btn" style={{background:'#4CAF50',color:'#fff'}} onClick={() => handleLeaveApprove(lr._id)}>✅ Approve</button>
-            <button className="btn" style={{background:'#f44336',color:'#fff'}} onClick={() => handleLeaveDeny(lr._id)}>❌ Deny</button>
-          </div>
+  {leaveRequests.length > 0 && (() => {
+    const lrPages = Math.ceil(leaveRequests.length / 2);
+    const lrSlice = leaveRequests.slice(leavePage * 2, leavePage * 2 + 2);
+    return (
+      <>
+        <div className="job-info-list">
+          {lrSlice.map((lr) => (
+            <div key={lr._id} className="job-card">
+              <h4 className="job-company">{lr.employeeName}</h4>
+              <p><strong>Position:</strong> {lr.position}</p>
+              <p><strong>Supervisor:</strong> {lr.supervisor}</p>
+              <p><strong>Leave Type:</strong> {lr.leaveType}{lr.otherLeaveType ? ` - ${lr.otherLeaveType}` : ''}</p>
+              <p><strong>Dates:</strong> {lr.startDate} to {lr.endDate} ({lr.totalDays} days)</p>
+              <p><strong>Reason:</strong> {lr.reason}</p>
+              <p><strong>Submitted:</strong> {new Date(lr.createdAt).toLocaleString()}</p>
+              <div style={{display:'flex',gap:'8px',marginTop:'10px'}}>
+                <button className="btn" style={{background:'#4CAF50',color:'#fff'}} onClick={() => handleLeaveApprove(lr._id)}>✅ Approve</button>
+                <button className="btn" style={{background:'#f44336',color:'#fff'}} onClick={() => handleLeaveDeny(lr._id)}>❌ Deny</button>
+              </div>
+            </div>
+          ))}
         </div>
-      ))}
-    </div>
-  )}
-</section>
-
+        {lrPages > 1 && (
+          <div style={{display:'flex',alignItems:'center',gap:'8px',marginTop:'8px'}}>
+            <button disabled={leavePage === 0} onClick={() => setLeavePage(p => p - 1)} style={{padding:'4px 10px',borderRadius:'4px',border:'1px solid #ccc',background:leavePage===0?'#eee':'#fff',cursor:leavePage===0?'not-allowed':'pointer'}}>&laquo; Prev</button>
+            <span style={{fontSize:'13px',color:'#555'}}>Page {leavePage + 1} of {lrPages}</span>
+            <button disabled={leavePage + 1 >= lrPages} onClick={() => setLeavePage(p => p + 1)} style={{padding:'4px 10px',borderRadius:'4px',border:'1px solid #ccc',background:leavePage+1>=lrPages?'#eee':'#fff',cursor:leavePage+1>=lrPages?'not-allowed':'pointer'}}>Next &raquo;</button>
+          </div>
+        )}
+      </>
+    );
+  })()}
+  </section>
 {/* PENDING SHOP WORK ORDERS SECTION */}
 {allowedForShopWo && pendingShopWos.length > 0 && (
 <section className="admin-section" style={{marginTop:'2rem'}}>
   <h2 className="admin-plans-title">🛠️ Pending Shop Work Orders <span style={{color:'#ff9800'}}>({pendingShopWos.length})</span></h2>
-  <div className="job-info-list">
-    {pendingShopWos.map((wo) => (
-      <div key={wo._id} className="job-card">
-        <h4 className="job-company">{wo.employeeNames}</h4>
-        <p><strong>Date:</strong> {wo.date}</p>
-        <p><strong>Time:</strong> {wo.inTime} - {wo.outTime}</p>
-        <p><strong>Location:</strong> {wo.location}</p>
-        <p><strong>Truck:</strong> {wo.truckNumber || 'N/A'}</p>
-        <p><strong>Supervisor:</strong> {wo.supervisor}</p>
-        <p><strong>Description:</strong> {wo.description}</p>
-        <p><strong>Submitted:</strong> {new Date(wo.createdAt).toLocaleString()}</p>
-        <div style={{display:'flex',gap:'8px',marginTop:'10px'}}>
-          <button className="btn" style={{background:'#4CAF50',color:'#fff'}} onClick={() => handleShopWoApprove(wo._id)}>✅ Approve</button>
-          <button className="btn" style={{background:'#f44336',color:'#fff'}} onClick={() => handleShopWoDisapprove(wo._id)}>❌ Disapprove</button>
+  {(() => {
+    const woPages = Math.ceil(pendingShopWos.length / 2);
+    const woSlice = pendingShopWos.slice(shopWoPage * 2, shopWoPage * 2 + 2);
+    return (
+      <>
+        <div className="job-info-list">
+          {woSlice.map((wo) => (
+            <div key={wo._id} className="job-card">
+              <h4 className="job-company">{wo.employeeNames}</h4>
+              <p><strong>Date:</strong> {wo.date}</p>
+              <p><strong>Time:</strong> {wo.inTime} - {wo.outTime}</p>
+              <p><strong>Location:</strong> {wo.location}</p>
+              <p><strong>Truck:</strong> {wo.truckNumber || 'N/A'}</p>
+              <p><strong>Supervisor:</strong> {wo.supervisor}</p>
+              <p><strong>Description:</strong> {wo.description}</p>
+              <p><strong>Submitted:</strong> {new Date(wo.createdAt).toLocaleString()}</p>
+              <div style={{display:'flex',gap:'8px',marginTop:'10px'}}>
+                <button className="btn" style={{background:'#4CAF50',color:'#fff'}} onClick={() => handleShopWoApprove(wo._id)}>✅ Approve</button>
+                <button className="btn" style={{background:'#f44336',color:'#fff'}} onClick={() => handleShopWoDisapprove(wo._id)}>❌ Disapprove</button>
+              </div>
+            </div>
+          ))}
         </div>
-      </div>
-    ))}
-  </div>
+        {woPages > 1 && (
+          <div style={{display:'flex',alignItems:'center',gap:'8px',marginTop:'8px'}}>
+            <button disabled={shopWoPage === 0} onClick={() => setShopWoPage(p => p - 1)} style={{padding:'4px 10px',borderRadius:'4px',border:'1px solid #ccc',background:shopWoPage===0?'#eee':'#fff',cursor:shopWoPage===0?'not-allowed':'pointer'}}>&laquo; Prev</button>
+            <span style={{fontSize:'13px',color:'#555'}}>Page {shopWoPage + 1} of {woPages}</span>
+            <button disabled={shopWoPage + 1 >= woPages} onClick={() => setShopWoPage(p => p + 1)} style={{padding:'4px 10px',borderRadius:'4px',border:'1px solid #ccc',background:shopWoPage+1>=woPages?'#eee':'#fff',cursor:shopWoPage+1>=woPages?'not-allowed':'pointer'}}>Next &raquo;</button>
+          </div>
+        )}
+      </>
+    );
+  })()}
 </section>
 )}
-
 {selectedImage && (
   <div className="image-modal" onClick={() => setSelectedImage(null)}>
     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
