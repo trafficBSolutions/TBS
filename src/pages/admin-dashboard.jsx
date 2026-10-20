@@ -1233,9 +1233,9 @@ selected={
        <h3>Traffic Control Jobs on {selectedDate?.toLocaleDateString()}</h3>
        <div style={{display:'flex',gap:'8px',marginBottom:'1rem',flexWrap:'wrap'}}>
          <button className={`btn ${jobRegionFilter === '' ? 'active' : ''}`} onClick={() => setJobRegionFilter('')}>All Jobs</button>
-         <button className={`btn ${jobRegionFilter === 'north' ? 'active' : ''}`} style={{background: jobRegionFilter === 'north' ? '#1e88e5' : ''}} onClick={() => setJobRegionFilter('north')}>ðŸŸ¦ North GA</button>
-         <button className={`btn ${jobRegionFilter === 'south' ? 'active' : ''}`} style={{background: jobRegionFilter === 'south' ? '#e65100' : ''}} onClick={() => setJobRegionFilter('south')}>ðŸŸ§ South GA</button>
-         <button className={`btn ${jobRegionFilter === 'tn' ? 'active' : ''}`} style={{background: jobRegionFilter === 'tn' ? '#2e7d32' : ''}} onClick={() => setJobRegionFilter('tn')}>ðŸŸ© TN Jobs</button>
+         <button className={`btn ${jobRegionFilter === 'north' ? 'active' : ''}`} style={{background: jobRegionFilter === 'north' ? '#1e88e5' : ''}} onClick={() => setJobRegionFilter('north')}>🟦 North GA</button>
+         <button className={`btn ${jobRegionFilter === 'south' ? 'active' : ''}`} style={{background: jobRegionFilter === 'south' ? '#e65100' : ''}} onClick={() => setJobRegionFilter('south')}>🟨 South GA</button>
+         <button className={`btn ${jobRegionFilter === 'tn' ? 'active' : ''}`} style={{background: jobRegionFilter === 'tn' ? '#2e7d32' : ''}} onClick={() => setJobRegionFilter('tn')}>🟩 TN Jobs</button>
          <span style={{alignSelf:'center',fontSize:'0.85rem',color:'#888'}}>(Max 10 jobs/day per region)</span>
        </div>
     {selectedDate && tasks[selectedDate.toISOString().split('T')[0]] && (
@@ -1273,23 +1273,23 @@ selected={
         return (
           <div key={index} className={`job-card ${job.cancelled ? 'cancelled-job' : ''}`} style={{position:'relative'}}>
             {job.emergency && (
-              <p className="emergency-label">ðŸš¨ Emergency Job Submitted After 8 PM for Next Day</p>
+              <p className="emergency-label">🚨 Emergency Job Submitted After 8 PM for Next Day</p>
             )}
             {job.updatedAt && !job.cancelled && (
               <p className="updated-label" style={{position:'absolute',top:'10px',right:'10px',margin:0,fontSize:'0.8rem'}}>
                 {job.createdAt && new Date(job.updatedAt).getTime() !== new Date(job.createdAt).getTime()
-                  ? `ðŸ“… Job Rescheduled on ${new Date(job.updatedAt).toLocaleDateString()}`
-                  : `ðŸ“… Job Scheduled on ${new Date(job.updatedAt).toLocaleDateString()}`}
+                  ? `📅 Job Rescheduled on ${new Date(job.updatedAt).toLocaleDateString()}`
+                  : `📅 Job Scheduled on ${new Date(job.updatedAt).toLocaleDateString()}`}
               </p>
             )}
             <h4 className="job-company">{job.company}</h4>
             {job.region && (
               <span style={{display:'inline-block',padding:'2px 8px',borderRadius:'4px',fontSize:'0.75rem',fontWeight:'bold',marginBottom:'6px',background: job.region === 'south' ? '#fff3e0' : job.region === 'tn' ? '#e8f5e9' : '#e3f2fd',color: job.region === 'south' ? '#e65100' : job.region === 'tn' ? '#2e7d32' : '#1565c0'}}>
-                {job.region === 'south' ? 'ðŸŸ§ South GA' : job.region === 'tn' ? 'ðŸŸ© TN' : 'ðŸŸ¦ North GA'}
+                {job.region === 'south' ? '🟨 South GA' : job.region === 'tn' ? '🟩 TN' : '🟦 North GA'}
               </span>
             )}
             {job.cancelled && (
-              <p className="cancelled-label">âŒ Cancelled on {new Date(job.cancelledAt).toLocaleDateString()}</p>
+              <p className="cancelled-label">❌ Cancelled on {new Date(job.cancelledAt).toLocaleDateString()}</p>
             )}
             {selectedDate && !job.cancelled && (
               <p><strong>Traffic Control Job on</strong> {selectedDate.toLocaleDateString()}</p>
@@ -1305,7 +1305,7 @@ selected={
               <p><strong>Additional Flaggers:</strong> Yes ({job.additionalFlaggerCount} additional)</p>
             )}
             {job.policeOfficerNeeded && (
-              <p><strong>ðŸš” Police Officer Needed:</strong> Yes</p>
+              <p><strong>🚨 Police Officer Needed:</strong> Yes</p>
             )}
             <p><strong>Equipment:</strong> {job.equipment.join(', ')}</p>
             <p><strong>Address:</strong> {job.address}, {job.city}, {job.state} {job.zip}</p>
@@ -1338,7 +1338,7 @@ selected={
                 <span className="task-author">{task.author}</span>
                 <span className="task-timestamp">{new Date(task.createdAt).toLocaleString()}</span>
                 <span className={`task-visibility ${task.isPublic ? 'public' : 'private'}`}>
-                  {task.isPublic ? 'ðŸŒ Public' : 'ðŸ”’ Private'}
+                  {task.isPublic ? '🌐 Public' : '🔒 Private'}
                 </span>
               </div>
               <div className="task-content">
@@ -1351,7 +1351,7 @@ selected={
                   <span className={task.completed ? 'completed-text' : ''}>{task.text}</span>
                 </label>
               </div>
-              <button className="delete-task" onClick={() => deleteTask(woSelectedDate.toISOString().split('T')[0], task._id)}>ðŸ—‘ï¸</button>
+              <button className="delete-task" onClick={() => deleteTask(woSelectedDate.toISOString().split('T')[0], task._id)}>🗑️</button>
             </div>
           ))}
         </div>
@@ -1401,12 +1401,12 @@ selected={
           <div style={{marginTop: '10px'}}>
             <strong>Jobsite Checklist:</strong>
             <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px', marginTop: '5px', fontSize: '12px'}}>
-              <div>âœ“ Visibility: {wo.tbs?.jobsite?.visibility ? 'Yes' : 'No'}</div>
-              <div>âœ“ Communication: {wo.tbs?.jobsite?.communication ? 'Yes' : 'No'}</div>
-              <div>âœ“ Site Foreman: {wo.tbs?.jobsite?.siteForeman ? 'Yes' : 'No'}</div>
-              <div>âœ“ Signs/Stands: {wo.tbs?.jobsite?.signsAndStands ? 'Yes' : 'No'}</div>
-              <div>âœ“ Cones/Taper: {wo.tbs?.jobsite?.conesAndTaper ? 'Yes' : 'No'}</div>
-              <div>âœ“ Equipment Left: {wo.tbs?.jobsite?.equipmentLeft ? 'Yes' : 'No'}</div>
+              <div>✅ Visibility: {wo.tbs?.jobsite?.visibility ? 'Yes' : 'No'}</div>
+              <div>✅ Communication: {wo.tbs?.jobsite?.communication ? 'Yes' : 'No'}</div>
+              <div>✅ Site Foreman: {wo.tbs?.jobsite?.siteForeman ? 'Yes' : 'No'}</div>
+              <div>✅ Signs/Stands: {wo.tbs?.jobsite?.signsAndStands ? 'Yes' : 'No'}</div>
+              <div>✅ Cones/Taper: {wo.tbs?.jobsite?.conesAndTaper ? 'Yes' : 'No'}</div>
+              <div>✅ Equipment Left: {wo.tbs?.jobsite?.equipmentLeft ? 'Yes' : 'No'}</div>
             </div>
           </div>
           
@@ -1431,7 +1431,7 @@ selected={
           <HoursFlag startTime={wo.basic?.startTime} endTime={wo.basic?.endTime} hoursFlag={wo.hoursFlag} />
           <AdminNotesDisplay adminNotes={wo.adminNotes} adminNotesBy={wo.adminNotesBy} adminCorrections={wo.adminCorrections} />
           {canEditWorkOrders() && (
-            <button style={{marginTop:'8px',padding:'6px 14px',fontSize:'12px',background:'#2196F3',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer',fontWeight:'bold'}} onClick={() => setEditingTCWorkOrder(wo)}>âœï¸ Edit Work Order</button>
+            <button style={{marginTop:'8px',padding:'6px 14px',fontSize:'12px',background:'#2196F3',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer',fontWeight:'bold'}} onClick={() => setEditingTCWorkOrder(wo)}>✏️ Edit Work Order</button>
           )}
         </div>
       ))}
@@ -1726,7 +1726,7 @@ selected={
 )}
 {viewMode === 'hydrovacwo' && (
   <>
-    <h3>Hydrovac Work Orders on {hydrovacWoDate?.toLocaleDateString()}</h3>
+    <h3>🚛 Hydrovac Work Orders on {hydrovacWoDate?.toLocaleDateString()}</h3>
     <div className="job-info-list">
       {hydrovacWoList.map((wo) => (
         <div key={wo._id} className="job-card">
@@ -1856,7 +1856,7 @@ selected={
             <span className="task-author">{task.author}</span>
             <span className="task-timestamp">{new Date(task.createdAt).toLocaleString()}</span>
             <span className={`task-visibility ${task.isPublic ? 'public' : 'private'}`}>
-              {task.isPublic ? 'ðŸŒ Public' : 'ðŸ”’ Private'}
+              {task.isPublic ? '📋 Public' : '🔒 Private'}
             </span>
           </div>
           <div className="task-content">
@@ -1869,7 +1869,7 @@ selected={
               <span className={task.completed ? 'completed-text' : ''}>{task.text}</span>
             </label>
           </div>
-          <button className="delete-task" onClick={() => deleteTask(taskDate.toISOString().split('T')[0], task._id)}>ðŸ—‘ï¸</button>
+          <button className="delete-task" onClick={() => deleteTask(taskDate.toISOString().split('T')[0], task._id)}>🗑️</button>
         </div>
       )) || []}
       {(!tasks[taskDate?.toISOString().split('T')[0]] || tasks[taskDate?.toISOString().split('T')[0]].length === 0) && (
@@ -1890,19 +1890,19 @@ selected={
 <div className="tools-grid">
 
   <div className="tool-card">
-    <h3> Work Order</h3>
+    <h3>📋 Work Order</h3>
     <p>Fill out a new work order</p>
     <button className="btn workorder-btn" onClick={() => navigate('/admin-dashboard/work-order')}>Open Work Order</button>
   </div>
 
   <div className="tool-card">
-    <h3>Shop Work Order</h3>
+    <h3>🏪 Shop Work Order</h3>
     <p>Submit a shop work order for approval</p>
     <button className="btn workorder-btn" onClick={() => navigate('/admin-dashboard/shop-work-order')}>Open Shop Work Order</button>
   </div>
 
   <div className="tool-card">
-    <h3>Hydrovac Work Order</h3>
+    <h3>🚛 Hydrovac Work Order</h3>
     <p>Submit a hydrovac work order</p>
     <button className="btn workorder-btn" onClick={() => navigate('/hydrovac-work-order')}>Open Hydrovac Work Order</button>
   </div>
@@ -1914,7 +1914,7 @@ selected={
   </div>
 
   <div className="tool-card">
-    <h3>Add Task</h3>
+    <h3>💻 Add Task</h3>
     <p>Create tasks for any date</p>
     <button className={`btn ${showTasks ? 'active' : ''}`} onClick={() => setShowTasks(!showTasks)}>{showTasks ? 'Hide' : 'Open'}</button>
     {showTasks && (
@@ -2496,21 +2496,21 @@ selected={
 
   {allowedForInvoices && (
     <div className="tool-card">
-      <h3>TC Invoicing</h3>
+      <h3>🚦 TC Invoicing</h3>
       <p>Traffic Control Invoicing</p>
       <a href="/admin-dashboard/invoices" className="invoice-btn">Open</a>
     </div>
   )}
   {allowedForQuotes && (
     <div className="tool-card">
-      <h3>Material WorX</h3>
+      <h3>🪧 Material WorX</h3>
       <p>Sign Shop Invoicing</p>
       <button className="invoice-btn" type="button" onClick={() => navigate('/admin-dashboard/quote')}>Open</button>
     </div>
   )}
   {allowedForDiscipline && (
     <div className="tool-card">
-      <h3>Discipline</h3>
+      <h3>⚠️ Discipline</h3>
       <p>Disciplinary Action</p>
       <button className="invoice-btn" type="button" onClick={() => navigate('/admin-dashboard/disciplinary-action')}>Open</button>
     </div>
