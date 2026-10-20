@@ -126,9 +126,23 @@ const InvoiceStatsSection = ({ invoiceStats, setInvoiceStats }) => {
             filtered.forEach(q => { (grouped[q._month] ||= []).push(q); });
             const monthOrder = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
             const sortedMonths = Object.keys(grouped).sort((a,b) => monthOrder.indexOf(a) - monthOrder.indexOf(b));
+            const yearlyTax = filtered.reduce((s, q) => s + (q.computed?.taxDue || 0), 0);
             return (
               <>
                 <p style={{fontWeight:'bold',fontSize:'1.1rem',marginBottom:'0.5rem'}}>Showing {filtered.length} of {invoiceStats.total} invoices</p>
+                {!invFilter.month && sortedMonths.length > 0 && (
+                  <div style={{background:'#e8f0fe',border:'1px solid #3b5bdb',borderRadius:'8px',padding:'10px 16px',marginBottom:'1rem',display:'flex',gap:'24px',flexWrap:'wrap',alignItems:'center'}}>
+                    <span style={{fontWeight:'bold',color:'#1e3a8a',fontSize:'14px'}}>📊 2026 Sales Tax Summary</span>
+                    {sortedMonths.map(month => (
+                      <span key={month} style={{fontSize:'13px',color:'#333'}}>
+                        {month}: <strong>${grouped[month].reduce((s, q) => s + (q.computed?.taxDue || 0), 0).toFixed(2)}</strong>
+                      </span>
+                    ))}
+                    <span style={{fontSize:'14px',fontWeight:'bold',color:'#1e3a8a',borderLeft:'2px solid #3b5bdb',paddingLeft:'16px',marginLeft:'auto'}}>
+                      Yearly Total: ${yearlyTax.toFixed(2)}
+                    </span>
+                  </div>
+                )}
                 {sortedMonths.map(month => (
                   <div key={month} style={{marginBottom:'1.5rem'}}>
                     <h4 style={{margin:'0.5rem 0',color:'#1e3a8a',borderBottom:'2px solid #1e3a8a',paddingBottom:'4px'}}>
