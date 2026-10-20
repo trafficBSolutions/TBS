@@ -8,6 +8,8 @@ const InvoiceStatsSection = ({ invoiceStats, setInvoiceStats }) => {
   const [editShopInv, setEditShopInv] = useState({ payMethod: '', cardType: '', cardLast4: '', checkNumber: '', notes: '', taxExemptNumber: '' });
   const [sendEmailOnSave, setSendEmailOnSave] = useState(false);
   const [emailSendMsg, setEmailSendMsg] = useState('');
+  const [monthPages, setMonthPages] = useState({});
+  const PAGE_SIZE = 5;
 
   const handlePrintInvoice = (q) => {
     var pw = window.open('', '', 'width=800,height=600');
@@ -104,7 +106,7 @@ const InvoiceStatsSection = ({ invoiceStats, setInvoiceStats }) => {
               <option value="unpaid">Unpaid</option>
             </select>
             {(invFilter.search || invFilter.month || invFilter.status) && (
-              <button style={{padding:'6px 12px',background:'#888',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer',fontSize:'12px'}} onClick={() => setInvFilter({search:'',month:'',status:''})}>Clear Filters</button>
+              <button style={{padding:'6px 12px',background:'#888',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer',fontSize:'12px'}} onClick={() => { setInvFilter({search:'',month:'',status:''}); setMonthPages({}); }}>Clear Filters</button>
             )}
           </div>
           {(() => {
@@ -135,8 +137,15 @@ const InvoiceStatsSection = ({ invoiceStats, setInvoiceStats }) => {
                         Sales Tax: <strong style={{color:'#1e3a8a'}}>${grouped[month].reduce((s, q) => s + (q.computed?.taxDue || 0), 0).toFixed(2)}</strong>
                       </span>
                     </h4>
-                    <div className="job-info-list">
-                      {grouped[month].map((q, idx) => (
+                    {(() => {
+                      const page = monthPages[month] || 0;
+                      const total = grouped[month].length;
+                      const totalPages = Math.ceil(total / PAGE_SIZE);
+                      const pageInvoices = grouped[month].slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+                      return (
+                        <>
+                        <div className="job-info-list">
+                      {pageInvoices.map((q, idx) => (
                         <div key={q._id || idx} className="job-card">
                           {(!q.cardLast4 && !q.checkNumber) && (
                             <div style={{background:'#fff3cd',border:'1px solid #ffc107',borderRadius:'6px',padding:'10px',marginBottom:'10px'}}>
@@ -298,6 +307,18 @@ const InvoiceStatsSection = ({ invoiceStats, setInvoiceStats }) => {
                         </div>
                       ))}
                     </div>
+                        {totalPages > 1 && (
+                          <div style={{display:'flex',alignItems:'center',gap:'8px',marginTop:'8px'}}>
+                            <button disabled={page === 0} onClick={() => setMonthPages(p => ({...p, [month]: page - 1}))}
+                              style={{padding:'4px 10px',borderRadius:'4px',border:'1px solid #ccc',background: page === 0 ? '#eee' : '#fff',cursor: page === 0 ? 'not-allowed' : 'pointer'}}>← Prev</button>
+                            <span style={{fontSize:'13px',color:'#555'}}>Page {page + 1} of {totalPages}</span>
+                            <button disabled={page + 1 >= totalPages} onClick={() => setMonthPages(p => ({...p, [month]: page + 1}))}
+                              style={{padding:'4px 10px',borderRadius:'4px',border:'1px solid #ccc',background: page + 1 >= totalPages ? '#eee' : '#fff',cursor: page + 1 >= totalPages ? 'not-allowed' : 'pointer'}}>Next →</button>
+                          </div>
+                        )}
+                        </>
+                      );
+                    })()}
                   </div>
                 ))}
                 {filtered.length === 0 && <p>No invoices match your filters.</p>}
