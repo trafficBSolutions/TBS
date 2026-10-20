@@ -2104,7 +2104,7 @@ selected={
               const end = new Date(prev); end.setDate(prev.getDate() + 6);
               const endStr = `${end.getFullYear()}-${String(end.getMonth()+1).padStart(2,'0')}-${String(end.getDate()).padStart(2,'0')}`;
               try { const res = await axios.get(`/timeclock/time-worked?location=${encodeURIComponent(clockLocation)}&startDate=${newStart}&endDate=${endStr}`); setTimeWorked(res.data); } catch(e) {}
-            }}>â—€ Prev Week</button>
+            }}>⏪ Prev Week</button>
             <span style={{fontWeight:'bold',fontSize:'1.1rem'}}>
               {weekStart.toLocaleDateString('en-US',{month:'short',day:'numeric'})} - {weekEnd.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
             </span>
