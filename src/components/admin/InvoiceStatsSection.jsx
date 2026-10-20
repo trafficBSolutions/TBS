@@ -129,7 +129,12 @@ const InvoiceStatsSection = ({ invoiceStats, setInvoiceStats }) => {
                 <p style={{fontWeight:'bold',fontSize:'1.1rem',marginBottom:'0.5rem'}}>Showing {filtered.length} of {invoiceStats.total} invoices</p>
                 {sortedMonths.map(month => (
                   <div key={month} style={{marginBottom:'1.5rem'}}>
-                    <h4 style={{margin:'0.5rem 0',color:'#1e3a8a',borderBottom:'2px solid #1e3a8a',paddingBottom:'4px'}}>{month} — {grouped[month].length} invoice{grouped[month].length !== 1 ? 's' : ''}</h4>
+                    <h4 style={{margin:'0.5rem 0',color:'#1e3a8a',borderBottom:'2px solid #1e3a8a',paddingBottom:'4px'}}>
+                      {month} — {grouped[month].length} invoice{grouped[month].length !== 1 ? 's' : ''}
+                      <span style={{marginLeft:'16px',fontSize:'13px',fontWeight:'normal',color:'#555'}}>
+                        Sales Tax: <strong style={{color:'#1e3a8a'}}>${grouped[month].reduce((s, q) => s + (q.computed?.taxDue || 0), 0).toFixed(2)}</strong>
+                      </span>
+                    </h4>
                     <div className="job-info-list">
                       {grouped[month].map((q, idx) => (
                         <div key={q._id || idx} className="job-card">
