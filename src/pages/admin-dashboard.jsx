@@ -1060,7 +1060,7 @@ useEffect(() => {
     <div className="stats-row">
       <div className="stat-chip"><span className="stat-label">Jobs This Month{jobRegionFilter ? ` (${jobRegionFilter === 'north' ? 'North' : 'South'} GA)` : ''}</span><span className="stat-value">{monthlyTotalJobs}</span></div>
       <div className="stat-chip"><span className="stat-label">Work Orders</span><span className="stat-value">{monthlyTotalWorkOrders}</span></div>
-      <div className="stat-chip"><span className="stat-label">{calendarViewDate.toLocaleString('default', { month: 'short', year: 'numeric' })}</span><span className="stat-value">ðŸ“…</span></div>
+      <div className="stat-chip"><span className="stat-label">{calendarViewDate.toLocaleString('default', { month: 'short', year: 'numeric' })}</span><span className="stat-value">⏰</span></div>
     </div>
     <div className="view-toggle">
       <button className={`btn ${viewMode === 'traffic' ? 'active' : ''}`} onClick={() => setViewMode('traffic')}>Traffic Control Jobs</button>
@@ -1077,7 +1077,7 @@ useEffect(() => {
         <button className={`btn ${viewMode === 'shopwo' ? 'active' : ''}`} onClick={() => setViewMode('shopwo')}>Shop Work Orders</button>
       
       )}
-      <button className={`btn ${viewMode === 'hydrovacwo' ? 'active' : ''}`} onClick={() => { setViewMode('hydrovacwo'); fetchMonthlyHydrovacWo(hydrovacWoDate); fetchHydrovacWoForDay(hydrovacWoDate); }}>ðŸš› Hydrovac WOs</button>
+      <button className={`btn ${viewMode === 'hydrovacwo' ? 'active' : ''}`} onClick={() => { setViewMode('hydrovacwo'); fetchMonthlyHydrovacWo(hydrovacWoDate); fetchHydrovacWoForDay(hydrovacWoDate); }}>Hydrovac WOs</button>
       <button className={`btn ${viewMode === 'complaints' ? 'active' : ''}`} onClick={() => setViewMode('complaints')}>Complaints</button>
       <button className={`btn ${viewMode === 'tasks' ? 'active' : ''}`} onClick={() => setViewMode('tasks')}>Tasks</button>
       {salaryAdminEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email) && (
@@ -1240,7 +1240,7 @@ selected={
        </div>
     {selectedDate && tasks[selectedDate.toISOString().split('T')[0]] && (
       <div className="selected-date-tasks">
-        <h4>ðŸ“‹ Tasks for {selectedDate.toLocaleDateString()}</h4>
+        <h4>📋 Tasks for {selectedDate.toLocaleDateString()}</h4>
         <div className="tasks-list">
           {tasks[selectedDate.toISOString().split('T')[0]].map(task => (
             <div key={task._id} className={`task-item ${task.completed ? 'completed' : ''}`}>
@@ -1248,7 +1248,7 @@ selected={
                 <span className="task-author">{task.author}</span>
                 <span className="task-timestamp">{new Date(task.createdAt).toLocaleString()}</span>
                 <span className={`task-visibility ${task.isPublic ? 'public' : 'private'}`}>
-                  {task.isPublic ? 'ðŸŒ Public' : 'ðŸ”’ Private'}
+                  {task.isPublic ? '📋 Public' : '🔒 Private'}
                 </span>
               </div>
               <div className="task-content">
@@ -1330,7 +1330,7 @@ selected={
     <h3>Work Orders on {woSelectedDate?.toLocaleDateString()}</h3>
     {woSelectedDate && tasks[woSelectedDate.toISOString().split('T')[0]] && (
       <div className="selected-date-tasks">
-        <h4>ðŸ“‹ Tasks for {woSelectedDate.toLocaleDateString()}</h4>
+        <h4>Tasks for {woSelectedDate.toLocaleDateString()}</h4>
         <div className="tasks-list">
           {tasks[woSelectedDate.toISOString().split('T')[0]].map(task => (
             <div key={task._id} className={`task-item ${task.completed ? 'completed' : ''}`}>
@@ -1535,7 +1535,7 @@ selected={
     <h3>Employee Complaints on {complaintsDate?.toLocaleDateString()}</h3>
     {complaintsDate && tasks[complaintsDate.toISOString().split('T')[0]] && (
       <div className="selected-date-tasks">
-        <h4>ðŸ“‹ Tasks for {complaintsDate.toLocaleDateString()}</h4>
+        <h4>📋 Tasks for {complaintsDate.toLocaleDateString()}</h4>
         <div className="tasks-list">
           {tasks[complaintsDate.toISOString().split('T')[0]].map(task => (
             <div key={task._id} className={`task-item ${task.completed ? 'completed' : ''}`}>
@@ -1543,7 +1543,7 @@ selected={
                 <span className="task-author">{task.author}</span>
                 <span className="task-timestamp">{new Date(task.createdAt).toLocaleString()}</span>
                 <span className={`task-visibility ${task.isPublic ? 'public' : 'private'}`}>
-                  {task.isPublic ? 'ðŸŒ Public' : 'ðŸ”’ Private'}
+                  {task.isPublic ? 'Public' : 'Private'}
                 </span>
               </div>
               <div className="task-content">
@@ -1556,7 +1556,7 @@ selected={
                   <span className={task.completed ? 'completed-text' : ''}>{task.text}</span>
                 </label>
               </div>
-              <button className="delete-task" onClick={() => deleteTask(complaintsDate.toISOString().split('T')[0], task._id)}>ðŸ—‘ï¸</button>
+              <button className="delete-task" onClick={() => deleteTask(complaintsDate.toISOString().split('T')[0], task._id)}>❌</button>
             </div>
           ))}
         </div>
@@ -1601,7 +1601,7 @@ selected={
 
 {viewMode === 'signshop' && (
   <>
-    <h3>ðŸª§ Sign Shop Jobs on {signShopDate?.toLocaleDateString()}</h3>
+    <h3>Sign Shop Jobs on {signShopDate?.toLocaleDateString()}</h3>
     <div className="add-task" style={{marginBottom: '1rem'}}>
       <input type="text" placeholder="Job title *" value={signShopTitle} onChange={(e) => setSignShopTitle(e.target.value)} />
       <input type="text" placeholder="Customer" value={signShopCustomer} onChange={(e) => setSignShopCustomer(e.target.value)} />
@@ -1650,8 +1650,8 @@ selected={
                 {job.description && <p style={{margin: '2px 0 0 24px', fontSize: '1.4rem', color: '#000000', height: 'auto'}}>{job.description}</p>}
               </div>
               <div style={{display:'flex',gap:'6px',marginTop:'4px'}}>
-                <button className="btn" style={{padding:'4px 12px',fontSize:'12px'}} onClick={() => startEditSignShop(job)}>âœï¸ Edit</button>
-                <button className="delete-task" onClick={() => deleteSignShopJob(job._id)}>ðŸ—‘ï¸</button>
+                <button className="btn" style={{padding:'4px 12px',fontSize:'12px'}} onClick={() => startEditSignShop(job)}>✏️ Edit</button>
+                <button className="delete-task" onClick={() => deleteSignShopJob(job._id)}>🗑️</button>
               </div>
               {job.photos && job.photos.length > 0 && (
                 <div style={{display:'flex',gap:'6px',flexWrap:'wrap',marginTop:'8px'}}>
@@ -1697,7 +1697,7 @@ selected={
       {shopWoList.map((wo, i) => (
         <div key={wo._id || i} className={`job-card ${wo.status === 'approved' ? '' : wo.status === 'disapproved' ? 'cancelled-job' : ''}`}>
           <h4 className="job-company">{wo.employeeNames}</h4>
-          <p><strong>Status:</strong> <span style={{color: wo.status === 'approved' ? '#4CAF50' : wo.status === 'disapproved' ? '#f44336' : '#ff9800', fontWeight: 'bold'}}>{wo.status === 'approved' ? 'âœ… Approved' : wo.status === 'disapproved' ? 'âŒ Disapproved (VOID)' : 'â³ Pending Approval'}</span></p>
+          <p><strong>Status:</strong> <span style={{color: wo.status === 'approved' ? '#4CAF50' : wo.status === 'disapproved' ? '#f44336' : '#ff9800', fontWeight: 'bold'}}>{wo.status === 'approved' ? '✅ Approved' : wo.status === 'disapproved' ? '❌ Disapproved (VOID)' : '⏰ Pending Approval'}</span></p>
           {wo.approvedBy && <p><strong>Approved By:</strong> {wo.approvedBy}</p>}
           <p><strong>Date:</strong> {wo.date}</p>
           <p><strong>Time:</strong> {wo.inTime} - {wo.outTime}</p>
@@ -1710,12 +1710,12 @@ selected={
           <HoursFlag startTime={wo.inTime} endTime={wo.outTime} hoursFlag={wo.hoursFlag} />
           <AdminNotesDisplay adminNotes={wo.adminNotes} adminNotesBy={wo.adminNotesBy} adminCorrections={wo.adminCorrections} />
           {canEditWorkOrders() && (
-            <button style={{marginTop:'8px',padding:'6px 14px',fontSize:'12px',background:'#2196F3',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer',fontWeight:'bold'}} onClick={() => setEditingShopWorkOrder(wo)}>âœï¸ Edit Work Order</button>
+            <button style={{marginTop:'8px',padding:'6px 14px',fontSize:'12px',background:'#2196F3',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer',fontWeight:'bold'}} onClick={() => setEditingShopWorkOrder(wo)}>✏️ Edit Work Order</button>
           )}
           {wo.status === 'pending' && (
             <div style={{display:'flex',gap:'8px',marginTop:'10px'}}>
-              <button className="btn" style={{background:'#4CAF50',color:'#fff'}} onClick={() => handleShopWoApprove(wo._id)}>âœ… Approve</button>
-              <button className="btn" style={{background:'#f44336',color:'#fff'}} onClick={() => handleShopWoDisapprove(wo._id)}>âŒ Disapprove</button>
+              <button className="btn" style={{background:'#4CAF50',color:'#fff'}} onClick={() => handleShopWoApprove(wo._id)}>✅ Approve</button>
+              <button className="btn" style={{background:'#f44336',color:'#fff'}} onClick={() => handleShopWoDisapprove(wo._id)}>❌ Disapprove</button>
             </div>
           )}
         </div>
@@ -1726,13 +1726,13 @@ selected={
 )}
 {viewMode === 'hydrovacwo' && (
   <>
-    <h3>ðŸš› Hydrovac Work Orders on {hydrovacWoDate?.toLocaleDateString()}</h3>
+    <h3>Hydrovac Work Orders on {hydrovacWoDate?.toLocaleDateString()}</h3>
     <div className="job-info-list">
       {hydrovacWoList.map((wo) => (
         <div key={wo._id} className="job-card">
           {editingHydrovacWo?._id === wo._id ? (
             <div>
-              <h4 style={{marginBottom:'10px'}}>âœï¸ Editing Work Order</h4>
+              <h4 style={{marginBottom:'10px'}}>Editing Work Order</h4>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',fontSize:'13px'}}>
                 <label>Date:<input type="date" value={editHydrovacWo.date || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, date: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
                 <label>Coordinator:<input type="text" value={editHydrovacWo.coordinator || ''} onChange={(e) => setEditHydrovacWo({...editHydrovacWo, coordinator: e.target.value})} style={{width:'100%',padding:'4px'}} /></label>
@@ -1890,31 +1890,31 @@ selected={
 <div className="tools-grid">
 
   <div className="tool-card">
-    <h3>ðŸ“ Work Order</h3>
+    <h3> Work Order</h3>
     <p>Fill out a new work order</p>
     <button className="btn workorder-btn" onClick={() => navigate('/admin-dashboard/work-order')}>Open Work Order</button>
   </div>
 
   <div className="tool-card">
-    <h3>ðŸ—ï¸ Shop Work Order</h3>
+    <h3>Shop Work Order</h3>
     <p>Submit a shop work order for approval</p>
     <button className="btn workorder-btn" onClick={() => navigate('/admin-dashboard/shop-work-order')}>Open Shop Work Order</button>
   </div>
 
   <div className="tool-card">
-    <h3>ðŸš› Hydrovac Work Order</h3>
+    <h3>Hydrovac Work Order</h3>
     <p>Submit a hydrovac work order</p>
     <button className="btn workorder-btn" onClick={() => navigate('/hydrovac-work-order')}>Open Hydrovac Work Order</button>
   </div>
 
   <div className="tool-card">
-    <h3>ðŸš§ TCP Designer</h3>
+    <h3>TCP Designer</h3>
     <p>Design Traffic Control Plans</p>
     <button className="btn workorder-btn" onClick={() => navigate('/admin-dashboard/tcp-designer')}>Open Designer</button>
   </div>
 
   <div className="tool-card">
-    <h3>ðŸ“‹ Add Task</h3>
+    <h3>Add Task</h3>
     <p>Create tasks for any date</p>
     <button className={`btn ${showTasks ? 'active' : ''}`} onClick={() => setShowTasks(!showTasks)}>{showTasks ? 'Hide' : 'Open'}</button>
     {showTasks && (
@@ -1934,7 +1934,7 @@ selected={
 
   {personalClockEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email) && (
     <div className="tool-card">
-      <h3>â° My Time Clock</h3>
+      <h3>⏰ My Time Clock</h3>
       <p>Clock in/out for your shift</p>
       <div style={{display:'flex',flexDirection:'column',gap:'0.5rem',marginTop:'0.5rem'}}>
         <input type="password" inputMode="numeric" placeholder="Enter PIN" value={personalPin} onChange={(e) => setPersonalPin(e.target.value.replace(/\D/g, ''))} maxLength={6} onKeyDown={(e) => e.key === 'Enter' && handlePersonalPunch()} style={{padding:'0.5rem',borderRadius:'6px',border:'1px solid #ccc',textAlign:'center',fontSize:'1.1rem'}} />
@@ -1946,7 +1946,7 @@ selected={
 
   {hourlyAdminEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email) && (
     <div className="tool-card tool-card--wide">
-      <h3>ðŸ“… View My Weekly Hours</h3>
+      <h3>📊 View My Weekly Hours</h3>
       <p>Enter your PIN to see your hours this week</p>
       <div style={{display:'flex',gap:'0.5rem',alignItems:'center',flexWrap:'wrap',marginTop:'0.5rem'}}>
         <input type="password" inputMode="numeric" placeholder="Enter PIN" value={myWeekPin} onChange={(e) => setMyWeekPin(e.target.value.replace(/\D/g, ''))} maxLength={6} onKeyDown={(e) => e.key === 'Enter' && handleViewMyWeek()} style={{padding:'0.5rem',borderRadius:'6px',border:'1px solid #ccc',textAlign:'center',fontSize:'1.1rem',width:'140px'}} />
@@ -1955,7 +1955,7 @@ selected={
       {myWeekMsg && <p style={{color:'#ff6b6b', fontWeight:'bold', fontSize:'0.9rem', margin:'0.5rem 0 0'}}>{myWeekMsg}</p>}
       {myWeekData && (
         <div style={{marginTop:'1rem',background:'#fff',borderRadius:'8px',padding:'1rem',textAlign:'left',color:'#333'}}>
-          <h4 style={{margin:'0 0 0.5rem',fontSize:'1.1rem'}}>ðŸ“… {myWeekData.name} â€” Week: {myWeekData.weekStart} to {myWeekData.weekEnd}</h4>
+          <h4 style={{margin:'0 0 0.5rem',fontSize:'1.1rem'}}>📊 {myWeekData.name} — Week: {myWeekData.weekStart} to {myWeekData.weekEnd}</h4>
           <p style={{fontSize:'1.1rem',fontWeight:'bold',color:'#1e3a8a',margin:'0 0 0.75rem'}}>Total: {myWeekData.totalHours} hrs ({myWeekData.totalMinutes} min)</p>
           <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.95rem'}}>
             <thead>
@@ -1992,7 +1992,7 @@ selected={
 
   {salaryAdminEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email) && (
     <div className="tool-card tool-card--wide">
-      <h3>â° Time Clock</h3>
+      <h3>⏰ Time Clock</h3>
       <p>Manage employee hours & PINs</p>
       <button className="btn workorder-btn" onClick={async () => {
         setViewMode('timeclock');
@@ -2010,22 +2010,22 @@ selected={
   <>
     {/* Header */}
     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.5rem'}}>
-      <h3 style={{margin:0}}>â° Employee Time Clock</h3>
+      <h3 style={{margin:0}}>⏰ Employee Time Clock</h3>
       <div style={{display:'flex',gap:'0.5rem'}}>
-        <button className="btn" onClick={() => axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {})}>ðŸ”„ Refresh</button>
-        <button className="btn" style={{background:'#888',color:'#fff'}} onClick={() => setViewMode('traffic')}>âœ– Close</button>
+        <button className="btn" onClick={() => axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {})}>🔄 Refresh</button>
+        <button className="btn" style={{background:'#888',color:'#fff'}} onClick={() => setViewMode('traffic')}>❌ Close</button>
       </div>
     </div>
 
     {/* Location Toggle */}
     <div style={{display:'flex',gap:'0.5rem',justifyContent:'center',marginBottom:'1.5rem'}}>
-      <button onClick={() => { setClockLocation('North GA'); axios.get('/timeclock/employees?location=North%20GA').then(r => { setPinEmployees(r.data.employees); }).catch(() => {}); }} style={{padding:'0.6rem 1.5rem',borderRadius:'8px',border:'2px solid',borderColor: clockLocation === 'North GA' ? '#1565c0' : '#ccc',background: clockLocation === 'North GA' ? '#1565c0' : '#fff',color: clockLocation === 'North GA' ? '#fff' : '#333',fontWeight:'bold',cursor:'pointer',fontSize:'1rem'}}>ðŸ“ North GA Time Clock</button>
-      <button onClick={() => { setClockLocation('South GA'); axios.get('/timeclock/employees?location=South%20GA').then(r => { setPinEmployees(r.data.employees); }).catch(() => {}); }} style={{padding:'0.6rem 1.5rem',borderRadius:'8px',border:'2px solid',borderColor: clockLocation === 'South GA' ? '#e65100' : '#ccc',background: clockLocation === 'South GA' ? '#e65100' : '#fff',color: clockLocation === 'South GA' ? '#fff' : '#333',fontWeight:'bold',cursor:'pointer',fontSize:'1rem'}}>ðŸ“ South GA Time Clock</button>
+      <button onClick={() => { setClockLocation('North GA'); axios.get('/timeclock/employees?location=North%20GA').then(r => { setPinEmployees(r.data.employees); }).catch(() => {}); }} style={{padding:'0.6rem 1.5rem',borderRadius:'8px',border:'2px solid',borderColor: clockLocation === 'North GA' ? '#1565c0' : '#ccc',background: clockLocation === 'North GA' ? '#1565c0' : '#fff',color: clockLocation === 'North GA' ? '#fff' : '#333',fontWeight:'bold',cursor:'pointer',fontSize:'1rem'}}>⏰ North GA Time Clock</button>
+      <button onClick={() => { setClockLocation('South GA'); axios.get('/timeclock/employees?location=South%20GA').then(r => { setPinEmployees(r.data.employees); }).catch(() => {}); }} style={{padding:'0.6rem 1.5rem',borderRadius:'8px',border:'2px solid',borderColor: clockLocation === 'South GA' ? '#e65100' : '#ccc',background: clockLocation === 'South GA' ? '#e65100' : '#fff',color: clockLocation === 'South GA' ? '#fff' : '#333',fontWeight:'bold',cursor:'pointer',fontSize:'1rem'}}>⏰ South GA Time Clock</button>
     </div>
 
     {/* Currently Clocked In */}
     <div style={{background:'#f0fdf4',border:'1px solid #86efac',borderRadius:'10px',padding:'1rem',marginBottom:'1.5rem'}}>
-      <h4 style={{color:'#166534',margin:'0 0 0.75rem'}}>ðŸŸ¢ Currently Clocked In ({clockedInList.length})</h4>
+      <h4 style={{color:'#166534',margin:'0 0 0.75rem'}}>⏰ Currently Clocked In ({clockedInList.length})</h4>
       {clockedInList.length === 0 && <p style={{color:'#666',margin:0}}>No employees currently clocked in.</p>}
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(250px, 1fr))',gap:'0.75rem'}}>
         {clockedInList.map((entry) => (
@@ -2041,7 +2041,7 @@ selected={
     {/* Admin Actions: Add Hours for Forgotten Punches */}
     {canEditHours && (
     <div style={{background:'#f0f8ff',border:'1px solid #90caf9',borderRadius:'10px',padding:'1rem',marginBottom:'1.5rem'}}>
-      <h4 style={{margin:'0 0 0.5rem',color:'#1565c0'}}>âž• Add Hours (Forgotten Clock-In)</h4>
+      <h4 style={{margin:'0 0 0.5rem',color:'#1565c0'}}>⏰ Add Hours (Forgotten Clock-In)</h4>
       <p style={{fontSize:'0.9rem',color:'#666',margin:'0 0 0.5rem'}}>Add punch lines for employees who forgot to clock in/out</p>
       <div style={{display:'flex',flexDirection:'column',gap:'0.4rem'}}>
         <select value={addLineEmp || ''} onChange={(e) => setAddLineEmp(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc'}}>
@@ -2086,7 +2086,7 @@ selected={
     )}
     {/* Time Worked Summary */}
     <div style={{background:'#f8f9fa',border:'1px solid #dee2e6',borderRadius:'10px',padding:'1rem',marginBottom:'1.5rem'}}>
-    <h4 style={{margin:'0 0 0.75rem',color:'#1e3a8a'}}>ðŸ“Š Weekly Time Summary</h4>
+    <h4 style={{margin:'0 0 0.75rem',color:'#1e3a8a'}}>⏰ Weekly Time Summary</h4>
     {editPunchMsg && <p style={{color: editPunchMsg === 'Saved' ? '#4CAF50' : '#ff6b6b', fontWeight:'bold', fontSize:'0.85rem', margin:'0 0 0.5rem'}}>{editPunchMsg}</p>}
     {(() => {
       const weekStart = new Date(timeWorkedWeekStart + 'T00:00:00');
@@ -2116,7 +2116,7 @@ selected={
               const end = new Date(next); end.setDate(next.getDate() + 6);
               const endStr = `${end.getFullYear()}-${String(end.getMonth()+1).padStart(2,'0')}-${String(end.getDate()).padStart(2,'0')}`;
               try { const res = await axios.get(`/timeclock/time-worked?location=${encodeURIComponent(clockLocation)}&startDate=${newStart}&endDate=${endStr}`); setTimeWorked(res.data); } catch(e) {}
-            }}>Next Week â–¶</button>
+            }}>Next Week ⏩</button>
           </div>
         </>
       );
@@ -2165,7 +2165,7 @@ selected={
                                   setViewMode('shopwo');
                                   setShopWoDate(d);
                                   fetchMonthlyShopWo(d);
-                                }}>ðŸ“‹ Shop WO</button>
+                                }}>Shop WO</button>
                               )}
                               {dayData.records.some(r => r.purpose && r.purpose !== 'Shop Work' && r.purpose !== 'Standby') && (
                                 <button style={{padding:'2px 8px',fontSize:'10px',background:'#1565c0',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer'}} onClick={() => {
@@ -2173,7 +2173,7 @@ selected={
                                   setViewMode('workorders');
                                   setWoSelectedDate(d);
                                   fetchMonthlyWorkOrders(d);
-                                }}>ðŸ“‹ Work Order</button>
+                                }}>Work Order</button>
                               )}
                             </div>
                           )}
@@ -2204,7 +2204,7 @@ selected={
                                   <span>
                                     {r.originalClockIn && r.editedByAdmin && (() => { const d = new Date(r.originalClockIn); return <span style={{textDecoration:'line-through',color:'#999',fontSize:'0.75rem',marginRight:'6px'}}>{`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}</span>; })()}
                                     {(() => { const d = new Date(r.clockIn); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; })()}
-                                    {' â†’ '}
+                                    {' ⏩ '}
                                     {r.clockOut ? (
                                       <>
                                         {r.originalClockOut && r.editedByAdmin && (() => { const d = new Date(r.originalClockOut); return <span style={{textDecoration:'line-through',color:'#999',fontSize:'0.75rem',marginRight:'6px'}}>{`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}</span>; })()}
@@ -2229,8 +2229,8 @@ selected={
                                       setEditPunchMsg('Punch deleted');
                                       setTimeout(() => setEditPunchMsg(''), 3000);
                                     } catch (e) { setEditPunchMsg(e.response?.data?.message || 'Error deleting'); }
-                                  }}>ðŸ—‘</button>}
-                                  {r.autoClockOut && <span style={{fontSize:'0.7rem',color:'#d32f2f',marginLeft:'3px'}}>âš ï¸ auto</span>}
+                                  }}>🗑️</button>}
+                                  {r.autoClockOut && <span style={{fontSize:'0.7rem',color:'#d32f2f',marginLeft:'3px'}}>⚠️ auto</span>}
                                 </div>
                               )}
                               {r.purpose && <span style={{display:'block',marginTop:'2px',background:'#e3f2fd',color:'#1565c0',padding:'1px 6px',borderRadius:'3px',fontSize:'0.7rem',maxWidth:'fit-content',margin:'2px auto 0'}}>{r.purpose}{canEditHours && <button style={{marginLeft:'4px',padding:'0 3px',fontSize:'9px',background:'#1565c0',color:'#fff',border:'none',borderRadius:'2px',cursor:'pointer'}} onClick={async () => {
@@ -2274,7 +2274,7 @@ selected={
 
     {/* PIN Management */}
     <div style={{background:'#f8f9fa',border:'1px solid #dee2e6',borderRadius:'10px',padding:'1rem'}}>
-    <h4 style={{margin:'0 0 0.75rem',color:'#1e3a8a'}}>ðŸ”‘ PIN Management</h4>
+    <h4 style={{margin:'0 0 0.75rem',color:'#1e3a8a'}}>⏰ PIN Management</h4>
     <button className="btn" style={{marginBottom:'1rem'}} onClick={async () => {
       setShowPinManager(!showPinManager);
       if (!showPinManager) {
@@ -2293,7 +2293,7 @@ selected={
       <div className="job-info-list">
         {/* Add New Employee */}
         <div className="job-card" style={{background:'#f0f8ff',border:'2px dashed #2196F3'}}>
-          <h5 style={{marginBottom:'0.5rem'}}>âž• Add New Employee</h5>
+          <h5 style={{marginBottom:'0.5rem'}}>⏰ Add New Employee</h5>
           <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap',alignItems:'center'}}>
             <input type="text" placeholder="First Name" value={newEmpFirst} onChange={(e) => setNewEmpFirst(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',flex:'1',minWidth:'100px'}} />
             <input type="text" placeholder="Last Name" value={newEmpLast} onChange={(e) => setNewEmpLast(e.target.value)} style={{padding:'0.4rem',borderRadius:'6px',border:'1px solid #ccc',flex:'1',minWidth:'100px'}} />
@@ -2338,7 +2338,7 @@ selected={
               <p style={{color:'#4CAF50',margin:'2px 0'}}>PIN: {emp.pin}</p>
               <p style={{margin:'2px 0',fontSize:'0.85rem',color: emp.points >= 3 ? '#f44336' : emp.points >= 2 ? '#ff9800' : '#666'}}>
                 <strong>Points:</strong> {emp.points?.toFixed(2) || '0.00'} / 3.00
-                {emp.points >= 3 && <span style={{marginLeft:'0.5rem',color:'#f44336',fontWeight:'bold'}}>âš ï¸ TERMINATION</span>}
+                {emp.points >= 3 && <span style={{marginLeft:'0.5rem',color:'#f44336',fontWeight:'bold'}}>⚠️ TERMINATION</span>}
               </p>
               {changePinId === emp._id ? (
                 <div style={{display:'flex',gap:'0.4rem',alignItems:'center',marginTop:'4px'}}>
