@@ -2218,7 +2218,7 @@ selected={
                                     const outDate = r.clockOut ? new Date(r.clockOut) : null;
                                     setEditPunchIn(`${String(inDate.getHours()).padStart(2,'0')}:${String(inDate.getMinutes()).padStart(2,'0')}`);
                                     setEditPunchOut(outDate ? `${String(outDate.getHours()).padStart(2,'0')}:${String(outDate.getMinutes()).padStart(2,'0')}` : '');
-                                  }}>âœ</button>}
+                                  }}>✏️</button>}
                                   {canEditHours && <button style={{padding:'1px 5px',fontSize:'10px',background:'#f44336',color:'#fff',border:'none',borderRadius:'3px',cursor:'pointer'}} onClick={async () => {
                                     if (!window.confirm(`Delete this punch for ${emp.name}? This cannot be undone.`)) return;
                                     try {
@@ -2433,7 +2433,7 @@ selected={
   )}
 
   <div className="tool-card tool-card--wide">
-    <h3>TA Diagrams</h3>
+    <h3>📱TA Diagrams</h3>
     <button className="btn view-cancelled-btn" onClick={() => setShowTAImages(prev => !prev)}>
       {showTAImages ? 'Hide' : 'View Diagrams'}
     </button>
@@ -2468,7 +2468,7 @@ selected={
   </div>
 
   <div className="tool-card tool-card--wide">
-    <h3>Reference Charts</h3>
+    <h3>📱Reference Charts</h3>
     <button className="btn view-cancelled-btn" onClick={() => setShowCharts(prev => !prev)}>
       {showCharts ? 'Hide' : 'View Charts'}
     </button>
