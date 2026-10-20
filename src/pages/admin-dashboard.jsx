@@ -2573,7 +2573,7 @@ selected={
                     }}>ðŸ—‘ï¸</button>
                   </div>
                 </div>
-                <p style={{margin:'4px 0',fontSize:'0.85rem',color:'#666'}}>By {log.author} â€¢ {log.date} â€¢ {new Date(log.createdAt).toLocaleString()}</p>
+                <p style={{margin:'4px 0',fontSize:'0.85rem',color:'#666'}}>By {log.author} on {log.date} at {new Date(log.createdAt).toLocaleString()}</p>
                 {editingPrintLog === log._id && (
                   <PrintCostCalculator invoiceNumber={log._id} invoiceId={log._id} isLog={true} onClose={() => setEditingPrintLog(null)} />
                 )}
