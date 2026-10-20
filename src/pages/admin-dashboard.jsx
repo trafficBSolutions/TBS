@@ -2106,7 +2106,7 @@ selected={
               try { const res = await axios.get(`/timeclock/time-worked?location=${encodeURIComponent(clockLocation)}&startDate=${newStart}&endDate=${endStr}`); setTimeWorked(res.data); } catch(e) {}
             }}>â—€ Prev Week</button>
             <span style={{fontWeight:'bold',fontSize:'1.1rem'}}>
-              {weekStart.toLocaleDateString('en-US',{month:'short',day:'numeric'})} â€“ {weekEnd.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
+              {weekStart.toLocaleDateString('en-US',{month:'short',day:'numeric'})} - {weekEnd.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
             </span>
             <button className="btn" style={{padding:'6px 12px'}} onClick={async () => {
               const next = new Date(timeWorkedWeekStart + 'T00:00:00');
@@ -2135,7 +2135,7 @@ selected={
           }
           return (
           <details key={i} style={{marginBottom:'0.75rem',background:'#f8f9fa',borderRadius:'8px',padding:'14px',border:'1px solid #ddd'}}>
-            <summary style={{cursor:'pointer',fontWeight:'bold',fontSize:'1.15rem'}}>{emp.name} {emp.position && <span style={{fontWeight:'normal',fontSize:'0.9rem',color:'#1565c0',background:'#e3f2fd',padding:'2px 8px',borderRadius:'4px',marginLeft:'6px'}}>{emp.position}</span>} â€” {(weekTotalMin / 60).toFixed(2)} hrs ({weekTotalMin} min)</summary>
+            <summary style={{cursor:'pointer',fontWeight:'bold',fontSize:'1.15rem'}}>{emp.name} {emp.position && <span style={{fontWeight:'normal',fontSize:'0.9rem',color:'#1565c0',background:'#e3f2fd',padding:'2px 8px',borderRadius:'4px',marginLeft:'6px'}}>{emp.position}</span>} {(weekTotalMin / 60).toFixed(2)} hrs ({weekTotalMin} min)</summary>
             <table style={{width:'100%',borderCollapse:'collapse',fontSize:'1rem',marginTop:'0.5rem'}}>
               <thead>
                 <tr style={{background:'#e9ecef'}}>
@@ -2184,7 +2184,7 @@ selected={
                               {editingPunchId === r._id ? (
                                 <div style={{display:'flex',gap:'4px',alignItems:'center',flexWrap:'wrap',justifyContent:'center'}}>
                                   <input type="text" value={editPunchIn} onChange={(e) => setEditPunchIn(e.target.value)} placeholder="HH:MM" maxLength={5} style={{padding:'2px 4px',fontSize:'0.85rem',border:'1px solid #2196F3',borderRadius:'4px',width:'60px',textAlign:'center'}} />
-                                  <span>â†’</span>
+                                  <span>to</span>
                                   <input type="text" value={editPunchOut} onChange={(e) => setEditPunchOut(e.target.value)} placeholder="HH:MM" maxLength={5} style={{padding:'2px 4px',fontSize:'0.85rem',border:'1px solid #2196F3',borderRadius:'4px',width:'60px',textAlign:'center'}} />
                                   <button style={{padding:'2px 6px',fontSize:'11px',background:'#4CAF50',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer'}} onClick={async () => {
                                     if (!editPunchIn || !editPunchOut) return;
@@ -2196,8 +2196,8 @@ selected={
                                       const res = await axios.get(`/timeclock/time-worked?location=${encodeURIComponent(clockLocation)}&startDate=${timeWorkedWeekStart}&endDate=${endStr}`); setTimeWorked(res.data);
                                       setTimeout(() => setEditPunchMsg(''), 3000);
                                     } catch (e) { setEditPunchMsg(e.response?.data?.message || 'Error'); }
-                                  }}>âœ“</button>
-                                  <button style={{padding:'2px 6px',fontSize:'11px',background:'#888',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer'}} onClick={() => setEditingPunchId(null)}>âœ—</button>
+                                  }}>Save</button>
+                                  <button style={{padding:'2px 6px',fontSize:'11px',background:'#888',color:'#fff',border:'none',borderRadius:'4px',cursor:'pointer'}} onClick={() => setEditingPunchId(null)}>Cancel</button>
                                 </div>
                               ) : (
                                 <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'4px'}}>
@@ -2244,7 +2244,7 @@ selected={
                                   const endStr = `${weekEnd.getFullYear()}-${String(weekEnd.getMonth()+1).padStart(2,'0')}-${String(weekEnd.getDate()).padStart(2,'0')}`;
                                   const res = await axios.get(`/timeclock/time-worked?location=${encodeURIComponent(clockLocation)}&startDate=${timeWorkedWeekStart}&endDate=${endStr}`); setTimeWorked(res.data);
                                 } catch (e) { alert(e.response?.data?.message || 'Error updating purpose'); }
-                              }}>Time</button>}</span>}
+                              }}>✏️</button>}</span>}
                             </div>
                           )) : '-'}
                         </td>
