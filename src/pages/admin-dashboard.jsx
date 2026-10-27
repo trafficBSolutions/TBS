@@ -2746,14 +2746,14 @@ selected={
     </div>
     <div className="admin-applicant-controls">
     <button className="btn" onClick={() => setCurrentIndex(prev => Math.max(prev - 2, 0))} disabled={currentIndex === 0}>
-      ❌
+      ⬅️
     </button>
     <button
       onClick={() => setCurrentIndex(prev => Math.min(prev + 2, applicants.filter(a => !applicantLocationFilter || a.location === applicantLocationFilter).length - 2))}
       disabled={currentIndex + 2 >= applicants.filter(a => !applicantLocationFilter || a.location === applicantLocationFilter).length}
       className="btn"
     >
-      â–¶
+      ➡️
     </button>
     </div>
   </div>
@@ -2808,10 +2808,10 @@ selected={
     </div>
     <div className="admin-applicant-controls">
       <button className="btn" onClick={() => setPlanIndex(prev => Math.max(prev - 2, 0))} disabled={planIndex === 0}>
-        â—€
+        ⬅️
       </button>
       <button className="btn" onClick={() => setPlanIndex(prev => Math.min(prev + 2, PlanUser.length - 2))} disabled={planIndex + 2 >= PlanUser.length}>
-        â–¶
+        ➡️
       </button>
     </div>
   </div>
