@@ -199,8 +199,8 @@ function InvoiceForm({ wos, onSent, onCancel }) {
           <thead>
             <tr style={{ background: `linear-gradient(135deg, ${ORANGE}, rgba(243,156,18,0.9))`, color: '#fff' }}>
               <th style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.2)', textAlign: 'left' }}>Description</th>
-              <th style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.2)', width: 80, textAlign: 'right' }}>Hours</th>
-              <th style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.2)', width: 100, textAlign: 'right' }}>$/hr</th>
+              <th style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.2)', width: 80, textAlign: 'right' }}>Qty / Hours</th>
+              <th style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.2)', width: 100, textAlign: 'right' }}>$ Per Unit</th>
               <th style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.2)', width: 110, textAlign: 'right' }}>Amount</th>
               <th style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.2)', width: 36 }}></th>
             </tr>
