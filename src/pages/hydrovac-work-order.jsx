@@ -213,7 +213,7 @@ export default function HydrovacWorkOrder() {
         return;
       }
 
-      setSubmissionMessage('✅ Hydrovac Work Order submitted successfully!');
+      setSubmissionMessage('✅ Hydrovac Work Order submitted successfully! To create an invoice, visit Hydrovac Invoicing.');
       setForm({
         date: new Date().toISOString().split('T')[0],
         coordinator: '', cdlDriver: '', secondWorker: '',
@@ -541,7 +541,17 @@ export default function HydrovacWorkOrder() {
                   <div className="spinner-button"><span className="spinner"></span> Submitting... Please wait</div>
                 ) : fromKiosk ? 'SUBMIT & CLOCK OUT' : 'SUBMIT HYDROVAC WORK ORDER'}
               </button>
-              {submissionMessage && <div className="custom-toast success">{submissionMessage}</div>}
+              {submissionMessage && (
+                <div className="custom-toast success">
+                  {submissionMessage}
+                  {submissionMessage.includes('invoice') && (
+                    <a href="/hydrovac-invoicing"
+                      style={{ display: 'inline-block', marginTop: 8, padding: '6px 14px', background: '#e53935', color: '#fff', borderRadius: 6, fontWeight: 'bold', textDecoration: 'none', fontSize: '1.4rem' }}>
+                      Go to Hydrovac Invoicing →
+                    </a>
+                  )}
+                </div>
+              )}
               {submissionErrorMessage && <div className="custom-toast error">{submissionErrorMessage}</div>}
             </div>
 
