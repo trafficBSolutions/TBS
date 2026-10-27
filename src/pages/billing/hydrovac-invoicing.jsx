@@ -416,13 +416,7 @@ export default function HydrovacInvoicing() {
   }, [selectedDates, wosByDate]);
 
   const handleDayClick = (dateStr) => {
-    setSelectedDates(prev => {
-      const next = new Set(prev);
-      if (next.has(dateStr)) next.delete(dateStr);
-      else next.add(dateStr);
-      return next;
-    });
-    setSelectedWos([]);
+    setSelectedDates(prev => new Set([...prev, dateStr]));
   };
 
   const toggleWoSelection = (wo) => {
