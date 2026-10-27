@@ -481,11 +481,12 @@ export default function HydrovacInvoicing() {
     return map;
   }, [woList]);
 
-  // Map workOrderId -> invoice
+  // Map workOrderId -> invoice (covers all WOs in multi-WO invoices)
   const invoicesByWoId = useMemo(() => {
     const map = {};
     invoices.forEach(inv => {
-      if (inv.workOrderId) map[inv.workOrderId] = inv;
+      const ids = inv.workOrderIds?.length ? inv.workOrderIds : (inv.workOrderId ? [inv.workOrderId] : []);
+      ids.forEach(id => { map[id] = inv; });
     });
     return map;
   }, [invoices]);
