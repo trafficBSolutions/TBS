@@ -388,7 +388,7 @@ export default function HydrovacInvoicing() {
   };
 
   useEffect(() => { fetchInvoices(); }, []);
-  useEffect(() => { fetchWo(); setSelectedDates(new Set()); setSelectedWos([]); }, [calYear, calMonth]);
+  useEffect(() => { fetchWo(); }, [calYear, calMonth]);
 
   // Group WOs by date string
   const wosByDate = useMemo(() => {
