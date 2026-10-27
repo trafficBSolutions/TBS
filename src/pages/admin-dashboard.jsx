@@ -1888,8 +1888,9 @@ selected={
 
 {/* â•â•â•â•â•â•â• ZONE 3: ADMIN TOOLS â•â•â•â•â•â•â• */}
 <div className="zone-tools">
-<h2 className="zone-tools-title">Work Orders & Tasks</h2>
-<div className="tools-grid">
+  <section className="admin-tool-section">
+    <h2 className="zone-tools-title">Work Orders & Tasks</h2>
+    <div className="tools-grid">
 
   <div className="tool-card">
     <h3>📋 Work Order</h3>
@@ -1933,7 +1934,12 @@ selected={
       </div>
     )}
   </div>
-<h2 className="zone-tools-title">Time Clock Management</h2>
+    </div>
+  </section>
+
+  <section className="admin-tool-section">
+    <h2 className="zone-tools-title">Time Clock Management</h2>
+    <div className="tools-grid">
   {personalClockEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email) && (
     <div className="tool-card">
       <h3>⏰ My Time Clock</h3>
@@ -2433,7 +2439,12 @@ selected={
 )}
     </div>
   )}
-<h2 className="zone-tools-title">TC Reference Materials</h2>
+    </div>
+  </section>
+
+  <section className="admin-tool-section">
+    <h2 className="zone-tools-title">TC Reference Materials</h2>
+    <div className="tools-grid">
   <div className="tool-card tool-card--wide">
     <h3>📱TA Diagrams</h3>
     <button className="btn view-cancelled-btn" onClick={() => setShowTAImages(prev => !prev)}>
@@ -2495,7 +2506,12 @@ selected={
       </div>
         )}
   </div>
-<h2 className="zone-tools-title">Billing & Invoicing</h2>
+    </div>
+  </section>
+
+  <section className="admin-tool-section">
+    <h2 className="zone-tools-title">Billing & Invoicing</h2>
+    <div className="tools-grid">
   {allowedForInvoices && (
     <div className="tool-card">
       <h3>🚦 TC Invoicing</h3>
@@ -2517,7 +2533,12 @@ selected={
       <button className="invoice-btn" type="button" onClick={() => navigate('/admin-dashboard/quote')}>Open</button>
     </div>
   )}
-  <h2 className="zone-tools-title">HR & Employee Management</h2>
+    </div>
+  </section>
+
+  <section className="admin-tool-section">
+    <h2 className="zone-tools-title">HR & Employee Management</h2>
+    <div className="tools-grid">
   {allowedForDiscipline && (
     <div className="tool-card">
       <h3>⚠️ Discipline</h3>
@@ -2530,14 +2551,19 @@ selected={
       <h3>🔑 Employee Login Password</h3>
       <p className="tool-hint">Change password for tbsolutions55@gmail.com</p>
       <div className="emp-password-row">
-        <input type="text" placeholder="New password" value={empNewPassword} onChange={(e) => { setEmpNewPassword(e.target.value); setEmpPasswordMsg(''); }} />
-        <input type="text" placeholder="Confirm password" value={empConfirmPassword} onChange={(e) => { setEmpConfirmPassword(e.target.value); setEmpPasswordMsg(''); }} />
+        <input type="password" placeholder="New password" value={empNewPassword} onChange={(e) => { setEmpNewPassword(e.target.value); setEmpPasswordMsg(''); }} />
+        <input type="password" placeholder="Confirm password" value={empConfirmPassword} onChange={(e) => { setEmpConfirmPassword(e.target.value); setEmpPasswordMsg(''); }} />
         <button className="invoice-btn" type="button" onClick={handleChangeEmpPassword} disabled={empPasswordLoading}>{empPasswordLoading ? 'Updating...' : 'Change'}</button>
       </div>
       {empPasswordMsg && <p className={empPasswordMsg.includes('changed') ? 'msg-success' : 'msg-error'}>{empPasswordMsg}</p>}
     </div>
   )}
-<h2 className="zone-tools-title">Sign Shop & Print Costs</h2>
+    </div>
+  </section>
+
+  <section className="admin-tool-section">
+    <h2 className="zone-tools-title">Sign Shop & Print Costs</h2>
+    <div className="tools-grid">
   {invoiceStats && (
     <InvoiceStatsSection invoiceStats={invoiceStats} setInvoiceStats={setInvoiceStats} />
   )}
@@ -2595,7 +2621,12 @@ selected={
       )}
     </div>
   )}
-<h2 className="zone-tools-title">Cancelled Jobs</h2>
+    </div>
+  </section>
+
+  <section className="admin-tool-section">
+    <h2 className="zone-tools-title">Cancelled Jobs</h2>
+    <div className="tools-grid">
   <div className="tool-card tool-card--wide">
     <h3>❌ Cancelled Jobs</h3>
     <button className="btn view-cancelled-btn" onClick={() => setShowCancelledJobs(prev => !prev)}>
@@ -2635,7 +2666,8 @@ selected={
   </div>
 )}
   </div>
-</div>
+    </div>
+  </section>
 </div>
 
 {/* â•â•â•â•â•â•â• ZONE 4: APPLICANTS & PLANS â•â•â•â•â•â•â• */}
