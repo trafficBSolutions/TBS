@@ -47,6 +47,7 @@ function InvoiceForm({ wos, onSent, onCancel }) {
   const [sending, setSending] = useState(false);
   const [woPdfUrls, setWoPdfUrls] = useState({});
   const [loadingPdfs, setLoadingPdfs] = useState(false);
+  const [images, setImages] = useState([]); // [{ name, dataUrl }]
 
   const total = useMemo(() => rows.reduce((s, r) => s + (Number(r.amount) || 0), 0), [rows]);
 
@@ -67,6 +68,18 @@ function InvoiceForm({ wos, onSent, onCancel }) {
     }).finally(() => setLoadingPdfs(false));
   }, [wos?.map(w => w._id).join(',')]);
 
+  const handleImageAdd = (e) => {
+    const files = Array.from(e.target.files);
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setImages(prev => [...prev, { name: file.name, dataUrl: ev.target.result }]);
+      };
+      reader.readAsDataURL(file);
+    });
+    e.target.value = '';
+  };
+
   const handleSend = async () => {
     if (!client.trim()) return toast.error('Client name is required');
     if (!clientEmail.trim()) return toast.error('Client email is required');
@@ -85,6 +98,7 @@ function InvoiceForm({ wos, onSent, onCancel }) {
         })),
         woPdfUrls: wos.map(wo => woPdfUrls[wo._id] || null),
         client, clientEmail, invoiceNumber, invoiceDate, notes, rows, total,
+        images: images.map(img => ({ name: img.name, dataUrl: img.dataUrl })),
       });
       toast.success(`Invoice sent to ${clientEmail}!`);
       onSent();
@@ -185,6 +199,31 @@ function InvoiceForm({ wos, onSent, onCancel }) {
             </tr>
           </tfoot>
         </table>
+      </div>
+
+      {/* Images */}
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+          <label style={{ fontSize: 12, fontWeight: 700 }}>📷 Attach Images (optional)</label>
+          <label style={{ fontSize: 11, padding: '3px 10px', background: ORANGE_LIGHT, border: `1px solid ${ORANGE_BORDER}`, color: ORANGE, borderRadius: 6, cursor: 'pointer', fontWeight: 700 }}>
+            + Add Images
+            <input type="file" accept="image/*" multiple onChange={handleImageAdd} style={{ display: 'none' }} />
+          </label>
+        </div>
+        {images.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {images.map((img, i) => (
+              <div key={i} style={{ position: 'relative', border: `1px solid ${ORANGE_BORDER}`, borderRadius: 6, overflow: 'hidden', width: 90, height: 90, flexShrink: 0 }}>
+                <img src={img.dataUrl} alt={img.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <button
+                  onClick={() => setImages(prev => prev.filter((_, j) => j !== i))}
+                  style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(0,0,0,0.55)', border: 'none', borderRadius: '50%', width: 18, height: 18, color: '#fff', cursor: 'pointer', fontSize: 11, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+                >✕</button>
+                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.45)', color: '#fff', fontSize: 9, padding: '2px 4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{img.name}</div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div style={{ marginBottom: 14 }}>
