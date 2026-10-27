@@ -37,7 +37,7 @@ const ORANGE_LIGHT = 'rgba(236,77,7,0.12)';
 const ORANGE_MED = 'rgba(236,77,7,0.28)';
 const ORANGE_BORDER = 'rgba(236,77,7,0.45)';
 
-function InvoiceForm({ wo, onSent, onCancel }) {
+function InvoiceForm({ wos, onSent, onCancel }) {
   const [client, setClient] = useState('');
   const [clientEmail, setClientEmail] = useState('');
   const [invoiceNumber, setInvoiceNumber] = useState('');
@@ -45,20 +45,27 @@ function InvoiceForm({ wo, onSent, onCancel }) {
   const [notes, setNotes] = useState('');
   const [rows, setRows] = useState([{ id: 1, description: 'Hydrovac Services', amount: 0 }]);
   const [sending, setSending] = useState(false);
-  const [generatingPdf, setGeneratingPdf] = useState(false);
-  const [woPdfUrl, setWoPdfUrl] = useState(null);
+  const [woPdfUrls, setWoPdfUrls] = useState({});
+  const [loadingPdfs, setLoadingPdfs] = useState(false);
 
   const total = useMemo(() => rows.reduce((s, r) => s + (Number(r.amount) || 0), 0), [rows]);
 
+  // Fetch PDF URLs for all WOs
   useEffect(() => {
-    setWoPdfUrl(null);
-    if (!wo?._id) return;
-    setGeneratingPdf(true);
-    api.post(`/hydrovac-work-order/${wo._id}/pdf-cloudinary`)
-      .then(res => setWoPdfUrl(res.data.url))
-      .catch(() => toast.error('Could not load Work Order PDF'))
-      .finally(() => setGeneratingPdf(false));
-  }, [wo?._id]);
+    if (!wos?.length) return;
+    setLoadingPdfs(true);
+    Promise.all(
+      wos.map(wo =>
+        api.post(`/hydrovac-work-order/${wo._id}/pdf-cloudinary`)
+          .then(res => ({ id: wo._id, url: res.data.url }))
+          .catch(() => ({ id: wo._id, url: null }))
+      )
+    ).then(results => {
+      const map = {};
+      results.forEach(r => { map[r.id] = r.url; });
+      setWoPdfUrls(map);
+    }).finally(() => setLoadingPdfs(false));
+  }, [wos?.map(w => w._id).join(',')]);
 
   const handleSend = async () => {
     if (!client.trim()) return toast.error('Client name is required');
@@ -67,16 +74,17 @@ function InvoiceForm({ wo, onSent, onCancel }) {
     setSending(true);
     try {
       await api.post('/api/hydrovac-invoicing/send', {
-        workOrderId: wo._id, client, clientEmail, invoiceNumber, invoiceDate,
-        notes, rows, total, woPdfUrl,
-        woData: {
+        workOrderIds: wos.map(w => w._id),
+        wosData: wos.map(wo => ({
           date: wo.date, cdlDriver: wo.cdlDriver, secondWorker: wo.secondWorker,
           coordinator: wo.coordinator, engineHoursStart: wo.engineHoursStart,
           engineHoursEnd: wo.engineHoursEnd, mileageStart: wo.mileageStart,
           mileageEnd: wo.mileageEnd, timesDumped: wo.timesDumped,
           utilitiesFound: wo.utilitiesFound, arrivalAtLocate: wo.arrivalAtLocate,
           arrivalBackAtShop: wo.arrivalBackAtShop, notes: wo.notes,
-        },
+        })),
+        woPdfUrls: wos.map(wo => woPdfUrls[wo._id] || null),
+        client, clientEmail, invoiceNumber, invoiceDate, notes, rows, total,
       });
       toast.success(`Invoice sent to ${clientEmail}!`);
       onSent();
@@ -87,34 +95,38 @@ function InvoiceForm({ wo, onSent, onCancel }) {
     }
   };
 
+  const dateRange = wos.length === 1
+    ? wos[0].date
+    : `${wos[0].date} – ${wos[wos.length - 1].date}`;
+
   return (
     <div style={{ padding: 20, border: `1px solid ${ORANGE_BORDER}`, borderRadius: 10, background: '#fff', boxShadow: '0 4px 16px rgba(236,77,7,0.08)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-        <h3 style={{ margin: 0, fontSize: 15 }}>📄 Invoice — {wo.date} · {wo.cdlDriver}</h3>
+        <h3 style={{ margin: 0, fontSize: 15 }}>📄 Invoice — {dateRange} · {wos.length} Work Order{wos.length > 1 ? 's' : ''}</h3>
         <button onClick={onCancel} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: '#888' }}>✕</button>
       </div>
 
-      {/* WO Summary */}
-      <div style={{ background: ORANGE_LIGHT, border: `1px solid ${ORANGE_BORDER}`, borderRadius: 8, padding: 12, marginBottom: 14, fontSize: 13 }}>
-        <strong>Work Order Summary</strong>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, marginTop: 6 }}>
-          <span>CDL Driver: <strong>{wo.cdlDriver}</strong></span>
-          <span>2nd Worker: <strong>{wo.secondWorker || '—'}</strong></span>
-          <span>Coordinator: <strong>{wo.coordinator}</strong></span>
-          <span>Date: <strong>{wo.date}</strong></span>
-          <span>Engine Hrs: <strong>{wo.engineHoursStart}→{wo.engineHoursEnd} ({(wo.engineHoursEnd - wo.engineHoursStart).toFixed(1)} hrs)</strong></span>
-          <span>Miles: <strong>{wo.mileageStart}→{wo.mileageEnd} ({wo.mileageEnd - wo.mileageStart} mi)</strong></span>
-          <span>Times Dumped: <strong>{wo.timesDumped}</strong></span>
-          <span>Utilities Found: <strong>{wo.utilitiesFound}</strong></span>
+      {/* WO Summaries */}
+      {wos.map((wo, i) => (
+        <div key={wo._id} style={{ background: ORANGE_LIGHT, border: `1px solid ${ORANGE_BORDER}`, borderRadius: 8, padding: 12, marginBottom: 10, fontSize: 13 }}>
+          <strong>Work Order {wos.length > 1 ? `#${i + 1} — ` : ''}{wo.date}</strong>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, marginTop: 6 }}>
+            <span>CDL Driver: <strong>{wo.cdlDriver}</strong></span>
+            <span>2nd Worker: <strong>{wo.secondWorker || '—'}</strong></span>
+            <span>Coordinator: <strong>{wo.coordinator}</strong></span>
+            <span>Engine Hrs: <strong>{wo.engineHoursStart}→{wo.engineHoursEnd}</strong></span>
+            <span>Miles: <strong>{wo.mileageStart}→{wo.mileageEnd}</strong></span>
+            <span>Times Dumped: <strong>{wo.timesDumped}</strong></span>
+          </div>
+          {woPdfUrls[wo._id] && (
+            <a href={woPdfUrls[wo._id]} target="_blank" rel="noreferrer"
+              style={{ display: 'inline-block', marginTop: 8, fontSize: 12, color: '#1565c0' }}>
+              📄 View Work Order PDF
+            </a>
+          )}
         </div>
-        {woPdfUrl && (
-          <a href={woPdfUrl} target="_blank" rel="noreferrer"
-            style={{ display: 'inline-block', marginTop: 8, fontSize: 12, color: '#1565c0' }}>
-            📄 View Work Order PDF
-          </a>
-        )}
-        {generatingPdf && <div style={{ fontSize: 12, color: '#888', marginTop: 6 }}>Loading WO PDF…</div>}
-      </div>
+      ))}
+      {loadingPdfs && <div style={{ fontSize: 12, color: '#888', marginBottom: 10 }}>Loading WO PDFs…</div>}
 
       {/* Invoice Fields */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
@@ -183,17 +195,15 @@ function InvoiceForm({ wo, onSent, onCancel }) {
 
       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
         <button onClick={handleSend} disabled={sending} style={{ fontSize: 13, padding: '8px 20px', background: `linear-gradient(135deg, ${ORANGE}, rgba(243,156,18,0.9))`, color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, cursor: sending ? 'not-allowed' : 'pointer', opacity: sending ? 0.7 : 1 }}>
-          {sending ? 'Sending…' : '📧 Send Invoice + WO PDF'}
+          {sending ? 'Sending…' : `📧 Send Invoice + ${wos.length} WO PDF${wos.length > 1 ? 's' : ''}`}
         </button>
-        {!woPdfUrl && !generatingPdf && (
-          <span style={{ fontSize: 12, color: '#888' }}>⚠️ WO PDF not yet loaded</span>
-        )}
+        {loadingPdfs && <span style={{ fontSize: 12, color: '#888' }}>Loading PDFs…</span>}
       </div>
     </div>
   );
 }
 
-function Calendar({ year, month, wosByDate, invoicesByWoId, onDayClick, selectedDate }) {
+function Calendar({ year, month, wosByDate, invoicesByWoId, onDayClick, selectedDates }) {
   const firstDow = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const cells = [];
@@ -225,7 +235,7 @@ function Calendar({ year, month, wosByDate, invoicesByWoId, onDayClick, selected
           const statuses = wos.map(wo => invoicesByWoId[wo._id]?.payStatus || null);
           const allPaid = statuses.length > 0 && statuses.every(s => s === 'paid');
           const anySent = statuses.some(s => s === 'unpaid');
-          const isSelected = selectedDate === dateStr;
+          const isSelected = selectedDates.has(dateStr);
           const isToday = dateStr === todayStr;
 
           let bg = '#fafafa';
@@ -303,8 +313,8 @@ export default function HydrovacInvoicing() {
   const [loadingWo, setLoadingWo] = useState(false);
   const [invoices, setInvoices] = useState([]);
   const [loadingInv, setLoadingInv] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedWo, setSelectedWo] = useState(null);
+  const [selectedDates, setSelectedDates] = useState(new Set());
+  const [selectedWos, setSelectedWos] = useState([]);
   const [payingId, setPayingId] = useState(null);
   const [payMethod, setPayMethod] = useState('check');
   const [invFilter, setInvFilter] = useState({ search: '', status: '' });
@@ -339,7 +349,7 @@ export default function HydrovacInvoicing() {
   };
 
   useEffect(() => { fetchInvoices(); }, []);
-  useEffect(() => { fetchWo(); setSelectedDate(null); setSelectedWo(null); }, [calYear, calMonth]);
+  useEffect(() => { fetchWo(); setSelectedDates(new Set()); setSelectedWos([]); }, [calYear, calMonth]);
 
   // Group WOs by date string
   const wosByDate = useMemo(() => {
@@ -360,17 +370,28 @@ export default function HydrovacInvoicing() {
     return map;
   }, [invoices]);
 
-  const wosOnSelectedDate = selectedDate ? (wosByDate[selectedDate] || []) : [];
+  const wosOnSelectedDates = useMemo(() => {
+    const all = [];
+    selectedDates.forEach(d => (wosByDate[d] || []).forEach(wo => all.push(wo)));
+    return all.sort((a, b) => a.date.localeCompare(b.date));
+  }, [selectedDates, wosByDate]);
 
   const handleDayClick = (dateStr) => {
-    setSelectedDate(dateStr);
-    const wos = wosByDate[dateStr] || [];
-    // Auto-select if only one WO and it hasn't been billed yet
-    if (wos.length === 1 && !invoicesByWoId[wos[0]._id]) {
-      setSelectedWo(wos[0]);
-    } else {
-      setSelectedWo(null);
-    }
+    setSelectedDates(prev => {
+      const next = new Set(prev);
+      if (next.has(dateStr)) next.delete(dateStr);
+      else next.add(dateStr);
+      return next;
+    });
+    setSelectedWos([]);
+  };
+
+  const toggleWoSelection = (wo) => {
+    setSelectedWos(prev =>
+      prev.find(w => w._id === wo._id)
+        ? prev.filter(w => w._id !== wo._id)
+        : [...prev, wo]
+    );
   };
 
   const handleMarkPaid = async (id) => {
@@ -471,90 +492,123 @@ export default function HydrovacInvoicing() {
             <Calendar
               year={calYear} month={calMonth}
               wosByDate={wosByDate} invoicesByWoId={invoicesByWoId}
-              onDayClick={handleDayClick} selectedDate={selectedDate}
+              onDayClick={handleDayClick} selectedDates={selectedDates}
             />
           )}
         </div>
 
-        {/* Day Detail Panel — full width below calendar */}
-        {selectedDate && (
+        {/* Day Detail Panel */}
+        {selectedDates.size > 0 && (
           <div style={{ marginBottom: 28 }}>
-            {/* Day header */}
             <div style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               background: `linear-gradient(135deg, ${ORANGE}, rgba(243,156,18,0.9))`,
               color: '#fff', borderRadius: '10px 10px 0 0', padding: '12px 20px',
             }}>
-              <div style={{ fontWeight: 800, fontSize: 16 }}>📅 Work Orders — {selectedDate}</div>
-              <button onClick={() => { setSelectedDate(null); setSelectedWo(null); }}
+              <div style={{ fontWeight: 800, fontSize: 16 }}>
+                📅 {selectedDates.size === 1
+                  ? `Work Orders — ${[...selectedDates][0]}`
+                  : `Work Orders — ${selectedDates.size} days selected`}
+                <span style={{ fontSize: 12, fontWeight: 400, marginLeft: 10, opacity: 0.85 }}>
+                  (click more days to add)
+                </span>
+              </div>
+              <button onClick={() => { setSelectedDates(new Set()); setSelectedWos([]); }}
                 style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 6, padding: '4px 10px', color: '#fff', cursor: 'pointer', fontSize: 16, fontWeight: 700 }}>✕</button>
             </div>
 
-            {/* WO cards row */}
             <div style={{
               background: '#fff', border: `1px solid ${ORANGE_BORDER}`, borderTop: 'none',
               borderRadius: '0 0 10px 10px', padding: 16,
-              display: 'grid',
-              gridTemplateColumns: `repeat(${Math.min(wosOnSelectedDate.length || 1, 3)}, 1fr)`,
-              gap: 12,
             }}>
-              {wosOnSelectedDate.length === 0 && (
-                <p style={{ color: '#888', fontSize: 13, margin: 0 }}>No work orders on this date.</p>
-              )}
-              {wosOnSelectedDate.map(wo => {
-                const inv = invoicesByWoId[wo._id];
-                const badge = inv ? STATUS_BADGE[inv.payStatus] : null;
-                const isWoSelected = selectedWo?._id === wo._id;
-                return (
-                  <div key={wo._id}
-                    onClick={() => !inv && setSelectedWo(isWoSelected ? null : wo)}
-                    style={{
-                      border: `2px solid ${isWoSelected ? ORANGE : inv ? '#a9dfbf' : '#e0e0e0'}`,
-                      borderRadius: 10, padding: '12px 14px',
-                      background: isWoSelected ? ORANGE_LIGHT : inv ? '#eafaf1' : '#fafafa',
-                      cursor: inv ? 'default' : 'pointer',
-                      boxShadow: isWoSelected ? `0 0 0 3px ${ORANGE_MED}` : '0 1px 4px rgba(0,0,0,0.06)',
-                      transition: 'border-color 0.15s, box-shadow 0.15s',
-                    }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
-                      <div style={{ fontWeight: 700, fontSize: 14, color: '#1a1a1a' }}>🚛 {wo.cdlDriver}{wo.secondWorker ? ` & ${wo.secondWorker}` : ''}</div>
-                      <span style={{
-                        fontSize: 11, padding: '2px 8px', borderRadius: 4, fontWeight: 700, flexShrink: 0, marginLeft: 6,
-                        background: badge ? badge.bg : '#e0e0e0',
-                        color: badge ? badge.color : '#666',
-                      }}>{badge ? badge.label : 'Not Billed'}</span>
-                    </div>
-                    <div style={{ fontSize: 12, color: '#555', lineHeight: 1.6 }}>
-                      <div>Coordinator: <strong>{wo.coordinator}</strong></div>
-                      <div>Engine Hrs: <strong>{wo.engineHoursStart}→{wo.engineHoursEnd}</strong> · Miles: <strong>{wo.mileageStart}→{wo.mileageEnd}</strong></div>
-                      <div>Dumped: <strong>{wo.timesDumped}x</strong> · Utilities: <strong>{wo.utilitiesFound}</strong></div>
-                    </div>
-                    {inv && (
-                      <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid #e0e0e0', fontSize: 12, color: '#555' }}>
-                        <strong>Inv #{inv.invoiceNumber}</strong> · {inv.client} · <strong>${Number(inv.total || 0).toFixed(2)}</strong>
-                        {inv.woPdfUrl && <a href={inv.woPdfUrl} target="_blank" rel="noreferrer" style={{ marginLeft: 8, color: ORANGE, fontWeight: 600 }}>📄 WO PDF</a>}
+              {/* WO cards */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: `repeat(${Math.min(wosOnSelectedDates.length || 1, 3)}, 1fr)`,
+                gap: 12, marginBottom: selectedWos.length > 0 ? 16 : 0,
+              }}>
+                {wosOnSelectedDates.length === 0 && (
+                  <p style={{ color: '#888', fontSize: 13, margin: 0 }}>No work orders on selected days.</p>
+                )}
+                {wosOnSelectedDates.map(wo => {
+                  const inv = invoicesByWoId[wo._id];
+                  const badge = inv ? STATUS_BADGE[inv.payStatus] : null;
+                  const isChecked = selectedWos.find(w => w._id === wo._id);
+                  return (
+                    <div key={wo._id}
+                      onClick={() => !inv && toggleWoSelection(wo)}
+                      style={{
+                        border: `2px solid ${isChecked ? ORANGE : inv ? '#a9dfbf' : '#e0e0e0'}`,
+                        borderRadius: 10, padding: '12px 14px',
+                        background: isChecked ? ORANGE_LIGHT : inv ? '#eafaf1' : '#fafafa',
+                        cursor: inv ? 'default' : 'pointer',
+                        boxShadow: isChecked ? `0 0 0 3px ${ORANGE_MED}` : '0 1px 4px rgba(0,0,0,0.06)',
+                        transition: 'border-color 0.15s, box-shadow 0.15s',
+                      }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          {!inv && (
+                            <input type="checkbox" checked={!!isChecked} onChange={() => toggleWoSelection(wo)}
+                              onClick={e => e.stopPropagation()}
+                              style={{ width: 16, height: 16, accentColor: ORANGE, cursor: 'pointer', flexShrink: 0 }} />
+                          )}
+                          <div style={{ fontWeight: 700, fontSize: 14, color: '#1a1a1a' }}>
+                            🚛 {wo.date} · {wo.cdlDriver}{wo.secondWorker ? ` & ${wo.secondWorker}` : ''}
+                          </div>
+                        </div>
+                        <span style={{
+                          fontSize: 11, padding: '2px 8px', borderRadius: 4, fontWeight: 700, flexShrink: 0, marginLeft: 6,
+                          background: badge ? badge.bg : '#e0e0e0',
+                          color: badge ? badge.color : '#666',
+                        }}>{badge ? badge.label : 'Not Billed'}</span>
                       </div>
-                    )}
-                    {!inv && (
-                      <div style={{ marginTop: 8, fontSize: 12, color: ORANGE, fontWeight: 600 }}>
-                        {isWoSelected ? '▲ Invoice form open below' : '▼ Click to create invoice'}
+                      <div style={{ fontSize: 12, color: '#555', lineHeight: 1.6 }}>
+                        <div>Coordinator: <strong>{wo.coordinator}</strong></div>
+                        <div>Engine Hrs: <strong>{wo.engineHoursStart}→{wo.engineHoursEnd}</strong> · Miles: <strong>{wo.mileageStart}→{wo.mileageEnd}</strong></div>
+                        <div>Dumped: <strong>{wo.timesDumped}x</strong> · Utilities: <strong>{wo.utilitiesFound}</strong></div>
                       </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Invoice Form — full width below WO cards */}
-            {selectedWo && !invoicesByWoId[selectedWo._id] && (
-              <div style={{ marginTop: 16 }}>
-                <InvoiceForm
-                  wo={selectedWo}
-                  onCancel={() => setSelectedWo(null)}
-                  onSent={() => { setSelectedWo(null); fetchInvoices(); }}
-                />
+                      {inv && (
+                        <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid #e0e0e0', fontSize: 12, color: '#555' }}>
+                          <strong>Inv #{inv.invoiceNumber}</strong> · {inv.client} · <strong>${Number(inv.total || 0).toFixed(2)}</strong>
+                          {inv.woPdfUrl && <a href={inv.woPdfUrl} target="_blank" rel="noreferrer" style={{ marginLeft: 8, color: ORANGE, fontWeight: 600 }}>📄 WO PDF</a>}
+                        </div>
+                      )}
+                      {!inv && (
+                        <div style={{ marginTop: 6, fontSize: 12, color: ORANGE, fontWeight: 600 }}>
+                          {isChecked ? '✓ Selected for invoice' : 'Click to select for invoice'}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-            )}
+
+              {/* Select all unbilled button */}
+              {wosOnSelectedDates.some(wo => !invoicesByWoId[wo._id]) && (
+                <div style={{ display: 'flex', gap: 8, marginBottom: selectedWos.length > 0 ? 16 : 0 }}>
+                  <button
+                    onClick={() => setSelectedWos(wosOnSelectedDates.filter(wo => !invoicesByWoId[wo._id]))}
+                    style={{ fontSize: 12, padding: '5px 14px', background: ORANGE_LIGHT, border: `1px solid ${ORANGE_BORDER}`, color: ORANGE, borderRadius: 6, cursor: 'pointer', fontWeight: 700 }}>
+                    Select All Unbilled ({wosOnSelectedDates.filter(wo => !invoicesByWoId[wo._id]).length})
+                  </button>
+                  {selectedWos.length > 0 && (
+                    <button onClick={() => setSelectedWos([])}
+                      style={{ fontSize: 12, padding: '5px 14px', background: '#f5f5f5', border: '1px solid #ddd', color: '#666', borderRadius: 6, cursor: 'pointer' }}>
+                      Clear Selection
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Invoice Form */}
+              {selectedWos.length > 0 && (
+                <InvoiceForm
+                  wos={selectedWos}
+                  onCancel={() => setSelectedWos([])}
+                  onSent={() => { setSelectedWos([]); fetchInvoices(); }}
+                />
+              )}
+            </div>
           </div>
         )}
 
