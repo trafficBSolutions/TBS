@@ -38,16 +38,33 @@ const ORANGE_MED = 'rgba(236,77,7,0.28)';
 const ORANGE_BORDER = 'rgba(236,77,7,0.45)';
 
 function InvoiceForm({ wos, onSent, onCancel }) {
-  const [client, setClient] = useState('');
-  const [clientEmail, setClientEmail] = useState('');
-  const [invoiceNumber, setInvoiceNumber] = useState('');
-  const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().slice(0, 10));
-  const [notes, setNotes] = useState('');
-  const [rows, setRows] = useState([{ id: 1, description: 'Hydrovac Services', hours: '', rate: '', amount: 0 }]);
+  const draftKey = `hv-draft-${wos.map(w => w._id).join('-')}`;
+
+  const loadDraft = () => {
+    try { return JSON.parse(localStorage.getItem(draftKey) || 'null'); } catch { return null; }
+  };
+
+  const draft = loadDraft();
+
+  const [client, setClient] = useState(draft?.client || '');
+  const [clientEmail, setClientEmail] = useState(draft?.clientEmail || '');
+  const [invoiceNumber, setInvoiceNumber] = useState(draft?.invoiceNumber || '');
+  const [invoiceDate, setInvoiceDate] = useState(draft?.invoiceDate || new Date().toISOString().slice(0, 10));
+  const [notes, setNotes] = useState(draft?.notes || '');
+  const [rows, setRows] = useState(draft?.rows || [{ id: 1, description: 'Hydrovac Services', hours: '', rate: '', amount: 0 }]);
   const [sending, setSending] = useState(false);
   const [woPdfUrls, setWoPdfUrls] = useState({});
   const [loadingPdfs, setLoadingPdfs] = useState(false);
   const [images, setImages] = useState([]); // [{ name, dataUrl }]
+  const [draftSaved, setDraftSaved] = useState(false);
+
+  const saveDraft = () => {
+    localStorage.setItem(draftKey, JSON.stringify({ client, clientEmail, invoiceNumber, invoiceDate, notes, rows }));
+    setDraftSaved(true);
+    setTimeout(() => setDraftSaved(false), 2000);
+  };
+
+  const clearDraft = () => localStorage.removeItem(draftKey);
 
   const total = useMemo(() => rows.reduce((s, r) => s + (Number(r.amount) || 0), 0), [rows]);
 
@@ -132,6 +149,7 @@ function InvoiceForm({ wos, onSent, onCancel }) {
         images: images.map(img => ({ name: img.name, dataUrl: img.dataUrl })),
       });
       toast.success(`Invoice sent to ${clientEmail}!`);
+      clearDraft();
       onSent();
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to send invoice');
@@ -148,7 +166,13 @@ function InvoiceForm({ wos, onSent, onCancel }) {
     <div style={{ padding: 20, border: `1px solid ${ORANGE_BORDER}`, borderRadius: 10, background: '#fff', boxShadow: '0 4px 16px rgba(236,77,7,0.08)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
         <h3 style={{ margin: 0, fontSize: 15 }}>📄 Invoice — {dateRange} · {wos.length} Work Order{wos.length > 1 ? 's' : ''}</h3>
-        <button onClick={onCancel} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: '#888' }}>✕</button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {draft && <span style={{ fontSize: 11, color: '#888' }}>Draft loaded</span>}
+          <button onClick={saveDraft} style={{ fontSize: 11, padding: '4px 12px', background: ORANGE_LIGHT, border: `1px solid ${ORANGE_BORDER}`, color: ORANGE, borderRadius: 6, cursor: 'pointer', fontWeight: 700 }}>
+            {draftSaved ? '✓ Saved!' : '💾 Save Draft'}
+          </button>
+          <button onClick={onCancel} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: '#888' }}>✕</button>
+        </div>
       </div>
 
       {/* WO Summaries */}
@@ -271,9 +295,9 @@ function InvoiceForm({ wos, onSent, onCancel }) {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {images.map((img, i) => (
               <div key={i} style={{ position: 'relative', border: `1px solid ${ORANGE_BORDER}`, borderRadius: 6, overflow: 'hidden', width: 90, height: 90, flexShrink: 0 }}>
-                <img src={img.dataUrl} alt={img.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={img.dataUrl} alt={img.name} style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none', userSelect: 'none' }} />
                 <button
-                  onClick={() => setImages(prev => prev.filter((_, j) => j !== i))}
+                  onClick={e => { e.stopPropagation(); setImages(prev => prev.filter((_, j) => j !== i)); }}
                   style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(0,0,0,0.55)', border: 'none', borderRadius: '50%', width: 18, height: 18, color: '#fff', cursor: 'pointer', fontSize: 11, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
                 >✕</button>
                 <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.45)', color: '#fff', fontSize: 9, padding: '2px 4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{img.name}</div>
