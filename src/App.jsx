@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate} from 'react-router-dom'
 import HydrovacWorkOrder from './pages/hydrovac-work-order';
+import HydrovacInvoicing from './pages/billing/hydrovac-invoicing';
 import { JobSiteInspection, HydrovacServices, About, EmployeeHandbook, Quote, ConfirmAdditionalFlagger, EmployeeDiscipline, Invoice, Work, ManageJobTest, CancelJobTest, ManageJob, CancelJob, AdminLog, AdminDashboard, Contact, Apply, Home, TrafficControl, TrafficPlan, Rentals, PPE, Signs, BollardsWheels, Error, TService, Product, TrafficControlTest, EmployeeDashboard, EmployeeComplaintForm, LeaveRequest, DirectDeposit } from './pages';
 import TCPDesigner from './pages/tcp-designer';
 import ShopWorkOrder from './pages/shop-work-order';
@@ -149,6 +150,7 @@ function App() {
     <Route path="/employee-dashboard/shop-work-order" element={<RequireStaff><ShopWorkOrder /></RequireStaff>} />
     <Route path="/admin-dashboard/shop-work-order" element={<RequireStaff><ShopWorkOrder /></RequireStaff>} />
     <Route path="/admin-dashboard/shop-work-order-log" element={isAdminAuthenticated() ? <ShopWorkOrderLog /> : <Navigate to="/admin-login" />} />
+    <Route path="/hydrovac-invoicing" element={isAdminAuthenticated() ? <HydrovacInvoicing /> : <Navigate to="/admin-login" />} />
     <Route path="/shop-work-order/:status/:id" element={<ShopWorkOrderStatus />} />
     <Route path="/employee-dashboard/leave-request" element={<RequireStaff><LeaveRequest /></RequireStaff>} />
     <Route path="/employee-dashboard/employee-complaint-form" element={<RequireStaff><EmployeeComplaintForm /></RequireStaff>} />
