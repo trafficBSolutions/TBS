@@ -1888,7 +1888,7 @@ selected={
 
 {/* â•â•â•â•â•â•â• ZONE 3: ADMIN TOOLS â•â•â•â•â•â•â• */}
 <div className="zone-tools">
-<h2 className="zone-tools-title">Admin Tools</h2>
+<h2 className="zone-tools-title">Work Orders & Tasks</h2>
 <div className="tools-grid">
 
   <div className="tool-card">
@@ -1933,7 +1933,7 @@ selected={
       </div>
     )}
   </div>
-<h2 className="zone-tools-title">Time Clock</h2>
+<h2 className="zone-tools-title">Time Clock Management</h2>
   {personalClockEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email) && (
     <div className="tool-card">
       <h3>⏰ My Time Clock</h3>
@@ -2433,7 +2433,7 @@ selected={
 )}
     </div>
   )}
-<h2 className="zone-tools-title">Traffic Control Tools</h2>
+<h2 className="zone-tools-title">TC Reference Materials</h2>
   <div className="tool-card tool-card--wide">
     <h3>📱TA Diagrams</h3>
     <button className="btn view-cancelled-btn" onClick={() => setShowTAImages(prev => !prev)}>
@@ -2495,7 +2495,7 @@ selected={
       </div>
         )}
   </div>
-<h2 className="zone-tools-title">Invoicing</h2>
+<h2 className="zone-tools-title">Billing & Invoicing</h2>
   {allowedForInvoices && (
     <div className="tool-card">
       <h3>🚦 TC Invoicing</h3>
@@ -2517,7 +2517,7 @@ selected={
       <button className="invoice-btn" type="button" onClick={() => navigate('/admin-dashboard/quote')}>Open</button>
     </div>
   )}
-  <h2 className="zone-tools-title">Employee Tools</h2>
+  <h2 className="zone-tools-title">HR & Employee Management</h2>
   {allowedForDiscipline && (
     <div className="tool-card">
       <h3>⚠️ Discipline</h3>
@@ -2537,7 +2537,7 @@ selected={
       {empPasswordMsg && <p className={empPasswordMsg.includes('changed') ? 'msg-success' : 'msg-error'}>{empPasswordMsg}</p>}
     </div>
   )}
-<h2 className="zone-tools-title">Sign Shop Records</h2>
+<h2 className="zone-tools-title">Sign Shop & Print Costs</h2>
   {invoiceStats && (
     <InvoiceStatsSection invoiceStats={invoiceStats} setInvoiceStats={setInvoiceStats} />
   )}
@@ -2595,7 +2595,7 @@ selected={
       )}
     </div>
   )}
-<h2 className="zone-tools-title">Cancelled Traffic Control Jobs</h2>
+<h2 className="zone-tools-title">Cancelled Jobs</h2>
   <div className="tool-card tool-card--wide">
     <h3>❌ Cancelled Jobs</h3>
     <button className="btn view-cancelled-btn" onClick={() => setShowCancelledJobs(prev => !prev)}>
