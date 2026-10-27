@@ -1793,8 +1793,8 @@ selected={
               <h4 className="job-company">{wo.cdlDriver} & {wo.secondWorker}</h4>
               <p><strong>Date:</strong> {wo.date}</p>
               <p><strong>Coordinator:</strong> {wo.coordinator}</p>
-              <p><strong>Engine Hours:</strong> {wo.engineHoursStart} â†’ {wo.engineHoursEnd} ({(wo.engineHoursEnd - wo.engineHoursStart).toFixed(1)} hrs)</p>
-              <p><strong>Mileage:</strong> {wo.mileageStart} â†’ {wo.mileageEnd} ({wo.mileageEnd - wo.mileageStart} mi)</p>
+              <p><strong>Engine Hours:</strong> {wo.engineHoursStart} - {wo.engineHoursEnd} ({(wo.engineHoursEnd - wo.engineHoursStart).toFixed(1)} hrs)</p>
+              <p><strong>Mileage:</strong> {wo.mileageStart} - {wo.mileageEnd} ({wo.mileageEnd - wo.mileageStart} mi)</p>
               <p><strong>Extension Pipe:</strong> {wo.extensionPipeLength} ft</p>
               <p><strong>Times Dumped:</strong> {wo.timesDumped}</p>
               <p><strong>Utilities Found:</strong> {wo.utilitiesFound}</p>
@@ -1803,7 +1803,7 @@ selected={
               <p><strong>Grease Points:</strong> {wo.greasePointsChecked ? 'Yes' : 'No'}</p>
               <p><strong>Truck Cleaned:</strong> {wo.truckCleanedOut} | <strong>Filter:</strong> {wo.filterCleaned} | <strong>Water Refill:</strong> {wo.waterRefill}</p>
               {wo.trafficControlUsed && (
-                <p><strong>TC:</strong> {wo.tcStartTime} â†’ {wo.tcEndTime}{wo.tcTrucks?.length ? ` | Trucks: ${wo.tcTrucks.join(', ')}` : ''}</p>
+                <p><strong>TC:</strong> {wo.tcStartTime} - {wo.tcEndTime}{wo.tcTrucks?.length ? ` | Trucks: ${wo.tcTrucks.join(', ')}` : ''}</p>
               )}
               {wo.notes && <p><strong>Notes:</strong> {wo.notes}</p>}
               {wo.foremanSignature && (
