@@ -27,9 +27,15 @@ const MONTH_NAMES = ['January','February','March','April','May','June','July','A
 
 // Status badge config
 const STATUS_BADGE = {
-  paid:   { bg: '#28a745', color: '#fff', label: '✓ Paid' },
-  unpaid: { bg: '#ffc107', color: '#000', label: '● Sent' },
+  paid:   { bg: '#27ae60', color: '#fff', label: '✓ Paid' },
+  unpaid: { bg: 'rgba(236,77,7,0.85)', color: '#fff', label: '● Sent/Unpaid' },
 };
+
+// Orange admin theme tokens (matches admin.css --adm-accent)
+const ORANGE = 'rgb(236,77,7)';
+const ORANGE_LIGHT = 'rgba(236,77,7,0.12)';
+const ORANGE_MED = 'rgba(236,77,7,0.28)';
+const ORANGE_BORDER = 'rgba(236,77,7,0.45)';
 
 function InvoiceForm({ wo, onSent, onCancel }) {
   const [client, setClient] = useState('');
@@ -82,14 +88,14 @@ function InvoiceForm({ wo, onSent, onCancel }) {
   };
 
   return (
-    <div style={{ padding: 20, border: '1px solid #dee2e6', borderRadius: 8, background: '#f8f9fa' }}>
+    <div style={{ padding: 20, border: `1px solid ${ORANGE_BORDER}`, borderRadius: 10, background: '#fff', boxShadow: '0 4px 16px rgba(236,77,7,0.08)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
         <h3 style={{ margin: 0, fontSize: 15 }}>📄 Invoice — {wo.date} · {wo.cdlDriver}</h3>
         <button onClick={onCancel} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: '#888' }}>✕</button>
       </div>
 
       {/* WO Summary */}
-      <div style={{ background: '#e3f2fd', borderRadius: 6, padding: 12, marginBottom: 14, fontSize: 13 }}>
+      <div style={{ background: ORANGE_LIGHT, border: `1px solid ${ORANGE_BORDER}`, borderRadius: 8, padding: 12, marginBottom: 14, fontSize: 13 }}>
         <strong>Work Order Summary</strong>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, marginTop: 6 }}>
           <span>CDL Driver: <strong>{wo.cdlDriver}</strong></span>
@@ -134,10 +140,10 @@ function InvoiceForm({ wo, onSent, onCancel }) {
         </div>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
-            <tr style={{ background: '#17365D', color: '#fff' }}>
-              <th style={{ padding: '6px 8px', border: '1px solid #4a6fa5', textAlign: 'left' }}>Description</th>
-              <th style={{ padding: '6px 8px', border: '1px solid #4a6fa5', width: 120, textAlign: 'right' }}>Amount</th>
-              <th style={{ padding: '6px 8px', border: '1px solid #4a6fa5', width: 36 }}></th>
+            <tr style={{ background: `linear-gradient(135deg, ${ORANGE}, rgba(243,156,18,0.9))`, color: '#fff' }}>
+              <th style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.2)', textAlign: 'left' }}>Description</th>
+              <th style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.2)', width: 120, textAlign: 'right' }}>Amount</th>
+              <th style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.2)', width: 36 }}></th>
             </tr>
           </thead>
           <tbody>
@@ -176,7 +182,7 @@ function InvoiceForm({ wo, onSent, onCancel }) {
       </div>
 
       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-        <button className="btn btn--primary" onClick={handleSend} disabled={sending} style={{ fontSize: 13 }}>
+        <button onClick={handleSend} disabled={sending} style={{ fontSize: 13, padding: '8px 20px', background: `linear-gradient(135deg, ${ORANGE}, rgba(243,156,18,0.9))`, color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, cursor: sending ? 'not-allowed' : 'pointer', opacity: sending ? 0.7 : 1 }}>
           {sending ? 'Sending…' : '📧 Send Invoice + WO PDF'}
         </button>
         {!woPdfUrl && !generatingPdf && (
@@ -188,81 +194,81 @@ function InvoiceForm({ wo, onSent, onCancel }) {
 }
 
 function Calendar({ year, month, wosByDate, invoicesByWoId, onDayClick, selectedDate }) {
-  // month is 0-indexed here
-  const firstDow = new Date(year, month, 1).getDay(); // 0=Sun
+  const firstDow = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const cells = [];
-
   for (let i = 0; i < firstDow; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
-
   const pad = (n) => String(n).padStart(2, '0');
+  const todayStr = new Date().toISOString().slice(0, 10);
 
   return (
     <div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 4 }}>
+      {/* Day headers */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 3, marginBottom: 6 }}>
         {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => (
-          <div key={d} style={{ textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#555', padding: '4px 0' }}>{d}</div>
+          <div key={d} style={{
+            textAlign: 'center', fontSize: 12, fontWeight: 700,
+            color: ORANGE, padding: '6px 0',
+            borderBottom: `2px solid ${ORANGE_BORDER}`,
+          }}>{d}</div>
         ))}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 3 }}>
+
+      {/* Day cells */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
         {cells.map((day, idx) => {
-          if (!day) return <div key={`e${idx}`} />;
+          if (!day) return <div key={`e${idx}`} style={{ minHeight: 72 }} />;
           const dateStr = `${year}-${pad(month + 1)}-${pad(day)}`;
           const wos = wosByDate[dateStr] || [];
           const hasWo = wos.length > 0;
-
-          // Collect statuses for all WOs on this day
           const statuses = wos.map(wo => invoicesByWoId[wo._id]?.payStatus || null);
           const allPaid = statuses.length > 0 && statuses.every(s => s === 'paid');
           const anySent = statuses.some(s => s === 'unpaid');
-          const anyBilled = statuses.some(s => s !== null);
-
           const isSelected = selectedDate === dateStr;
-          const isToday = dateStr === new Date().toISOString().slice(0, 10);
+          const isToday = dateStr === todayStr;
 
-          let bg = '#fff';
-          let border = '1px solid #e0e0e0';
-          if (allPaid) { bg = '#e8f5e9'; border = '1px solid #a5d6a7'; }
-          else if (anySent) { bg = '#fff8e1'; border = '1px solid #ffe082'; }
-          else if (hasWo) { bg = '#e3f2fd'; border = '1px solid #90caf9'; }
-          if (isSelected) border = '2px solid #e53935';
+          let bg = '#fafafa';
+          let borderColor = '#e8e8e8';
+          if (allPaid)       { bg = '#eafaf1'; borderColor = '#a9dfbf'; }
+          else if (anySent)  { bg = ORANGE_LIGHT; borderColor = ORANGE_BORDER; }
+          else if (hasWo)    { bg = 'rgba(236,77,7,0.06)'; borderColor = 'rgba(236,77,7,0.25)'; }
+          if (isSelected)    { borderColor = ORANGE; }
 
           return (
             <div key={day} onClick={() => hasWo && onDayClick(dateStr)}
               style={{
-                minHeight: 64, padding: '4px 6px', borderRadius: 6, background: bg, border,
+                minHeight: 72, padding: '6px 7px', borderRadius: 8,
+                background: bg,
+                border: `${isSelected ? '2px' : '1px'} solid ${borderColor}`,
                 cursor: hasWo ? 'pointer' : 'default',
-                position: 'relative',
-                boxShadow: isSelected ? '0 0 0 2px #e5393540' : undefined,
+                boxShadow: isSelected ? `0 0 0 3px ${ORANGE_MED}` : hasWo ? '0 1px 4px rgba(0,0,0,0.06)' : 'none',
+                transition: 'box-shadow 0.15s, border-color 0.15s',
               }}>
+              {/* Day number */}
               <div style={{
-                fontSize: 12, fontWeight: isToday ? 700 : 400,
-                color: isToday ? '#e53935' : '#333',
-                background: isToday ? '#fce4ec' : undefined,
-                borderRadius: isToday ? '50%' : undefined,
-                width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 13, fontWeight: 700,
+                color: isToday ? '#fff' : hasWo ? ORANGE : '#555',
+                background: isToday ? ORANGE : 'transparent',
+                borderRadius: '50%', width: 22, height: 22,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                marginBottom: 3,
               }}>{day}</div>
+
+              {/* WO entries */}
               {wos.map(wo => {
                 const inv = invoicesByWoId[wo._id];
                 const badge = inv ? STATUS_BADGE[inv.payStatus] : null;
                 return (
-                  <div key={wo._id} style={{ marginTop: 2 }}>
-                    <div style={{ fontSize: 10, color: '#333', lineHeight: 1.3, fontWeight: 600 }}>
+                  <div key={wo._id} style={{ marginBottom: 3 }}>
+                    <div style={{ fontSize: 10, color: '#333', fontWeight: 600, lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       🚛 {wo.cdlDriver}
                     </div>
-                    {badge && (
-                      <span style={{
-                        display: 'inline-block', fontSize: 9, padding: '1px 5px', borderRadius: 3,
-                        background: badge.bg, color: badge.color, fontWeight: 700, marginTop: 1,
-                      }}>{badge.label}</span>
-                    )}
-                    {!inv && (
-                      <span style={{
-                        display: 'inline-block', fontSize: 9, padding: '1px 5px', borderRadius: 3,
-                        background: '#f5f5f5', color: '#888', fontWeight: 600, marginTop: 1,
-                      }}>Not Billed</span>
-                    )}
+                    <span style={{
+                      display: 'inline-block', fontSize: 9, padding: '1px 5px', borderRadius: 3, marginTop: 1, fontWeight: 700,
+                      background: badge ? badge.bg : '#e0e0e0',
+                      color: badge ? badge.color : '#666',
+                    }}>{badge ? badge.label : 'Not Billed'}</span>
                   </div>
                 );
               })}
@@ -272,15 +278,15 @@ function Calendar({ year, month, wosByDate, invoicesByWoId, onDayClick, selected
       </div>
 
       {/* Legend */}
-      <div style={{ display: 'flex', gap: 12, marginTop: 10, fontSize: 11, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 16, marginTop: 14, fontSize: 12, flexWrap: 'wrap', paddingTop: 10, borderTop: `1px solid ${ORANGE_BORDER}` }}>
         {[
-          { bg: '#e3f2fd', border: '1px solid #90caf9', label: 'Has WO — Not Billed' },
-          { bg: '#fff8e1', border: '1px solid #ffe082', label: 'Invoice Sent (Unpaid)' },
-          { bg: '#e8f5e9', border: '1px solid #a5d6a7', label: 'Paid' },
+          { bg: 'rgba(236,77,7,0.06)', border: `1px solid rgba(236,77,7,0.25)`, label: 'Has WO — Not Billed' },
+          { bg: ORANGE_LIGHT, border: `1px solid ${ORANGE_BORDER}`, label: 'Invoice Sent (Unpaid)' },
+          { bg: '#eafaf1', border: '1px solid #a9dfbf', label: 'All Paid' },
         ].map(({ bg, border, label }) => (
-          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <div style={{ width: 14, height: 14, borderRadius: 3, background: bg, border }} />
-            <span style={{ color: '#555' }}>{label}</span>
+          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ width: 16, height: 16, borderRadius: 4, background: bg, border, flexShrink: 0 }} />
+            <span style={{ color: '#555', fontWeight: 600 }}>{label}</span>
           </div>
         ))}
       </div>
@@ -410,117 +416,151 @@ export default function HydrovacInvoicing() {
 
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <h1 style={{ margin: 0, fontSize: '2.2rem' }}>🚛 Hydrovac Invoicing</h1>
-          <button className="btn" onClick={() => navigate('/admin-dashboard')} style={{ fontSize: 13 }}>← Dashboard</button>
+          <h1 style={{ margin: 0, fontSize: '2.2rem', color: '#1a1a1a' }}>🚛 Hydrovac Invoicing</h1>
+          <button className="btn" onClick={() => navigate('/admin-dashboard')}
+            style={{ fontSize: 13, background: ORANGE_LIGHT, border: `1px solid ${ORANGE_BORDER}`, color: ORANGE, borderRadius: 8, padding: '7px 16px', fontWeight: 700, cursor: 'pointer' }}>
+            ← Dashboard
+          </button>
         </div>
 
         {/* Stats */}
         <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
-          <div style={{ background: '#e3f2fd', borderRadius: 8, padding: '12px 20px', minWidth: 130 }}>
-            <div style={{ fontSize: 12, color: '#555' }}>Total Invoices</div>
-            <div style={{ fontSize: 24, fontWeight: 700 }}>{invoices.length}</div>
-          </div>
-          <div style={{ background: '#fce4ec', borderRadius: 8, padding: '12px 20px', minWidth: 130 }}>
-            <div style={{ fontSize: 12, color: '#555' }}>Outstanding</div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: '#c62828' }}>${totalUnpaid.toFixed(2)}</div>
-          </div>
-          <div style={{ background: '#e8f5e9', borderRadius: 8, padding: '12px 20px', minWidth: 130 }}>
-            <div style={{ fontSize: 12, color: '#555' }}>Paid</div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: '#2e7d32' }}>
-              {invoices.filter(i => i.payStatus === 'paid').length}
+          {[
+            { label: 'Total Invoices', value: invoices.length, color: '#1a1a1a', bg: ORANGE_LIGHT, border: ORANGE_BORDER },
+            { label: 'Outstanding', value: `$${totalUnpaid.toFixed(2)}`, color: ORANGE, bg: 'rgba(236,77,7,0.06)', border: ORANGE_BORDER },
+            { label: 'Paid', value: invoices.filter(i => i.payStatus === 'paid').length, color: '#27ae60', bg: '#eafaf1', border: '#a9dfbf' },
+            { label: 'Unpaid', value: invoices.filter(i => i.payStatus !== 'paid').length, color: '#888', bg: '#f5f5f5', border: '#ddd' },
+          ].map(({ label, value, color, bg, border }) => (
+            <div key={label} style={{
+              background: bg, border: `1px solid ${border}`,
+              borderRadius: 10, padding: '14px 22px', minWidth: 130,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+            }}>
+              <div style={{ fontSize: 12, color: '#666', fontWeight: 600, marginBottom: 4 }}>{label}</div>
+              <div style={{ fontSize: 26, fontWeight: 800, color }}>{value}</div>
             </div>
-          </div>
+          ))}
         </div>
 
-        {/* Calendar + Side Panel */}
-        <div style={{ display: 'grid', gridTemplateColumns: selectedDate ? '1fr 380px' : '1fr', gap: 20, marginBottom: 32, alignItems: 'start' }}>
-
-          {/* Calendar */}
-          <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #e0e0e0', padding: 16 }}>
-            {/* Month Nav */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-              <button onClick={prevMonth} style={{ background: 'none', border: '1px solid #ccc', borderRadius: 6, padding: '4px 12px', cursor: 'pointer', fontSize: 16 }}>‹</button>
-              <div style={{ fontWeight: 700, fontSize: 17 }}>{MONTH_NAMES[calMonth]} {calYear}</div>
-              <button onClick={nextMonth} style={{ background: 'none', border: '1px solid #ccc', borderRadius: 6, padding: '4px 12px', cursor: 'pointer', fontSize: 16 }}>›</button>
+        {/* Calendar — full width */}
+        <div style={{
+          background: '#fff', borderRadius: 12,
+          border: `1px solid ${ORANGE_BORDER}`,
+          boxShadow: '0 4px 16px rgba(236,77,7,0.08)',
+          padding: '20px 20px 16px',
+          marginBottom: 20,
+        }}>
+          {/* Month Nav */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <button onClick={prevMonth} style={{
+              background: ORANGE_LIGHT, border: `1px solid ${ORANGE_BORDER}`,
+              borderRadius: 8, padding: '6px 16px', cursor: 'pointer', fontSize: 18,
+              color: ORANGE, fontWeight: 700, transition: 'background 0.15s',
+            }}>‹</button>
+            <div style={{ fontWeight: 800, fontSize: 20, color: '#1a1a1a', letterSpacing: '0.02em' }}>
+              {MONTH_NAMES[calMonth]} {calYear}
             </div>
-            {loadingWo && <p style={{ color: '#888', fontSize: 13, textAlign: 'center' }}>Loading work orders…</p>}
-            {!loadingWo && (
-              <Calendar
-                year={calYear}
-                month={calMonth}
-                wosByDate={wosByDate}
-                invoicesByWoId={invoicesByWoId}
-                onDayClick={handleDayClick}
-                selectedDate={selectedDate}
-              />
-            )}
+            <button onClick={nextMonth} style={{
+              background: ORANGE_LIGHT, border: `1px solid ${ORANGE_BORDER}`,
+              borderRadius: 8, padding: '6px 16px', cursor: 'pointer', fontSize: 18,
+              color: ORANGE, fontWeight: 700, transition: 'background 0.15s',
+            }}>›</button>
           </div>
+          {loadingWo && <p style={{ color: '#888', fontSize: 13, textAlign: 'center', padding: '20px 0' }}>Loading work orders…</p>}
+          {!loadingWo && (
+            <Calendar
+              year={calYear} month={calMonth}
+              wosByDate={wosByDate} invoicesByWoId={invoicesByWoId}
+              onDayClick={handleDayClick} selectedDate={selectedDate}
+            />
+          )}
+        </div>
 
-          {/* Side Panel — shown when a day is selected */}
-          {selectedDate && (
-            <div>
-              <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #e0e0e0', padding: 16, marginBottom: 12 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                  <div style={{ fontWeight: 700, fontSize: 14 }}>📅 {selectedDate}</div>
-                  <button onClick={() => { setSelectedDate(null); setSelectedWo(null); }}
-                    style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: '#888' }}>✕</button>
-                </div>
+        {/* Day Detail Panel — full width below calendar */}
+        {selectedDate && (
+          <div style={{ marginBottom: 28 }}>
+            {/* Day header */}
+            <div style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              background: `linear-gradient(135deg, ${ORANGE}, rgba(243,156,18,0.9))`,
+              color: '#fff', borderRadius: '10px 10px 0 0', padding: '12px 20px',
+            }}>
+              <div style={{ fontWeight: 800, fontSize: 16 }}>📅 Work Orders — {selectedDate}</div>
+              <button onClick={() => { setSelectedDate(null); setSelectedWo(null); }}
+                style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 6, padding: '4px 10px', color: '#fff', cursor: 'pointer', fontSize: 16, fontWeight: 700 }}>✕</button>
+            </div>
 
-                {wosOnSelectedDate.length === 0 && (
-                  <p style={{ color: '#888', fontSize: 13 }}>No work orders on this date.</p>
-                )}
-
-                {wosOnSelectedDate.map(wo => {
-                  const inv = invoicesByWoId[wo._id];
-                  const badge = inv ? STATUS_BADGE[inv.payStatus] : null;
-                  const isSelected = selectedWo?._id === wo._id;
-                  return (
-                    <div key={wo._id}
-                      onClick={() => !inv && setSelectedWo(isSelected ? null : wo)}
-                      style={{
-                        border: `2px solid ${isSelected ? '#e53935' : '#ddd'}`,
-                        borderRadius: 8, padding: 10, marginBottom: 8,
-                        background: isSelected ? '#fff5f5' : '#fafafa',
-                        cursor: inv ? 'default' : 'pointer',
-                      }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <div style={{ fontWeight: 700, fontSize: 13 }}>🚛 {wo.cdlDriver}{wo.secondWorker ? ` & ${wo.secondWorker}` : ''}</div>
-                        {badge ? (
-                          <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 4, background: badge.bg, color: badge.color, fontWeight: 700 }}>{badge.label}</span>
-                        ) : (
-                          <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 4, background: '#f5f5f5', color: '#888', fontWeight: 600 }}>Not Billed</span>
-                        )}
-                      </div>
-                      <div style={{ fontSize: 11, color: '#555', marginTop: 3 }}>
-                        Coordinator: {wo.coordinator} · Dumped: {wo.timesDumped}x · Utilities: {wo.utilitiesFound}
-                      </div>
-                      {inv && (
-                        <div style={{ fontSize: 11, color: '#555', marginTop: 2 }}>
-                          Inv #{inv.invoiceNumber} · {inv.client} · ${Number(inv.total || 0).toFixed(2)}
-                          {inv.woPdfUrl && <a href={inv.woPdfUrl} target="_blank" rel="noreferrer" style={{ marginLeft: 6, color: '#1565c0' }}>📄 WO</a>}
-                        </div>
-                      )}
-                      {!inv && <div style={{ fontSize: 11, color: '#e53935', marginTop: 3 }}>Click to create invoice →</div>}
+            {/* WO cards row */}
+            <div style={{
+              background: '#fff', border: `1px solid ${ORANGE_BORDER}`, borderTop: 'none',
+              borderRadius: '0 0 10px 10px', padding: 16,
+              display: 'grid',
+              gridTemplateColumns: `repeat(${Math.min(wosOnSelectedDate.length || 1, 3)}, 1fr)`,
+              gap: 12,
+            }}>
+              {wosOnSelectedDate.length === 0 && (
+                <p style={{ color: '#888', fontSize: 13, margin: 0 }}>No work orders on this date.</p>
+              )}
+              {wosOnSelectedDate.map(wo => {
+                const inv = invoicesByWoId[wo._id];
+                const badge = inv ? STATUS_BADGE[inv.payStatus] : null;
+                const isWoSelected = selectedWo?._id === wo._id;
+                return (
+                  <div key={wo._id}
+                    onClick={() => !inv && setSelectedWo(isWoSelected ? null : wo)}
+                    style={{
+                      border: `2px solid ${isWoSelected ? ORANGE : inv ? '#a9dfbf' : '#e0e0e0'}`,
+                      borderRadius: 10, padding: '12px 14px',
+                      background: isWoSelected ? ORANGE_LIGHT : inv ? '#eafaf1' : '#fafafa',
+                      cursor: inv ? 'default' : 'pointer',
+                      boxShadow: isWoSelected ? `0 0 0 3px ${ORANGE_MED}` : '0 1px 4px rgba(0,0,0,0.06)',
+                      transition: 'border-color 0.15s, box-shadow 0.15s',
+                    }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+                      <div style={{ fontWeight: 700, fontSize: 14, color: '#1a1a1a' }}>🚛 {wo.cdlDriver}{wo.secondWorker ? ` & ${wo.secondWorker}` : ''}</div>
+                      <span style={{
+                        fontSize: 11, padding: '2px 8px', borderRadius: 4, fontWeight: 700, flexShrink: 0, marginLeft: 6,
+                        background: badge ? badge.bg : '#e0e0e0',
+                        color: badge ? badge.color : '#666',
+                      }}>{badge ? badge.label : 'Not Billed'}</span>
                     </div>
-                  );
-                })}
-              </div>
+                    <div style={{ fontSize: 12, color: '#555', lineHeight: 1.6 }}>
+                      <div>Coordinator: <strong>{wo.coordinator}</strong></div>
+                      <div>Engine Hrs: <strong>{wo.engineHoursStart}→{wo.engineHoursEnd}</strong> · Miles: <strong>{wo.mileageStart}→{wo.mileageEnd}</strong></div>
+                      <div>Dumped: <strong>{wo.timesDumped}x</strong> · Utilities: <strong>{wo.utilitiesFound}</strong></div>
+                    </div>
+                    {inv && (
+                      <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid #e0e0e0', fontSize: 12, color: '#555' }}>
+                        <strong>Inv #{inv.invoiceNumber}</strong> · {inv.client} · <strong>${Number(inv.total || 0).toFixed(2)}</strong>
+                        {inv.woPdfUrl && <a href={inv.woPdfUrl} target="_blank" rel="noreferrer" style={{ marginLeft: 8, color: ORANGE, fontWeight: 600 }}>📄 WO PDF</a>}
+                      </div>
+                    )}
+                    {!inv && (
+                      <div style={{ marginTop: 8, fontSize: 12, color: ORANGE, fontWeight: 600 }}>
+                        {isWoSelected ? '▲ Invoice form open below' : '▼ Click to create invoice'}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
 
-              {/* Invoice Form */}
-              {selectedWo && !invoicesByWoId[selectedWo._id] && (
+            {/* Invoice Form — full width below WO cards */}
+            {selectedWo && !invoicesByWoId[selectedWo._id] && (
+              <div style={{ marginTop: 16 }}>
                 <InvoiceForm
                   wo={selectedWo}
                   onCancel={() => setSelectedWo(null)}
                   onSent={() => { setSelectedWo(null); fetchInvoices(); }}
                 />
-              )}
-            </div>
-          )}
-        </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Sent Invoices Table */}
-        <div>
-          <h2 style={{ fontSize: 16, marginBottom: 12 }}>Sent Invoices</h2>
+        <div style={{ background: '#fff', borderRadius: 12, border: `1px solid ${ORANGE_BORDER}`, boxShadow: '0 4px 16px rgba(236,77,7,0.08)', padding: 20 }}>
+          <h2 style={{ fontSize: 17, marginBottom: 14, color: '#1a1a1a', fontWeight: 800 }}>Sent Invoices</h2>
           <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <input placeholder="Search invoice # or client…" value={invFilter.search}
               onChange={e => setInvFilter(f => ({ ...f, search: e.target.value }))}
@@ -543,7 +583,7 @@ export default function HydrovacInvoicing() {
           <div className="inv-table-wrap">
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 800 }}>
               <thead>
-                <tr style={{ background: '#17365D', color: '#fff' }}>
+                <tr style={{ background: `linear-gradient(135deg, ${ORANGE}, rgba(243,156,18,0.9))`, color: '#fff' }}>
                   {['Date Sent','Inv #','Client','WO Date','Driver','Total','Status','Actions'].map(h => (
                     <th key={h} style={{ padding: '8px 8px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
