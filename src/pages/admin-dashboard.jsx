@@ -2503,6 +2503,13 @@ selected={
       <a href="/admin-dashboard/invoices" className="invoice-btn">Open</a>
     </div>
   )}
+  {allowedForInvoices && (
+    <div className="tool-card">
+      <h3>🚛 Hydrovac Invoicing</h3>
+      <p>Create &amp; track Hydrovac invoices</p>
+      <button className="invoice-btn" type="button" onClick={() => navigate('/hydrovac-invoicing')}>Open</button>
+    </div>
+  )}
   {allowedForQuotes && (
     <div className="tool-card">
       <h3>🪧 Material WorX</h3>
