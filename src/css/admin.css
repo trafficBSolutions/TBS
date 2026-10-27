@@ -125,7 +125,7 @@
 
 .admin-tool-section .tools-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 1rem;
   width: 100%;
 }
@@ -995,7 +995,7 @@
   }
 
   .admin-tool-section .tools-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1056,10 +1056,6 @@
 
   .selected-date-tasks h4 {
     font-size: 1.2rem;
-  }
-
-  .admin-tool-section .tools-grid {
-    grid-template-columns: 1fr;
   }
 
   .admin-tool-section .tool-card {
