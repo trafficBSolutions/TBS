@@ -105,7 +105,7 @@
 .zone-tools {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.75rem;
 }
 
 /* Each category section */
@@ -114,34 +114,35 @@
 }
 
 .admin-tool-section .zone-tools-title {
-  font-size: 1.75rem;
+  font-size: 1.6rem;
   font-weight: 700;
   color: #333;
   text-align: left;
   margin: 0 0 1rem;
-  padding-bottom: 0.6rem;
-  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 0.65rem;
+  border-bottom: 3px solid #ec4d07;
 }
 
 .admin-tool-section .tools-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
   width: 100%;
+  align-items: stretch;
 }
 
 .admin-tool-section .tool-card {
-  background: #fff;
+  background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  padding: 1.25rem;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
   gap: 0.5rem;
-  min-height: 130px;
+  min-height: 105px;
   box-shadow: 0 3px 10px rgba(0,0,0,0.04);
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
@@ -995,7 +996,7 @@
   }
 
   .admin-tool-section .tools-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -1059,11 +1060,11 @@
   }
 
   .admin-tool-section .tool-card {
-    min-height: 110px;
+    min-height: 95px;
   }
 
   .admin-tool-section .zone-tools-title {
-    font-size: 1.4rem;
+    font-size: 1.3rem;
   }
 }
 
