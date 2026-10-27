@@ -199,8 +199,8 @@ function InvoiceForm({ wos, onSent, onCancel }) {
           <thead>
             <tr style={{ background: `linear-gradient(135deg, ${ORANGE}, rgba(243,156,18,0.9))`, color: '#fff' }}>
               <th style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.2)', textAlign: 'left' }}>Description</th>
-              <th style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.2)', width: 80, textAlign: 'right' }}>Qty / Hours</th>
-              <th style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.2)', width: 100, textAlign: 'right' }}>$ Per Unit</th>
+              <th style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.2)', width: 80, textAlign: 'right' }}>Quantity</th>
+              <th style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.2)', width: 100, textAlign: 'right' }}>Per Unit</th>
               <th style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.2)', width: 110, textAlign: 'right' }}>Amount</th>
               <th style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.2)', width: 36 }}></th>
             </tr>
@@ -728,7 +728,7 @@ export default function HydrovacInvoicing() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 800 }}>
               <thead>
                 <tr style={{ background: `linear-gradient(135deg, ${ORANGE}, rgba(243,156,18,0.9))`, color: '#fff' }}>
-                  {['Date Sent','Inv #','Client','WO Date','Driver','Hours Billed','Total','Status','Actions'].map(h => (
+                  {['Date Sent','Inv #','Client','WO Date','Driver','Total','Status','Actions'].map(h => (
                     <th key={h} style={{ padding: '8px 8px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>
@@ -741,17 +741,6 @@ export default function HydrovacInvoicing() {
                     <td style={{ padding: '7px 8px', border: '1px solid #ddd' }}>{inv.client || '—'}</td>
                     <td style={{ padding: '7px 8px', border: '1px solid #ddd' }}>{inv.woData?.date || '—'}</td>
                     <td style={{ padding: '7px 8px', border: '1px solid #ddd' }}>{inv.woData?.cdlDriver || '—'}</td>
-                    <td style={{ padding: '7px 8px', border: '1px solid #ddd', textAlign: 'right' }}>
-                      {(() => {
-                        const wos = inv.wosData?.length ? inv.wosData : (inv.woData ? [inv.woData] : []);
-                        const hrs = wos.reduce((sum, wo) => {
-                          const s = parseFloat(wo.engineHoursStart);
-                          const e = parseFloat(wo.engineHoursEnd);
-                          return sum + (isNaN(s) || isNaN(e) ? 0 : e - s);
-                        }, 0);
-                        return hrs > 0 ? `${hrs.toFixed(1)} hrs` : '—';
-                      })()}
-                    </td>
                     <td style={{ padding: '7px 8px', border: '1px solid #ddd', textAlign: 'right', fontWeight: 600 }}>${Number(inv.total || 0).toFixed(2)}</td>
                     <td style={{ padding: '7px 8px', border: '1px solid #ddd' }}>
                       {inv.payStatus === 'paid' ? (
@@ -793,7 +782,7 @@ export default function HydrovacInvoicing() {
                   </tr>
                 ))}
                 {filtered.length === 0 && !loadingInv && (
-                  <tr><td colSpan={9} style={{ padding: 20, textAlign: 'center', color: '#888' }}>No invoices found.</td></tr>
+                  <tr><td colSpan={8} style={{ padding: 20, textAlign: 'center', color: '#888' }}>No invoices found.</td></tr>
                 )}
               </tbody>
             </table>
