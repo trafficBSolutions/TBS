@@ -110,6 +110,7 @@
   font-size: clamp(2rem, 3.8vw, 3.2rem);
   color: #333;
   margin-bottom: 1.5rem;
+  text-align: center;
 }
 
 .tools-grid {
