@@ -2540,7 +2540,7 @@ selected={
     <h2 className="zone-tools-title">HR & Employee Management</h2>
     <div className="tools-grid">
   {allowedForDiscipline && (
-    <div className="tool-card">
+    <div className="tool-card tool-card--wide">
       <h3>⚠️ Discipline</h3>
       <p>Disciplinary Action</p>
       <button className="invoice-btn" type="button" onClick={() => navigate('/admin-dashboard/disciplinary-action')}>Open</button>
