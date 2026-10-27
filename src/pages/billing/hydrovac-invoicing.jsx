@@ -43,7 +43,7 @@ function InvoiceForm({ wos, onSent, onCancel }) {
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().slice(0, 10));
   const [notes, setNotes] = useState('');
-  const [rows, setRows] = useState([{ id: 1, description: 'Hydrovac Services', amount: 0 }]);
+  const [rows, setRows] = useState([{ id: 1, description: 'Hydrovac Services', hours: '', rate: '', amount: 0 }]);
   const [sending, setSending] = useState(false);
   const [woPdfUrls, setWoPdfUrls] = useState({});
   const [loadingPdfs, setLoadingPdfs] = useState(false);
@@ -67,6 +67,35 @@ function InvoiceForm({ wos, onSent, onCancel }) {
       setWoPdfUrls(map);
     }).finally(() => setLoadingPdfs(false));
   }, [wos?.map(w => w._id).join(',')]);
+
+  // Auto-add TC line items for WOs with traffic control
+  useEffect(() => {
+    const tcRows = [];
+    wos.forEach(wo => {
+      if (!wo.trafficControlUsed) return;
+      const tcHrs = (() => {
+        if (!wo.tcStartTime || !wo.tcEndTime) return '';
+        const toMins = t => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+        const diff = (toMins(wo.tcEndTime) - toMins(wo.tcStartTime)) / 60;
+        return diff > 0 ? diff.toFixed(2) : '';
+      })();
+      const trucks = wo.tcTrucks?.length ? ` (${wo.tcTrucks.join(', ')})` : '';
+      tcRows.push({
+        id: `tc-${wo._id}`,
+        description: `Traffic Control — ${wo.date}${trucks}`,
+        hours: tcHrs,
+        rate: '',
+        amount: 0,
+      });
+    });
+    if (tcRows.length > 0) {
+      setRows(prev => {
+        const existingIds = new Set(prev.map(r => r.id));
+        const newTc = tcRows.filter(r => !existingIds.has(r.id));
+        return [...prev, ...newTc];
+      });
+    }
+  }, [wos.map(w => w._id).join(',')]);
 
   const handleImageAdd = (e) => {
     const files = Array.from(e.target.files);
@@ -95,6 +124,8 @@ function InvoiceForm({ wos, onSent, onCancel }) {
           mileageEnd: wo.mileageEnd, timesDumped: wo.timesDumped,
           utilitiesFound: wo.utilitiesFound, arrivalAtLocate: wo.arrivalAtLocate,
           arrivalBackAtShop: wo.arrivalBackAtShop, notes: wo.notes,
+          trafficControlUsed: wo.trafficControlUsed, tcStartTime: wo.tcStartTime,
+          tcEndTime: wo.tcEndTime, tcTrucks: wo.tcTrucks,
         })),
         woPdfUrls: wos.map(wo => woPdfUrls[wo._id] || null),
         client, clientEmail, invoiceNumber, invoiceDate, notes, rows, total,
@@ -162,13 +193,15 @@ function InvoiceForm({ wos, onSent, onCancel }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
           <label style={{ fontSize: 12, fontWeight: 700 }}>Line Items</label>
           <button type="button" className="btn" style={{ fontSize: 11, padding: '3px 10px' }}
-            onClick={() => setRows(r => [...r, { id: Date.now(), description: '', amount: 0 }])}>+ Add Line</button>
+            onClick={() => setRows(r => [...r, { id: Date.now(), description: '', hours: '', rate: '', amount: 0 }])}>+ Add Line</button>
         </div>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
             <tr style={{ background: `linear-gradient(135deg, ${ORANGE}, rgba(243,156,18,0.9))`, color: '#fff' }}>
               <th style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.2)', textAlign: 'left' }}>Description</th>
-              <th style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.2)', width: 120, textAlign: 'right' }}>Amount</th>
+              <th style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.2)', width: 80, textAlign: 'right' }}>Hours</th>
+              <th style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.2)', width: 100, textAlign: 'right' }}>$/hr</th>
+              <th style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.2)', width: 110, textAlign: 'right' }}>Amount</th>
               <th style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.2)', width: 36 }}></th>
             </tr>
           </thead>
@@ -180,8 +213,32 @@ function InvoiceForm({ wos, onSent, onCancel }) {
                     style={{ width: '100%', padding: '4px 6px', border: '1px solid #ccc', borderRadius: 3 }} />
                 </td>
                 <td style={{ padding: 4, border: '1px solid #ddd' }}>
+                  <input type="number" step="0.25" min="0" value={r.hours} placeholder="—"
+                    onChange={e => {
+                      const hours = e.target.value;
+                      setRows(p => p.map(x => {
+                        if (x.id !== r.id) return x;
+                        const amt = hours !== '' && x.rate !== '' ? Number(hours) * Number(x.rate) : x.amount;
+                        return { ...x, hours, amount: amt };
+                      }));
+                    }}
+                    style={{ width: '100%', padding: '4px 6px', border: '1px solid #ccc', borderRadius: 3, textAlign: 'right' }} />
+                </td>
+                <td style={{ padding: 4, border: '1px solid #ddd' }}>
+                  <input type="number" step="0.01" min="0" value={r.rate} placeholder="—"
+                    onChange={e => {
+                      const rate = e.target.value;
+                      setRows(p => p.map(x => {
+                        if (x.id !== r.id) return x;
+                        const amt = rate !== '' && x.hours !== '' ? Number(x.hours) * Number(rate) : x.amount;
+                        return { ...x, rate, amount: amt };
+                      }));
+                    }}
+                    style={{ width: '100%', padding: '4px 6px', border: '1px solid #ccc', borderRadius: 3, textAlign: 'right' }} />
+                </td>
+                <td style={{ padding: 4, border: '1px solid #ddd' }}>
                   <input type="number" step="0.01" min="0" value={r.amount}
-                    onChange={e => setRows(p => p.map(x => x.id === r.id ? { ...x, amount: Number(e.target.value) } : x))}
+                    onChange={e => setRows(p => p.map(x => x.id === r.id ? { ...x, amount: Number(e.target.value), hours: '', rate: '' } : x))}
                     style={{ width: '100%', padding: '4px 6px', border: '1px solid #ccc', borderRadius: 3, textAlign: 'right' }} />
                 </td>
                 <td style={{ padding: 4, border: '1px solid #ddd', textAlign: 'center' }}>
@@ -193,7 +250,7 @@ function InvoiceForm({ wos, onSent, onCancel }) {
           </tbody>
           <tfoot>
             <tr style={{ background: '#f0f0f0', fontWeight: 700 }}>
-              <td style={{ padding: '6px 8px', border: '1px solid #ddd', textAlign: 'right' }}>TOTAL</td>
+              <td style={{ padding: '6px 8px', border: '1px solid #ddd', textAlign: 'right' }} colSpan={3}>TOTAL</td>
               <td style={{ padding: '6px 8px', border: '1px solid #ddd', textAlign: 'right' }}>${total.toFixed(2)}</td>
               <td style={{ border: '1px solid #ddd' }}></td>
             </tr>
@@ -671,7 +728,7 @@ export default function HydrovacInvoicing() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 800 }}>
               <thead>
                 <tr style={{ background: `linear-gradient(135deg, ${ORANGE}, rgba(243,156,18,0.9))`, color: '#fff' }}>
-                  {['Date Sent','Inv #','Client','WO Date','Driver','Total','Status','Actions'].map(h => (
+                  {['Date Sent','Inv #','Client','WO Date','Driver','Hours Billed','Total','Status','Actions'].map(h => (
                     <th key={h} style={{ padding: '8px 8px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>
@@ -684,6 +741,17 @@ export default function HydrovacInvoicing() {
                     <td style={{ padding: '7px 8px', border: '1px solid #ddd' }}>{inv.client || '—'}</td>
                     <td style={{ padding: '7px 8px', border: '1px solid #ddd' }}>{inv.woData?.date || '—'}</td>
                     <td style={{ padding: '7px 8px', border: '1px solid #ddd' }}>{inv.woData?.cdlDriver || '—'}</td>
+                    <td style={{ padding: '7px 8px', border: '1px solid #ddd', textAlign: 'right' }}>
+                      {(() => {
+                        const wos = inv.wosData?.length ? inv.wosData : (inv.woData ? [inv.woData] : []);
+                        const hrs = wos.reduce((sum, wo) => {
+                          const s = parseFloat(wo.engineHoursStart);
+                          const e = parseFloat(wo.engineHoursEnd);
+                          return sum + (isNaN(s) || isNaN(e) ? 0 : e - s);
+                        }, 0);
+                        return hrs > 0 ? `${hrs.toFixed(1)} hrs` : '—';
+                      })()}
+                    </td>
                     <td style={{ padding: '7px 8px', border: '1px solid #ddd', textAlign: 'right', fontWeight: 600 }}>${Number(inv.total || 0).toFixed(2)}</td>
                     <td style={{ padding: '7px 8px', border: '1px solid #ddd' }}>
                       {inv.payStatus === 'paid' ? (
@@ -725,7 +793,7 @@ export default function HydrovacInvoicing() {
                   </tr>
                 ))}
                 {filtered.length === 0 && !loadingInv && (
-                  <tr><td colSpan={8} style={{ padding: 20, textAlign: 'center', color: '#888' }}>No invoices found.</td></tr>
+                  <tr><td colSpan={9} style={{ padding: 20, textAlign: 'center', color: '#888' }}>No invoices found.</td></tr>
                 )}
               </tbody>
             </table>
