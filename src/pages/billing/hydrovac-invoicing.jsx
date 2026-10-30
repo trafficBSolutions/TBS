@@ -220,7 +220,7 @@ function InvoiceForm({ wos, onSent, onCancel }) {
       {/* Invoice Fields */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
         {[
-          { label: 'Invoice #*', value: invoiceNumber, onChange: e => setInvoiceNumber(e.target.value.toUpperCase()), placeholder: 'e.g. 2026HV001' },
+          { label: 'TBS Invoice #*', value: invoiceNumber, onChange: e => setInvoiceNumber(e.target.value.toUpperCase()), placeholder: 'e.g. 2026HV001' },
           { label: 'Project / Task #', value: projectNumber, onChange: e => setProjectNumber(e.target.value.toUpperCase()), placeholder: 'e.g. PROJ-001' },
           { label: 'Invoice Date', value: invoiceDate, onChange: e => setInvoiceDate(e.target.value), type: 'date' },
           { label: 'Client / Company*', value: client, onChange: e => setClient(e.target.value), placeholder: 'Client name' },
