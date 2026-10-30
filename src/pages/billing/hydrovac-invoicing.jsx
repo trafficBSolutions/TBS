@@ -545,6 +545,15 @@ export default function HydrovacInvoicing() {
     [invoices]
   );
 
+  const lastHvInvoice = useMemo(() => {
+    const hvNums = invoices
+      .map(i => i.invoiceNumber || '')
+      .filter(n => /^2026HV/i.test(n));
+    if (!hvNums.length) return null;
+    hvNums.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+    return hvNums[hvNums.length - 1];
+  }, [invoices]);
+
   return (
     <div>
       <Header activePage="/admin-dashboard" />
@@ -566,6 +575,7 @@ export default function HydrovacInvoicing() {
             { label: 'Outstanding', value: `$${totalUnpaid.toFixed(2)}`, color: ORANGE, bg: 'rgba(236,77,7,0.06)', border: ORANGE_BORDER },
             { label: 'Paid', value: invoices.filter(i => i.payStatus === 'paid').length, color: '#27ae60', bg: '#eafaf1', border: '#a9dfbf' },
             { label: 'Unpaid', value: invoices.filter(i => i.payStatus !== 'paid').length, color: '#888', bg: '#f5f5f5', border: '#ddd' },
+            ...(lastHvInvoice ? [{ label: 'Last 2026HV Inv #', value: lastHvInvoice, color: '#1565c0', bg: '#e8f0fe', border: '#90b4f5' }] : []),
           ].map(({ label, value, color, bg, border }) => (
             <div key={label} style={{
               background: bg, border: `1px solid ${border}`,
