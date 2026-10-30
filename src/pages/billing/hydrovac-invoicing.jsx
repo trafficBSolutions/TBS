@@ -57,6 +57,7 @@ function InvoiceForm({ wos, onSent, onCancel }) {
   const [woPdfUrls, setWoPdfUrls] = useState({});
   const [loadingPdfs, setLoadingPdfs] = useState(false);
   const [images, setImages] = useState([]); // [{ name, dataUrl }]
+  const [extraPdfs, setExtraPdfs] = useState([]); // [{ name, dataUrl }]
   const [draftSaved, setDraftSaved] = useState(false);
 
   const saveDraft = () => {
@@ -127,6 +128,18 @@ function InvoiceForm({ wos, onSent, onCancel }) {
     e.target.value = '';
   };
 
+  const handlePdfAdd = (e) => {
+    const files = Array.from(e.target.files);
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setExtraPdfs(prev => [...prev, { name: file.name, dataUrl: ev.target.result }]);
+      };
+      reader.readAsDataURL(file);
+    });
+    e.target.value = '';
+  };
+
   const handleSend = async () => {
     if (!client.trim()) return toast.error('Client name is required');
     if (!clientEmail.trim()) return toast.error('Client email is required');
@@ -148,6 +161,7 @@ function InvoiceForm({ wos, onSent, onCancel }) {
         woPdfUrls: wos.map(wo => woPdfUrls[wo._id] || null),
         client, clientEmail, invoiceNumber, invoiceDate, notes, rows, total,
         images: images.map(img => ({ name: img.name, dataUrl: img.dataUrl })),
+        extraPdfs: extraPdfs.map(p => ({ name: p.name, dataUrl: p.dataUrl })),
       });
       toast.success(`Invoice sent to ${clientEmail}!`);
       clearDraft();
@@ -281,6 +295,29 @@ function InvoiceForm({ wos, onSent, onCancel }) {
             </tr>
           </tfoot>
         </table>
+      </div>
+
+      {/* Extra PDFs */}
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+          <label style={{ fontSize: 12, fontWeight: 700 }}>📎 Attach PDFs (optional)</label>
+          <label style={{ fontSize: 11, padding: '3px 10px', background: ORANGE_LIGHT, border: `1px solid ${ORANGE_BORDER}`, color: ORANGE, borderRadius: 6, cursor: 'pointer', fontWeight: 700 }}>
+            + Add PDFs
+            <input type="file" accept="application/pdf" multiple onChange={handlePdfAdd} style={{ display: 'none' }} />
+          </label>
+        </div>
+        {extraPdfs.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {extraPdfs.map((pdf, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f5f5f5', border: '1px solid #ddd', borderRadius: 6, padding: '6px 10px' }}>
+                <span style={{ fontSize: 13 }}>📄</span>
+                <span style={{ fontSize: 12, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pdf.name}</span>
+                <button onClick={() => setExtraPdfs(prev => prev.filter((_, j) => j !== i))}
+                  style={{ background: 'none', border: 'none', color: '#dc3545', cursor: 'pointer', fontWeight: 700, fontSize: 14, lineHeight: 1 }}>✕</button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Images */}
