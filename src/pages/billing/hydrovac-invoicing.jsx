@@ -48,6 +48,7 @@ function InvoiceForm({ wos, onSent, onCancel }) {
   const draft = loadDraft();
 
   const [client, setClient] = useState(draft?.client || '');
+  const [clientCompany, setClientCompany] = useState(draft?.clientCompany || '');
   const [clientEmail, setClientEmail] = useState(draft?.clientEmail || '');
   const [clientAddress, setClientAddress] = useState(draft?.clientAddress || '');
   const [clientCity, setClientCity] = useState(draft?.clientCity || '');
@@ -66,7 +67,7 @@ function InvoiceForm({ wos, onSent, onCancel }) {
   const [draftSaved, setDraftSaved] = useState(false);
 
   const saveDraft = () => {
-    localStorage.setItem(draftKey, JSON.stringify({ client, clientEmail, clientAddress, clientCity, clientZip, description, invoiceNumber, projectNumber, invoiceDate, notes, rows }));
+    localStorage.setItem(draftKey, JSON.stringify({ client, clientCompany, clientEmail, clientAddress, clientCity, clientZip, description, invoiceNumber, projectNumber, invoiceDate, notes, rows }));
     setDraftSaved(true);
     setTimeout(() => setDraftSaved(false), 2000);
   };
@@ -164,7 +165,7 @@ function InvoiceForm({ wos, onSent, onCancel }) {
           tcEndTime: wo.tcEndTime, tcTrucks: wo.tcTrucks,
         })),
         woPdfUrls: wos.map(wo => woPdfUrls[wo._id] || null),
-        client, clientEmail, clientAddress, clientCity, clientZip, description, invoiceNumber, projectNumber, invoiceDate, notes, rows, total,
+        client, clientEmail, clientCompany, clientAddress, clientCity, clientZip, description, invoiceNumber, projectNumber, invoiceDate, notes, rows, total,
         images: images.map(img => ({ name: img.name, dataUrl: img.dataUrl })),
         extraPdfs: extraPdfs.map(p => ({ name: p.name, dataUrl: p.dataUrl })),
       });
@@ -223,7 +224,8 @@ function InvoiceForm({ wos, onSent, onCancel }) {
           { label: 'TBS Invoice #*', value: invoiceNumber, onChange: e => setInvoiceNumber(e.target.value.toUpperCase()), placeholder: 'e.g. 2026HV001' },
           { label: 'Project / Task #', value: projectNumber, onChange: e => setProjectNumber(e.target.value.toUpperCase()), placeholder: 'e.g. PROJ-001' },
           { label: 'Invoice Date', value: invoiceDate, onChange: e => setInvoiceDate(e.target.value), type: 'date' },
-          { label: 'Client / Company*', value: client, onChange: e => setClient(e.target.value), placeholder: 'Client name' },
+          { label: 'Representative*', value: client, onChange: e => setClient(e.target.value), placeholder: 'Contact name' },
+          { label: 'Company', value: clientCompany, onChange: e => setClientCompany(e.target.value), placeholder: 'Company name' },
           { label: 'Client Email*', value: clientEmail, onChange: e => setClientEmail(e.target.value), placeholder: 'client@example.com', type: 'email' },
           { label: 'Job Site Address', value: clientAddress, onChange: e => setClientAddress(e.target.value), placeholder: '123 Main St' },
           { label: 'Job Site City', value: clientCity, onChange: e => setClientCity(e.target.value), placeholder: 'City' },
