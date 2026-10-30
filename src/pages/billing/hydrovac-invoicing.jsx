@@ -49,7 +49,12 @@ function InvoiceForm({ wos, onSent, onCancel }) {
 
   const [client, setClient] = useState(draft?.client || '');
   const [clientEmail, setClientEmail] = useState(draft?.clientEmail || '');
+  const [clientAddress, setClientAddress] = useState(draft?.clientAddress || '');
+  const [clientCity, setClientCity] = useState(draft?.clientCity || '');
+  const [clientZip, setClientZip] = useState(draft?.clientZip || '');
+  const [description, setDescription] = useState(draft?.description || '');
   const [invoiceNumber, setInvoiceNumber] = useState(draft?.invoiceNumber || '');
+  const [projectNumber, setProjectNumber] = useState(draft?.projectNumber || '');
   const [invoiceDate, setInvoiceDate] = useState(draft?.invoiceDate || new Date().toISOString().slice(0, 10));
   const [notes, setNotes] = useState(draft?.notes || '');
   const [rows, setRows] = useState(draft?.rows || [{ id: 1, description: 'Hydrovac Services', hours: '', rate: '', amount: 0 }]);
@@ -61,7 +66,7 @@ function InvoiceForm({ wos, onSent, onCancel }) {
   const [draftSaved, setDraftSaved] = useState(false);
 
   const saveDraft = () => {
-    localStorage.setItem(draftKey, JSON.stringify({ client, clientEmail, invoiceNumber, invoiceDate, notes, rows }));
+    localStorage.setItem(draftKey, JSON.stringify({ client, clientEmail, clientAddress, clientCity, clientZip, description, invoiceNumber, projectNumber, invoiceDate, notes, rows }));
     setDraftSaved(true);
     setTimeout(() => setDraftSaved(false), 2000);
   };
@@ -159,7 +164,7 @@ function InvoiceForm({ wos, onSent, onCancel }) {
           tcEndTime: wo.tcEndTime, tcTrucks: wo.tcTrucks,
         })),
         woPdfUrls: wos.map(wo => woPdfUrls[wo._id] || null),
-        client, clientEmail, invoiceNumber, invoiceDate, notes, rows, total,
+        client, clientEmail, clientAddress, clientCity, clientZip, description, invoiceNumber, projectNumber, invoiceDate, notes, rows, total,
         images: images.map(img => ({ name: img.name, dataUrl: img.dataUrl })),
         extraPdfs: extraPdfs.map(p => ({ name: p.name, dataUrl: p.dataUrl })),
       });
@@ -215,16 +220,25 @@ function InvoiceForm({ wos, onSent, onCancel }) {
       {/* Invoice Fields */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
         {[
-          { label: 'Invoice #*', value: invoiceNumber, onChange: e => setInvoiceNumber(e.target.value.toUpperCase()), placeholder: 'e.g. HV-001' },
+          { label: 'Invoice #*', value: invoiceNumber, onChange: e => setInvoiceNumber(e.target.value.toUpperCase()), placeholder: 'e.g. 2026HV001' },
+          { label: 'Project / Task #', value: projectNumber, onChange: e => setProjectNumber(e.target.value.toUpperCase()), placeholder: 'e.g. PROJ-001' },
           { label: 'Invoice Date', value: invoiceDate, onChange: e => setInvoiceDate(e.target.value), type: 'date' },
           { label: 'Client / Company*', value: client, onChange: e => setClient(e.target.value), placeholder: 'Client name' },
           { label: 'Client Email*', value: clientEmail, onChange: e => setClientEmail(e.target.value), placeholder: 'client@example.com', type: 'email' },
+          { label: 'Address', value: clientAddress, onChange: e => setClientAddress(e.target.value), placeholder: '123 Main St' },
+          { label: 'City', value: clientCity, onChange: e => setClientCity(e.target.value), placeholder: 'City' },
+          { label: 'Zip Code', value: clientZip, onChange: e => setClientZip(e.target.value), placeholder: '00000' },
         ].map(({ label, ...props }) => (
           <div key={label}>
             <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 3 }}>{label}</label>
             <input {...props} style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid #ced4da', fontSize: 13, boxSizing: 'border-box' }} />
           </div>
         ))}
+      </div>
+      <div style={{ marginBottom: 12 }}>
+        <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 3 }}>Description</label>
+        <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} placeholder="Brief description of work performed…"
+          style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid #ced4da', fontSize: 13, boxSizing: 'border-box' }} />
       </div>
 
       {/* Line Items */}
