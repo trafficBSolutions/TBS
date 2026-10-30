@@ -817,7 +817,7 @@ export default function HydrovacInvoicing() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 800 }}>
               <thead>
                 <tr style={{ background: `linear-gradient(135deg, ${ORANGE}, rgba(243,156,18,0.9))`, color: '#fff' }}>
-                  {['Date Sent','Inv #','Client','WO Date','Driver','Total','Status','Actions'].map(h => (
+                  {['Date Sent','Inv #','Representative','Company','WO Date','Driver','Total','Status','Actions'].map(h => (
                     <th key={h} style={{ padding: '8px 8px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>
@@ -828,6 +828,7 @@ export default function HydrovacInvoicing() {
                     <td style={{ padding: '7px 8px', border: '1px solid #ddd', whiteSpace: 'nowrap' }}>{fmtDate(inv.sentAt || inv.createdAt)}</td>
                     <td style={{ padding: '7px 8px', border: '1px solid #ddd', fontWeight: 600 }}>{inv.invoiceNumber || '—'}</td>
                     <td style={{ padding: '7px 8px', border: '1px solid #ddd' }}>{inv.client || '—'}</td>
+                    <td style={{ padding: '7px 8px', border: '1px solid #ddd' }}>{inv.clientCompany || '—'}</td>
                     <td style={{ padding: '7px 8px', border: '1px solid #ddd' }}>{inv.woData?.date || '—'}</td>
                     <td style={{ padding: '7px 8px', border: '1px solid #ddd' }}>{inv.woData?.cdlDriver || '—'}</td>
                     <td style={{ padding: '7px 8px', border: '1px solid #ddd', textAlign: 'right', fontWeight: 600 }}>${Number(inv.total || 0).toFixed(2)}</td>
