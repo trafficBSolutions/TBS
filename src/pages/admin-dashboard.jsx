@@ -171,7 +171,8 @@ const [addLinePurpose, setAddLinePurpose] = useState('');
 const [addLineMsg, setAddLineMsg] = useState('');
 
 // Admins who can edit/add/delete hours
-const canEditHoursEmails = new Set(['tbsolutions9@gmail.com', 'tbsolutions4@gmail.com', 'tbsolutions1999@gmail.com', 'tbsolutions1995@gmail.com', 'materialworx2@gmail.com']);
+const canEditHoursEmails = new Set(['tbsolutions9@gmail.com', 'tbsolutions4@gmail.com', 'tbsolutions1999@gmail.com', 'tbsolutions1995@gmail.com', 'materialworx2@gmail.com',
+      'tbsolutions4@gmail.com']);
 const canEditHours = canEditHoursEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email);
 
 const [pinEmployees, setPinEmployees] = useState([]);
@@ -201,11 +202,13 @@ const salaryAdminEmails = new Set([
   'tbsolutions1999@gmail.com',
   'tbsolutions77@gmail.com',
   'tbsolutions14@gmail.com',
-  'materialworx2@gmail.com'
+  'materialworx2@gmail.com',
+      'tbsolutions4@gmail.com'
 ]);
 
 // Admins who get a personal time clock widget (clock in/out only, no admin view)
-const personalClockEmails = new Set(['materialworx2@gmail.com']);
+const personalClockEmails = new Set(['materialworx2@gmail.com',
+      'tbsolutions4@gmail.com']);
 // Hourly admins who can view their own weekly hours
 const hourlyAdminEmails = new Set(['tbsolutions66@gmail.com']);
 const [personalPin, setPersonalPin] = useState('');
@@ -301,7 +304,8 @@ useEffect(() => {
   fetchCancelledJobs();
 
   // Fetch Sign Shop invoice stats for allowed users
-  const invoiceStatsEmails = new Set(['tbsolutions9@gmail.com','tbsolutions4@gmail.com','materialworx2@gmail.com','tbsolutions.work.orders@gmail.com','tbsolutions1999@gmail.com','tbsolutions1995@gmail.com','trafficandbarriersolutions.ap@gmail.com']);
+  const invoiceStatsEmails = new Set(['tbsolutions9@gmail.com','tbsolutions4@gmail.com','materialworx2@gmail.com',
+      'tbsolutions4@gmail.com','tbsolutions.work.orders@gmail.com','tbsolutions1999@gmail.com','tbsolutions1995@gmail.com','trafficandbarriersolutions.ap@gmail.com']);
   const storedUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
   if (invoiceStatsEmails.has(storedUser.email)) {
     const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -720,7 +724,8 @@ useEffect(() => {
       'trafficandbarriersolutions.ap@gmail.com',
       'tbsellen@gmail.com',
       'tbsolutions1995@gmail.com',
-      'materialworx2@gmail.com'
+      'materialworx2@gmail.com',
+      'tbsolutions4@gmail.com'
     ]);
 
     const canInvoice =
@@ -734,7 +739,8 @@ useEffect(() => {
       'tbsolutions1999@gmail.com',
       'tbsolutions9@gmail.com',
       'tbsolutions4@gmail.com',
-      'materialworx2@gmail.com'
+      'materialworx2@gmail.com',
+      'tbsolutions4@gmail.com'
     ]);
     setAllowedForQuotes(quoteEmails.has(user.email));
 
@@ -755,7 +761,8 @@ useEffect(() => {
       'tbsolutions9@gmail.com',
       'tbsolutions1999@gmail.com',
       'tbsolutions4@gmail.com',
-      'materialworx2@gmail.com'
+      'materialworx2@gmail.com',
+      'tbsolutions4@gmail.com'
     ]);
     setAllowedForSignShop(signShopEmails.has(user.email));
 
@@ -764,6 +771,7 @@ useEffect(() => {
       'tbsolutions1999@gmail.com',
       'tbsolutions4@gmail.com',
       'materialworx2@gmail.com',
+      'tbsolutions4@gmail.com',
       'tbsolutions1995@gmail.com'
     ]);
     setAllowedForShopWo(shopWoEmails.has(user.email));
