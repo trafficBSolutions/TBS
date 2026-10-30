@@ -225,9 +225,9 @@ function InvoiceForm({ wos, onSent, onCancel }) {
           { label: 'Invoice Date', value: invoiceDate, onChange: e => setInvoiceDate(e.target.value), type: 'date' },
           { label: 'Client / Company*', value: client, onChange: e => setClient(e.target.value), placeholder: 'Client name' },
           { label: 'Client Email*', value: clientEmail, onChange: e => setClientEmail(e.target.value), placeholder: 'client@example.com', type: 'email' },
-          { label: 'Address', value: clientAddress, onChange: e => setClientAddress(e.target.value), placeholder: '123 Main St' },
-          { label: 'City', value: clientCity, onChange: e => setClientCity(e.target.value), placeholder: 'City' },
-          { label: 'Zip Code', value: clientZip, onChange: e => setClientZip(e.target.value), placeholder: '00000' },
+          { label: 'Job Site Address', value: clientAddress, onChange: e => setClientAddress(e.target.value), placeholder: '123 Main St' },
+          { label: 'Job Site City', value: clientCity, onChange: e => setClientCity(e.target.value), placeholder: 'City' },
+          { label: 'Job Site Zip', value: clientZip, onChange: e => setClientZip(e.target.value), placeholder: '00000' },
         ].map(({ label, ...props }) => (
           <div key={label}>
             <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 3 }}>{label}</label>
