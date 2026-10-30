@@ -13,6 +13,7 @@ const ALLOWED_EMAILS = new Set([
   'tbsellen@gmail.com',
   'tbsolutions1995@gmail.com',
   'materialworx2@gmail.com',
+  'tbsolutions4@gmail.com',
 ]);
 
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString() : '—';
