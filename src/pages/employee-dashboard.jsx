@@ -376,9 +376,8 @@ const EmployeeDashboard = () => {
 
 
 
-          {/* Phone-only message when IP blocked */}
-          {!isMobile && <p className={`time-clock-phone-msg${(ipAllowed === false && !gpsAllowed) ? ' ip-blocked' : ''}`} style={{color:'#aaa',margin:'1rem 0'}}>⏰ Clock in/out is only available from the designated work location.</p>}
           )}
+          {!isMobile && <p className={`time-clock-phone-msg${(ipAllowed === false && !gpsAllowed) ? ' ip-blocked' : ''}`} style={{color:'#aaa',margin:'1rem 0'}}>⏰ Clock in/out is only available from the designated work location.</p>}
 
           {/* View Hours - available everywhere */}
           <div className="time-clock-view-hours">
