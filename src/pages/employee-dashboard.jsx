@@ -36,6 +36,7 @@ const EmployeeDashboard = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [clockedInIds, setClockedInIds] = useState([]);
   const [clockPurpose, setClockPurpose] = useState('');
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [pendingCount, setPendingCount] = useState(() => JSON.parse(localStorage.getItem('tbs_punch_queue') || '[]').length);
   const [showHandbook, setShowHandbook] = useState(false);
@@ -275,7 +276,13 @@ const EmployeeDashboard = () => {
             {pendingCount > 0 && <span style={{fontSize:'0.9rem',color:'#ff9800',fontWeight:'bold'}}>⏳ {pendingCount} punch{pendingCount > 1 ? 'es' : ''} pending sync</span>}
           </div>
 
-          {/* Punch In/Out - hidden on phones only if IP not allowed */}
+          {/* Punch In/Out - disabled on mobile phones */}
+          {isMobile ? (
+            <div style={{background:'#fff3cd',border:'1px solid #ffc107',borderRadius:'8px',padding:'14px 18px',margin:'1rem 0',textAlign:'center'}}>
+              <p style={{color:'#856404',fontSize:'1rem',margin:0,fontWeight:'bold'}}>📵 Clock in/out is not available on phones.</p>
+              <p style={{color:'#856404',fontSize:'0.95rem',margin:'8px 0 0'}}>Please use the time clock kiosk at the shop or a desktop/laptop computer.</p>
+            </div>
+          ) : (
           <div className={`time-clock-punch-only${(ipAllowed === false && !gpsAllowed) ? ' ip-blocked' : ''}`}>
             <div style={{background:'#fff3cd',border:'1px solid #ffc107',borderRadius:'8px',padding:'14px 18px',marginBottom:'1rem',textAlign:'left'}}>
               <p style={{color:'#856404',fontSize:'1rem',margin:0,fontWeight:'bold'}}>⚠️ WARNING: You are NOT allowed to clock anyone else in or out or share your PIN with other employees. Doing so will be subjected to Disciplinary Action.</p>
@@ -370,7 +377,8 @@ const EmployeeDashboard = () => {
 
 
           {/* Phone-only message when IP blocked */}
-          <p className={`time-clock-phone-msg${(ipAllowed === false && !gpsAllowed) ? ' ip-blocked' : ''}`} style={{color:'#aaa',margin:'1rem 0'}}>⏰ Clock in/out is only available from the designated work location.</p>
+          {!isMobile && <p className={`time-clock-phone-msg${(ipAllowed === false && !gpsAllowed) ? ' ip-blocked' : ''}`} style={{color:'#aaa',margin:'1rem 0'}}>⏰ Clock in/out is only available from the designated work location.</p>}
+          )}
 
           {/* View Hours - available everywhere */}
           <div className="time-clock-view-hours">
