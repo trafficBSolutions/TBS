@@ -280,7 +280,7 @@ const EmployeeDashboard = () => {
           {isMobile ? (
             <div style={{background:'#fff3cd',border:'1px solid #ffc107',borderRadius:'8px',padding:'14px 18px',margin:'1rem 0',textAlign:'center'}}>
               <p style={{color:'#856404',fontSize:'1rem',margin:0,fontWeight:'bold'}}>📵 Clock in/out is not available on phones.</p>
-              <p style={{color:'#856404',fontSize:'0.95rem',margin:'8px 0 0'}}>Please use the time clock kiosk at the shop or a desktop/laptop computer.</p>
+              <p style={{color:'#856404',fontSize:'0.95rem',margin:'8px 0 0'}}>Please use the computer at the shop to clock in and out.</p>
             </div>
           ) : (
           <div className={`time-clock-punch-only${(ipAllowed === false && !gpsAllowed) ? ' ip-blocked' : ''}`}>
