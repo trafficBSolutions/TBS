@@ -175,6 +175,12 @@ const canEditHoursEmails = new Set(['tbsolutions9@gmail.com', 'tbsolutions4@gmai
       'tbsolutions4@gmail.com']);
 const canEditHours = canEditHoursEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email);
 
+// Admins restricted from Purpose, Clock In/Out, Write Up, and Add Points in PIN Manager
+const restrictedPinEmails = new Set(['materialworx2@gmail.com', 'tbsolutions77@gmail.com', 'tbsolutions14@gmail.com']);
+const isPinRestricted = restrictedPinEmails.has(JSON.parse(localStorage.getItem('adminUser') || '{}').email);
+
+
+
 const [pinEmployees, setPinEmployees] = useState([]);
 const [clockLocation, setClockLocation] = useState('North GA');
 const [pinMsg, setPinMsg] = useState('');
@@ -2378,7 +2384,7 @@ selected={
               )}
             </div>
             <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap',alignItems:'center'}}>
-              {!clockedInList.some(c => c.employeeId === emp._id) && (
+              {!isPinRestricted && !clockedInList.some(c => c.employeeId === emp._id) && (
                 <select value={adminPunchPurpose} onChange={(e) => setAdminPunchPurpose(e.target.value)} style={{padding:'4px',borderRadius:'4px',fontSize:'12px',border:'1px solid #ccc'}}>
                   <option value="">-- Purpose --</option>
                   <option value="2 Man Crew">2 Man Crew</option>
@@ -2388,6 +2394,7 @@ selected={
                   <option value="Shop Work">Shop Work</option>
                 </select>
               )}
+              {!isPinRestricted && (
               <button className="btn" style={{padding:'4px 14px',fontSize:'12px'}} onClick={async () => {
                 const isClockedIn = clockedInList.some(c => c.employeeId === emp._id);
                 if (!isClockedIn && !adminPunchPurpose) { setPinMsg('Select a purpose before clocking in'); setTimeout(() => setPinMsg(''), 3000); return; }
@@ -2401,6 +2408,8 @@ selected={
               }}>
                 {clockedInList.some(c => c.employeeId === emp._id) ? 'Clock Out' : 'Clock In'}
               </button>
+              )}
+              {!isPinRestricted && (
               <select style={{padding:'4px',borderRadius:'4px',fontSize:'12px',border:'1px solid #ccc'}} defaultValue="" onChange={async (e) => {
                 const pts = parseFloat(e.target.value);
                 if (!pts) return;
@@ -2422,9 +2431,12 @@ selected={
                 <option value="2">+2.00</option>
                 <option value="3">+3.00</option>
               </select>
+              )}
+              {!isPinRestricted && (
               <button style={{padding:'4px 14px',fontSize:'12px',background:'#ff9800',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer'}} onClick={() => navigate('/admin-dashboard/disciplinary-action')}>
                 Write Up
               </button>
+              )}
               <button style={{padding:'4px 14px',fontSize:'12px',background:'#f44336',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer'}} onClick={async () => {
                 if (!window.confirm(`Terminate ${emp.name}? This will remove them from the time clock.`)) return;
                 try {
