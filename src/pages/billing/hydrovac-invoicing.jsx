@@ -377,6 +377,166 @@ function InvoiceForm({ wos, onSent, onCancel }) {
   );
 }
 
+function EditInvoiceModal({ inv, onClose, onSaved }) {
+  const [client, setClient] = useState(inv.client || '');
+  const [clientCompany, setClientCompany] = useState(inv.clientCompany || '');
+  const [clientEmail, setClientEmail] = useState(inv.clientEmail || '');
+  const [clientAddress, setClientAddress] = useState(inv.clientAddress || '');
+  const [clientCity, setClientCity] = useState(inv.clientCity || '');
+  const [clientZip, setClientZip] = useState(inv.clientZip || '');
+  const [description, setDescription] = useState(inv.description || '');
+  const [invoiceNumber, setInvoiceNumber] = useState(inv.invoiceNumber || '');
+  const [projectNumber, setProjectNumber] = useState(inv.projectNumber || '');
+  const [invoiceDate, setInvoiceDate] = useState(inv.invoiceDate || '');
+  const [notes, setNotes] = useState(inv.notes || '');
+  const [rows, setRows] = useState(inv.rows?.length ? inv.rows.map((r, i) => ({ ...r, id: i })) : [{ id: 0, description: '', hours: '', rate: '', amount: 0 }]);
+  const [resendEmail, setResendEmail] = useState(inv.clientEmail || '');
+  const [saving, setSaving] = useState(false);
+  const [resending, setResending] = useState(false);
+
+  const total = useMemo(() => rows.reduce((s, r) => s + (Number(r.amount) || 0), 0), [rows]);
+
+  const handleSave = async () => {
+    if (!client.trim() || !clientEmail.trim() || !invoiceNumber.trim()) return toast.error('Name, email, and invoice # required');
+    setSaving(true);
+    try {
+      await api.put(`/api/hydrovac-invoicing/${inv._id}`, { client, clientEmail, clientCompany, clientAddress, clientCity, clientZip, description, invoiceNumber, projectNumber, invoiceDate, notes, rows, total });
+      toast.success('Invoice updated!');
+      onSaved();
+    } catch (e) {
+      toast.error(e?.response?.data?.message || 'Failed to save');
+    } finally { setSaving(false); }
+  };
+
+  const handleResend = async () => {
+    if (!resendEmail.trim()) return toast.error('Email required');
+    setResending(true);
+    try {
+      await api.post(`/api/hydrovac-invoicing/${inv._id}/resend`, { clientEmail: resendEmail });
+      toast.success(`Invoice resent to ${resendEmail}!`);
+    } catch (e) {
+      toast.error(e?.response?.data?.message || 'Failed to resend');
+    } finally { setResending(false); }
+  };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+      <div style={{ background: '#fff', borderRadius: 12, padding: 24, width: '100%', maxWidth: 700, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <h3 style={{ margin: 0, fontSize: 16 }}>✏️ Edit Invoice — {inv.invoiceNumber}</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#888' }}>✕</button>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+          {[
+            { label: 'TBS Invoice #*', value: invoiceNumber, onChange: e => setInvoiceNumber(e.target.value.toUpperCase()) },
+            { label: 'Project / Task #', value: projectNumber, onChange: e => setProjectNumber(e.target.value.toUpperCase()) },
+            { label: 'Invoice Date', value: invoiceDate, onChange: e => setInvoiceDate(e.target.value), type: 'date' },
+            { label: 'Representative*', value: client, onChange: e => setClient(e.target.value) },
+            { label: 'Company', value: clientCompany, onChange: e => setClientCompany(e.target.value) },
+            { label: 'Client Email*', value: clientEmail, onChange: e => setClientEmail(e.target.value), type: 'email' },
+            { label: 'Job Site Address', value: clientAddress, onChange: e => setClientAddress(e.target.value) },
+            { label: 'Job Site City', value: clientCity, onChange: e => setClientCity(e.target.value) },
+            { label: 'Job Site Zip', value: clientZip, onChange: e => setClientZip(e.target.value) },
+          ].map(({ label, ...props }) => (
+            <div key={label}>
+              <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 3 }}>{label}</label>
+              <input {...props} style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid #ced4da', fontSize: 13, boxSizing: 'border-box' }} />
+            </div>
+          ))}
+        </div>
+
+        <div style={{ marginBottom: 12 }}>
+          <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 3 }}>Description</label>
+          <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2}
+            style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid #ced4da', fontSize: 13, boxSizing: 'border-box' }} />
+        </div>
+
+        {/* Line Items */}
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <label style={{ fontSize: 12, fontWeight: 700 }}>Line Items</label>
+            <button type="button" className="btn" style={{ fontSize: 11, padding: '3px 10px' }}
+              onClick={() => setRows(r => [...r, { id: Date.now(), description: '', hours: '', rate: '', amount: 0 }])}>+ Add Line</button>
+          </div>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <thead>
+              <tr style={{ background: `linear-gradient(135deg, ${ORANGE}, rgba(243,156,18,0.9))`, color: '#fff' }}>
+                {['Description','Qty','Per Unit','Amount',''].map(h => <th key={h} style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.2)', textAlign: h === 'Description' ? 'left' : 'right', width: h === '' ? 36 : h === 'Description' ? undefined : 90 }}>{h}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(r => (
+                <tr key={r.id}>
+                  <td style={{ padding: 4, border: '1px solid #ddd' }}>
+                    <input value={r.description} onChange={e => setRows(p => p.map(x => x.id === r.id ? { ...x, description: e.target.value } : x))}
+                      style={{ width: '100%', padding: '4px 6px', border: '1px solid #ccc', borderRadius: 3 }} />
+                  </td>
+                  <td style={{ padding: 4, border: '1px solid #ddd' }}>
+                    <input type="number" step="0.25" min="0" value={r.hours} placeholder="—"
+                      onChange={e => { const hours = e.target.value; setRows(p => p.map(x => x.id !== r.id ? x : { ...x, hours, amount: hours !== '' && x.rate !== '' ? Number(hours) * Number(x.rate) : x.amount })); }}
+                      style={{ width: '100%', padding: '4px 6px', border: '1px solid #ccc', borderRadius: 3, textAlign: 'right' }} />
+                  </td>
+                  <td style={{ padding: 4, border: '1px solid #ddd' }}>
+                    <input type="number" step="0.01" min="0" value={r.rate} placeholder="—"
+                      onChange={e => { const rate = e.target.value; setRows(p => p.map(x => x.id !== r.id ? x : { ...x, rate, amount: rate !== '' && x.hours !== '' ? Number(x.hours) * Number(rate) : x.amount })); }}
+                      style={{ width: '100%', padding: '4px 6px', border: '1px solid #ccc', borderRadius: 3, textAlign: 'right' }} />
+                  </td>
+                  <td style={{ padding: 4, border: '1px solid #ddd' }}>
+                    <input type="number" step="0.01" min="0" value={r.amount}
+                      onChange={e => setRows(p => p.map(x => x.id === r.id ? { ...x, amount: Number(e.target.value), hours: '', rate: '' } : x))}
+                      style={{ width: '100%', padding: '4px 6px', border: '1px solid #ccc', borderRadius: 3, textAlign: 'right' }} />
+                  </td>
+                  <td style={{ padding: 4, border: '1px solid #ddd', textAlign: 'center' }}>
+                    <button type="button" onClick={() => setRows(p => p.filter(x => x.id !== r.id))}
+                      style={{ background: 'none', border: 'none', color: '#dc3545', cursor: 'pointer', fontWeight: 700 }}>✕</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr style={{ background: '#f0f0f0', fontWeight: 700 }}>
+                <td colSpan={3} style={{ padding: '6px 8px', border: '1px solid #ddd', textAlign: 'right' }}>TOTAL</td>
+                <td style={{ padding: '6px 8px', border: '1px solid #ddd', textAlign: 'right' }}>${total.toFixed(2)}</td>
+                <td style={{ border: '1px solid #ddd' }}></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Notes</label>
+          <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2}
+            style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid #ced4da', fontSize: 13, boxSizing: 'border-box' }} />
+        </div>
+
+        {/* Resend section */}
+        <div style={{ background: ORANGE_LIGHT, border: `1px solid ${ORANGE_BORDER}`, borderRadius: 8, padding: '12px 14px', marginBottom: 16 }}>
+          <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 6 }}>📧 Resend Invoice To</label>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input type="email" value={resendEmail} onChange={e => setResendEmail(e.target.value)}
+              placeholder="client@example.com"
+              style={{ flex: 1, padding: '6px 8px', borderRadius: 4, border: '1px solid #ced4da', fontSize: 13 }} />
+            <button onClick={handleResend} disabled={resending}
+              style={{ padding: '6px 16px', background: `linear-gradient(135deg, ${ORANGE}, rgba(243,156,18,0.9))`, color: '#fff', border: 'none', borderRadius: 6, fontWeight: 700, cursor: resending ? 'not-allowed' : 'pointer', opacity: resending ? 0.7 : 1, fontSize: 13, whiteSpace: 'nowrap' }}>
+              {resending ? 'Sending…' : '📤 Resend'}
+            </button>
+          </div>
+          <div style={{ fontSize: 11, color: '#888', marginTop: 4 }}>You can change the email before resending. Saves the new email automatically.</div>
+        </div>
+
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <button onClick={onClose} style={{ padding: '8px 18px', background: '#f5f5f5', border: '1px solid #ddd', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}>Cancel</button>
+          <button onClick={handleSave} disabled={saving}
+            style={{ padding: '8px 20px', background: '#1a1a1a', color: '#fff', border: 'none', borderRadius: 6, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1, fontSize: 13 }}>
+            {saving ? 'Saving…' : '💾 Save Changes'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Calendar({ year, month, wosByDate, invoicesByWoId, onDayClick, selectedDates }) {
   const firstDow = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -492,6 +652,7 @@ export default function HydrovacInvoicing() {
   const [payingId, setPayingId] = useState(null);
   const [payMethod, setPayMethod] = useState('check');
   const [invFilter, setInvFilter] = useState({ search: '', status: '' });
+  const [editingInv, setEditingInv] = useState(null);
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('adminUser') || '{}');
@@ -791,6 +952,14 @@ export default function HydrovacInvoicing() {
           </div>
         )}
 
+        {editingInv && (
+          <EditInvoiceModal
+            inv={editingInv}
+            onClose={() => setEditingInv(null)}
+            onSaved={() => { setEditingInv(null); fetchInvoices(); }}
+          />
+        )}
+
         {/* Sent Invoices Table */}
         <div style={{ background: '#fff', borderRadius: 12, border: `1px solid ${ORANGE_BORDER}`, boxShadow: '0 4px 16px rgba(236,77,7,0.08)', padding: 20 }}>
           <h2 style={{ fontSize: 17, marginBottom: 14, color: '#1a1a1a', fontWeight: 800 }}>Sent Invoices</h2>
@@ -868,6 +1037,10 @@ export default function HydrovacInvoicing() {
                         <a href={inv.woPdfUrl} target="_blank" rel="noreferrer"
                           style={{ marginLeft: 6, fontSize: 11, color: '#1565c0' }}>📄 WO</a>
                       )}
+                      <button onClick={() => setEditingInv(inv)}
+                        style={{ marginLeft: 6, padding: '3px 8px', background: ORANGE_LIGHT, border: `1px solid ${ORANGE_BORDER}`, color: ORANGE, borderRadius: 4, cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>
+                        ✏️ Edit
+                      </button>
                     </td>
                   </tr>
                 ))}
