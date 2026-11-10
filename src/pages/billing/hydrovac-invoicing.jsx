@@ -389,7 +389,7 @@ function EditInvoiceModal({ inv, onClose, onSaved }) {
   const [projectNumber, setProjectNumber] = useState(inv.projectNumber || '');
   const [invoiceDate, setInvoiceDate] = useState(inv.invoiceDate || '');
   const [notes, setNotes] = useState(inv.notes || '');
-  const [rows, setRows] = useState(inv.rows?.length ? inv.rows.map((r, i) => ({ ...r, id: i })) : [{ id: 0, description: '', hours: '', rate: '', amount: 0 }]);
+  const [rows, setRows] = useState(inv.rows?.length ? inv.rows.map((r, i) => ({ ...r, id: i, hours: r.hours ?? '', rate: r.rate ?? '' })) : [{ id: 0, description: '', hours: '', rate: '', amount: 0 }]);
   const [resendEmail, setResendEmail] = useState(inv.clientEmail || '');
   const [saving, setSaving] = useState(false);
   const [resending, setResending] = useState(false);
