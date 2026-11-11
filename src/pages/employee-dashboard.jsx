@@ -568,12 +568,9 @@ const EmployeeDashboard = () => {
                           <p style={{margin:'4px 0'}}><strong>Previous Points:</strong> {(d.previousPoints || 0).toFixed(2)}</p>
                         </div>
                         <div style={{flex:1}}>
-                          <p style={{margin:'4px 0'}}><strong>New Total:</strong> <span style={{fontSize:'1.1rem',fontWeight:'bold',color:(d.newTotalPoints || 0) >= 5 ? '#d32f2f' : '#1e3a8a'}}>{(d.newTotalPoints || 0).toFixed(2)} / 5.00</span></p>
+                          <p style={{margin:'4px 0'}}><strong>New Total:</strong> <span style={{fontSize:'1.1rem',fontWeight:'bold',color:'#1e3a8a'}}>{(d.newTotalPoints || 0).toFixed(2)}</span></p>
                         </div>
                       </div>
-                      {(d.newTotalPoints || 0) >= 5 && (
-                        <div style={{background:'#fff3cd',border:'1px solid #ffc107',borderRadius:'6px',padding:'10px',marginTop:'10px',color:'#856404',fontWeight:'bold',textAlign:'center'}}>⚠️ WARNING: You have reached 5.00 points. Termination may result. Please take this seriously.</div>
-                      )}
                       {d.decision && <div style={{background:'#fff',border:'1px solid #ddd',borderRadius:'4px',padding:'10px',marginTop:'10px',whiteSpace:'pre-wrap'}}><strong>Decision:</strong> {d.decision}</div>}
                     </div>
 
