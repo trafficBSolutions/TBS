@@ -2536,7 +2536,7 @@ selected={
     <div className="tool-card">
       <h3>🚦 TC Invoicing</h3>
       <p>Traffic Control Invoicing</p>
-      <a href="/admin-dashboard/invoices" className="invoice-btn">Open</a>
+      <button className="invoice-btn" type="button" onClick={() => navigate('/tc-invoicing')}>Open</button>
     </div>
   )}
   {allowedForInvoices && (
