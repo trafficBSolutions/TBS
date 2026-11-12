@@ -177,6 +177,9 @@ const EmployeeDashboard = () => {
           } else if (reason === 'work_order_required') {
             setClockMsg('⚠️ You must complete a Work Order first. Redirecting...');
             setTimeout(() => navigate('/work-order?from=kiosk'), 1500);
+          } else if (reason === 'delivery_work_order_required') {
+            setClockMsg('⚠️ You must complete a Dirt/Rock Work Order first. Redirecting...');
+            setTimeout(() => navigate('/dirt-rock-work-order?from=kiosk'), 1500);
           }
           return;
         }
@@ -398,6 +401,7 @@ const EmployeeDashboard = () => {
                     <option value="3 Man Crew">3 Man Crew</option>
                     <option value="4 Man Crew">4 Man Crew</option>
                     <option value="Arrow Board/Message Board Job">Arrow Board/Message Board Job</option>
+                    <option value="Delivery">Delivery</option>
                     <option value="Emergency Job">Emergency Job</option>
                     <option value="Weekend Work">Weekend Work</option>
                     <option value="Shop Work">Shop Work</option>
@@ -754,6 +758,17 @@ const EmployeeDashboard = () => {
               <div className="work-order-icon">🚛</div>
               <h2 className="work-order-title">Hydrovac Work Order</h2>
               <p className="text-gray-600">Submit a hydrovac daily work order</p>
+            </div>
+          </Link>
+
+          <Link 
+            to="/employee-dashboard/dirt-rock-work-order"
+            className="btn-links"
+          >
+            <div className="text-center">
+              <div className="work-order-icon">🪨</div>
+              <h2 className="work-order-title">Dirt / Rock Work Order</h2>
+              <p className="text-gray-600">Submit a dirt or rock delivery work order</p>
             </div>
           </Link>
 
