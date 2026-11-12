@@ -2559,7 +2559,7 @@ selected={
   <section className="admin-tool-section">
     <h2 className="zone-tools-title">HR & Employee Management</h2>
     <div className="tools-grid">
-  <div className="tool-card">
+  <div className="tool-card tool-card--wide">
     <h3>📅 Employee Assignment</h3>
     <p>Schedule employees with clock-in times and job purposes</p>
     <button className="btn workorder-btn" onClick={() => navigate('/admin-dashboard/employee-assignment')}>Open Schedule</button>
