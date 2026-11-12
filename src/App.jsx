@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate} from 'react-router-dom'
 import HydrovacWorkOrder from './pages/hydrovac-work-order';
+import DirtRockWorkOrder from './pages/dirt-rock-work-order';
 import HydrovacInvoicing from './pages/billing/hydrovac-invoicing';
 import TcInvoicing from './pages/billing/tc-invoicing';
 import EmployeeAssignment from './pages/employee-assignment';
@@ -145,6 +146,9 @@ function App() {
     <Route path="/time-clock" element={<TimeClockKiosk />} />
     <Route path="/hydrovac-services" element={<HydrovacServices />} />
     <Route path="/hydrovac-work-order" element={<RequireStaff><HydrovacWorkOrder /></RequireStaff>} />
+    <Route path="/dirt-rock-work-order" element={<RequireStaff><DirtRockWorkOrder /></RequireStaff>} />
+    <Route path="/employee-dashboard/dirt-rock-work-order" element={<RequireStaff><DirtRockWorkOrder /></RequireStaff>} />
+    <Route path="/admin-dashboard/dirt-rock-work-order" element={<RequireStaff><DirtRockWorkOrder /></RequireStaff>} />
     <Route path="/employee-dashboard/hydrovac-work-order" element={<RequireStaff><HydrovacWorkOrder /></RequireStaff>} />
     <Route path="/time-clock-kiosk" element={<TimeClockKiosk />} />
     <Route path="/shop-work-order" element={<ShopWorkOrder />} />
