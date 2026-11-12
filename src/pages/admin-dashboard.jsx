@@ -1925,6 +1925,12 @@ selected={
   </div>
 
   <div className="tool-card">
+    <h3>🪨 Dirt / Rock Work Order</h3>
+    <p>Submit a dirt or rock delivery work order</p>
+    <button className="btn workorder-btn" onClick={() => navigate('/admin-dashboard/dirt-rock-work-order')}>Open Dirt / Rock Work Order</button>
+  </div>
+
+  <div className="tool-card">
     <h3>TCP Designer</h3>
     <p>Design Traffic Control Plans</p>
     <button className="btn workorder-btn" onClick={() => navigate('/admin-dashboard/tcp-designer')}>Open Designer</button>
@@ -2081,6 +2087,7 @@ selected={
           <option value="Weekend Work">Weekend Work</option>
           <option value="Shop Work">Shop Work</option>
           <option value="Hydrovac">Hydrovac</option>
+          <option value="Delivery">Delivery</option>
           <option value="standby">Standby</option>
         </select>
         <div style={{display:'flex',gap:'0.4rem',alignItems:'center'}}>
