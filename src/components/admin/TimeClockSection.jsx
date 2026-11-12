@@ -34,6 +34,7 @@ const TimeClockSection = ({
   const [purposeFilter, setPurposeFilter] = useState('All');
   const [pdfLoadingEmp, setPdfLoadingEmp] = useState(null);
   const [pdfMsg, setPdfMsg] = useState('');
+  const [todaySchedule, setTodaySchedule] = useState({});
 
   const refreshTimeWorked = async () => {
     const weekEnd = new Date(new Date(timeWorkedWeekStart + 'T00:00:00'));
@@ -43,6 +44,24 @@ const TimeClockSection = ({
       const res = await axios.get(`/timeclock/time-worked?startDate=${timeWorkedWeekStart}&endDate=${endStr}&location=${encodeURIComponent(clockLocation)}`);
       setTimeWorked(res.data);
     } catch(e) {}
+  };
+
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
+    axios.get(`/employee-schedule/${today}`).then(res => {
+      const map = {};
+      (res.data.assignments || []).forEach(a => { map[a.employeeId] = a; });
+      setTodaySchedule(map);
+    }).catch(() => {});
+  }, []);
+
+  const toMinutes = (t) => { if (!t) return 0; const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+
+  const isLateClockIn = (entry) => {
+    const sched = todaySchedule[entry.employeeId];
+    if (!sched) return false;
+    const clockInMins = new Date(entry.clockIn).getHours() * 60 + new Date(entry.clockIn).getMinutes();
+    return clockInMins > toMinutes(sched.clockInTime);
   };
 
   const refreshForLocation = async (loc) => {
@@ -84,8 +103,14 @@ const TimeClockSection = ({
           {clockedInList.map((entry) => (
             <div key={entry._id} style={{background:'#fff',borderRadius:'8px',padding:'0.75rem',border:'1px solid #ddd'}}>
               <strong style={{fontSize:'1.05rem'}}>{entry.employeeName}</strong>
+              {isLateClockIn(entry) && (
+                <span style={{marginLeft:'8px',background:'#fff3e0',color:'#e65100',padding:'2px 8px',borderRadius:'4px',fontSize:'0.8rem',fontWeight:'bold'}}>⚠️ LATE</span>
+              )}
               <p style={{margin:'4px 0',fontSize:'0.95rem',color:'#555'}}>In: {new Date(entry.clockIn).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})} • {Math.round((Date.now() - new Date(entry.clockIn)) / 60000)} min</p>
               {entry.purpose && <span style={{background:'#e3f2fd',color:'#1565c0',padding:'3px 10px',borderRadius:'4px',fontSize:'0.9rem',fontWeight:'bold'}}>{entry.purpose}</span>}
+              {todaySchedule[entry.employeeId] && (
+                <p style={{margin:'4px 0',fontSize:'0.8rem',color:'#888'}}>Scheduled: {todaySchedule[entry.employeeId].clockInTime} — {todaySchedule[entry.employeeId].purpose}</p>
+              )}
             </div>
           ))}
         </div>
@@ -313,6 +338,20 @@ const TimeClockSection = ({
                                             </>
                                           ) : <span style={{color:'#4CAF50',fontWeight:'bold'}}>Still In</span>}
                                         </span>
+                                        {/* Late flag: check if clock-in day matches today's schedule */}
+                                        {(() => {
+                                          const clockInDate = new Date(r.clockIn);
+                                          const dayKey = `${clockInDate.getFullYear()}-${String(clockInDate.getMonth()+1).padStart(2,'0')}-${String(clockInDate.getDate()).padStart(2,'0')}`;
+                                          const today = new Date().toISOString().split('T')[0];
+                                          if (dayKey !== today) return null;
+                                          const sched = todaySchedule[r.employeeId || emp._id];
+                                          if (!sched) return null;
+                                          const clockInMins = clockInDate.getHours() * 60 + clockInDate.getMinutes();
+                                          if (clockInMins > toMinutes(sched.clockInTime)) {
+                                            return <span style={{marginLeft:'4px',background:'#fff3e0',color:'#e65100',padding:'1px 5px',borderRadius:'3px',fontSize:'0.7rem',fontWeight:'bold'}}>⚠️ LATE</span>;
+                                          }
+                                          return null;
+                                        })()}
                                         {canEditHours && <button style={{padding:'1px 5px',fontSize:'10px',background:'#2196F3',color:'#fff',border:'none',borderRadius:'3px',cursor:'pointer',marginLeft:'4px'}} onClick={() => {
                                           setEditingPunchId(r._id);
                                           const inDate = new Date(r.clockIn);
