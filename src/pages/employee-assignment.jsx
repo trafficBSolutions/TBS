@@ -99,6 +99,10 @@ const EmployeeAssignment = () => {
   const dayOfWeek = selectedDate ? selectedDate.getDay() : -1;
   const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const isPastDate = selectedDate && selectedDate < today;
+
   return (
     <div>
       <Header activePage="/admin-dashboard/employee-assignment" />
@@ -117,6 +121,7 @@ const EmployeeAssignment = () => {
                 selected={selectedDate}
                 onChange={(date) => setSelectedDate(date)}
                 onMonthChange={(date) => { setSelectedDate(date); fetchMonthly(date); }}
+                minDate={today}
                 inline
                 calendarClassName="admin-date-picker"
                 dayClassName={(date) => {
@@ -184,8 +189,14 @@ const EmployeeAssignment = () => {
                 })}
               </div>
 
-              {/* Add assignment form */}
-              <div style={{ background: '#f0f8ff', border: '1px solid #90caf9', borderRadius: '10px', padding: '1rem', marginBottom: '1rem' }}>
+              {/* Add assignment form — hidden for past dates */}
+              {isPastDate && (
+                <div style={{ background: '#fff8e1', border: '1px solid #ffe082', borderRadius: '8px', padding: '0.75rem', marginBottom: '1rem', fontSize: '0.9rem', color: '#795548' }}>
+                  📅 This is a past date. Schedule is read-only.
+                </div>
+              )}
+
+              {!isPastDate && <div style={{ background: '#f0f8ff', border: '1px solid #90caf9', borderRadius: '10px', padding: '1rem', marginBottom: '1rem' }}>
                 <h4 style={{ margin: '0 0 0.75rem', color: '#1565c0' }}>➕ Add Employee to Schedule</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   <select value={selEmpId} onChange={e => setSelEmpId(e.target.value)} style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid #ccc' }}>
@@ -205,20 +216,22 @@ const EmployeeAssignment = () => {
                   </select>
                   <button className="btn" onClick={addAssignment} style={{ alignSelf: 'flex-start' }}>Add to Schedule</button>
                 </div>
-              </div>
+              </div>}
 
-              {msg && (
+              {!isPastDate && msg && (
                 <p style={{ fontWeight: 'bold', color: msg.startsWith('✅') ? '#4CAF50' : '#f44336', marginBottom: '0.5rem' }}>{msg}</p>
               )}
 
-              <button
-                className="btn workorder-btn"
-                onClick={saveSchedule}
-                disabled={saving}
-                style={{ width: '100%', padding: '0.75rem', fontSize: '1rem' }}
-              >
-                {saving ? 'Saving...' : '💾 Save Schedule'}
-              </button>
+              {!isPastDate && (
+                <button
+                  className="btn workorder-btn"
+                  onClick={saveSchedule}
+                  disabled={saving}
+                  style={{ width: '100%', padding: '0.75rem', fontSize: '1rem' }}
+                >
+                  {saving ? 'Saving...' : '💾 Save Schedule'}
+                </button>
+              )}
             </div>
           </div>
         </div>
