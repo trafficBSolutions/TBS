@@ -36,6 +36,7 @@ const EmployeeDashboard = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [clockedInIds, setClockedInIds] = useState([]);
   const [clockPurpose, setClockPurpose] = useState('');
+  const [scheduleMap, setScheduleMap] = useState({});
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [pendingCount, setPendingCount] = useState(() => JSON.parse(localStorage.getItem('tbs_punch_queue') || '[]').length);
@@ -72,6 +73,7 @@ const EmployeeDashboard = () => {
     }).catch(() => { setIpAllowed(true); setDetectedLocation('North GA'); });
     fetchEmployees();
     fetchClockedIn();
+    fetchTodaySchedule();
     syncOfflinePunches();
     const interval = setInterval(() => { fetchClockedIn(); syncOfflinePunches(); }, 30000);
     const handleOnline = () => { setIsOnline(true); syncOfflinePunches().then(fetchClockedIn); };
@@ -80,6 +82,20 @@ const EmployeeDashboard = () => {
     window.addEventListener('offline', handleOffline);
     return () => { clearInterval(interval); window.removeEventListener('online', handleOnline); window.removeEventListener('offline', handleOffline); };
   }, []);
+
+  const toMinutes = (t) => { if (!t) return 0; const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+
+  const fetchTodaySchedule = async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const res = await axios.get(`/employee-schedule/${today}`);
+      const map = {};
+      (res.data.assignments || []).forEach(a => {
+        map[a.employeeId] = { clockInTime: a.clockInTime, purpose: a.purpose, employeeName: a.employeeName };
+      });
+      setScheduleMap(map);
+    } catch (e) { /* schedule optional */ }
+  };
 
   const fetchEmployees = async () => {
     try {
@@ -109,6 +125,24 @@ const EmployeeDashboard = () => {
   const handlePunch = async () => {
     if (!pin.trim() || pin.length < 4) { setClockMsg('Enter your 4+ digit PIN'); return; }
     const isClockedIn = selectedEmployee && clockedInIds.includes(selectedEmployee._id);
+
+    // Schedule enforcement
+    if (!isClockedIn && selectedEmployee) {
+      const sched = scheduleMap[selectedEmployee._id];
+      if (sched) {
+        const now = new Date();
+        const nowMins = now.getHours() * 60 + now.getMinutes();
+        const scheduledMins = toMinutes(sched.clockInTime);
+        const windowOpen = scheduledMins - 15;
+        if (nowMins < windowOpen) {
+          const openH = Math.floor(windowOpen / 60), openM = windowOpen % 60;
+          setClockMsg(`⏳ Clock-in opens at ${String(openH).padStart(2,'0')}:${String(openM).padStart(2,'0')} (15 min before ${sched.clockInTime})`);
+          return;
+        }
+        if (!clockPurpose) setClockPurpose(sched.purpose);
+      }
+    }
+
     if (!isClockedIn && !clockPurpose) { setClockMsg('Please select your job purpose before clocking in'); return; }
     setClockLoading(true);
     setClockMsg('');
@@ -163,6 +197,14 @@ const EmployeeDashboard = () => {
       if (res.data.action === 'clocked_out' && res.data.record?.clockIn && res.data.record?.clockOut) {
         const mins = Math.round((new Date(res.data.record.clockOut) - new Date(res.data.record.clockIn)) / 60000);
         msg += ` — ${(mins / 60).toFixed(2)} hrs (${mins} min) this session`;
+      }
+      if (res.data.action === 'clocked_in' && selectedEmployee) {
+        const sched = scheduleMap[selectedEmployee._id];
+        if (sched) {
+          const now = new Date();
+          const nowMins = now.getHours() * 60 + now.getMinutes();
+          if (nowMins > toMinutes(sched.clockInTime)) msg += ' ⚠️ LATE';
+        }
       }
       setClockMsg(msg);
       setPin('');
@@ -304,17 +346,32 @@ const EmployeeDashboard = () => {
                 )}
                 {employees
                   .filter(emp => !detectedLocation || detectedLocation === 'South GA' || (emp.location || 'North GA') === detectedLocation)
-                  .map(emp => (
-                  <button
-                    key={emp._id}
-                    className={`kiosk-employee-card ${clockedInIds.includes(emp._id) ? 'clocked-in' : ''}`}
-                    onClick={() => { setSelectedEmployee(emp); setPin(''); setClockMsg(''); }}
-                  >
-                    <span className="kiosk-emp-name">{emp.displayName}</span>
-                    <span className="kiosk-emp-position">{emp.position}</span>
-                    {clockedInIds.includes(emp._id) && <span className="kiosk-status-badge">● Clocked In</span>}
-                  </button>
-                  ))}
+                  .map(emp => {
+                    const sched = scheduleMap[emp._id];
+                    const now = new Date();
+                    const nowMins = now.getHours() * 60 + now.getMinutes();
+                    const scheduledMins = sched ? toMinutes(sched.clockInTime) : null;
+                    const windowOpen = scheduledMins !== null ? scheduledMins - 15 : null;
+                    const isLocked = sched && !clockedInIds.includes(emp._id) && windowOpen !== null && nowMins < windowOpen;
+                    const isLate = sched && !clockedInIds.includes(emp._id) && scheduledMins !== null && nowMins > scheduledMins;
+                    return (
+                    <button
+                      key={emp._id}
+                      className={`kiosk-employee-card ${clockedInIds.includes(emp._id) ? 'clocked-in' : ''}`}
+                      onClick={() => { if (isLocked) return; setSelectedEmployee(emp); setPin(''); setClockPurpose(sched?.purpose || ''); setClockMsg(''); }}
+                      style={isLocked ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                    >
+                      <span className="kiosk-emp-name">{emp.displayName}</span>
+                      <span className="kiosk-emp-position">{emp.position}</span>
+                      {clockedInIds.includes(emp._id) && <span className="kiosk-status-badge">● Clocked In</span>}
+                      {sched && !clockedInIds.includes(emp._id) && (
+                        <span style={{ fontSize: '0.75rem', color: isLocked ? '#888' : isLate ? '#f44336' : '#1565c0', fontWeight: 'bold', marginTop: '2px', display: 'block' }}>
+                          {isLocked ? `🔒 Opens ${String(Math.floor(windowOpen/60)).padStart(2,'0')}:${String(windowOpen%60).padStart(2,'0')}` : isLate ? '⚠️ LATE' : `⏰ ${sched.clockInTime}`}
+                        </span>
+                      )}
+                    </button>
+                    );
+                  })}
               </div>
             )}
             {(ipAllowed === true || gpsAllowed === true) && selectedEmployee && (
