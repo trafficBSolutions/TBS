@@ -10,6 +10,12 @@ import '../css/order.css';
 
 const TRUCKS = Array.from({ length: 25 }, (_, i) => `TBS Truck ${i + 1}`);
 
+const DEFAULT_DRIVERS = [
+  { id: 'bryson-davis', name: 'Bryson Davis' },
+  { id: 'carson-speer', name: 'Carson Speer' },
+  { id: 'william-rowell', name: 'William Rowell' },
+];
+
 export default function DirtRockWorkOrder() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -75,8 +81,14 @@ export default function DirtRockWorkOrder() {
           .filter(e => validIds.has(e.id))
           .sort((a, b) => a.name.localeCompare(b.name));
 
-        setDriverList(result);
-      } catch { /* no-op */ }
+        // Always include Bryson, Carson, and William, then merge with clocked-in Delivery employees
+        const merged = [
+          ...DEFAULT_DRIVERS.filter(d => !result.some(r => r.name === d.name)),
+          ...result,
+        ].sort((a, b) => a.name.localeCompare(b.name));
+
+        setDriverList(merged);
+      } catch { setDriverList(DEFAULT_DRIVERS); }
     };
     fetchDrivers();
   }, []);
