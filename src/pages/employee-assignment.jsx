@@ -8,7 +8,7 @@ import '../css/admin.css';
 
 const PURPOSES = [
   '2 Man Crew', '3 Man Crew', '4 Man Crew',
-  'Arrow Board/Message Board Job', 'Emergency Job',
+  'Arrow Board/Message Board Job', 'Delivery', 'Emergency Job',
   'Weekend Work', 'Shop Work', 'Standby', 'Drive Time', 'Hydrovac',
 ];
 
