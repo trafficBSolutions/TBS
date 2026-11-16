@@ -206,7 +206,16 @@ const EmployeeDashboard = () => {
         if (sched) {
           const now = new Date();
           const nowMins = now.getHours() * 60 + now.getMinutes();
-          if (nowMins > toMinutes(sched.clockInTime)) msg += ' ⚠️ LATE';
+          if (nowMins > toMinutes(sched.clockInTime)) {
+            msg += ' ⚠️ LATE';
+            const today = now.toISOString().split('T')[0];
+            axios.post('/employee-schedule/notify-late', {
+              employeeName: sched.employeeName || selectedEmployee.displayName,
+              scheduledTime: sched.clockInTime,
+              date: today,
+              actualClockIn: `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`
+            }).catch(() => {});
+          }
         }
       }
       setClockMsg(msg);
