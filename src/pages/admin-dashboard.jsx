@@ -137,6 +137,7 @@ const [shopWoPage, setShopWoPage] = useState(0);
 const [clockedInList, setClockedInList] = useState([]);
 const [todayScheduleMap, setTodayScheduleMap] = useState({});
 const [todayStandbySet, setTodayStandbySet] = useState(new Set()); // employeeIds who completed a Standby punch today
+const [todayPunchedSet, setTodayPunchedSet] = useState(new Set()); // employeeIds who clocked in at all today
 const [clockHistory, setClockHistory] = useState([]);
 const [clockHistoryDate, setClockHistoryDate] = useState(new Date());
 const [timeWorked, setTimeWorked] = useState([]);
@@ -720,10 +721,9 @@ useEffect(() => {
         setTodayScheduleMap(map);
       }).catch(() => {});
       axios.get(`/timeclock/history?date=${today}`).then(res => {
-        const standbyIds = new Set(
-          (res.data || []).filter(r => r.purpose === 'Standby' && r.clockOut).map(r => r.employeeId?.toString())
-        );
-        setTodayStandbySet(standbyIds);
+        const punches = res.data || [];
+        setTodayStandbySet(new Set(punches.filter(r => r.purpose === 'Standby' && r.clockOut).map(r => r.employeeId?.toString())));
+        setTodayPunchedSet(new Set(punches.map(r => r.employeeId?.toString())));
       }).catch(() => {});
     }
   }
@@ -2063,10 +2063,9 @@ selected={
             setTodayScheduleMap(map);
           }).catch(() => {});
           axios.get(`/timeclock/history?date=${today}`).then(res => {
-            const standbyIds = new Set(
-              (res.data || []).filter(r => r.purpose === 'Standby' && r.clockOut).map(r => r.employeeId?.toString())
-            );
-            setTodayStandbySet(standbyIds);
+            const punches = res.data || [];
+            setTodayStandbySet(new Set(punches.filter(r => r.purpose === 'Standby' && r.clockOut).map(r => r.employeeId?.toString())));
+            setTodayPunchedSet(new Set(punches.map(r => r.employeeId?.toString())));
           }).catch(() => {});
         }}>🔄 Refresh</button>
         <button className="btn" style={{background:'#888',color:'#fff'}} onClick={() => setViewMode('traffic')}>❌ Close</button>
@@ -2096,6 +2095,34 @@ selected={
       });
       return (
         <>
+          {(() => {
+            const nowMins2 = new Date().getHours() * 60 + new Date().getMinutes();
+            const noShowEntries = Object.entries(todayScheduleMap)
+              .filter(([empId, schedTime]) => {
+                if (todayPunchedSet.has(empId)) return false; // already clocked in at some point
+                const schedMins = toMins(schedTime);
+                return nowMins2 - schedMins >= 60; // 1+ hour past scheduled time
+              })
+              .map(([empId, schedTime]) => {
+                const emp = pinEmployees.find(e => e._id?.toString() === empId);
+                return { empId, schedTime, name: emp?.name || 'Unknown Employee' };
+              });
+            if (noShowEntries.length === 0) return null;
+            return (
+              <div style={{background:'#fce4ec',border:'2px solid #e53935',borderRadius:'10px',padding:'1rem',marginBottom:'1rem'}}>
+                <h4 style={{color:'#b71c1c',margin:'0 0 0.75rem'}}>🚨 No-Shows ({noShowEntries.length}) — Scheduled 1+ hour ago, not clocked in</h4>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(250px, 1fr))',gap:'0.75rem'}}>
+                  {noShowEntries.map(({empId, schedTime, name}) => (
+                    <div key={empId} style={{background:'#fff',borderRadius:'8px',padding:'0.75rem',border:'2px solid #e53935'}}>
+                      <strong style={{fontSize:'1.05rem'}}>{name}</strong>
+                      <p style={{margin:'4px 0',fontSize:'0.9rem',color:'#b71c1c',fontWeight:'bold'}}>🚨 Did not show up</p>
+                      <p style={{margin:'2px 0',fontSize:'0.85rem',color:'#555'}}>Scheduled: {schedTime}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
           {lateEntries.length > 0 && (
             <div style={{background:'#fff3e0',border:'2px solid #ff9800',borderRadius:'10px',padding:'1rem',marginBottom:'1rem'}}>
               <h4 style={{color:'#e65100',margin:'0 0 0.75rem'}}>⚠️ Late Clock-Ins Today ({lateEntries.length})</h4>
@@ -2388,7 +2415,7 @@ selected={
           </details>
           );
         })}
-        })()}
+      )}
       </div>
     )}
     {timeWorked.length === 0 && <p style={{color:'#888',fontSize:'0.85rem'}}>No hours data for this week.</p>}
