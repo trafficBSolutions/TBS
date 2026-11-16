@@ -717,7 +717,7 @@ useEffect(() => {
       const today = new Date().toISOString().split('T')[0];
       axios.get(`/employee-schedule/${today}`).then(res => {
         const map = {};
-        (res.data.assignments || []).forEach(a => { map[a.employeeId] = { time: a.clockInTime, name: a.employeeName }; });
+        (res.data.assignments || []).forEach(a => { map[a.employeeId?.toString()] = { time: a.clockInTime, name: a.employeeName }; });
         setTodayScheduleMap(map);
       }).catch(() => {});
       axios.get(`/timeclock/history?date=${today}`).then(res => {
@@ -2059,7 +2059,7 @@ selected={
           const today = new Date().toISOString().split('T')[0];
           axios.get(`/employee-schedule/${today}`).then(res => {
             const map = {};
-            (res.data.assignments || []).forEach(a => { map[a.employeeId] = { time: a.clockInTime, name: a.employeeName }; });
+            (res.data.assignments || []).forEach(a => { map[a.employeeId?.toString()] = { time: a.clockInTime, name: a.employeeName }; });
             setTodayScheduleMap(map);
           }).catch(() => {});
           axios.get(`/timeclock/history?date=${today}`).then(res => {
