@@ -2229,7 +2229,13 @@ selected={
     })()}
     {timeWorked.length > 0 && (
       <div className="job-info-list">
-        {timeWorked.map((emp, i) => {
+        {(() => {
+          // Build name -> employeeId map from currently clocked-in list for late detection
+          const nameToEmpId = {};
+          clockedInList.forEach(c => { nameToEmpId[c.employeeName] = c.employeeId; });
+          const today = new Date().toISOString().split('T')[0];
+          const toMinsW = (t) => { if (!t) return null; const [h,m] = t.split(':').map(Number); return h*60+m; };
+          return timeWorked.map((emp, i) => {
           // Calculate week total from days data only
           const sun = new Date(timeWorkedWeekStart + 'T00:00:00');
           let weekTotalMin = 0;
@@ -2309,7 +2315,16 @@ selected={
                                 <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'4px'}}>
                                   <span>
                                     {r.originalClockIn && r.editedByAdmin && (() => { const d = new Date(r.originalClockIn); return <span style={{textDecoration:'line-through',color:'#999',fontSize:'0.75rem',marginRight:'6px'}}>{`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}</span>; })()}
-                                    {(() => { const d = new Date(r.clockIn); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; })()}
+                                    {(() => {
+                                      const d = new Date(r.clockIn);
+                                      const clockInStr = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+                                      const punchDateKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+                                      const empId = nameToEmpId[emp.name];
+                                      const schedMins = empId && punchDateKey === today ? toMinsW(todayScheduleMap[empId]) : null;
+                                      const clockInMins = d.getHours()*60 + d.getMinutes();
+                                      const isLateRow = schedMins !== null && clockInMins > schedMins && r.purpose !== 'Standby' && !todayStandbySet.has(empId?.toString());
+                                      return <>{clockInStr}{isLateRow && <span style={{marginLeft:'4px',background:'#ff9800',color:'#fff',padding:'0px 5px',borderRadius:'3px',fontSize:'0.7rem',fontWeight:'bold'}}>⚠️ LATE</span>}</>;
+                                    })()}
                                     {' ⏩ '}
                                     {r.clockOut ? (
                                       <>
@@ -2373,6 +2388,7 @@ selected={
           </details>
           );
         })}
+        })()}
       </div>
     )}
     {timeWorked.length === 0 && <p style={{color:'#888',fontSize:'0.85rem'}}>No hours data for this week.</p>}
