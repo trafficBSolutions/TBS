@@ -2270,9 +2270,12 @@ selected={
             const key = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
             if (emp.days[key] && emp.days[key].minutes) weekTotalMin += emp.days[key].minutes;
           }
+          const nsKey = Object.keys(todayScheduleMap).find(k => todayScheduleMap[k].name?.trim().toLowerCase() === emp.name?.trim().toLowerCase());
+          const nsSched = nsKey ? todayScheduleMap[nsKey] : null;
+          const isNoShow = nsSched && !todayPunchedSet.has(nsKey) && !clockedInList.some(c => c.employeeName?.trim().toLowerCase() === emp.name?.trim().toLowerCase()) && (() => { const [h,m] = nsSched.time.split(':').map(Number); return (new Date().getHours()*60+new Date().getMinutes()) - (h*60+m) >= 60; })();
           return (
-          <details key={i} style={{marginBottom:'0.75rem',background:'#f8f9fa',borderRadius:'8px',padding:'14px',border:'1px solid #ddd'}}>
-            <summary style={{cursor:'pointer',fontWeight:'bold',fontSize:'1.15rem'}}>{emp.name} {emp.position && <span style={{fontWeight:'normal',fontSize:'0.9rem',color:'#1565c0',background:'#e3f2fd',padding:'2px 8px',borderRadius:'4px',marginLeft:'6px'}}>{emp.position}</span>} {(weekTotalMin / 60).toFixed(2)} hrs ({weekTotalMin} min)</summary>
+          <details key={i} style={{marginBottom:'0.75rem',background: isNoShow ? '#fce4ec' : '#f8f9fa',borderRadius:'8px',padding:'14px',border: isNoShow ? '2px solid #e53935' : '1px solid #ddd'}}>
+            <summary style={{cursor:'pointer',fontWeight:'bold',fontSize:'1.15rem'}}>{emp.name} {emp.position && <span style={{fontWeight:'normal',fontSize:'0.9rem',color:'#1565c0',background:'#e3f2fd',padding:'2px 8px',borderRadius:'4px',marginLeft:'6px'}}>{emp.position}</span>} {isNoShow && <span style={{background:'#e53935',color:'#fff',padding:'2px 8px',borderRadius:'4px',fontSize:'0.85rem',marginLeft:'6px'}}>🚨 No-Show</span>} {(weekTotalMin / 60).toFixed(2)} hrs ({weekTotalMin} min)</summary>
             <table style={{width:'100%',borderCollapse:'collapse',fontSize:'1rem',marginTop:'0.5rem'}}>
               <thead>
                 <tr style={{background:'#e9ecef'}}>
@@ -2411,7 +2414,7 @@ selected={
               </tbody>
             </table>
           </details>
-          );
+        );
       });
     })()}
   </div>
