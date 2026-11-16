@@ -135,6 +135,7 @@ const [leavePage, setLeavePage] = useState(0);
 const [pendingShopWos, setPendingShopWos] = useState([]);
 const [shopWoPage, setShopWoPage] = useState(0);
 const [clockedInList, setClockedInList] = useState([]);
+const [todayScheduleMap, setTodayScheduleMap] = useState({});
 const [clockHistory, setClockHistory] = useState([]);
 const [clockHistoryDate, setClockHistoryDate] = useState(new Date());
 const [timeWorked, setTimeWorked] = useState([]);
@@ -711,6 +712,12 @@ useEffect(() => {
     const stored = JSON.parse(localStorage.getItem('adminUser') || '{}');
     if (salaryAdminEmails.has(stored.email)) {
       axios.get('/timeclock/status').then(res => setClockedInList(res.data)).catch(() => {});
+      const today = new Date().toISOString().split('T')[0];
+      axios.get(`/employee-schedule/${today}`).then(res => {
+        const map = {};
+        (res.data.assignments || []).forEach(a => { map[a.employeeId] = a.clockInTime; });
+        setTodayScheduleMap(map);
+      }).catch(() => {});
     }
   }
 }, [isAdmin]);
@@ -2040,7 +2047,15 @@ selected={
     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.5rem'}}>
       <h3 style={{margin:0}}>⏰ Employee Time Clock</h3>
       <div style={{display:'flex',gap:'0.5rem'}}>
-        <button className="btn" onClick={() => axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {})}>🔄 Refresh</button>
+        <button className="btn" onClick={() => {
+          axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {});
+          const today = new Date().toISOString().split('T')[0];
+          axios.get(`/employee-schedule/${today}`).then(res => {
+            const map = {};
+            (res.data.assignments || []).forEach(a => { map[a.employeeId] = a.clockInTime; });
+            setTodayScheduleMap(map);
+          }).catch(() => {});
+        }}>🔄 Refresh</button>
         <button className="btn" style={{background:'#888',color:'#fff'}} onClick={() => setViewMode('traffic')}>❌ Close</button>
       </div>
     </div>
@@ -2052,19 +2067,64 @@ selected={
     </div>
 
     {/* Currently Clocked In */}
-    <div style={{background:'#f0fdf4',border:'1px solid #86efac',borderRadius:'10px',padding:'1rem',marginBottom:'1.5rem'}}>
-      <h4 style={{color:'#166534',margin:'0 0 0.75rem'}}>⏰ Currently Clocked In ({clockedInList.length})</h4>
-      {clockedInList.length === 0 && <p style={{color:'#666',margin:0}}>No employees currently clocked in.</p>}
-      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(250px, 1fr))',gap:'0.75rem'}}>
-        {clockedInList.map((entry) => (
-          <div key={entry._id} style={{background:'#fff',borderRadius:'8px',padding:'0.75rem',border:'1px solid #ddd'}}>
-            <strong style={{fontSize:'1.05rem'}}>{entry.employeeName}</strong>
-            <p style={{margin:'4px 0',fontSize:'0.95rem',color:'#555'}}>In: {new Date(entry.clockIn).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})} • {Math.round((Date.now() - new Date(entry.clockIn)) / 60000)} min</p>
-            {entry.purpose && <span style={{background:'#e3f2fd',color:'#1565c0',padding:'3px 10px',borderRadius:'4px',fontSize:'0.9rem',fontWeight:'bold'}}>{entry.purpose}</span>}
+    {(() => {
+      const now = new Date();
+      const nowMins = now.getHours() * 60 + now.getMinutes();
+      const toMins = (t) => { if (!t) return 0; const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+      const lateEntries = clockedInList.filter(e => {
+        const sched = todayScheduleMap[e.employeeId];
+        if (!sched) return false;
+        const clockInMins = new Date(e.clockIn).getHours() * 60 + new Date(e.clockIn).getMinutes();
+        return clockInMins > toMins(sched);
+      });
+      return (
+        <>
+          {lateEntries.length > 0 && (
+            <div style={{background:'#fff3e0',border:'2px solid #ff9800',borderRadius:'10px',padding:'1rem',marginBottom:'1rem'}}>
+              <h4 style={{color:'#e65100',margin:'0 0 0.75rem'}}>⚠️ Late Clock-Ins Today ({lateEntries.length})</h4>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(250px, 1fr))',gap:'0.75rem'}}>
+                {lateEntries.map(entry => {
+                  const sched = todayScheduleMap[entry.employeeId];
+                  const actualIn = new Date(entry.clockIn);
+                  const actualStr = `${String(actualIn.getHours()).padStart(2,'0')}:${String(actualIn.getMinutes()).padStart(2,'0')}`;
+                  const schedMins = toMins(sched);
+                  const actualMins = actualIn.getHours() * 60 + actualIn.getMinutes();
+                  const diffMins = actualMins - schedMins;
+                  return (
+                    <div key={entry._id} style={{background:'#fff',borderRadius:'8px',padding:'0.75rem',border:'2px solid #ff9800'}}>
+                      <strong style={{fontSize:'1.05rem'}}>{entry.employeeName}</strong>
+                      <p style={{margin:'4px 0',fontSize:'0.9rem',color:'#e65100',fontWeight:'bold'}}>⚠️ {diffMins} min late</p>
+                      <p style={{margin:'2px 0',fontSize:'0.85rem',color:'#555'}}>Scheduled: {sched} · Clocked in: {actualStr}</p>
+                      {entry.purpose && <span style={{background:'#fff3e0',color:'#e65100',padding:'2px 8px',borderRadius:'4px',fontSize:'0.8rem',fontWeight:'bold'}}>{entry.purpose}</span>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          <div style={{background:'#f0fdf4',border:'1px solid #86efac',borderRadius:'10px',padding:'1rem',marginBottom:'1.5rem'}}>
+            <h4 style={{color:'#166534',margin:'0 0 0.75rem'}}>⏰ Currently Clocked In ({clockedInList.length})</h4>
+            {clockedInList.length === 0 && <p style={{color:'#666',margin:0}}>No employees currently clocked in.</p>}
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(250px, 1fr))',gap:'0.75rem'}}>
+              {clockedInList.map((entry) => {
+                const sched = todayScheduleMap[entry.employeeId];
+                const actualIn = new Date(entry.clockIn);
+                const actualMins = actualIn.getHours() * 60 + actualIn.getMinutes();
+                const isLate = sched && actualMins > toMins(sched);
+                return (
+                  <div key={entry._id} style={{background:'#fff',borderRadius:'8px',padding:'0.75rem',border: isLate ? '2px solid #ff9800' : '1px solid #ddd'}}>
+                    <strong style={{fontSize:'1.05rem'}}>{entry.employeeName}</strong>
+                    {isLate && <span style={{marginLeft:'6px',background:'#ff9800',color:'#fff',padding:'1px 7px',borderRadius:'4px',fontSize:'0.75rem',fontWeight:'bold'}}>⚠️ LATE</span>}
+                    <p style={{margin:'4px 0',fontSize:'0.95rem',color:'#555'}}>In: {`${String(actualIn.getHours()).padStart(2,'0')}:${String(actualIn.getMinutes()).padStart(2,'0')}`} • {Math.round((Date.now() - actualIn) / 60000)} min</p>
+                    {entry.purpose && <span style={{background:'#e3f2fd',color:'#1565c0',padding:'3px 10px',borderRadius:'4px',fontSize:'0.9rem',fontWeight:'bold'}}>{entry.purpose}</span>}
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        ))}
-      </div>
-    </div>
+        </>
+      );
+    })()}
 
     {/* Admin Actions: Add Hours for Forgotten Punches */}
     {canEditHours && (
