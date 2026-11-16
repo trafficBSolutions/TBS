@@ -149,7 +149,7 @@ const EmployeeAssignment = () => {
               {/* Dasia auto-schedule notice */}
               {isWeekday && (
                 <div style={{ background: '#e8f5e9', border: '1px solid #a5d6a7', borderRadius: '8px', padding: '0.75rem', marginBottom: '1rem', fontSize: '0.9rem' }}>
-                  🔒 <strong>Dasia Diskey</strong> is automatically scheduled for <strong>8:45 AM — Shop Work</strong> (Mon–Fri)
+                  🔒 <strong>Dasia Diskey</strong> is automatically scheduled for <strong>9:00 AM — Shop Work</strong> (Mon–Fri, window opens 8:45 AM)
                 </div>
               )}
 
