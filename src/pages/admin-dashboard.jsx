@@ -717,7 +717,7 @@ useEffect(() => {
       const today = new Date().toISOString().split('T')[0];
       axios.get(`/employee-schedule/${today}`).then(res => {
         const map = {};
-        (res.data.assignments || []).forEach(a => { map[a.employeeId] = a.clockInTime; });
+        (res.data.assignments || []).forEach(a => { map[a.employeeId] = { time: a.clockInTime, name: a.employeeName }; });
         setTodayScheduleMap(map);
       }).catch(() => {});
       axios.get(`/timeclock/history?date=${today}`).then(res => {
@@ -2059,7 +2059,7 @@ selected={
           const today = new Date().toISOString().split('T')[0];
           axios.get(`/employee-schedule/${today}`).then(res => {
             const map = {};
-            (res.data.assignments || []).forEach(a => { map[a.employeeId] = a.clockInTime; });
+            (res.data.assignments || []).forEach(a => { map[a.employeeId] = { time: a.clockInTime, name: a.employeeName }; });
             setTodayScheduleMap(map);
           }).catch(() => {});
           axios.get(`/timeclock/history?date=${today}`).then(res => {
@@ -2086,33 +2086,27 @@ selected={
       const lateEntries = clockedInList.filter(e => {
         const sched = todayScheduleMap[e.employeeId];
         if (!sched) return false;
-        // Never flag as late if currently clocked in as Standby
         if (e.purpose === 'Standby') return false;
-        // Never flag as late if they completed a Standby punch earlier today (re-clock-in for job)
         if (todayStandbySet.has(e.employeeId?.toString())) return false;
         const clockInMins = new Date(e.clockIn).getHours() * 60 + new Date(e.clockIn).getMinutes();
-        return clockInMins > toMins(sched);
+        return clockInMins > toMins(sched.time);
       });
       return (
         <>
           {(() => {
             const nowMins2 = new Date().getHours() * 60 + new Date().getMinutes();
             const noShowEntries = Object.entries(todayScheduleMap)
-              .filter(([empId, schedTime]) => {
-                if (todayPunchedSet.has(empId)) return false; // already clocked in at some point
-                const schedMins = toMins(schedTime);
-                return nowMins2 - schedMins >= 60; // 1+ hour past scheduled time
+              .filter(([empId, sched]) => {
+                if (todayPunchedSet.has(empId)) return false;
+                return nowMins2 - toMins(sched.time) >= 60;
               })
-              .map(([empId, schedTime]) => {
-                const emp = pinEmployees.find(e => e._id?.toString() === empId);
-                return { empId, schedTime, name: emp?.name || 'Unknown Employee' };
-              });
+              .map(([empId, sched]) => ({ empId, schedTime: sched.time, name: sched.name || 'Unknown Employee' }));
             if (noShowEntries.length === 0) return null;
             return (
               <div style={{background:'#fce4ec',border:'2px solid #e53935',borderRadius:'10px',padding:'1rem',marginBottom:'1rem'}}>
                 <h4 style={{color:'#b71c1c',margin:'0 0 0.75rem'}}>🚨 No-Shows ({noShowEntries.length}) — Scheduled 1+ hour ago, not clocked in</h4>
                 <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(250px, 1fr))',gap:'0.75rem'}}>
-                  {noShowEntries.map(({empId, schedTime, name}) => (
+                  {noShowEntries.map(({ empId, schedTime, name }) => (
                     <div key={empId} style={{background:'#fff',borderRadius:'8px',padding:'0.75rem',border:'2px solid #e53935'}}>
                       <strong style={{fontSize:'1.05rem'}}>{name}</strong>
                       <p style={{margin:'4px 0',fontSize:'0.9rem',color:'#b71c1c',fontWeight:'bold'}}>🚨 Did not show up</p>
@@ -2131,14 +2125,14 @@ selected={
                   const sched = todayScheduleMap[entry.employeeId];
                   const actualIn = new Date(entry.clockIn);
                   const actualStr = `${String(actualIn.getHours()).padStart(2,'0')}:${String(actualIn.getMinutes()).padStart(2,'0')}`;
-                  const schedMins = toMins(sched);
+                  const schedMins = toMins(sched.time);
                   const actualMins = actualIn.getHours() * 60 + actualIn.getMinutes();
                   const diffMins = actualMins - schedMins;
                   return (
                     <div key={entry._id} style={{background:'#fff',borderRadius:'8px',padding:'0.75rem',border:'2px solid #ff9800'}}>
                       <strong style={{fontSize:'1.05rem'}}>{entry.employeeName}</strong>
                       <p style={{margin:'4px 0',fontSize:'0.9rem',color:'#e65100',fontWeight:'bold'}}>⚠️ {diffMins} min late</p>
-                      <p style={{margin:'2px 0',fontSize:'0.85rem',color:'#555'}}>Scheduled: {sched} · Clocked in: {actualStr}</p>
+                      <p style={{margin:'2px 0',fontSize:'0.85rem',color:'#555'}}>Scheduled: {sched.time} · Clocked in: {actualStr}</p>
                       {entry.purpose && <span style={{background:'#fff3e0',color:'#e65100',padding:'2px 8px',borderRadius:'4px',fontSize:'0.8rem',fontWeight:'bold'}}>{entry.purpose}</span>}
                     </div>
                   );
@@ -2154,7 +2148,7 @@ selected={
                 const sched = todayScheduleMap[entry.employeeId];
                 const actualIn = new Date(entry.clockIn);
                 const actualMins = actualIn.getHours() * 60 + actualIn.getMinutes();
-                const isLate = sched && actualMins > toMins(sched) && entry.purpose !== 'Standby' && !todayStandbySet.has(entry.employeeId?.toString());
+                const isLate = sched && actualMins > toMins(sched.time) && entry.purpose !== 'Standby' && !todayStandbySet.has(entry.employeeId?.toString());
                 return (
                   <div key={entry._id} style={{background:'#fff',borderRadius:'8px',padding:'0.75rem',border: isLate ? '2px solid #ff9800' : '1px solid #ddd'}}>
                     <strong style={{fontSize:'1.05rem'}}>{entry.employeeName}</strong>
@@ -2347,7 +2341,7 @@ selected={
                                       const clockInStr = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
                                       const punchDateKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
                                       const empId = nameToEmpId[emp.name];
-                                      const schedMins = empId && punchDateKey === today ? toMinsW(todayScheduleMap[empId]) : null;
+                                      const schedMins = empId && punchDateKey === today ? toMinsW(todayScheduleMap[empId]?.time) : null;
                                       const clockInMins = d.getHours()*60 + d.getMinutes();
                                       const isLateRow = schedMins !== null && clockInMins > schedMins && r.purpose !== 'Standby' && !todayStandbySet.has(empId?.toString());
                                       return <>{clockInStr}{isLateRow && <span style={{marginLeft:'4px',background:'#ff9800',color:'#fff',padding:'0px 5px',borderRadius:'3px',fontSize:'0.7rem',fontWeight:'bold'}}>⚠️ LATE</span>}</>;
@@ -2414,10 +2408,10 @@ selected={
             </table>
           </details>
           );
-        })}
-      )}
-      </div>
-    )}
+      });
+    })()}
+  </div>
+)}
     {timeWorked.length === 0 && <p style={{color:'#888',fontSize:'0.85rem'}}>No hours data for this week.</p>}
     </div>
 
