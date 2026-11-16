@@ -2090,7 +2090,7 @@ selected={
         if (e.purpose === 'Standby') return false;
         if (todayStandbySet.has(e.employeeId?.toString())) return false;
         const clockInMins = new Date(e.clockIn).getHours() * 60 + new Date(e.clockIn).getMinutes();
-        return clockInMins > toMins(sched.time);
+        return clockInMins > toMins(sched.time) + 5;
       });
       return (
         <>
@@ -2101,7 +2101,7 @@ selected={
               .filter(([empId, sched]) => {
                 if (todayPunchedSet.has(empId)) return false;
                 if (punchedNames.has(sched.name?.trim().toLowerCase())) return false;
-                return nowMins2 - toMins(sched.time) >= 60;
+                return nowMins2 - toMins(sched.time) > 5;
               })
               .map(([empId, sched]) => ({ empId, schedTime: sched.time, name: sched.name || 'Unknown Employee' }));
             if (noShowEntries.length === 0) return null;
@@ -2152,7 +2152,7 @@ selected={
                 const sched = todayScheduleMap[entry.employeeId] || (schedKey ? todayScheduleMap[schedKey] : undefined);
                 const actualIn = new Date(entry.clockIn);
                 const actualMins = actualIn.getHours() * 60 + actualIn.getMinutes();
-                const isLate = sched && actualMins > toMins(sched.time) && entry.purpose !== 'Standby' && !todayStandbySet.has(entry.employeeId?.toString());
+                const isLate = sched && actualMins > toMins(sched.time) + 5 && entry.purpose !== 'Standby' && !todayStandbySet.has(entry.employeeId?.toString());
                 return (
                   <div key={entry._id} style={{background:'#fff',borderRadius:'8px',padding:'0.75rem',border: isLate ? '2px solid #ff9800' : '1px solid #ddd'}}>
                     <strong style={{fontSize:'1.05rem'}}>{entry.employeeName}</strong>
@@ -2272,7 +2272,7 @@ selected={
           }
           const nsKey = Object.keys(todayScheduleMap).find(k => todayScheduleMap[k].name?.trim().toLowerCase() === emp.name?.trim().toLowerCase());
           const nsSched = nsKey ? todayScheduleMap[nsKey] : null;
-          const isNoShow = nsSched && !todayPunchedSet.has(nsKey) && !clockedInList.some(c => c.employeeName?.trim().toLowerCase() === emp.name?.trim().toLowerCase()) && (() => { const [h,m] = nsSched.time.split(':').map(Number); return (new Date().getHours()*60+new Date().getMinutes()) - (h*60+m) >= 60; })();
+          const isNoShow = nsSched && !todayPunchedSet.has(nsKey) && !clockedInList.some(c => c.employeeName?.trim().toLowerCase() === emp.name?.trim().toLowerCase()) && (() => { const [h,m] = nsSched.time.split(':').map(Number); return (new Date().getHours()*60+new Date().getMinutes()) - (h*60+m) > 5; })();
           return (
           <details key={i} style={{marginBottom:'0.75rem',background:'#f8f9fa',borderRadius:'8px',padding:'14px',border:'1px solid #ddd'}}>
             <summary style={{cursor:'pointer',fontWeight:'bold',fontSize:'1.15rem'}}>{emp.name} {emp.position && <span style={{fontWeight:'normal',fontSize:'0.9rem',color:'#1565c0',background:'#e3f2fd',padding:'2px 8px',borderRadius:'4px',marginLeft:'6px'}}>{emp.position}</span>} {(weekTotalMin / 60).toFixed(2)} hrs ({weekTotalMin} min)</summary>
@@ -2353,7 +2353,7 @@ selected={
                                       const empId = nameToEmpId[emp.name] || (Object.keys(todayScheduleMap).find(k => todayScheduleMap[k].name?.trim().toLowerCase() === emp.name?.trim().toLowerCase()) ?? null);
                                       const schedMins = empId && punchDateKey === today ? toMinsW(todayScheduleMap[empId]?.time) : null;
                                       const clockInMins = d.getHours()*60 + d.getMinutes();
-                                      const isLateRow = schedMins !== null && clockInMins > schedMins && r.purpose !== 'Standby' && !todayStandbySet.has(empId?.toString());
+                                      const isLateRow = schedMins !== null && clockInMins > schedMins + 5 && r.purpose !== 'Standby' && !todayStandbySet.has(empId?.toString());
                                       return <>{clockInStr}{isLateRow && <span style={{marginLeft:'4px',background:'#ff9800',color:'#fff',padding:'0px 5px',borderRadius:'3px',fontSize:'0.7rem',fontWeight:'bold'}}>⚠️ LATE</span>}</>;
                                     })()}
                                     {' ⏩ '}
