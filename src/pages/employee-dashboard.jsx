@@ -218,7 +218,7 @@ const EmployeeDashboard = () => {
           const reClockAfterStandby = clockPurpose !== 'Standby' && (
             sched.purpose === 'Standby' || todayStandbySetRef.current.has(selectedEmployee._id?.toString())
           );
-          if (!reClockAfterStandby && nowMins > toMinutes(sched.clockInTime)) {
+          if (!reClockAfterStandby && nowMins > toMinutes(sched.clockInTime) + 5) {
             msg += ' ⚠️ LATE';
             const today = now.toISOString().split('T')[0];
             axios.post('/employee-schedule/notify-late', {
@@ -377,7 +377,7 @@ const EmployeeDashboard = () => {
                     const scheduledMins = sched ? toMinutes(sched.clockInTime) : null;
                     const windowOpen = scheduledMins !== null ? scheduledMins - 15 : null;
                     const isLocked = sched && !clockedInIds.includes(emp._id) && windowOpen !== null && nowMins < windowOpen;
-                    const isLate = sched && !clockedInIds.includes(emp._id) && scheduledMins !== null && nowMins > scheduledMins;
+                    const isLate = sched && !clockedInIds.includes(emp._id) && scheduledMins !== null && nowMins > scheduledMins + 5;
                     return (
                     <button
                       key={emp._id}
