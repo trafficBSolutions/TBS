@@ -37,6 +37,7 @@ const EmployeeDashboard = () => {
   const [clockedInIds, setClockedInIds] = useState([]);
   const [clockPurpose, setClockPurpose] = useState('');
   const [scheduleMap, setScheduleMap] = useState({});
+  const todayStandbySetRef = useRef(new Set()); // employeeIds who completed a Standby punch today
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [pendingCount, setPendingCount] = useState(() => JSON.parse(localStorage.getItem('tbs_punch_queue') || '[]').length);
@@ -116,6 +117,13 @@ const EmployeeDashboard = () => {
       const res = await axios.get('/timeclock/status');
       setClockedInIds(res.data.map(r => r.employeeId));
       localStorage.setItem('tbs_cached_status', JSON.stringify(res.data.map(r => r.employeeId)));
+      // Refresh today's standby set
+      const today = new Date().toISOString().split('T')[0];
+      axios.get(`/timeclock/history?date=${today}`).then(h => {
+        todayStandbySetRef.current = new Set(
+          (h.data || []).filter(r => r.purpose === 'Standby' && r.clockOut).map(r => r.employeeId?.toString())
+        );
+      }).catch(() => {});
     } catch (err) {
       const cached = localStorage.getItem('tbs_cached_status');
       if (cached) setClockedInIds(JSON.parse(cached));
@@ -207,7 +215,9 @@ const EmployeeDashboard = () => {
           const now = new Date();
           const nowMins = now.getHours() * 60 + now.getMinutes();
           // Skip late check when re-clocking in for a job after completing a Standby session
-          const reClockAfterStandby = clockPurpose !== 'Standby' && sched.purpose === 'Standby';
+          const reClockAfterStandby = clockPurpose !== 'Standby' && (
+            sched.purpose === 'Standby' || todayStandbySetRef.current.has(selectedEmployee._id?.toString())
+          );
           if (!reClockAfterStandby && nowMins > toMinutes(sched.clockInTime)) {
             msg += ' ⚠️ LATE';
             const today = now.toISOString().split('T')[0];
