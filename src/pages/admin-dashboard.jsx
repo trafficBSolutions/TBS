@@ -136,6 +136,7 @@ const [pendingShopWos, setPendingShopWos] = useState([]);
 const [shopWoPage, setShopWoPage] = useState(0);
 const [clockedInList, setClockedInList] = useState([]);
 const [todayScheduleMap, setTodayScheduleMap] = useState({});
+const [todayStandbySet, setTodayStandbySet] = useState(new Set()); // employeeIds who completed a Standby punch today
 const [clockHistory, setClockHistory] = useState([]);
 const [clockHistoryDate, setClockHistoryDate] = useState(new Date());
 const [timeWorked, setTimeWorked] = useState([]);
@@ -717,6 +718,12 @@ useEffect(() => {
         const map = {};
         (res.data.assignments || []).forEach(a => { map[a.employeeId] = a.clockInTime; });
         setTodayScheduleMap(map);
+      }).catch(() => {});
+      axios.get(`/timeclock/history?date=${today}`).then(res => {
+        const standbyIds = new Set(
+          (res.data || []).filter(r => r.purpose === 'Standby' && r.clockOut).map(r => r.employeeId?.toString())
+        );
+        setTodayStandbySet(standbyIds);
       }).catch(() => {});
     }
   }
@@ -2055,6 +2062,12 @@ selected={
             (res.data.assignments || []).forEach(a => { map[a.employeeId] = a.clockInTime; });
             setTodayScheduleMap(map);
           }).catch(() => {});
+          axios.get(`/timeclock/history?date=${today}`).then(res => {
+            const standbyIds = new Set(
+              (res.data || []).filter(r => r.purpose === 'Standby' && r.clockOut).map(r => r.employeeId?.toString())
+            );
+            setTodayStandbySet(standbyIds);
+          }).catch(() => {});
         }}>🔄 Refresh</button>
         <button className="btn" style={{background:'#888',color:'#fff'}} onClick={() => setViewMode('traffic')}>❌ Close</button>
       </div>
@@ -2076,6 +2089,8 @@ selected={
         if (!sched) return false;
         // Never flag as late if currently clocked in as Standby
         if (e.purpose === 'Standby') return false;
+        // Never flag as late if they completed a Standby punch earlier today (re-clock-in for job)
+        if (todayStandbySet.has(e.employeeId?.toString())) return false;
         const clockInMins = new Date(e.clockIn).getHours() * 60 + new Date(e.clockIn).getMinutes();
         return clockInMins > toMins(sched);
       });
@@ -2112,7 +2127,7 @@ selected={
                 const sched = todayScheduleMap[entry.employeeId];
                 const actualIn = new Date(entry.clockIn);
                 const actualMins = actualIn.getHours() * 60 + actualIn.getMinutes();
-                const isLate = sched && actualMins > toMins(sched) && entry.purpose !== 'Standby';
+                const isLate = sched && actualMins > toMins(sched) && entry.purpose !== 'Standby' && !todayStandbySet.has(entry.employeeId?.toString());
                 return (
                   <div key={entry._id} style={{background:'#fff',borderRadius:'8px',padding:'0.75rem',border: isLate ? '2px solid #ff9800' : '1px solid #ddd'}}>
                     <strong style={{fontSize:'1.05rem'}}>{entry.employeeName}</strong>
