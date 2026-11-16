@@ -206,7 +206,9 @@ const EmployeeDashboard = () => {
         if (sched) {
           const now = new Date();
           const nowMins = now.getHours() * 60 + now.getMinutes();
-          if (nowMins > toMinutes(sched.clockInTime)) {
+          // Skip late check when re-clocking in for a job after completing a Standby session
+          const reClockAfterStandby = clockPurpose !== 'Standby' && sched.purpose === 'Standby';
+          if (!reClockAfterStandby && nowMins > toMinutes(sched.clockInTime)) {
             msg += ' ⚠️ LATE';
             const today = now.toISOString().split('T')[0];
             axios.post('/employee-schedule/notify-late', {
