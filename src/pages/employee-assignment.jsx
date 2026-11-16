@@ -208,7 +208,17 @@ const EmployeeAssignment = () => {
                   </select>
                   <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                     <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Clock-In Time:</label>
-                    <input type="time" value={selTime} onChange={e => setSelTime(e.target.value)} style={{ padding: '0.4rem', borderRadius: '6px', border: '1px solid #ccc', flex: 1 }} />
+                    <select value={selTime} onChange={e => setSelTime(e.target.value)} style={{ padding: '0.4rem', borderRadius: '6px', border: '1px solid #ccc', flex: 1 }}>
+                      <option value="">Select time...</option>
+                      {Array.from({ length: 48 }, (_, i) => {
+                        const h = Math.floor(i / 4);
+                        const m = (i % 4) * 15;
+                        const val = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+                        const displayH = h === 0 ? 12 : h;
+                        const label = `${displayH}:${String(m).padStart(2,'0')} AM`;
+                        return <option key={val} value={val}>{label}</option>;
+                      })}
+                    </select>
                   </div>
                   <select value={selPurpose} onChange={e => setSelPurpose(e.target.value)} style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid #ccc' }}>
                     <option value="">Select Purpose...</option>
