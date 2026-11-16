@@ -2084,7 +2084,8 @@ selected={
       const nowMins = now.getHours() * 60 + now.getMinutes();
       const toMins = (t) => { if (!t) return 0; const [h, m] = t.split(':').map(Number); return h * 60 + m; };
       const lateEntries = clockedInList.filter(e => {
-        const sched = todayScheduleMap[e.employeeId] || todayScheduleMap[Object.keys(todayScheduleMap).find(k => todayScheduleMap[k].name?.trim().toLowerCase() === e.employeeName?.trim().toLowerCase())];
+        const schedKey = Object.keys(todayScheduleMap).find(k => todayScheduleMap[k].name?.trim().toLowerCase() === e.employeeName?.trim().toLowerCase());
+        const sched = todayScheduleMap[e.employeeId] || (schedKey ? todayScheduleMap[schedKey] : undefined);
         if (!sched) return false;
         if (e.purpose === 'Standby') return false;
         if (todayStandbySet.has(e.employeeId?.toString())) return false;
@@ -2147,7 +2148,8 @@ selected={
             {clockedInList.length === 0 && <p style={{color:'#666',margin:0}}>No employees currently clocked in.</p>}
             <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(250px, 1fr))',gap:'0.75rem'}}>
               {clockedInList.map((entry) => {
-                const sched = todayScheduleMap[entry.employeeId] || todayScheduleMap[Object.keys(todayScheduleMap).find(k => todayScheduleMap[k].name?.trim().toLowerCase() === entry.employeeName?.trim().toLowerCase())];
+                const schedKey = Object.keys(todayScheduleMap).find(k => todayScheduleMap[k].name?.trim().toLowerCase() === entry.employeeName?.trim().toLowerCase());
+                const sched = todayScheduleMap[entry.employeeId] || (schedKey ? todayScheduleMap[schedKey] : undefined);
                 const actualIn = new Date(entry.clockIn);
                 const actualMins = actualIn.getHours() * 60 + actualIn.getMinutes();
                 const isLate = sched && actualMins > toMins(sched.time) && entry.purpose !== 'Standby' && !todayStandbySet.has(entry.employeeId?.toString());
@@ -2342,7 +2344,7 @@ selected={
                                       const d = new Date(r.clockIn);
                                       const clockInStr = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
                                       const punchDateKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-                                      const empId = nameToEmpId[emp.name] || Object.keys(todayScheduleMap).find(k => todayScheduleMap[k].name?.trim().toLowerCase() === emp.name?.trim().toLowerCase());
+                                      const empId = nameToEmpId[emp.name] || (Object.keys(todayScheduleMap).find(k => todayScheduleMap[k].name?.trim().toLowerCase() === emp.name?.trim().toLowerCase()) ?? null);
                                       const schedMins = empId && punchDateKey === today ? toMinsW(todayScheduleMap[empId]?.time) : null;
                                       const clockInMins = d.getHours()*60 + d.getMinutes();
                                       const isLateRow = schedMins !== null && clockInMins > schedMins && r.purpose !== 'Standby' && !todayStandbySet.has(empId?.toString());
