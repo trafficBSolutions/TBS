@@ -2099,6 +2099,7 @@ selected={
             const punchedNames = new Set(clockedInList.map(e => e.employeeName?.trim().toLowerCase()));
             const scheduledEntries = Object.entries(todayScheduleMap)
               .filter(([empId, sched]) => {
+                if (!sched.time) return false;
                 if (todayPunchedSet.has(empId)) return false;
                 if (punchedNames.has(sched.name?.trim().toLowerCase())) return false;
                 return nowMins2 - toMins(sched.time) <= 5;
@@ -2106,6 +2107,7 @@ selected={
               .map(([empId, sched]) => ({ empId, schedTime: sched.time, name: sched.name || 'Unknown Employee' }));
             const noShowEntries = Object.entries(todayScheduleMap)
               .filter(([empId, sched]) => {
+                if (!sched.time) return false;
                 if (todayPunchedSet.has(empId)) return false;
                 if (punchedNames.has(sched.name?.trim().toLowerCase())) return false;
                 return nowMins2 - toMins(sched.time) > 5;
