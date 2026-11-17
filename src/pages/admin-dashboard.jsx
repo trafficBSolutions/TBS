@@ -34,6 +34,33 @@ const formatEquipmentName = (key) => {
   return names[key] || key;
 };
 
+const SCHEDULE_TIMEZONE = 'America/New_York';
+const GRACE_MINUTES = 5;
+
+const getEasternMinutes = (date = new Date()) => {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: SCHEDULE_TIMEZONE, hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+  }).formatToParts(date);
+  const hour = Number(parts.find(p => p.type === 'hour')?.value);
+  const minute = Number(parts.find(p => p.type === 'minute')?.value);
+  return hour * 60 + minute;
+};
+
+const getEasternDate = (date = new Date()) => {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: SCHEDULE_TIMEZONE, year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(date);
+  const get = type => parts.find(p => p.type === type)?.value;
+  return `${get('year')}-${get('month')}-${get('day')}`;
+};
+
+const scheduleTimeToMinutes = (time) => {
+  if (!/^\d{2}:\d{2}$/.test(time || '')) return null;
+  const [hours, minutes] = time.split(':').map(Number);
+  if (hours > 23 || minutes > 59) return null;
+  return hours * 60 + minutes;
+};
+
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [adminName, setAdminName] = useState('');
@@ -78,6 +105,7 @@ const [woSelectedDate, setWoSelectedDate] = useState(null);
 const [woMonthly, setWoMonthly] = useState({});
 const [woList, setWoList] = useState([]);
 const [viewMode, setViewMode] = useState('traffic'); // 'traffic' or 'workorders'
+const [scheduleNow, setScheduleNow] = useState(() => new Date());
 const [quotesDate, setQuotesDate] = useState(new Date());
 const [quotesList, setQuotesList] = useState([]);
 const [quotesMonthly, setQuotesMonthly] = useState({});
@@ -715,7 +743,7 @@ useEffect(() => {
     const stored = JSON.parse(localStorage.getItem('adminUser') || '{}');
     if (salaryAdminEmails.has(stored.email)) {
       axios.get('/timeclock/status').then(res => setClockedInList(res.data)).catch(() => {});
-      const today = new Date().toISOString().split('T')[0];
+      const today = getEasternDate();
       axios.get(`/employee-schedule/${today}`).then(res => {
         const map = {};
         (res.data.assignments || []).forEach(a => { map[a.employeeId?.toString()] = { time: a.clockInTime, name: a.employeeName }; });
@@ -730,6 +758,12 @@ useEffect(() => {
     }
   }
 }, [isAdmin]);
+
+useEffect(() => {
+  if (viewMode !== 'timeclock') return;
+  const interval = setInterval(() => setScheduleNow(new Date()), 15000);
+  return () => clearInterval(interval);
+}, [viewMode]);
 
 // after reading localStorage adminUser
 useEffect(() => {
@@ -2042,7 +2076,7 @@ selected={
         setViewMode('timeclock');
         axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {});
         axios.get('/timeclock/employees?location=' + encodeURIComponent(clockLocation)).then(r => { setPinEmployees(r.data.employees); }).catch(() => {});
-        const today = new Date().toISOString().split('T')[0];
+        const today = getEasternDate();
         axios.get(`/employee-schedule/${today}`).then(res => {
           const map = {};
           (res.data.assignments || []).forEach(a => { map[a.employeeId?.toString()] = { time: a.clockInTime, name: a.employeeName }; });
@@ -2070,7 +2104,7 @@ selected={
       <div style={{display:'flex',gap:'0.5rem'}}>
         <button className="btn" onClick={() => {
           axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {});
-          const today = new Date().toISOString().split('T')[0];
+          const today = getEasternDate();
           axios.get(`/employee-schedule/${today}`).then(res => {
             const map = {};
             (res.data.assignments || []).forEach(a => { map[a.employeeId?.toString()] = { time: a.clockInTime, name: a.employeeName }; });
@@ -2110,30 +2144,30 @@ selected={
       return (
         <>
           {(() => {
-            const nowMins2 = new Date().getHours() * 60 + new Date().getMinutes();
-            console.log('[NoShow Debug] nowMins2:', nowMins2, 'schedMap size:', Object.keys(todayScheduleMap).length, 'punchedSet size:', todayPunchedSet.size, 'punchedNameSet size:', todayPunchedNameSet.size, 'clockedIn:', clockedInList.length);
-            console.log('[NoShow Debug] schedMap keys:', Object.keys(todayScheduleMap));
-            console.log('[NoShow Debug] punchedSet:', [...todayPunchedSet]);
-            console.log('[NoShow Debug] punchedNameSet:', [...todayPunchedNameSet]);
-            const punchedNames = new Set(clockedInList.map(e => e.employeeName?.trim().toLowerCase()));
-            const scheduledEntries = Object.entries(todayScheduleMap)
+            const nowMins2 = getEasternMinutes(scheduleNow);
+            const punchedNames = new Set(
+              clockedInList.map(e => e.employeeName?.trim().toLowerCase()).filter(Boolean)
+            );
+            const pendingEntries = Object.entries(todayScheduleMap)
               .filter(([empId, sched]) => {
                 if (!sched.time) return false;
+                const name = sched.name?.trim().toLowerCase();
                 if (todayPunchedSet.has(empId)) return false;
-                if (todayPunchedNameSet.has(sched.name?.trim().toLowerCase())) return false;
-                if (punchedNames.has(sched.name?.trim().toLowerCase())) return false;
-                return nowMins2 <= toMins(sched.time) + 5;
+                if (todayPunchedNameSet.has(name)) return false;
+                if (punchedNames.has(name)) return false;
+                return true;
               })
-              .map(([empId, sched]) => ({ empId, schedTime: sched.time, name: sched.name || 'Unknown Employee' }));
-            const noShowEntries = Object.entries(todayScheduleMap)
-              .filter(([empId, sched]) => {
-                if (!sched.time) return false;
-                if (todayPunchedSet.has(empId)) return false;
-                if (todayPunchedNameSet.has(sched.name?.trim().toLowerCase())) return false;
-                if (punchedNames.has(sched.name?.trim().toLowerCase())) return false;
-                return nowMins2 > toMins(sched.time) + 5;
-              })
-              .map(([empId, sched]) => ({ empId, schedTime: sched.time, name: sched.name || 'Unknown Employee' }));
+              .map(([empId, sched]) => ({
+                empId, schedTime: sched.time, name: sched.name || 'Unknown Employee',
+                scheduledMinutes: scheduleTimeToMinutes(sched.time),
+              }))
+              .filter(entry => entry.scheduledMinutes !== null);
+            const scheduledEntries = pendingEntries.filter(entry =>
+              nowMins2 < entry.scheduledMinutes + GRACE_MINUTES
+            );
+            const noShowEntries = pendingEntries.filter(entry =>
+              nowMins2 >= entry.scheduledMinutes + GRACE_MINUTES
+            );
             return (
               <>
                 {scheduledEntries.length > 0 && (
