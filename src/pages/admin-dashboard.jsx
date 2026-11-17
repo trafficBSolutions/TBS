@@ -2040,6 +2040,17 @@ selected={
         setViewMode('timeclock');
         axios.get('/timeclock/status').then(r => setClockedInList(r.data)).catch(() => {});
         axios.get('/timeclock/employees?location=' + encodeURIComponent(clockLocation)).then(r => { setPinEmployees(r.data.employees); }).catch(() => {});
+        const today = new Date().toISOString().split('T')[0];
+        axios.get(`/employee-schedule/${today}`).then(res => {
+          const map = {};
+          (res.data.assignments || []).forEach(a => { map[a.employeeId?.toString()] = { time: a.clockInTime, name: a.employeeName }; });
+          setTodayScheduleMap(map);
+        }).catch(() => {});
+        axios.get(`/timeclock/history?date=${today}`).then(res => {
+          const punches = res.data || [];
+          setTodayStandbySet(new Set(punches.filter(r => r.purpose === 'Standby' && r.clockOut).map(r => r.employeeId?.toString())));
+          setTodayPunchedSet(new Set(punches.map(r => r.employeeId?.toString())));
+        }).catch(() => {});
         const now = new Date();
         const sat = new Date(now); sat.setDate(now.getDate() - ((now.getDay() + 1) % 7));
         const satStr = `${sat.getFullYear()}-${String(sat.getMonth()+1).padStart(2,'0')}-${String(sat.getDate()).padStart(2,'0')}`;
