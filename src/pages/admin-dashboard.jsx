@@ -2095,28 +2095,53 @@ selected={
       return (
         <>
           {(() => {
+            const nowMins2 = new Date().getHours() * 60 + new Date().getMinutes();
             const punchedNames = new Set(clockedInList.map(e => e.employeeName?.trim().toLowerCase()));
             const scheduledEntries = Object.entries(todayScheduleMap)
               .filter(([empId, sched]) => {
                 if (todayPunchedSet.has(empId)) return false;
                 if (punchedNames.has(sched.name?.trim().toLowerCase())) return false;
-                return true;
+                return nowMins2 - toMins(sched.time) <= 5;
               })
               .map(([empId, sched]) => ({ empId, schedTime: sched.time, name: sched.name || 'Unknown Employee' }));
-            if (scheduledEntries.length === 0) return null;
+            const noShowEntries = Object.entries(todayScheduleMap)
+              .filter(([empId, sched]) => {
+                if (todayPunchedSet.has(empId)) return false;
+                if (punchedNames.has(sched.name?.trim().toLowerCase())) return false;
+                return nowMins2 - toMins(sched.time) > 5;
+              })
+              .map(([empId, sched]) => ({ empId, schedTime: sched.time, name: sched.name || 'Unknown Employee' }));
             return (
-              <div style={{background:'#e8f5e9',border:'2px solid #43a047',borderRadius:'10px',padding:'1rem',marginBottom:'1rem'}}>
-                <h4 style={{color:'#1b5e20',margin:'0 0 0.75rem'}}>📅 Scheduled Clock Ins ({scheduledEntries.length})</h4>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(250px, 1fr))',gap:'0.75rem'}}>
-                  {scheduledEntries.map(({ empId, schedTime, name }) => (
-                    <div key={empId} style={{background:'#fff',borderRadius:'8px',padding:'0.75rem',border:'2px solid #43a047'}}>
-                      <strong style={{fontSize:'1.05rem'}}>{name}</strong>
-                      <p style={{margin:'4px 0',fontSize:'0.9rem',color:'#2e7d32',fontWeight:'bold'}}>📅 Not yet clocked in</p>
-                      <p style={{margin:'2px 0',fontSize:'0.85rem',color:'#555'}}>Scheduled: {schedTime}</p>
+              <>
+                {scheduledEntries.length > 0 && (
+                  <div style={{background:'#e8f5e9',border:'2px solid #43a047',borderRadius:'10px',padding:'1rem',marginBottom:'1rem'}}>
+                    <h4 style={{color:'#1b5e20',margin:'0 0 0.75rem'}}>📅 Scheduled Clock Ins ({scheduledEntries.length})</h4>
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(250px, 1fr))',gap:'0.75rem'}}>
+                      {scheduledEntries.map(({ empId, schedTime, name }) => (
+                        <div key={empId} style={{background:'#fff',borderRadius:'8px',padding:'0.75rem',border:'2px solid #43a047'}}>
+                          <strong style={{fontSize:'1.05rem'}}>{name}</strong>
+                          <p style={{margin:'4px 0',fontSize:'0.9rem',color:'#2e7d32',fontWeight:'bold'}}>📅 Not yet clocked in</p>
+                          <p style={{margin:'2px 0',fontSize:'0.85rem',color:'#555'}}>Scheduled: {schedTime}</p>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </div>
+                  </div>
+                )}
+                {noShowEntries.length > 0 && (
+                  <div style={{background:'#fce4ec',border:'2px solid #e53935',borderRadius:'10px',padding:'1rem',marginBottom:'1rem'}}>
+                    <h4 style={{color:'#b71c1c',margin:'0 0 0.75rem'}}>🚨 No-Shows ({noShowEntries.length}) — Past grace period, not clocked in</h4>
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(250px, 1fr))',gap:'0.75rem'}}>
+                      {noShowEntries.map(({ empId, schedTime, name }) => (
+                        <div key={empId} style={{background:'#fff',borderRadius:'8px',padding:'0.75rem',border:'2px solid #e53935'}}>
+                          <strong style={{fontSize:'1.05rem'}}>{name}</strong>
+                          <p style={{margin:'4px 0',fontSize:'0.9rem',color:'#b71c1c',fontWeight:'bold'}}>🚨 Did not show up</p>
+                          <p style={{margin:'2px 0',fontSize:'0.85rem',color:'#555'}}>Scheduled: {schedTime}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
             );
           })()}
           {lateEntries.length > 0 && (
