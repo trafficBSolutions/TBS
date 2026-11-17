@@ -138,6 +138,7 @@ const [clockedInList, setClockedInList] = useState([]);
 const [todayScheduleMap, setTodayScheduleMap] = useState({});
 const [todayStandbySet, setTodayStandbySet] = useState(new Set()); // employeeIds who completed a Standby punch today
 const [todayPunchedSet, setTodayPunchedSet] = useState(new Set()); // employeeIds who clocked in at all today
+const [todayPunchedNameSet, setTodayPunchedNameSet] = useState(new Set()); // employee names who clocked in today (fallback)
 const [clockHistory, setClockHistory] = useState([]);
 const [clockHistoryDate, setClockHistoryDate] = useState(new Date());
 const [timeWorked, setTimeWorked] = useState([]);
@@ -722,8 +723,9 @@ useEffect(() => {
       }).catch(() => {});
       axios.get(`/timeclock/history?date=${today}`).then(res => {
         const punches = res.data || [];
-        setTodayStandbySet(new Set(punches.filter(r => r.purpose === 'Standby' && r.clockOut).map(r => r.employeeId?.toString())));
-        setTodayPunchedSet(new Set(punches.map(r => r.employeeId?.toString())));
+        setTodayStandbySet(new Set(punches.filter(r => r.purpose === 'Standby' && r.clockOut).map(r => r.employeeId?.toString()).filter(Boolean)));
+        setTodayPunchedSet(new Set(punches.map(r => r.employeeId?.toString()).filter(Boolean)));
+        setTodayPunchedNameSet(new Set(punches.map(r => r.employeeName?.trim().toLowerCase()).filter(Boolean)));
       }).catch(() => {});
     }
   }
@@ -2048,8 +2050,9 @@ selected={
         }).catch(() => {});
         axios.get(`/timeclock/history?date=${today}`).then(res => {
           const punches = res.data || [];
-          setTodayStandbySet(new Set(punches.filter(r => r.purpose === 'Standby' && r.clockOut).map(r => r.employeeId?.toString())));
-          setTodayPunchedSet(new Set(punches.map(r => r.employeeId?.toString())));
+          setTodayStandbySet(new Set(punches.filter(r => r.purpose === 'Standby' && r.clockOut).map(r => r.employeeId?.toString()).filter(Boolean)));
+          setTodayPunchedSet(new Set(punches.map(r => r.employeeId?.toString()).filter(Boolean)));
+          setTodayPunchedNameSet(new Set(punches.map(r => r.employeeName?.trim().toLowerCase()).filter(Boolean)));
         }).catch(() => {});
         const now = new Date();
         const sat = new Date(now); sat.setDate(now.getDate() - ((now.getDay() + 1) % 7));
@@ -2075,8 +2078,9 @@ selected={
           }).catch(() => {});
           axios.get(`/timeclock/history?date=${today}`).then(res => {
             const punches = res.data || [];
-            setTodayStandbySet(new Set(punches.filter(r => r.purpose === 'Standby' && r.clockOut).map(r => r.employeeId?.toString())));
-            setTodayPunchedSet(new Set(punches.map(r => r.employeeId?.toString())));
+            setTodayStandbySet(new Set(punches.filter(r => r.purpose === 'Standby' && r.clockOut).map(r => r.employeeId?.toString()).filter(Boolean)));
+            setTodayPunchedSet(new Set(punches.map(r => r.employeeId?.toString()).filter(Boolean)));
+            setTodayPunchedNameSet(new Set(punches.map(r => r.employeeName?.trim().toLowerCase()).filter(Boolean)));
           }).catch(() => {});
         }}>🔄 Refresh</button>
         <button className="btn" style={{background:'#888',color:'#fff'}} onClick={() => setViewMode('traffic')}>❌ Close</button>
@@ -2112,6 +2116,7 @@ selected={
               .filter(([empId, sched]) => {
                 if (!sched.time) return false;
                 if (todayPunchedSet.has(empId)) return false;
+                if (todayPunchedNameSet.has(sched.name?.trim().toLowerCase())) return false;
                 if (punchedNames.has(sched.name?.trim().toLowerCase())) return false;
                 return nowMins2 - toMins(sched.time) <= 5;
               })
@@ -2120,6 +2125,7 @@ selected={
               .filter(([empId, sched]) => {
                 if (!sched.time) return false;
                 if (todayPunchedSet.has(empId)) return false;
+                if (todayPunchedNameSet.has(sched.name?.trim().toLowerCase())) return false;
                 if (punchedNames.has(sched.name?.trim().toLowerCase())) return false;
                 return nowMins2 - toMins(sched.time) > 5;
               })
