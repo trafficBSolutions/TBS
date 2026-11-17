@@ -138,15 +138,6 @@ const EmployeeDashboard = () => {
     if (!isClockedIn && selectedEmployee) {
       const sched = scheduleMap[selectedEmployee._id];
       if (sched) {
-        const now = new Date();
-        const nowMins = now.getHours() * 60 + now.getMinutes();
-        const scheduledMins = toMinutes(sched.clockInTime);
-        const windowOpen = scheduledMins - 15;
-        if (nowMins < windowOpen) {
-          const openH = Math.floor(windowOpen / 60), openM = windowOpen % 60;
-          setClockMsg(`⏳ Clock-in opens at ${String(openH).padStart(2,'0')}:${String(openM).padStart(2,'0')} (15 min before ${sched.clockInTime})`);
-          return;
-        }
         if (!clockPurpose) setClockPurpose(sched.purpose);
       }
     }
@@ -375,22 +366,19 @@ const EmployeeDashboard = () => {
                     const now = new Date();
                     const nowMins = now.getHours() * 60 + now.getMinutes();
                     const scheduledMins = sched ? toMinutes(sched.clockInTime) : null;
-                    const windowOpen = scheduledMins !== null ? scheduledMins - 15 : null;
-                    const isLocked = sched && !clockedInIds.includes(emp._id) && windowOpen !== null && nowMins < windowOpen;
                     const isLate = sched && !clockedInIds.includes(emp._id) && scheduledMins !== null && nowMins > scheduledMins + 5;
                     return (
                     <button
                       key={emp._id}
                       className={`kiosk-employee-card ${clockedInIds.includes(emp._id) ? 'clocked-in' : ''}`}
-                      onClick={() => { if (isLocked) return; setSelectedEmployee(emp); setPin(''); setClockPurpose(sched?.purpose || ''); setClockMsg(''); }}
-                      style={isLocked ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                      onClick={() => { setSelectedEmployee(emp); setPin(''); setClockPurpose(sched?.purpose || ''); setClockMsg(''); }}
                     >
                       <span className="kiosk-emp-name">{emp.displayName}</span>
                       <span className="kiosk-emp-position">{emp.position}</span>
                       {clockedInIds.includes(emp._id) && <span className="kiosk-status-badge">● Clocked In</span>}
                       {sched && !clockedInIds.includes(emp._id) && (
-                        <span style={{ fontSize: '0.75rem', color: isLocked ? '#888' : isLate ? '#f44336' : '#1565c0', fontWeight: 'bold', marginTop: '2px', display: 'block' }}>
-                          {isLocked ? `🔒 Opens ${String(Math.floor(windowOpen/60)).padStart(2,'0')}:${String(windowOpen%60).padStart(2,'0')}` : isLate ? '⚠️ LATE' : `⏰ ${sched.clockInTime}`}
+                        <span style={{ fontSize: '0.75rem', color: isLate ? '#f44336' : '#1565c0', fontWeight: 'bold', marginTop: '2px', display: 'block' }}>
+                          {isLate ? '⚠️ LATE' : `⏰ ${sched.clockInTime}`}
                         </span>
                       )}
                     </button>
