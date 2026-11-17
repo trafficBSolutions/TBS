@@ -2111,6 +2111,10 @@ selected={
         <>
           {(() => {
             const nowMins2 = new Date().getHours() * 60 + new Date().getMinutes();
+            console.log('[NoShow Debug] nowMins2:', nowMins2, 'schedMap size:', Object.keys(todayScheduleMap).length, 'punchedSet size:', todayPunchedSet.size, 'punchedNameSet size:', todayPunchedNameSet.size, 'clockedIn:', clockedInList.length);
+            console.log('[NoShow Debug] schedMap keys:', Object.keys(todayScheduleMap));
+            console.log('[NoShow Debug] punchedSet:', [...todayPunchedSet]);
+            console.log('[NoShow Debug] punchedNameSet:', [...todayPunchedNameSet]);
             const punchedNames = new Set(clockedInList.map(e => e.employeeName?.trim().toLowerCase()));
             const scheduledEntries = Object.entries(todayScheduleMap)
               .filter(([empId, sched]) => {
@@ -2118,7 +2122,7 @@ selected={
                 if (todayPunchedSet.has(empId)) return false;
                 if (todayPunchedNameSet.has(sched.name?.trim().toLowerCase())) return false;
                 if (punchedNames.has(sched.name?.trim().toLowerCase())) return false;
-                return nowMins2 - toMins(sched.time) <= 5;
+                return nowMins2 <= toMins(sched.time) + 5;
               })
               .map(([empId, sched]) => ({ empId, schedTime: sched.time, name: sched.name || 'Unknown Employee' }));
             const noShowEntries = Object.entries(todayScheduleMap)
@@ -2127,7 +2131,7 @@ selected={
                 if (todayPunchedSet.has(empId)) return false;
                 if (todayPunchedNameSet.has(sched.name?.trim().toLowerCase())) return false;
                 if (punchedNames.has(sched.name?.trim().toLowerCase())) return false;
-                return nowMins2 - toMins(sched.time) > 5;
+                return nowMins2 > toMins(sched.time) + 5;
               })
               .map(([empId, sched]) => ({ empId, schedTime: sched.time, name: sched.name || 'Unknown Employee' }));
             return (
