@@ -986,7 +986,7 @@ export default function HydrovacInvoicing() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 800 }}>
               <thead>
                 <tr style={{ background: `linear-gradient(135deg, ${ORANGE}, rgba(243,156,18,0.9))`, color: '#fff' }}>
-                  {['Date Sent','Inv #','Representative','Company','WO Date','Driver','Total','Status','Actions'].map(h => (
+                  {['Date Sent','Inv #','Representative','Company','WO Date','Driver','Total','Status','WO PDF(s)','Invoice PDF','Actions'].map(h => (
                     <th key={h} style={{ padding: '8px 8px', border: '1px solid #4a6fa5', whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>
@@ -1009,6 +1009,19 @@ export default function HydrovacInvoicing() {
                       ) : (
                         <span style={{ background: '#ffc107', color: '#000', padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 700 }}>Unpaid</span>
                       )}
+                    </td>
+                    <td style={{ padding: '7px 8px', border: '1px solid #ddd' }}>
+                      {(() => {
+                        const urls = inv.woPdfUrls?.filter(Boolean).length ? inv.woPdfUrls.filter(Boolean) : (inv.woPdfUrl ? [inv.woPdfUrl] : []);
+                        return urls.length ? urls.map((url, i) => (
+                          <a key={i} href={url} target="_blank" rel="noreferrer"
+                            style={{ display: 'block', fontSize: 11, color: '#1565c0', whiteSpace: 'nowrap' }}>📄 WO {urls.length > 1 ? i + 1 : ''}</a>
+                        )) : <span style={{ color: '#aaa', fontSize: 11 }}>—</span>;
+                      })()}
+                    </td>
+                    <td style={{ padding: '7px 8px', border: '1px solid #ddd', whiteSpace: 'nowrap' }}>
+                      <a href={`${import.meta.env.VITE_API_URL || ''}/api/hydrovac-invoicing/${inv._id}/pdf`} target="_blank" rel="noreferrer"
+                        style={{ fontSize: 11, color: '#1565c0' }}>📄 Invoice</a>
                     </td>
                     <td style={{ padding: '7px 8px', border: '1px solid #ddd', whiteSpace: 'nowrap' }}>
                       {inv.payStatus !== 'paid' && (
@@ -1033,10 +1046,6 @@ export default function HydrovacInvoicing() {
                           </button>
                         )
                       )}
-                      {inv.woPdfUrl && (
-                        <a href={inv.woPdfUrl} target="_blank" rel="noreferrer"
-                          style={{ marginLeft: 6, fontSize: 11, color: '#1565c0' }}>📄 WO</a>
-                      )}
                       <button onClick={() => setEditingInv(inv)}
                         style={{ marginLeft: 6, padding: '3px 8px', background: ORANGE_LIGHT, border: `1px solid ${ORANGE_BORDER}`, color: ORANGE, borderRadius: 4, cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>
                         ✏️ Edit
@@ -1045,7 +1054,7 @@ export default function HydrovacInvoicing() {
                   </tr>
                 ))}
                 {filtered.length === 0 && !loadingInv && (
-                  <tr><td colSpan={8} style={{ padding: 20, textAlign: 'center', color: '#888' }}>No invoices found.</td></tr>
+                  <tr><td colSpan={11} style={{ padding: 20, textAlign: 'center', color: '#888' }}>No invoices found.</td></tr>
                 )}
               </tbody>
             </table>
