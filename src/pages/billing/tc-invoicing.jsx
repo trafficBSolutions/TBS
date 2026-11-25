@@ -84,9 +84,7 @@ function InvoiceForm({ wos, onSent, onCancel }) {
   const [client, setClient] = useState(draft?.client || '');
   const [clientCompany, setClientCompany] = useState(draft?.clientCompany || wos[0]?.basic?.client || '');
   const [clientEmail, setClientEmail] = useState(draft?.clientEmail || '');
-  const [clientAddress, setClientAddress] = useState(draft?.clientAddress || wos[0]?.basic?.address || '');
-  const [clientCity, setClientCity] = useState(draft?.clientCity || wos[0]?.basic?.city || '');
-  const [clientZip, setClientZip] = useState(draft?.clientZip || wos[0]?.basic?.zip || '');
+
   const [description, setDescription] = useState(draft?.description || '');
   const [invoiceNumber, setInvoiceNumber] = useState(draft?.invoiceNumber || '');
   const [projectNumber, setProjectNumber] = useState(draft?.projectNumber || wos[0]?.basic?.project || '');
@@ -99,7 +97,7 @@ function InvoiceForm({ wos, onSent, onCancel }) {
   const [draftSaved, setDraftSaved] = useState(false);
 
   const saveDraft = () => {
-    localStorage.setItem(draftKey, JSON.stringify({ client, clientCompany, clientEmail, clientAddress, clientCity, clientZip, description, invoiceNumber, projectNumber, invoiceDate, notes, rows }));
+    localStorage.setItem(draftKey, JSON.stringify({ client, clientCompany, clientEmail, description, invoiceNumber, projectNumber, invoiceDate, notes, rows }));
     setDraftSaved(true);
     setTimeout(() => setDraftSaved(false), 2000);
   };
@@ -133,7 +131,7 @@ function InvoiceForm({ wos, onSent, onCancel }) {
       await api.post('/api/tc-invoicing/send', {
         workOrderIds: wos.map(w => w._id),
         wosData: wos,
-        client, clientEmail, clientCompany, clientAddress, clientCity, clientZip,
+        client, clientEmail, clientCompany,
         description, invoiceNumber, projectNumber, invoiceDate, notes, rows, total,
         images: images.map(img => ({ name: img.name, dataUrl: img.dataUrl })),
         extraPdfs: extraPdfs.map(p => ({ name: p.name, dataUrl: p.dataUrl })),
@@ -191,9 +189,6 @@ function InvoiceForm({ wos, onSent, onCancel }) {
           { label: 'Representative*', value: client, onChange: e => setClient(e.target.value), placeholder: 'Contact name' },
           { label: 'Company', value: clientCompany, onChange: e => setClientCompany(e.target.value), placeholder: 'Company name' },
           { label: 'Client Email*', value: clientEmail, onChange: e => setClientEmail(e.target.value), placeholder: 'client@example.com', type: 'email' },
-          { label: 'Billing Address', value: clientAddress, onChange: e => setClientAddress(e.target.value), placeholder: '123 Main St' },
-          { label: 'Billing City', value: clientCity, onChange: e => setClientCity(e.target.value), placeholder: 'City' },
-          { label: 'Billing Zip', value: clientZip, onChange: e => setClientZip(e.target.value), placeholder: '00000' },
         ].map(({ label, ...props }) => (
           <div key={label}>
             <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 3 }}>{label}</label>
@@ -330,9 +325,6 @@ function EditInvoiceModal({ inv, onClose, onSaved }) {
   const [client, setClient] = useState(inv.client || '');
   const [clientCompany, setClientCompany] = useState(inv.clientCompany || '');
   const [clientEmail, setClientEmail] = useState(inv.clientEmail || '');
-  const [clientAddress, setClientAddress] = useState(inv.clientAddress || '');
-  const [clientCity, setClientCity] = useState(inv.clientCity || '');
-  const [clientZip, setClientZip] = useState(inv.clientZip || '');
   const [description, setDescription] = useState(inv.description || '');
   const [invoiceNumber, setInvoiceNumber] = useState(inv.invoiceNumber || '');
   const [projectNumber, setProjectNumber] = useState(inv.projectNumber || '');
@@ -349,7 +341,7 @@ function EditInvoiceModal({ inv, onClose, onSaved }) {
     if (!client.trim() || !clientEmail.trim() || !invoiceNumber.trim()) return toast.error('Name, email, and invoice # required');
     setSaving(true);
     try {
-      await api.put(`/api/tc-invoicing/${inv._id}`, { client, clientEmail, clientCompany, clientAddress, clientCity, clientZip, description, invoiceNumber, projectNumber, invoiceDate, notes, rows, total });
+      await api.put(`/api/tc-invoicing/${inv._id}`, { client, clientEmail, clientCompany, description, invoiceNumber, projectNumber, invoiceDate, notes, rows, total });
       toast.success('Invoice updated!');
       onSaved();
     } catch (e) {
@@ -386,10 +378,7 @@ function EditInvoiceModal({ inv, onClose, onSaved }) {
             { label: 'Representative*', value: client, onChange: e => setClient(e.target.value) },
             { label: 'Company', value: clientCompany, onChange: e => setClientCompany(e.target.value) },
             { label: 'Client Email*', value: clientEmail, onChange: e => setClientEmail(e.target.value), type: 'email' },
-            { label: 'Job Site Address', value: clientAddress, onChange: e => setClientAddress(e.target.value) },
-            { label: 'Job Site City', value: clientCity, onChange: e => setClientCity(e.target.value) },
-            { label: 'Job Site Zip', value: clientZip, onChange: e => setClientZip(e.target.value) },
-          ].map(({ label, ...props }) => (
+                ].map(({ label, ...props }) => (
             <div key={label}>
               <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 3 }}>{label}</label>
               <input {...props} style={inputStyle} />
@@ -572,9 +561,6 @@ function PaperInvoiceForm({ onSent, onCancel }) {
   const [client, setClient] = useState(draft?.client || '');
   const [clientCompany, setClientCompany] = useState(draft?.clientCompany || '');
   const [clientEmail, setClientEmail] = useState(draft?.clientEmail || '');
-  const [clientAddress, setClientAddress] = useState(draft?.clientAddress || '');
-  const [clientCity, setClientCity] = useState(draft?.clientCity || '');
-  const [clientZip, setClientZip] = useState(draft?.clientZip || '');
   const [description, setDescription] = useState(draft?.description || '');
   const [invoiceNumber, setInvoiceNumber] = useState(draft?.invoiceNumber || '');
   const [projectNumber, setProjectNumber] = useState(draft?.projectNumber || '');
@@ -589,7 +575,7 @@ function PaperInvoiceForm({ onSent, onCancel }) {
   const total = useMemo(() => rows.reduce((s, r) => s + (Number(r.amount) || 0), 0), [rows]);
 
   const saveDraft = () => {
-    localStorage.setItem(draftKey, JSON.stringify({ jobDate, jobClient, jobProject, jobCoordinator, jobForeman, jobStartTime, jobEndTime, jobFlaggers, client, clientCompany, clientEmail, clientAddress, clientCity, clientZip, description, invoiceNumber, projectNumber, invoiceDate, notes, rows }));
+    localStorage.setItem(draftKey, JSON.stringify({ jobDate, jobClient, jobProject, jobCoordinator, jobForeman, jobStartTime, jobEndTime, jobFlaggers, client, clientCompany, clientEmail, description, invoiceNumber, projectNumber, invoiceDate, notes, rows }));
     setDraftSaved(true);
     setTimeout(() => setDraftSaved(false), 2000);
   };
@@ -629,7 +615,7 @@ function PaperInvoiceForm({ onSent, onCancel }) {
         workOrderIds: [],
         wosData: [syntheticWo],
         isPaperWorkOrder: true,
-        client, clientEmail, clientCompany, clientAddress, clientCity, clientZip,
+        client, clientEmail, clientCompany,
         description, invoiceNumber, projectNumber, invoiceDate, notes, rows, total,
         images: images.map(img => ({ name: img.name, dataUrl: img.dataUrl })),
         extraPdfs: extraPdfs.map(p => ({ name: p.name, dataUrl: p.dataUrl })),
@@ -689,9 +675,6 @@ function PaperInvoiceForm({ onSent, onCancel }) {
           { label: 'Representative*', value: client, onChange: e => setClient(e.target.value), placeholder: 'Contact name' },
           { label: 'Company', value: clientCompany, onChange: e => setClientCompany(e.target.value), placeholder: 'Company name' },
           { label: 'Client Email*', value: clientEmail, onChange: e => setClientEmail(e.target.value), placeholder: 'client@example.com', type: 'email' },
-          { label: 'Billing Address', value: clientAddress, onChange: e => setClientAddress(e.target.value), placeholder: '123 Main St' },
-          { label: 'Billing City', value: clientCity, onChange: e => setClientCity(e.target.value), placeholder: 'City' },
-          { label: 'Billing Zip', value: clientZip, onChange: e => setClientZip(e.target.value), placeholder: '00000' },
         ].map(({ label, ...props }) => (
           <div key={label}>
             <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 3 }}>{label}</label>
@@ -1167,3 +1150,6 @@ export default function TcInvoicing() {
     </div>
   );
 }
+
+
+
