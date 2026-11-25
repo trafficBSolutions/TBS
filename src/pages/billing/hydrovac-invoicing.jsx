@@ -38,6 +38,39 @@ const ORANGE_LIGHT = 'rgba(236,77,7,0.12)';
 const ORANGE_MED = 'rgba(236,77,7,0.28)';
 const ORANGE_BORDER = 'rgba(236,77,7,0.45)';
 
+const HV_QUICK_ADD = [
+  { key: 'mileage',     label: 'Mileage',                      description: 'Mileage',                      rate: '0.92' },
+  { key: 'arrowBoard',  label: 'Arrow Board',                  description: 'Arrow Board',                  rate: '' },
+  { key: 'msgBoard',    label: 'Message Board',                description: 'Message Board',                rate: '' },
+  { key: 'tcControl',   label: 'Traffic Control',              description: 'Traffic Control',              rate: '' },
+  { key: 'addEquip',    label: 'Additional Equipment',         description: 'Additional Equipment',         rate: '' },
+  { key: 'pipeTrailer', label: 'Pipe Trailer & Pickup Truck',  description: 'Pipe Trailer & Pickup Truck',  rate: '' },
+  { key: 'emergLights', label: 'Emergency Lights',             description: 'Emergency Lights',             rate: '' },
+  { key: 'police',      label: 'Police Officer',               description: 'Police Officer',               rate: '' },
+  { key: 'locateFee',   label: 'Locate Fee',                   description: 'Locate Fee',                   rate: '' },
+];
+
+function QuickAddPanel({ rows, setRows, items, accentColor, accentLight, accentBorder }) {
+  return (
+    <div style={{ marginBottom: 12, background: accentLight, border: `1px solid ${accentBorder}`, borderRadius: 8, padding: '10px 14px' }}>
+      <div style={{ fontSize: 12, fontWeight: 800, color: accentColor, marginBottom: 8 }}>⚡ Quick Add Line Items</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 18px' }}>
+        {items.map(({ key, label, description, rate }) => {
+          const already = rows.some(r => r.description === description);
+          return (
+            <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, cursor: already ? 'default' : 'pointer', color: already ? '#aaa' : '#1a1a1a', userSelect: 'none' }}>
+              <input type="checkbox" checked={already} disabled={already}
+                onChange={() => { if (!already) setRows(p => [...p, { id: Date.now() + Math.random(), description, hours: '', rate, amount: 0 }]); }}
+                style={{ accentColor, cursor: already ? 'default' : 'pointer' }} />
+              {label}{rate !== '' ? <span style={{ color: '#888', fontSize: 11 }}> (${rate}/mi)</span> : ''}
+            </label>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function InvoiceForm({ wos, onSent, onCancel }) {
   const draftKey = `hv-draft-${wos.map(w => w._id).join('-')}`;
 
@@ -242,6 +275,8 @@ function InvoiceForm({ wos, onSent, onCancel }) {
         <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} placeholder="Brief description of work performed…"
           style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid #ced4da', fontSize: 13, boxSizing: 'border-box' }} />
       </div>
+
+      <QuickAddPanel rows={rows} setRows={setRows} items={HV_QUICK_ADD} accentColor={ORANGE} accentLight={ORANGE_LIGHT} accentBorder={ORANGE_BORDER} />
 
       {/* Line Items */}
       <div style={{ marginBottom: 12 }}>
