@@ -43,6 +43,38 @@ const DEFAULT_ROWS = [
   { id: 4, description: 'Truck(s)', hours: '', rate: '', amount: 0 },
 ];
 
+const TC_QUICK_ADD = [
+  { key: 'mileage',       label: 'Mileage',                   description: 'Mileage',                   rate: '0.82' },
+  { key: 'addFlagger',    label: 'Additional Flagger',        description: 'Additional Flagger',        rate: '' },
+  { key: 'arrowBoard',    label: 'Arrow Board',               description: 'Arrow Board',               rate: '' },
+  { key: 'msgBoard',      label: 'Message Board',             description: 'Message Board',             rate: '' },
+  { key: 'addEquip',      label: 'Additional Equipment',      description: 'Additional Equipment',      rate: '' },
+  { key: 'equipLeftOver', label: 'Equipment Left Over Hours', description: 'Equipment Left Over Hours', rate: '' },
+  { key: 'police',        label: 'Police Officers',           description: 'Police Officers',           rate: '' },
+  { key: 'emergLights',   label: 'Emergency Lights',          description: 'Emergency Lights',          rate: '' },
+];
+
+function QuickAddPanel({ rows, setRows, items, accentColor, accentLight, accentBorder }) {
+  return (
+    <div style={{ marginBottom: 12, background: accentLight, border: `1px solid ${accentBorder}`, borderRadius: 8, padding: '10px 14px' }}>
+      <div style={{ fontSize: 12, fontWeight: 800, color: accentColor, marginBottom: 8 }}>⚡ Quick Add Line Items</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 18px' }}>
+        {items.map(({ key, label, description, rate }) => {
+          const already = rows.some(r => r.description === description);
+          return (
+            <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, cursor: already ? 'default' : 'pointer', color: already ? '#aaa' : '#1a1a1a', userSelect: 'none' }}>
+              <input type="checkbox" checked={already} disabled={already}
+                onChange={() => { if (!already) setRows(p => [...p, { id: Date.now() + Math.random(), description, hours: '', rate, amount: 0 }]); }}
+                style={{ accentColor, cursor: already ? 'default' : 'pointer' }} />
+              {label}{rate !== '' ? <span style={{ color: '#888', fontSize: 11 }}> (${rate}/mi)</span> : ''}
+            </label>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function InvoiceForm({ wos, onSent, onCancel }) {
   const draftKey = `tc-draft-${wos.map(w => w._id).join('-')}`;
   const loadDraft = () => { try { return JSON.parse(localStorage.getItem(draftKey) || 'null'); } catch { return null; } };
@@ -174,6 +206,8 @@ function InvoiceForm({ wos, onSent, onCancel }) {
         <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2}
           placeholder="Brief description of work performed…" style={{ ...inputStyle, resize: 'vertical' }} />
       </div>
+
+      <QuickAddPanel rows={rows} setRows={setRows} items={TC_QUICK_ADD} accentColor={BLUE} accentLight={BLUE_LIGHT} accentBorder={BLUE_BORDER} />
 
       {/* Line Items */}
       <div style={{ marginBottom: 12 }}>
@@ -671,6 +705,8 @@ function PaperInvoiceForm({ onSent, onCancel }) {
           placeholder="Brief description of work performed…" style={{ ...inputStyle, resize: 'vertical' }} />
       </div>
 
+      <QuickAddPanel rows={rows} setRows={setRows} items={TC_QUICK_ADD} accentColor={BLUE} accentLight={BLUE_LIGHT} accentBorder={BLUE_BORDER} />
+
       {/* Line Items */}
       <div style={{ marginBottom: 12 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
@@ -1108,6 +1144,12 @@ export default function TcInvoicing() {
                         style={{ marginLeft: 6, padding: '3px 8px', background: BLUE_LIGHT, border: `1px solid ${BLUE_BORDER}`, color: BLUE, borderRadius: 4, cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>
                         ✏️ Edit
                       </button>
+                      {inv.invoicePdfUrl && (
+                        <a href={inv.invoicePdfUrl} target="_blank" rel="noreferrer"
+                          style={{ marginLeft: 6, padding: '3px 8px', background: '#eafaf1', border: '1px solid #a9dfbf', color: '#27ae60', borderRadius: 4, fontSize: 11, fontWeight: 700, textDecoration: 'none', display: 'inline-block' }}>
+                          📄 View PDF
+                        </a>
+                      )}
                     </td>
                   </tr>
                 ))}
