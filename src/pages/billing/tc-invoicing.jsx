@@ -521,6 +521,272 @@ function Calendar({ year, month, wosByDate, invoicesByWoId, onDayClick, selected
   );
 }
 
+function PaperInvoiceForm({ onSent, onCancel }) {
+  const draftKey = 'tc-paper-draft';
+  const loadDraft = () => { try { return JSON.parse(localStorage.getItem(draftKey) || 'null'); } catch { return null; } };
+  const draft = loadDraft();
+
+  const [jobDate, setJobDate] = useState(draft?.jobDate || new Date().toISOString().slice(0, 10));
+  const [jobClient, setJobClient] = useState(draft?.jobClient || '');
+  const [jobProject, setJobProject] = useState(draft?.jobProject || '');
+  const [jobCoordinator, setJobCoordinator] = useState(draft?.jobCoordinator || '');
+  const [jobForeman, setJobForeman] = useState(draft?.jobForeman || '');
+  const [jobStartTime, setJobStartTime] = useState(draft?.jobStartTime || '');
+  const [jobEndTime, setJobEndTime] = useState(draft?.jobEndTime || '');
+  const [jobFlaggers, setJobFlaggers] = useState(draft?.jobFlaggers || '');
+  const [client, setClient] = useState(draft?.client || '');
+  const [clientCompany, setClientCompany] = useState(draft?.clientCompany || '');
+  const [clientEmail, setClientEmail] = useState(draft?.clientEmail || '');
+  const [clientAddress, setClientAddress] = useState(draft?.clientAddress || '');
+  const [clientCity, setClientCity] = useState(draft?.clientCity || '');
+  const [clientZip, setClientZip] = useState(draft?.clientZip || '');
+  const [description, setDescription] = useState(draft?.description || '');
+  const [invoiceNumber, setInvoiceNumber] = useState(draft?.invoiceNumber || '');
+  const [projectNumber, setProjectNumber] = useState(draft?.projectNumber || '');
+  const [invoiceDate, setInvoiceDate] = useState(draft?.invoiceDate || new Date().toISOString().slice(0, 10));
+  const [notes, setNotes] = useState(draft?.notes || '');
+  const [rows, setRows] = useState(draft?.rows || DEFAULT_ROWS);
+  const [images, setImages] = useState([]);
+  const [extraPdfs, setExtraPdfs] = useState([]);
+  const [sending, setSending] = useState(false);
+  const [draftSaved, setDraftSaved] = useState(false);
+
+  const total = useMemo(() => rows.reduce((s, r) => s + (Number(r.amount) || 0), 0), [rows]);
+
+  const saveDraft = () => {
+    localStorage.setItem(draftKey, JSON.stringify({ jobDate, jobClient, jobProject, jobCoordinator, jobForeman, jobStartTime, jobEndTime, jobFlaggers, client, clientCompany, clientEmail, clientAddress, clientCity, clientZip, description, invoiceNumber, projectNumber, invoiceDate, notes, rows }));
+    setDraftSaved(true);
+    setTimeout(() => setDraftSaved(false), 2000);
+  };
+  const clearDraft = () => localStorage.removeItem(draftKey);
+
+  const handleImageAdd = (e) => {
+    Array.from(e.target.files).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (ev) => setImages(prev => [...prev, { name: file.name, dataUrl: ev.target.result }]);
+      reader.readAsDataURL(file);
+    });
+    e.target.value = '';
+  };
+
+  const handlePdfAdd = (e) => {
+    Array.from(e.target.files).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (ev) => setExtraPdfs(prev => [...prev, { name: file.name, dataUrl: ev.target.result }]);
+      reader.readAsDataURL(file);
+    });
+    e.target.value = '';
+  };
+
+  const handleSend = async () => {
+    if (!client.trim()) return toast.error('Representative name is required');
+    if (!clientEmail.trim()) return toast.error('Client email is required');
+    if (!invoiceNumber.trim()) return toast.error('Invoice number is required');
+    if (!jobDate) return toast.error('Job date is required');
+    setSending(true);
+    const syntheticWo = {
+      _id: `paper-${Date.now()}`,
+      basic: { dateOfJob: jobDate, client: jobClient, project: jobProject, coordinator: jobCoordinator, foremanName: jobForeman, startTime: jobStartTime, endTime: jobEndTime },
+      tbs: { flagger1: jobFlaggers },
+    };
+    try {
+      await api.post('/api/tc-invoicing/send', {
+        workOrderIds: [],
+        wosData: [syntheticWo],
+        isPaperWorkOrder: true,
+        client, clientEmail, clientCompany, clientAddress, clientCity, clientZip,
+        description, invoiceNumber, projectNumber, invoiceDate, notes, rows, total,
+        images: images.map(img => ({ name: img.name, dataUrl: img.dataUrl })),
+        extraPdfs: extraPdfs.map(p => ({ name: p.name, dataUrl: p.dataUrl })),
+      });
+      toast.success(`Invoice sent to ${clientEmail}!`);
+      clearDraft();
+      onSent();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to send invoice');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const inputStyle = { width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid #ced4da', fontSize: 13, boxSizing: 'border-box' };
+
+  return (
+    <div style={{ padding: 20, border: `2px solid #e67e22`, borderRadius: 10, background: '#fff', boxShadow: '0 4px 16px rgba(230,126,34,0.1)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+        <h3 style={{ margin: 0, fontSize: 15 }}>📋 Paper Work Order Invoice</h3>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {draft && <span style={{ fontSize: 11, color: '#888' }}>Draft loaded</span>}
+          <button onClick={saveDraft} style={{ fontSize: 11, padding: '4px 12px', background: BLUE_LIGHT, border: `1px solid ${BLUE_BORDER}`, color: BLUE, borderRadius: 6, cursor: 'pointer', fontWeight: 700 }}>
+            {draftSaved ? '✓ Saved!' : '💾 Save Draft'}
+          </button>
+          <button onClick={onCancel} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: '#888' }}>✕</button>
+        </div>
+      </div>
+
+      {/* Paper WO Job Details */}
+      <div style={{ background: 'rgba(230,126,34,0.07)', border: '1px solid rgba(230,126,34,0.3)', borderRadius: 8, padding: 14, marginBottom: 14 }}>
+        <div style={{ fontSize: 12, fontWeight: 800, color: '#e67e22', marginBottom: 10 }}>📄 Job Details (from paper work order)</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          {[
+            { label: 'Date of Job*', value: jobDate, onChange: e => setJobDate(e.target.value), type: 'date' },
+            { label: 'Client / Company', value: jobClient, onChange: e => setJobClient(e.target.value), placeholder: 'Client name' },
+            { label: 'Project / Task #', value: jobProject, onChange: e => setJobProject(e.target.value), placeholder: 'Project number' },
+            { label: 'Coordinator', value: jobCoordinator, onChange: e => setJobCoordinator(e.target.value), placeholder: 'Coordinator name' },
+            { label: 'Foreman', value: jobForeman, onChange: e => setJobForeman(e.target.value), placeholder: 'Foreman name' },
+            { label: 'Start Time', value: jobStartTime, onChange: e => setJobStartTime(e.target.value), type: 'time' },
+            { label: 'End Time', value: jobEndTime, onChange: e => setJobEndTime(e.target.value), type: 'time' },
+            { label: 'Flaggers', value: jobFlaggers, onChange: e => setJobFlaggers(e.target.value), placeholder: 'e.g. John, Jane' },
+          ].map(({ label, ...props }) => (
+            <div key={label}>
+              <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 3 }}>{label}</label>
+              <input {...props} style={inputStyle} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Invoice Fields */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+        {[
+          { label: 'TBS Invoice #*', value: invoiceNumber, onChange: e => setInvoiceNumber(e.target.value.toUpperCase()), placeholder: 'e.g. 2026TC001' },
+          { label: 'Invoice Date', value: invoiceDate, onChange: e => setInvoiceDate(e.target.value), type: 'date' },
+          { label: 'Representative*', value: client, onChange: e => setClient(e.target.value), placeholder: 'Contact name' },
+          { label: 'Company', value: clientCompany, onChange: e => setClientCompany(e.target.value), placeholder: 'Company name' },
+          { label: 'Client Email*', value: clientEmail, onChange: e => setClientEmail(e.target.value), placeholder: 'client@example.com', type: 'email' },
+          { label: 'Job Site Address', value: clientAddress, onChange: e => setClientAddress(e.target.value), placeholder: '123 Main St' },
+          { label: 'Job Site City', value: clientCity, onChange: e => setClientCity(e.target.value), placeholder: 'City' },
+          { label: 'Job Site Zip', value: clientZip, onChange: e => setClientZip(e.target.value), placeholder: '00000' },
+        ].map(({ label, ...props }) => (
+          <div key={label}>
+            <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 3 }}>{label}</label>
+            <input {...props} style={inputStyle} />
+          </div>
+        ))}
+      </div>
+
+      <div style={{ marginBottom: 12 }}>
+        <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 3 }}>Description</label>
+        <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2}
+          placeholder="Brief description of work performed…" style={{ ...inputStyle, resize: 'vertical' }} />
+      </div>
+
+      {/* Line Items */}
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+          <label style={{ fontSize: 12, fontWeight: 700 }}>Line Items</label>
+          <button type="button" className="btn" style={{ fontSize: 11, padding: '3px 10px' }}
+            onClick={() => setRows(r => [...r, { id: Date.now(), description: '', hours: '', rate: '', amount: 0 }])}>+ Add Line</button>
+        </div>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <thead>
+            <tr style={{ background: `linear-gradient(135deg, ${BLUE}, #2a5298)`, color: '#fff' }}>
+              <th style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.2)', textAlign: 'left' }}>Description</th>
+              <th style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.2)', width: 80, textAlign: 'right' }}>Quantity</th>
+              <th style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.2)', width: 100, textAlign: 'right' }}>Per Unit</th>
+              <th style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.2)', width: 110, textAlign: 'right' }}>Amount</th>
+              <th style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.2)', width: 36 }}></th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(r => (
+              <tr key={r.id}>
+                <td style={{ padding: 4, border: '1px solid #ddd' }}>
+                  <input value={r.description} onChange={e => setRows(p => p.map(x => x.id === r.id ? { ...x, description: e.target.value } : x))}
+                    style={{ width: '100%', padding: '4px 6px', border: '1px solid #ccc', borderRadius: 3 }} />
+                </td>
+                <td style={{ padding: 4, border: '1px solid #ddd' }}>
+                  <input type="number" step="0.25" min="0" value={r.hours} placeholder="—"
+                    onChange={e => { const hours = e.target.value; setRows(p => p.map(x => { if (x.id !== r.id) return x; const amt = hours !== '' && x.rate !== '' ? Number(hours) * Number(x.rate) : x.amount; return { ...x, hours, amount: amt }; })); }}
+                    style={{ width: '100%', padding: '4px 6px', border: '1px solid #ccc', borderRadius: 3, textAlign: 'right' }} />
+                </td>
+                <td style={{ padding: 4, border: '1px solid #ddd' }}>
+                  <input type="number" step="0.01" min="0" value={r.rate} placeholder="—"
+                    onChange={e => { const rate = e.target.value; setRows(p => p.map(x => { if (x.id !== r.id) return x; const amt = rate !== '' && x.hours !== '' ? Number(x.hours) * Number(rate) : x.amount; return { ...x, rate, amount: amt }; })); }}
+                    style={{ width: '100%', padding: '4px 6px', border: '1px solid #ccc', borderRadius: 3, textAlign: 'right' }} />
+                </td>
+                <td style={{ padding: 4, border: '1px solid #ddd' }}>
+                  <input type="number" step="0.01" min="0" value={r.amount}
+                    onChange={e => setRows(p => p.map(x => x.id === r.id ? { ...x, amount: Number(e.target.value), hours: '', rate: '' } : x))}
+                    style={{ width: '100%', padding: '4px 6px', border: '1px solid #ccc', borderRadius: 3, textAlign: 'right' }} />
+                </td>
+                <td style={{ padding: 4, border: '1px solid #ddd', textAlign: 'center' }}>
+                  <button type="button" onClick={() => setRows(p => p.filter(x => x.id !== r.id))}
+                    style={{ background: 'none', border: 'none', color: '#dc3545', cursor: 'pointer', fontWeight: 700 }}>✕</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr style={{ background: '#f0f0f0', fontWeight: 700 }}>
+              <td style={{ padding: '6px 8px', border: '1px solid #ddd', textAlign: 'right' }} colSpan={3}>TOTAL</td>
+              <td style={{ padding: '6px 8px', border: '1px solid #ddd', textAlign: 'right' }}>${total.toFixed(2)}</td>
+              <td style={{ border: '1px solid #ddd' }}></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      {/* Extra PDFs */}
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+          <label style={{ fontSize: 12, fontWeight: 700 }}>📎 Attach PDFs (optional)</label>
+          <label style={{ fontSize: 11, padding: '3px 10px', background: BLUE_LIGHT, border: `1px solid ${BLUE_BORDER}`, color: BLUE, borderRadius: 6, cursor: 'pointer', fontWeight: 700 }}>
+            + Add PDFs
+            <input type="file" accept="application/pdf" multiple onChange={handlePdfAdd} style={{ display: 'none' }} />
+          </label>
+        </div>
+        {extraPdfs.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {extraPdfs.map((pdf, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f5f5f5', border: '1px solid #ddd', borderRadius: 6, padding: '6px 10px' }}>
+                <span style={{ fontSize: 13 }}>📄</span>
+                <span style={{ fontSize: 12, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pdf.name}</span>
+                <button onClick={() => setExtraPdfs(prev => prev.filter((_, j) => j !== i))}
+                  style={{ background: 'none', border: 'none', color: '#dc3545', cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>✕</button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Images */}
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+          <label style={{ fontSize: 12, fontWeight: 700 }}>📷 Attach Images / Scanned WO (optional)</label>
+          <label style={{ fontSize: 11, padding: '3px 10px', background: BLUE_LIGHT, border: `1px solid ${BLUE_BORDER}`, color: BLUE, borderRadius: 6, cursor: 'pointer', fontWeight: 700 }}>
+            + Add Images
+            <input type="file" accept="image/*" multiple onChange={handleImageAdd} style={{ display: 'none' }} />
+          </label>
+        </div>
+        {images.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {images.map((img, i) => (
+              <div key={i} style={{ position: 'relative', border: `1px solid ${BLUE_BORDER}`, borderRadius: 6, overflow: 'hidden', width: 90, height: 90, flexShrink: 0 }}>
+                <img src={img.dataUrl} alt={img.name} style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }} />
+                <button onClick={e => { e.stopPropagation(); setImages(prev => prev.filter((_, j) => j !== i)); }}
+                  style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(0,0,0,0.55)', border: 'none', borderRadius: '50%', width: 18, height: 18, color: '#fff', cursor: 'pointer', fontSize: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>✕</button>
+                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.45)', color: '#fff', fontSize: 9, padding: '2px 4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{img.name}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div style={{ marginBottom: 14 }}>
+        <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Notes</label>
+        <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2}
+          style={{ ...inputStyle, resize: 'vertical' }} />
+      </div>
+
+      <button onClick={handleSend} disabled={sending}
+        style={{ fontSize: 13, padding: '8px 20px', background: `linear-gradient(135deg, #e67e22, #d35400)`, color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, cursor: sending ? 'not-allowed' : 'pointer', opacity: sending ? 0.7 : 1 }}>
+        {sending ? 'Sending…' : '📧 Send Paper WO Invoice'}
+      </button>
+    </div>
+  );
+}
+
 export default function TcInvoicing() {
   const navigate = useNavigate();
   const now = new Date();
@@ -536,6 +802,7 @@ export default function TcInvoicing() {
   const [payMethod, setPayMethod] = useState('check');
   const [invFilter, setInvFilter] = useState({ search: '', status: '' });
   const [editingInv, setEditingInv] = useState(null);
+  const [showPaperForm, setShowPaperForm] = useState(false);
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('adminUser') || '{}');
@@ -641,10 +908,16 @@ export default function TcInvoicing() {
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <h1 style={{ margin: 0, fontSize: '2.2rem', color: '#1a1a1a' }}>🚦 Traffic Control Invoicing</h1>
-          <button className="btn" onClick={() => navigate('/admin-dashboard')}
-            style={{ fontSize: 13, background: BLUE_LIGHT, border: `1px solid ${BLUE_BORDER}`, color: BLUE, borderRadius: 8, padding: '7px 16px', fontWeight: 700, cursor: 'pointer' }}>
-            ← Dashboard
-          </button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={() => { setShowPaperForm(v => !v); setSelectedDates(new Set()); setSelectedWos([]); }}
+              style={{ fontSize: 13, background: showPaperForm ? '#e67e22' : 'rgba(230,126,34,0.1)', border: '1px solid rgba(230,126,34,0.4)', color: showPaperForm ? '#fff' : '#e67e22', borderRadius: 8, padding: '7px 16px', fontWeight: 700, cursor: 'pointer' }}>
+              📋 {showPaperForm ? 'Cancel Paper WO' : 'Paper Work Order Invoice'}
+            </button>
+            <button className="btn" onClick={() => navigate('/admin-dashboard')}
+              style={{ fontSize: 13, background: BLUE_LIGHT, border: `1px solid ${BLUE_BORDER}`, color: BLUE, borderRadius: 8, padding: '7px 16px', fontWeight: 700, cursor: 'pointer' }}>
+              ← Dashboard
+            </button>
+          </div>
         </div>
 
         {/* Stats */}
@@ -662,6 +935,13 @@ export default function TcInvoicing() {
             </div>
           ))}
         </div>
+
+        {/* Paper WO Form */}
+        {showPaperForm && (
+          <div style={{ marginBottom: 24 }}>
+            <PaperInvoiceForm onCancel={() => setShowPaperForm(false)} onSent={() => { setShowPaperForm(false); fetchInvoices(); }} />
+          </div>
+        )}
 
         {/* Calendar */}
         <div style={{ background: '#fff', borderRadius: 12, border: `1px solid ${BLUE_BORDER}`, boxShadow: '0 4px 16px rgba(23,54,93,0.08)', padding: '20px 20px 16px', marginBottom: 20 }}>
