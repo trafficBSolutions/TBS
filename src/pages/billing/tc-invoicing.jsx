@@ -36,6 +36,21 @@ const BLUE_LIGHT = 'rgba(23,54,93,0.08)';
 const BLUE_MED = 'rgba(23,54,93,0.2)';
 const BLUE_BORDER = 'rgba(23,54,93,0.35)';
 
+const CLIENTS = [
+  { company: 'GDOT',                  address: '600 West Peachtree St NW', city: 'Atlanta',      zip: '30308', email: '' },
+  { company: 'Calhoun City',          address: '100 City Hall Dr',          city: 'Calhoun',     zip: '30701', email: '' },
+  { company: 'Gordon County',         address: '101 S Piedmont St',         city: 'Calhoun',     zip: '30701', email: '' },
+  { company: 'Bartow County',         address: '135 W Cherokee Ave',        city: 'Cartersville', zip: '30120', email: '' },
+  { company: 'Floyd County',          address: '12 E 4th Ave',              city: 'Rome',        zip: '30161', email: '' },
+  { company: 'Whitfield County',      address: '201 S Hamilton St',         city: 'Dalton',      zip: '30720', email: '' },
+  { company: 'Murray County',         address: '121 N 4th Ave',             city: 'Chatsworth',  zip: '30705', email: '' },
+  { company: 'Pickens County',        address: '1266 E Church St',          city: 'Jasper',      zip: '30143', email: '' },
+  { company: 'Cherokee County',       address: '1130 Bluffs Pkwy',          city: 'Canton',      zip: '30114', email: '' },
+  { company: 'Gilmer County',         address: '1 Broad St',                city: 'Ellijay',     zip: '30540', email: '' },
+  { company: 'Dawson County',         address: '25 Justice Way',            city: 'Dawsonville', zip: '30534', email: '' },
+  { company: 'Forsyth County',        address: '110 E Main St',             city: 'Cumming',     zip: '30040', email: '' },
+];
+
 const DEFAULT_ROWS = [
   { id: 1, description: 'Traffic Control Services', hours: '', rate: '', amount: 0 },
   { id: 2, description: 'Flaggers', hours: '', rate: '', amount: 0 },
@@ -156,11 +171,37 @@ function InvoiceForm({ wos, onSent, onCancel }) {
           { label: 'Project / Task #', value: projectNumber, onChange: e => setProjectNumber(e.target.value.toUpperCase()), placeholder: 'e.g. PROJ-001' },
           { label: 'Invoice Date', value: invoiceDate, onChange: e => setInvoiceDate(e.target.value), type: 'date' },
           { label: 'Representative*', value: client, onChange: e => setClient(e.target.value), placeholder: 'Contact name' },
-          { label: 'Company', value: clientCompany, onChange: e => setClientCompany(e.target.value), placeholder: 'Company name' },
+        ].map(({ label, ...props }) => (
+          <div key={label}>
+            <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 3 }}>{label}</label>
+            <input {...props} style={inputStyle} />
+          </div>
+        ))}
+        <div>
+          <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 3 }}>Company</label>
+          <select value={clientCompany} onChange={e => {
+            const picked = CLIENTS.find(c => c.company === e.target.value);
+            setClientCompany(e.target.value);
+            if (picked) {
+              setClientAddress(picked.address);
+              setClientCity(picked.city);
+              setClientZip(picked.zip);
+              if (picked.email) setClientEmail(picked.email);
+            }
+          }} style={{ ...inputStyle, background: '#fff' }}>
+            <option value="">— Select or type below —</option>
+            {CLIENTS.map(c => <option key={c.company} value={c.company}>{c.company}</option>)}
+          </select>
+        </div>
+        <div>
+          <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 3 }}>Company (custom)</label>
+          <input value={clientCompany} onChange={e => setClientCompany(e.target.value)} placeholder="Or type company name" style={inputStyle} />
+        </div>
+        {[
           { label: 'Client Email*', value: clientEmail, onChange: e => setClientEmail(e.target.value), placeholder: 'client@example.com', type: 'email' },
-          { label: 'Job Site Address', value: clientAddress, onChange: e => setClientAddress(e.target.value), placeholder: '123 Main St' },
-          { label: 'Job Site City', value: clientCity, onChange: e => setClientCity(e.target.value), placeholder: 'City' },
-          { label: 'Job Site Zip', value: clientZip, onChange: e => setClientZip(e.target.value), placeholder: '00000' },
+          { label: 'Billing Address', value: clientAddress, onChange: e => setClientAddress(e.target.value), placeholder: '123 Main St' },
+          { label: 'City', value: clientCity, onChange: e => setClientCity(e.target.value), placeholder: 'City' },
+          { label: 'Zip', value: clientZip, onChange: e => setClientZip(e.target.value), placeholder: '00000' },
         ].map(({ label, ...props }) => (
           <div key={label}>
             <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 3 }}>{label}</label>
@@ -652,11 +693,37 @@ function PaperInvoiceForm({ onSent, onCancel }) {
           { label: 'TBS Invoice #*', value: invoiceNumber, onChange: e => setInvoiceNumber(e.target.value.toUpperCase()), placeholder: 'e.g. 2026TC001' },
           { label: 'Invoice Date', value: invoiceDate, onChange: e => setInvoiceDate(e.target.value), type: 'date' },
           { label: 'Representative*', value: client, onChange: e => setClient(e.target.value), placeholder: 'Contact name' },
-          { label: 'Company', value: clientCompany, onChange: e => setClientCompany(e.target.value), placeholder: 'Company name' },
+        ].map(({ label, ...props }) => (
+          <div key={label}>
+            <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 3 }}>{label}</label>
+            <input {...props} style={inputStyle} />
+          </div>
+        ))}
+        <div>
+          <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 3 }}>Company</label>
+          <select value={clientCompany} onChange={e => {
+            const picked = CLIENTS.find(c => c.company === e.target.value);
+            setClientCompany(e.target.value);
+            if (picked) {
+              setClientAddress(picked.address);
+              setClientCity(picked.city);
+              setClientZip(picked.zip);
+              if (picked.email) setClientEmail(picked.email);
+            }
+          }} style={{ ...inputStyle, background: '#fff' }}>
+            <option value="">— Select or type below —</option>
+            {CLIENTS.map(c => <option key={c.company} value={c.company}>{c.company}</option>)}
+          </select>
+        </div>
+        <div>
+          <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 3 }}>Company (custom)</label>
+          <input value={clientCompany} onChange={e => setClientCompany(e.target.value)} placeholder="Or type company name" style={inputStyle} />
+        </div>
+        {[
           { label: 'Client Email*', value: clientEmail, onChange: e => setClientEmail(e.target.value), placeholder: 'client@example.com', type: 'email' },
-          { label: 'Job Site Address', value: clientAddress, onChange: e => setClientAddress(e.target.value), placeholder: '123 Main St' },
-          { label: 'Job Site City', value: clientCity, onChange: e => setClientCity(e.target.value), placeholder: 'City' },
-          { label: 'Job Site Zip', value: clientZip, onChange: e => setClientZip(e.target.value), placeholder: '00000' },
+          { label: 'Billing Address', value: clientAddress, onChange: e => setClientAddress(e.target.value), placeholder: '123 Main St' },
+          { label: 'City', value: clientCity, onChange: e => setClientCity(e.target.value), placeholder: 'City' },
+          { label: 'Zip', value: clientZip, onChange: e => setClientZip(e.target.value), placeholder: '00000' },
         ].map(({ label, ...props }) => (
           <div key={label}>
             <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 3 }}>{label}</label>
