@@ -48,6 +48,7 @@ const TC_QUICK_ADD = [
   { key: 'addFlagger',    label: 'Additional Flagger',        description: 'Additional Flagger',        rate: '' },
   { key: 'arrowBoard',    label: 'Arrow Board',               description: 'Arrow Board',               rate: '' },
   { key: 'msgBoard',      label: 'Message Board',             description: 'Message Board',             rate: '' },
+  { key: 'tcPlan',        label: 'Traffic Control Plan',      description: 'Traffic Control Plan',      rate: '' },
   { key: 'addEquip',      label: 'Additional Equipment',      description: 'Additional Equipment',      rate: '' },
   { key: 'equipLeftOver', label: 'Equipment Left Over Hours', description: 'Equipment Left Over Hours', rate: '' },
   { key: 'police',        label: 'Police Officers',           description: 'Police Officers',           rate: '' },
